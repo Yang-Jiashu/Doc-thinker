@@ -1,0 +1,11 @@
+include requirements.txt
+include README.md
+include README_zh.md
+include LICENSE
+include logo.png
+include env.example
+recursive-include raganything *.py
+recursive-include examples *.py
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude *.egg-info

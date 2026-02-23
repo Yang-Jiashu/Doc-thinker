@@ -1,0 +1,775 @@
+{% extends "base.html" %}
+{% block content %}
+    <!-- Page Title -->
+    <div class="mb-5">
+        <h1>
+            <i class="fa fa-project-diagram"></i> 知识图谱可视化
+        </h1>
+        <p class="text-muted">交互式展示知识图谱的实体和关系</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Visualization -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="fa fa-eye"></i> 图谱视图
+                        </h3>
+                        <div class="btn-group">
+                            <select id="graph-source-select" class="form-select form-select-sm" style="width: auto; margin-right: 10px;">
+                                <option value="global" selected>全局知识图谱</option>
+                                <option value="memory">记忆图谱 (neuro_memory)</option>
+                            </select>
+                            <button id="refresh-viz" class="btn btn-sm btn-primary">
+                                <i class="fa fa-refresh"></i> 刷新
+                            </button>
+                            <button id="export-viz" class="btn btn-sm btn-outline-primary">
+                                <i class="fa fa-download"></i> 导出
+                            </button>
+                            <button id="help-viz" class="btn btn-sm btn-outline-primary">
+                                <i class="fa fa-question-circle"></i> 帮助
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Loading State -->
+                    <div id="loading-viz" class="d-flex justify-content-center align-items-center" style="height: 500px;">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                                <span class="visually-hidden">加载中...</span>
+                            </div>
+                            <h5 class="mt-3">正在加载知识图谱</h5>
+                            <p class="text-muted">请稍候，我们正在加载知识图谱...</p>
+                        </div>
+                    </div>
+
+                    <!-- Visualization Container -->
+                    <div id="kg-viz" style="height: 500px; display: none;"></div>
+
+                    <!-- Error State -->
+                    <div id="error-viz" class="d-none text-center p-5" style="height: 500px;">
+                        <i class="fa fa-exclamation-circle fa-5x text-danger mb-3"></i>
+                        <h4>加载可视化失败</h4>
+                        <p class="text-muted mb-3">无法加载知识图谱可视化</p>
+                        <button id="retry-viz" class="btn btn-primary">
+                            <i class="fa fa-refresh"></i> 重试
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graph Stats -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa fa-bar-chart"></i> 图谱统计
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 id="total-entities" class="text-primary">0</h4>
+                                <p class="text-muted">实体总数</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 id="total-relationships" class="text-success">0</h4>
+                                <p class="text-muted">关系总数</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 id="entity-types" class="text-info">0</h4>
+                                <p class="text-muted">实体类型</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 id="relationship-types" class="text-warning">0</h4>
+                                <p class="text-muted">关系类型</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Filters -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa fa-filter"></i> 筛选器
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Entity Type Filter -->
+                    <div class="mb-3">
+                        <label for="entity-type-filter" class="form-label">实体类型</label>
+                        <select 
+                            id="entity-type-filter" 
+                            class="form-select"
+                        >
+                            <option value="all" selected>所有实体类型</option>
+                            <option value="organization">组织</option>
+                            <option value="person">人物</option>
+                            <option value="location">地点</option>
+                            <option value="product">产品</option>
+                            <option value="event">事件</option>
+                        </select>
+                    </div>
+
+                    <!-- Relationship Type Filter -->
+                    <div class="mb-3">
+                        <label for="relationship-type-filter" class="form-label">关系类型</label>
+                        <select 
+                            id="relationship-type-filter" 
+                            class="form-select"
+                        >
+                            <option value="all" selected>所有关系类型</option>
+                            <option value="produces">生产</option>
+                            <option value="located_in">位于</option>
+                            <option value="founded_by">由...创立</option>
+                            <option value="related_to">相关</option>
+                        </select>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="mb-3">
+                        <label for="search-viz" class="form-label">搜索</label>
+                        <div class="input-group">
+                            <input 
+                                type="text" 
+                                id="search-viz" 
+                                class="form-control"
+                                placeholder="搜索实体..."
+                            >
+                            <button 
+                                id="search-btn" 
+                                class="btn btn-primary"
+                            >
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Clear Filters -->
+                    <button id="clear-filters" class="btn btn-outline-secondary w-100">
+                        <i class="fa fa-times"></i> 清除所有筛选
+                    </button>
+                </div>
+            </div>
+
+            <!-- Node Details -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa fa-info-circle"></i> 节点详情
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div id="no-node-selected" class="text-center py-4">
+                        <i class="fa fa-circle-o fa-5x text-muted mb-3"></i>
+                        <h5>未选择节点</h5>
+                        <p class="text-muted">点击图谱中的节点查看其详情</p>
+                    </div>
+                    <div id="node-details" class="d-none">
+                        <h4 id="node-name" class="mb-3"></h4>
+                        <div id="node-properties" class="list-group mb-3"></div>
+                        <h5>相关节点</h5>
+                        <div id="node-related" class="list-group"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa fa-map-signs"></i> 图例
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <h6>实体类型</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle" style="width: 15px; height: 15px; background-color: #3498db; margin-right: 5px;"></div>
+                                <span>组织</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle" style="width: 15px; height: 15px; background-color: #e74c3c; margin-right: 5px;"></div>
+                                <span>人物</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle" style="width: 15px; height: 15px; background-color: #f39c12; margin-right: 5px;"></div>
+                                <span>地点</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle" style="width: 15px; height: 15px; background-color: #2ecc71; margin-right: 5px;"></div>
+                                <span>产品</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h6>关系类型</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <div class="d-flex align-items-center">
+                                <div style="width: 20px; height: 3px; background-color: #27ae60; margin-right: 5px;"></div>
+                                <span>生产</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div style="width: 20px; height: 3px; background-color: #3498db; margin-right: 5px;"></div>
+                                <span>位于</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div style="width: 20px; height: 3px; background-color: #e74c3c; margin-right: 5px;"></div>
+                                <span>由...创立</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div style="width: 20px; height: 3px; background-color: #95a5a6; margin-right: 5px;"></div>
+                                <span>相关</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="helpModalLabel">
+                        <i class="fa fa-question-circle"></i> 知识图谱帮助
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>如何使用知识图谱可视化</h6>
+                    <ul>
+                        <li><strong>点击节点</strong> - 在侧边栏查看节点详情</li>
+                        <li><strong>使用筛选器</strong> - 缩小实体和关系范围</li>
+                        <li><strong>搜索</strong> - 查找特定实体</li>
+                        <li><strong>刷新</strong> - 重新加载图谱</li>
+                        <li><strong>导出</strong> - 下载图谱为图片</li>
+                    </ul>
+                    <h6>键盘快捷键</h6>
+                    <ul>
+                        <li><strong>R</strong> - 刷新图谱</li>
+                        <li><strong>E</strong> - 导出图谱</li>
+                        <li><strong>Esc</strong> - 清除选择</li>
+                        <li><strong>H</strong> - 显示此帮助</li>
+                    </ul>
+                    <h6>节点颜色</h6>
+                    <ul>
+                        <li><strong>蓝色</strong> - 组织</li>
+                        <li><strong>红色</strong> - 人物</li>
+                        <li><strong>橙色</strong> - 地点</li>
+                        <li><strong>绿色</strong> - 产品</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <i class="fa fa-check"></i> 知道了
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Node Modal -->
+    <div class="modal fade" id="editNodeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑节点</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-node-form">
+                        <input type="hidden" id="edit-node-id">
+                        <div class="mb-3">
+                            <label for="edit-node-type" class="form-label">实体类型</label>
+                            <input type="text" class="form-control" id="edit-node-type" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-node-desc" class="form-label">描述</label>
+                            <textarea class="form-control" id="edit-node-desc" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="save-node-btn">保存更改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentGraphData = null;
+        let selectedNode = null;
+        const API_PREFIX = '{{ api_config.api_prefix }}';
+
+        // Initialize help modal
+        const helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
+        const editNodeModal = new bootstrap.Modal(document.getElementById('editNodeModal'));
+
+        // Load sessions for selector
+        async function loadSessionsForSelector() {
+            try {
+                const response = await fetch(`${API_PREFIX}/sessions`);
+                const data = await response.json();
+                const select = document.getElementById('graph-source-select');
+                
+                // Clear only session options (keep global and memory)
+                while (select.options.length > 2) {
+                    select.remove(2);
+                }
+                
+                data.sessions.forEach(session => {
+                    const option = document.createElement('option');
+                    option.value = session.id;
+                    option.textContent = `会话: ${session.title}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Failed to load sessions for selector", error);
+            }
+        }
+
+        // Show loading state
+        function showLoading() {
+            document.getElementById('loading-viz').style.display = 'flex';
+            document.getElementById('kg-viz').style.display = 'none';
+            document.getElementById('error-viz').classList.add('d-none');
+        }
+
+        // Show graph visualization
+        function showGraph() {
+            document.getElementById('loading-viz').style.display = 'none';
+            document.getElementById('kg-viz').style.display = 'block';
+            document.getElementById('error-viz').classList.add('d-none');
+        }
+
+        // Show error state
+        function showError() {
+            document.getElementById('loading-viz').style.display = 'none';
+            document.getElementById('kg-viz').style.display = 'none';
+            document.getElementById('error-viz').classList.remove('d-none');
+        }
+
+        // Update graph statistics
+        function updateGraphStats(data) {
+            document.getElementById('total-entities').textContent = data.nodes.length;
+            document.getElementById('total-relationships').textContent = data.edges.length;
+            
+            // Count unique entity types
+            const entityTypes = new Set(data.nodes.map(node => node.type));
+            document.getElementById('entity-types').textContent = entityTypes.size;
+            
+            // Count unique relationship types
+            const relTypes = new Set(data.edges.map(edge => edge.type));
+            document.getElementById('relationship-types').textContent = relTypes.size;
+        }
+
+        // Apply filters and redraw
+        function applyFilters() {
+            if (!currentGraphData) return;
+            
+            const entityType = document.getElementById('entity-type-filter').value;
+            const relationshipType = document.getElementById('relationship-type-filter').value;
+            const searchTerm = document.getElementById('search-viz').value.toLowerCase();
+            
+            // Filter nodes
+            let filteredNodes = currentGraphData.nodes.filter(node => {
+                // Type filter
+                if (entityType !== 'all' && node.type !== entityType) return false;
+                
+                // Search filter
+                if (searchTerm && !node.label.toLowerCase().includes(searchTerm)) return false;
+                
+                return true;
+            });
+            
+            // Filter edges
+            let filteredEdges = currentGraphData.edges.filter(edge => {
+                // Type filter
+                if (relationshipType !== 'all' && edge.type !== relationshipType) return false;
+                
+                // Connectivity filter (both nodes must exist in filtered nodes)
+                const sourceExists = filteredNodes.some(n => n.id === edge.source);
+                const targetExists = filteredNodes.some(n => n.id === edge.target);
+                
+                return sourceExists && targetExists;
+            });
+            
+            // Update stats based on filtered data
+            updateGraphStats({ nodes: filteredNodes, edges: filteredEdges });
+            
+            // Draw
+            drawGraph(filteredNodes, filteredEdges);
+        }
+
+        function drawGraph(nodes, edges) {
+            const vizContainer = document.getElementById('kg-viz');
+            vizContainer.innerHTML = '';
+            
+            const width = vizContainer.clientWidth;
+            const height = vizContainer.clientHeight;
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            svg.setAttribute('style', 'background-color: #fafafa; border-radius: 8px;');
+            
+            // Layout (Circular)
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(centerX, centerY) - 50;
+            
+            nodes.forEach((node, index) => {
+                const angle = (index / nodes.length) * 2 * Math.PI;
+                node.x = centerX + radius * Math.cos(angle);
+                node.y = centerY + radius * Math.sin(angle);
+            });
+            
+            // Draw edges
+            edges.forEach(edge => {
+                const sourceNode = nodes.find(n => n.id === edge.source);
+                const targetNode = nodes.find(n => n.id === edge.target);
+                if (sourceNode && targetNode) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', sourceNode.x);
+                    line.setAttribute('y1', sourceNode.y);
+                    line.setAttribute('x2', targetNode.x);
+                    line.setAttribute('y2', targetNode.y);
+                    line.setAttribute('stroke', edge.color);
+                    line.setAttribute('stroke-width', edge.width);
+                    line.setAttribute('opacity', '0.7');
+                    line.setAttribute('class', 'relationship-line');
+                    svg.appendChild(line);
+                }
+            });
+            
+            // Draw nodes
+            nodes.forEach(node => {
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', node.x);
+                circle.setAttribute('cy', node.y);
+                circle.setAttribute('r', 25);
+                circle.setAttribute('fill', node.color);
+                circle.setAttribute('stroke', '#333');
+                circle.setAttribute('stroke-width', '2');
+                circle.setAttribute('class', 'entity-node cursor-pointer');
+                circle.setAttribute('data-id', node.id);
+                circle.addEventListener('click', () => selectNode(node));
+                svg.appendChild(circle);
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', node.x);
+                text.setAttribute('y', node.y + 5);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('font-size', '12');
+                text.setAttribute('fill', 'white');
+                text.setAttribute('pointer-events', 'none');
+                text.textContent = node.label;
+                svg.appendChild(text);
+            });
+            
+            vizContainer.appendChild(svg);
+        }
+
+        // Render knowledge graph (Fetcher)
+        async function renderKnowledgeGraph() {
+            showLoading();
+            const source = document.getElementById('graph-source-select').value;
+            let url;
+            if (source === 'memory') {
+                url = `${API_PREFIX}/graph/memory/graph-data`;
+            } else {
+                url = `${API_PREFIX}/knowledge-graph/data`;
+                if (source !== 'global') {
+                    url += `?session_id=${source}`;
+                }
+            }
+
+            try {
+                const vizData = await fetchData(url);
+                currentGraphData = vizData;
+                applyFilters(); // Draw with current filters
+                showGraph();
+                showAlert(source === 'memory' ? '记忆图谱加载成功！' : '知识图谱加载成功！', 'success');
+            } catch (error) {
+                console.error('Error rendering knowledge graph:', error);
+                showError();
+                showAlert('加载图谱可视化失败。', 'danger');
+            }
+        }
+
+        // Select a node
+        function selectNode(node) {
+            selectedNode = node.id;
+            
+            // Update node details
+            document.getElementById('no-node-selected').classList.add('d-none');
+            document.getElementById('node-details').classList.remove('d-none');
+            
+            // Update node name
+            document.getElementById('node-name').innerHTML = `
+                ${node.label}
+                <button class="btn btn-sm btn-outline-primary float-end" onclick="openEditNodeModal('${node.id}', '${node.type}')">
+                    <i class="fa fa-edit"></i> 编辑
+                </button>
+            `;
+            
+            // Update node properties
+            const properties = document.getElementById('node-properties');
+            properties.innerHTML = `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><strong>ID</strong></span>
+                    <code>${node.id}</code>
+                </div>
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><strong>类型</strong></span>
+                    <span class="badge bg-primary">${node.type}</span>
+                </div>
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><strong>大小</strong></span>
+                    <span>${node.size}</span>
+                </div>
+            `;
+            
+            // Update related nodes
+            const related = document.getElementById('node-related');
+            related.innerHTML = '';
+            
+            // Find related nodes
+            if (currentGraphData) {
+                const relatedEdges = currentGraphData.edges.filter(edge => 
+                    edge.source === node.id || edge.target === node.id
+                );
+                
+                relatedEdges.forEach(edge => {
+                    const relatedNodeId = edge.source === node.id ? edge.target : edge.source;
+                    const relatedNode = currentGraphData.nodes.find(n => n.id === relatedNodeId);
+                    
+                    if (relatedNode) {
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+                        item.innerHTML = `
+                            <div style="cursor: pointer;" onclick="centerOnNode('${relatedNodeId}')">
+                                <strong>${relatedNode.label}</strong>
+                                <br>
+                                <small class="text-muted">${edge.label}</small>
+                            </div>
+                            <div>
+                                <span class="badge bg-secondary me-2">${relatedNode.type}</span>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteEdge('${edge.source}', '${edge.target}')" title="删除关系">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                        related.appendChild(item);
+                    }
+                });
+            }
+            
+            // Highlight the selected node
+            updateNodeHighlight(node.id);
+        }
+
+        function centerOnNode(nodeId) {
+             const node = currentGraphData.nodes.find(n => n.id === nodeId);
+             if (node) {
+                 selectNode(node);
+                 showAlert(`已跳转至: ${node.label}`, 'info');
+             }
+        }
+
+        function updateNodeHighlight(nodeId) {
+            const nodes = document.querySelectorAll('.entity-node');
+            nodes.forEach(n => {
+                if (n.getAttribute('data-id') === nodeId) {
+                    n.style.transform = 'scale(1.1)';
+                    n.style.stroke = '#007bff';
+                    n.style.strokeWidth = '3';
+                } else {
+                    n.style.transform = 'scale(1)';
+                    n.style.stroke = '#333';
+                    n.style.strokeWidth = '2';
+                }
+            });
+        }
+
+        // Open Edit Modal
+        window.openEditNodeModal = function(id, type) {
+            document.getElementById('edit-node-id').value = id;
+            document.getElementById('edit-node-type').value = type;
+            document.getElementById('edit-node-desc').value = ''; // TODO: Load description if available
+            editNodeModal.show();
+        }
+
+        // Save Node Changes
+        document.getElementById('save-node-btn').addEventListener('click', async () => {
+            const id = document.getElementById('edit-node-id').value;
+            const type = document.getElementById('edit-node-type').value;
+            const desc = document.getElementById('edit-node-desc').value;
+            
+            try {
+                const response = await fetch(`${API_PREFIX}/knowledge-graph/entity/${encodeURIComponent(id)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ entity_type: type, description: desc })
+                });
+                
+                if (response.ok) {
+                    showAlert('节点更新成功', 'success');
+                    editNodeModal.hide();
+                    renderKnowledgeGraph(); // Refresh graph
+                    
+                    // Re-select node to update details
+                    setTimeout(() => {
+                        const node = currentGraphData.nodes.find(n => n.id === id);
+                        if(node) selectNode(node);
+                    }, 500);
+                } else {
+                    showAlert('更新失败', 'danger');
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('更新请求出错', 'danger');
+            }
+        });
+
+        // Delete Relationship
+        window.deleteEdge = async function(source, target) {
+            if(!confirm('确定要删除这条关系吗？')) return;
+            
+            try {
+                const response = await fetch(`${API_PREFIX}/knowledge-graph/relationship?source=${encodeURIComponent(source)}&target=${encodeURIComponent(target)}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showAlert('关系删除成功', 'success');
+                    renderKnowledgeGraph();
+                    // Refresh current selection
+                    if (selectedNode) {
+                         setTimeout(() => {
+                            const node = currentGraphData.nodes.find(n => n.id === selectedNode);
+                            if(node) selectNode(node);
+                        }, 500);
+                    }
+                } else {
+                    showAlert('删除失败', 'danger');
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('删除请求出错', 'danger');
+            }
+        }
+
+        // Clear node selection
+        function clearSelection() {
+            selectedNode = null;
+            document.getElementById('node-details').classList.add('d-none');
+            document.getElementById('no-node-selected').classList.remove('d-none');
+            
+            // Reset node styles
+            const nodes = document.querySelectorAll('.entity-node');
+            nodes.forEach(n => {
+                n.style.transform = 'scale(1)';
+                n.style.stroke = '#333';
+                n.style.strokeWidth = '2';
+            });
+        }
+
+        // Export visualization
+        function exportVisualization() {
+            showAlert('导出功能将在此处实现。', 'info');
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load sessions
+            loadSessionsForSelector();
+            
+            // Initial render
+            renderKnowledgeGraph();
+            
+            // Source selector change
+            document.getElementById('graph-source-select').addEventListener('change', renderKnowledgeGraph);
+            
+            // Refresh button
+            document.getElementById('refresh-viz').addEventListener('click', renderKnowledgeGraph);
+            
+            // Retry button
+            document.getElementById('retry-viz').addEventListener('click', renderKnowledgeGraph);
+            
+            // Export button
+            document.getElementById('export-viz').addEventListener('click', exportVisualization);
+            
+            // Help button
+            document.getElementById('help-viz').addEventListener('click', () => {
+                helpModal.show();
+            });
+            
+            // Clear filters button
+            document.getElementById('clear-filters').addEventListener('click', () => {
+                document.getElementById('entity-type-filter').value = 'all';
+                document.getElementById('relationship-type-filter').value = 'all';
+                document.getElementById('search-viz').value = '';
+                clearSelection();
+                renderKnowledgeGraph();
+                showAlert('筛选器已清除！', 'success');
+            });
+            
+            // Search button
+            document.getElementById('search-btn').addEventListener('click', () => {
+                const searchTerm = document.getElementById('search-viz').value;
+                if (searchTerm) {
+                    showAlert(`正在搜索: ${searchTerm}`, 'info');
+                    // Implement search functionality here
+                }
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'r' || e.key === 'R') {
+                    renderKnowledgeGraph();
+                } else if (e.key === 'e' || e.key === 'E') {
+                    exportVisualization();
+                } else if (e.key === 'Escape') {
+                    clearSelection();
+                } else if (e.key === 'h' || e.key === 'H') {
+                    helpModal.show();
+                }
+            });
+            
+            // Filter change listeners
+            document.getElementById('entity-type-filter').addEventListener('change', () => {
+                applyFilters();
+            });
+            
+            document.getElementById('relationship-type-filter').addEventListener('change', () => {
+                applyFilters();
+            });
+            
+            // Search input listener
+            document.getElementById('search-viz').addEventListener('input', () => {
+                applyFilters();
+            });
+        });
+    </script>
+{% endblock %}

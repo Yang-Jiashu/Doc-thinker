@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block content %}
+    <!-- Welcome Section -->
+    <div class="mb-5">
+        <h1 class="mb-2">欢迎使用 whitecat 智能系统</h1>
+        <p class="text-muted">先进的知识图谱与多模态智能分析平台，用于智能问答与洞察</p>
+    </div>
+
+    <!-- Knowledge Graph Stats -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="mb-0">
+                <i class="fa fa-chart-line"></i> 知识图谱状态
+            </h3>
+        </div>
+        <div class="card-body">
+            <div id="kg-stats" class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">--</div>
+                    <div class="stat-label">实体总数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">--</div>
+                    <div class="stat-label">关系总数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">--</div>
+                    <div class="stat-label">已验证关系</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">--</div>
+                    <div class="stat-label">实体类型</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="mb-0">
+                <i class="fa fa-rocket"></i> 快速操作
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <a href="{{ url_for('query_page') }}" class="btn btn-primary btn-lg w-100 h-100 d-flex flex-column justify-content-center align-items-center">
+                        <i class="fa fa-search fa-2x mb-2"></i>
+                        查询测试
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('knowledge_graph_page') }}" class="btn btn-success btn-lg w-100 h-100 d-flex flex-column justify-content-center align-items-center">
+                        <i class="fa fa-project-diagram fa-2x mb-2"></i>
+                        查看知识图谱
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('version_control_page') }}" class="btn btn-warning btn-lg w-100 h-100 d-flex flex-column justify-content-center align-items-center">
+                        <i class="fa fa-history fa-2x mb-2"></i>
+                        管理版本
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('config_page') }}" class="btn btn-info btn-lg w-100 h-100 d-flex flex-column justify-content-center align-items-center">
+                        <i class="fa fa-cog fa-2x mb-2"></i>
+                        配置设置
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Overview -->
+    <div class="row g-4">
+        <!-- Features Section -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa fa-star"></i> 核心功能
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fa fa-check-circle text-success fa-2x me-3"></i>
+                            <div>
+                                <strong>先进的知识图谱</strong>
+                                <p class="mb-0 text-muted">具有实体和关系的分层存储结构</p>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fa fa-check-circle text-success fa-2x me-3"></i>
+                            <div>
+                                <strong>智能查询引擎</strong>
+                                <p class="mb-0 text-muted">多维搜索与知识推理</p>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fa fa-check-circle text-success fa-2x me-3"></i>
+                            <div>
+                                <strong>实体链接与消歧</strong>
+                                <p class="mb-0 text-muted">准确的实体识别和链接</p>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fa fa-check-circle text-success fa-2x me-3"></i>
+                            <div>
+                                <strong>版本控制</strong>
+                                <p class="mb-0 text-muted">知识图谱状态的快照与恢复</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa fa-bell"></i> 最近活动
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">知识图谱创建</h6>
+                                <small class="text-muted">2小时前</small>
+                            </div>
+                            <p class="mb-1 text-muted">初始知识图谱已创建，包含150个实体和320个关系。</p>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">查询已执行</h6>
+                                <small class="text-muted">4小时前</small>
+                            </div>
+                            <p class="mb-1 text-muted">文本查询已成功处理，置信度分数为0.85。</p>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">快照已创建</h6>
+                                <small class="text-muted">6小时前</small>
+                            </div>
+                            <p class="mb-1 text-muted">知识图谱快照已保存，版本为v1.0。</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch and display knowledge graph stats
+        async function loadKGStats() {
+            try {
+                // Show loading spinner
+                const statCards = document.querySelectorAll('#kg-stats .stat-value');
+                statCards.forEach(card => {
+                    card.textContent = '<div class="spinner" style="width: 20px; height: 20px; margin: 0 auto;"></div>';
+                });
+                
+                const stats = await fetchData('{{ api_config.api_prefix }}/knowledge-graph/stats');
+                
+                // Update stats
+                document.querySelectorAll('#kg-stats .stat-value')[0].textContent = stats.total_entities;
+                document.querySelectorAll('#kg-stats .stat-value')[1].textContent = stats.total_relationships;
+                document.querySelectorAll('#kg-stats .stat-value')[2].textContent = stats.validated_relationships;
+                document.querySelectorAll('#kg-stats .stat-value')[3].textContent = Object.keys(stats.entity_types).length;
+                
+                showAlert('知识图谱统计数据加载成功！', 'success');
+            } catch (error) {
+                console.error('Error loading KG stats:', error);
+                // Show default values
+                document.querySelectorAll('#kg-stats .stat-value')[0].textContent = '150';
+                document.querySelectorAll('#kg-stats .stat-value')[1].textContent = '320';
+                document.querySelectorAll('#kg-stats .stat-value')[2].textContent = '280';
+                document.querySelectorAll('#kg-stats .stat-value')[3].textContent = '5';
+                
+                showAlert('正在使用知识图谱模拟数据。', 'info');
+            }
+        }
+        
+        // Load stats on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadKGStats();
+        });
+    </script>
+{% endblock %}

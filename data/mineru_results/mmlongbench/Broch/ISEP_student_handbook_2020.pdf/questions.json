@@ -1,0 +1,49 @@
+{
+  "doc_id": "ISEP_student_handbook_2020.pdf",
+  "doc_type": "Brochure",
+  "category": "Broch",
+  "qa": [
+    {
+      "question": "Which compulsory ISEP courses does the students must have? Write the answer in list format in ascending order. ",
+      "answer": "['GS5002', 'GS6001', 'GS6883A', 'GS5101']",
+      "evidence_pages": "[3]",
+      "evidence_sources": "['Table', 'Pure-text (Plain-text)']",
+      "answer_format": "List"
+    },
+    {
+      "question": "Which compulsory SoC courses does the students must have? Write the answer in list format in ascending order. ",
+      "answer": "Not answerable",
+      "evidence_pages": "[]",
+      "evidence_sources": "[]",
+      "answer_format": "None"
+    },
+    {
+      "question": "What is the first date for January intake students to start the second FYP project?",
+      "answer": "Not answerable",
+      "evidence_pages": "[]",
+      "evidence_sources": "[]",
+      "answer_format": "None"
+    },
+    {
+      "question": "How many areas do the course requiremnt have?",
+      "answer": "4",
+      "evidence_pages": "[3, 4, 5]",
+      "evidence_sources": "['Table']",
+      "answer_format": "Int"
+    },
+    {
+      "question": "What is the maximum hours of ISEP buddy scheme does a Singaporean ISEP students require to do?",
+      "answer": "10",
+      "evidence_pages": "[9, 10]",
+      "evidence_sources": "['Pure-text (Plain-text)', 'Table']",
+      "answer_format": "Int"
+    },
+    {
+      "question": "What is the deadline  month of the January intake ISEP students need to nominate supervisors and nominations of tac? Write the answer in list format, e.g., [\"Jan\",\"Feb\"]",
+      "answer": "['Jun', 'Aug']",
+      "evidence_pages": "[13]",
+      "evidence_sources": "['Chart', 'Pure-text (Plain-text)']",
+      "answer_format": "List"
+    }
+  ]
+}

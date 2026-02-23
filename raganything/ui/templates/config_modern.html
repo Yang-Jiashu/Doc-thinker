@@ -1,0 +1,136 @@
+{% extends "base_modern.html" %}
+
+{% block title %}设置 - NeuroAgent{% endblock %}
+
+{% block content %}
+<header class="bg-white border-b border-slate-200 px-6 py-4">
+    <div>
+        <h2 class="text-lg font-semibold text-slate-800">系统设置</h2>
+        <p class="text-sm text-slate-500">配置 API 密钥和系统参数</p>
+    </div>
+</header>
+
+<div class="flex-1 overflow-y-auto p-6">
+    <div class="max-w-2xl mx-auto space-y-6">
+        <!-- API Settings -->
+        <div class="card">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 rounded-t-xl">
+                <h3 class="font-semibold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-key text-blue-500"></i>
+                    API 配置
+                </h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">OpenAI API Key</label>
+                    <div class="relative">
+                        <input type="password" id="api-key" placeholder="sk-..." 
+                            class="input-field w-full px-4 py-2 rounded-lg text-sm">
+                        <button onclick="toggleVisibility('api-key')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">模型选择</label>
+                    <select class="input-field w-full px-4 py-2 rounded-lg text-sm bg-white">
+                        <option>gpt-4</option>
+                        <option>gpt-4-turbo</option>
+                        <option>gpt-3.5-turbo</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Memory Settings -->
+        <div class="card">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 rounded-t-xl">
+                <h3 class="font-semibold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-brain text-purple-500"></i>
+                    记忆设置
+                </h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div>
+                        <p class="font-medium text-slate-700">层次化知识图谱</p>
+                        <p class="text-sm text-slate-500">启用 L1-L2-L3 三层结构</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div>
+                        <p class="font-medium text-slate-700">自动关联</p>
+                        <p class="text-sm text-slate-500">自动建立知识关联</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Storage -->
+        <div class="card">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 rounded-t-xl">
+                <h3 class="font-semibold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-database text-green-500"></i>
+                    存储
+                </h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    <div class="text-center p-4 bg-slate-50 rounded-lg">
+                        <p class="text-xl font-bold text-blue-600">128 MB</p>
+                        <p class="text-xs text-slate-500">知识库</p>
+                    </div>
+                    <div class="text-center p-4 bg-slate-50 rounded-lg">
+                        <p class="text-xl font-bold text-purple-600">2.4 GB</p>
+                        <p class="text-xs text-slate-500">文档</p>
+                    </div>
+                    <div class="text-center p-4 bg-slate-50 rounded-lg">
+                        <p class="text-xl font-bold text-green-600">1,247</p>
+                        <p class="text-xs text-slate-500">实体</p>
+                    </div>
+                </div>
+                <button onclick="clearCache()" class="w-full py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm">
+                    清空缓存
+                </button>
+            </div>
+        </div>
+        
+        <!-- Save Button -->
+        <div class="flex justify-end gap-3">
+            <button onclick="resetSettings()" class="btn-secondary px-6 py-2 rounded-lg text-sm">重置</button>
+            <button onclick="saveSettings()" class="btn-primary px-6 py-2 rounded-lg text-sm">保存设置</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleVisibility(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function saveSettings() {
+    showToast('设置已保存', 'success');
+}
+
+function resetSettings() {
+    if (confirm('确定要重置所有设置吗？')) {
+        showToast('设置已重置', 'info');
+    }
+}
+
+function clearCache() {
+    if (confirm('确定要清空缓存吗？')) {
+        showToast('缓存已清空', 'success');
+    }
+}
+</script>
+{% endblock %}

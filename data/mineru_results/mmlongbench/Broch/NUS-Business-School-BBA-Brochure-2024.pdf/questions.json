@@ -1,0 +1,49 @@
+{
+  "doc_id": "NUS-Business-School-BBA-Brochure-2024.pdf",
+  "doc_type": "Brochure",
+  "category": "Broch",
+  "qa": [
+    {
+      "question": "From 2022 graduate employment survey,  graduates with which degree have the highest average monthly salary?",
+      "answer": "BBA - Bachelor of Business Administration",
+      "evidence_pages": "[3]",
+      "evidence_sources": "['Chart']",
+      "answer_format": "Str"
+    },
+    {
+      "question": "From 2022 graduate employment survey,  do graduates with BBA (Hon) degree have the highest average monthly salary?",
+      "answer": "Not answerable",
+      "evidence_pages": "[]",
+      "evidence_sources": "[]",
+      "answer_format": "None"
+    },
+    {
+      "question": "What are the representative courses for majors that need 64 major curriculum units?",
+      "answer": "['Land Law', 'Urban Economics', 'Real Estate Investment Analysis', 'Urban Planning', 'Principles of Real Estate Valuation', 'REIT and Business Trust Management']",
+      "evidence_pages": "[7, 8]",
+      "evidence_sources": "['Generalized-text (Layout)']",
+      "answer_format": "List"
+    },
+    {
+      "question": "How many social media accounts might NUS Business School have?",
+      "answer": "3",
+      "evidence_pages": "[24]",
+      "evidence_sources": "['Figure']",
+      "answer_format": "Int"
+    },
+    {
+      "question": "In the photo provided by BRYAN VOON,  how many different people are there wearing glasses?",
+      "answer": "3",
+      "evidence_pages": "[22]",
+      "evidence_sources": "['Figure']",
+      "answer_format": "Int"
+    },
+    {
+      "question": "How many weeks do students need to reach work experience milestone and get 8 units?",
+      "answer": "16",
+      "evidence_pages": "[11, 16]",
+      "evidence_sources": "['Figure', 'Generalized-text (Layout)']",
+      "answer_format": "Int"
+    }
+  ]
+}

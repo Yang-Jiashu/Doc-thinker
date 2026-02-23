@@ -1,0 +1,560 @@
+{% extends "base.html" %}
+{% block content %}
+    <!-- Page Title -->
+    <div class="mb-5">
+        <h1>
+            <i class="fa fa-exchange-alt"></i> 关系管理
+        </h1>
+        <p class="text-muted">管理知识图谱关系，支持搜索、筛选和验证功能</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+                    <button id="add-relationship-btn" class="btn btn-primary">
+                        <i class="fa fa-plus"></i> 添加关系
+                    </button>
+                    <button id="refresh-relationships-btn" class="btn btn-outline-primary">
+                        <i class="fa fa-refresh"></i> 刷新
+                    </button>
+                    <button id="export-relationships-btn" class="btn btn-outline-primary">
+                        <i class="fa fa-download"></i> 导出
+                    </button>
+                </div>
+                
+                <!-- Search and Filter -->
+                <div class="d-flex gap-2">
+                    <div class="input-group" style="width: 300px;">
+                        <input 
+                            type="text" 
+                            id="relationship-search" 
+                            class="form-control"
+                            placeholder="搜索关系..."
+                        >
+                        <button 
+                            id="search-btn" 
+                            class="btn btn-primary"
+                        >
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                    <select id="relationship-type-filter" class="form-select" style="width: 150px;">
+                        <option value="all" selected>所有类型</option>
+                        <option value="produces">生产</option>
+                        <option value="located_in">位于</option>
+                        <option value="founded_by">由...创立</option>
+                        <option value="related_to">相关</option>
+                    </select>
+                    <select id="validation-filter" class="form-select" style="width: 150px;">
+                        <option value="all" selected>所有验证状态</option>
+                        <option value="validated">已验证</option>
+                        <option value="unvalidated">未验证</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Relationship List -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">
+                <i class="fa fa-list"></i> 关系列表
+                <span id="relationship-count" class="badge bg-primary float-end">0</span>
+            </h3>
+        </div>
+        <div class="card-body p-0">
+            <!-- Loading State -->
+            <div id="loading-relationships" class="text-center py-5">
+                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <h5 class="mt-3">正在加载关系</h5>
+                <p class="text-muted">请稍候，我们正在加载关系...</p>
+            </div>
+
+            <!-- Relationship Table -->
+            <div id="relationships-container" class="d-none">
+                <table id="relationships-table" class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>源实体</th>
+                            <th>关系类型</th>
+                            <th>目标实体</th>
+                            <th>验证状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="relationships-list"></tbody>
+                </table>
+            </div>
+
+            <!-- No Relationships State -->
+            <div id="no-relationships" class="d-none text-center py-5">
+                <i class="fa fa-search fa-5x text-muted mb-3"></i>
+                <h4>未找到关系</h4>
+                <p class="text-muted">尝试调整搜索或筛选条件</p>
+                <button id="reset-filters-btn" class="btn btn-primary mt-2">
+                    <i class="fa fa-filter"></i> 重置筛选
+                </button>
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="d-none d-flex justify-content-between align-items-center p-3 border-top">
+                <div>
+                    显示 <span id="showing-start">0</span> 到 <span id="showing-end">0</span> 条，共 <span id="total-relationships">0</span> 条关系
+                </div>
+                <nav aria-label="Relationship pagination">
+                    <ul class="pagination mb-0">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                                <i class="fa fa-chevron-left"></i> 上一页
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">下一页 <i class="fa fa-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Relationship Details Modal -->
+    <div class="modal fade" id="relationship-modal" tabindex="-1" aria-labelledby="relationship-modal-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="relationship-modal-label">
+                        <i class="fa fa-plus"></i> 添加关系
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <form id="relationship-form">
+                    <div class="modal-body">
+                        <input type="hidden" id="relationship-id">
+                        
+                        <div class="mb-3">
+                            <label for="source-entity" class="form-label">源实体</label>
+                            <select 
+                                id="source-entity" 
+                                name="source-entity" 
+                                class="form-select"
+                                required
+                            >
+                                <option value="" selected disabled>选择源实体</option>
+                                <option value="Apple Inc.">Apple Inc.</option>
+                                <option value="Google">Google</option>
+                                <option value="Tesla">Tesla</option>
+                                <option value="SpaceX">SpaceX</option>
+                                <option value="Microsoft">Microsoft</option>
+                                <option value="Tim Cook">Tim Cook</option>
+                                <option value="Larry Page">Larry Page</option>
+                                <option value="Elon Musk">Elon Musk</option>
+                                <option value="Bill Gates">Bill Gates</option>
+                                <option value="Cupertino">Cupertino</option>
+                                <option value="Mountain View">Mountain View</option>
+                                <option value="iPhone">iPhone</option>
+                                <option value="iPad">iPad</option>
+                                <option value="Android">Android</option>
+                                <option value="Starship">Starship</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="relationship-type" class="form-label">关系类型</label>
+                            <select 
+                                id="relationship-type" 
+                                name="relationship-type" 
+                                class="form-select"
+                                required
+                            >
+                                <option value="" selected disabled>选择关系类型</option>
+                                <option value="produces">生产</option>
+                                <option value="located_in">位于</option>
+                                <option value="founded_by">由...创立</option>
+                                <option value="related_to">相关</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="target-entity" class="form-label">目标实体</label>
+                            <select 
+                                id="target-entity" 
+                                name="target-entity" 
+                                class="form-select"
+                                required
+                            >
+                                <option value="" selected disabled>选择目标实体</option>
+                                <option value="Apple Inc.">Apple Inc.</option>
+                                <option value="Google">Google</option>
+                                <option value="Tesla">Tesla</option>
+                                <option value="SpaceX">SpaceX</option>
+                                <option value="Microsoft">Microsoft</option>
+                                <option value="Tim Cook">Tim Cook</option>
+                                <option value="Larry Page">Larry Page</option>
+                                <option value="Elon Musk">Elon Musk</option>
+                                <option value="Bill Gates">Bill Gates</option>
+                                <option value="Cupertino">Cupertino</option>
+                                <option value="Mountain View">Mountain View</option>
+                                <option value="iPhone">iPhone</option>
+                                <option value="iPad">iPad</option>
+                                <option value="Android">Android</option>
+                                <option value="Starship">Starship</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="validation-status" class="form-label">验证状态</label>
+                            <select 
+                                id="validation-status" 
+                                name="validation-status" 
+                                class="form-select"
+                                required
+                            >
+                                <option value="false" selected>未验证</option>
+                                <option value="true">已验证</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="relationship-description" class="form-label">描述</label>
+                            <textarea 
+                                id="relationship-description" 
+                                name="relationship-description" 
+                                class="form-control"
+                                rows="3"
+                                placeholder="输入关系描述（可选）"
+                            ></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fa fa-times"></i> 取消
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-save"></i> 保存关系
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentRelationships = [];
+        let filteredRelationships = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        const relationshipModal = new bootstrap.Modal(document.getElementById('relationship-modal'));
+
+        // Mock relationship data
+        const mockRelationships = [
+            { id: '1', source: 'Apple Inc.', type: 'produces', target: 'iPhone', validated: true, description: '苹果生产 iPhone' },
+            { id: '2', source: 'Apple Inc.', type: 'produces', target: 'iPad', validated: true, description: '苹果生产 iPad' },
+            { id: '3', source: 'Apple Inc.', type: 'located_in', target: 'Cupertino', validated: true, description: '苹果位于 Cupertino' },
+            { id: '4', source: 'Tim Cook', type: 'founded_by', target: 'Apple Inc.', validated: true, description: 'Tim Cook 是苹果 CEO' },
+            { id: '5', source: 'iPhone', type: 'related_to', target: 'iPad', validated: false, description: 'iPhone 与 iPad 相关' },
+            { id: '6', source: 'Google', type: 'produces', target: 'Android', validated: true, description: 'Google 生产 Android' },
+            { id: '7', source: 'Google', type: 'located_in', target: 'Mountain View', validated: true, description: 'Google 位于 Mountain View' },
+            { id: '8', source: 'Larry Page', type: 'founded_by', target: 'Google', validated: true, description: 'Larry Page 是 Google 联合创始人' },
+            { id: '9', source: 'Tesla', type: 'located_in', target: 'Palo Alto', validated: true, description: '特斯拉位于 Palo Alto' },
+            { id: '10', source: 'Elon Musk', type: 'founded_by', target: 'Tesla', validated: true, description: 'Elon Musk 是特斯拉 CEO' },
+            { id: '11', source: 'Elon Musk', type: 'founded_by', target: 'SpaceX', validated: true, description: 'Elon Musk 是 SpaceX CEO' },
+            { id: '12', source: 'SpaceX', type: 'produces', target: 'Starship', validated: false, description: 'SpaceX 生产 Starship' },
+            { id: '13', source: 'Microsoft', type: 'located_in', target: 'Redmond', validated: true, description: '微软位于 Redmond' },
+            { id: '14', source: 'Bill Gates', type: 'founded_by', target: 'Microsoft', validated: true, description: 'Bill Gates 是微软联合创始人' },
+            { id: '15', source: 'Android', type: 'related_to', target: 'iPhone', validated: false, description: 'Android 与 iPhone 相关' }
+        ];
+
+        // Render relationship list
+        function renderRelationships() {
+            const relationshipList = document.getElementById('relationships-list');
+            const relationshipsContainer = document.getElementById('relationships-container');
+            const loadingContainer = document.getElementById('loading-relationships');
+            const noRelationshipsContainer = document.getElementById('no-relationships');
+            const paginationContainer = document.getElementById('pagination');
+            const relationshipCount = document.getElementById('relationship-count');
+            const showingStart = document.getElementById('showing-start');
+            const showingEnd = document.getElementById('showing-end');
+            const totalRelationships = document.getElementById('total-relationships');
+
+            // Show loading state
+            loadingContainer.classList.remove('d-none');
+            relationshipsContainer.classList.add('d-none');
+            noRelationshipsContainer.classList.add('d-none');
+            paginationContainer.classList.add('d-none');
+
+            // Simulate API call delay
+            setTimeout(() => {
+                // Filter relationships based on search, type and validation
+                const searchTerm = document.getElementById('relationship-search').value.toLowerCase();
+                const typeFilter = document.getElementById('relationship-type-filter').value;
+                const validationFilter = document.getElementById('validation-filter').value;
+
+                filteredRelationships = currentRelationships.filter(relationship => {
+                    const matchesSearch = !searchTerm || 
+                        relationship.source.toLowerCase().includes(searchTerm) ||
+                        relationship.type.toLowerCase().includes(searchTerm) ||
+                        relationship.target.toLowerCase().includes(searchTerm);
+                    const matchesType = typeFilter === 'all' || relationship.type === typeFilter;
+                    const matchesValidation = 
+                        validationFilter === 'all' ||
+                        (validationFilter === 'validated' && relationship.validated) ||
+                        (validationFilter === 'unvalidated' && !relationship.validated);
+                    return matchesSearch && matchesType && matchesValidation;
+                });
+
+                // Update relationship count
+                relationshipCount.textContent = filteredRelationships.length;
+
+                // Pagination
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const paginatedRelationships = filteredRelationships.slice(startIndex, endIndex);
+
+                // Render relationships
+                if (paginatedRelationships.length > 0) {
+                    relationshipList.innerHTML = paginatedRelationships.map(relationship => `
+                        <tr>
+                            <td>
+                                <strong>${relationship.source}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">${relationship.type}</span>
+                            </td>
+                            <td>
+                                <strong>${relationship.target}</strong>
+                            </td>
+                            <td>
+                                ${relationship.validated ? 
+                                    '<span class="badge bg-success">✓ 已验证</span>' : 
+                                    '<span class="badge bg-warning">✗ 未验证</span>'
+                                }
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button 
+                                        class="btn btn-sm btn-outline-primary edit-relationship-btn"
+                                        data-id="${relationship.id}"
+                                    >
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                    ${!relationship.validated ? 
+                                        `<button 
+                                            class="btn btn-sm btn-outline-success validate-relationship-btn"
+                                            data-id="${relationship.id}"
+                                        >
+                                            <i class="fa fa-check"></i>
+                                        </button>` : ''
+                                    }
+                                    <button 
+                                        class="btn btn-sm btn-outline-danger delete-relationship-btn"
+                                        data-id="${relationship.id}"
+                                    >
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    // Show relationships and pagination
+                    relationshipsContainer.classList.remove('d-none');
+                    paginationContainer.classList.remove('d-none');
+                    
+                    // Update pagination info
+                    showingStart.textContent = startIndex + 1;
+                    showingEnd.textContent = Math.min(endIndex, filteredRelationships.length);
+                    totalRelationships.textContent = filteredRelationships.length;
+                } else {
+                    // Show no relationships state
+                    noRelationshipsContainer.classList.remove('d-none');
+                }
+
+                // Hide loading state
+                loadingContainer.classList.add('d-none');
+
+                // Add event listeners to action buttons
+                addRelationshipActionListeners();
+            }, 500);
+        }
+
+        // Add event listeners to relationship action buttons
+        function addRelationshipActionListeners() {
+            // Edit buttons
+            document.querySelectorAll('.edit-relationship-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const relationshipId = this.getAttribute('data-id');
+                    editRelationship(relationshipId);
+                });
+            });
+
+            // Validate buttons
+            document.querySelectorAll('.validate-relationship-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const relationshipId = this.getAttribute('data-id');
+                    validateRelationship(relationshipId);
+                });
+            });
+
+            // Delete buttons
+            document.querySelectorAll('.delete-relationship-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const relationshipId = this.getAttribute('data-id');
+                    deleteRelationship(relationshipId);
+                });
+            });
+        }
+
+        // Load relationships
+        function loadRelationships() {
+            currentRelationships = mockRelationships;
+            renderRelationships();
+        }
+
+        // Edit relationship
+        function editRelationship(id) {
+            const relationship = currentRelationships.find(r => r.id === id);
+            if (relationship) {
+                document.getElementById('relationship-id').value = relationship.id;
+                document.getElementById('source-entity').value = relationship.source;
+                document.getElementById('relationship-type').value = relationship.type;
+                document.getElementById('target-entity').value = relationship.target;
+                document.getElementById('validation-status').value = relationship.validated;
+                document.getElementById('relationship-description').value = relationship.description || '';
+                document.getElementById('relationship-modal-label').innerHTML = `<i class="fa fa-edit"></i> 编辑关系`;
+                relationshipModal.show();
+            }
+        }
+
+        // Validate relationship
+        function validateRelationship(id) {
+            const relationship = currentRelationships.find(r => r.id === id);
+            if (relationship) {
+                relationship.validated = true;
+                renderRelationships();
+                showAlert('关系验证成功！', 'success');
+            }
+        }
+
+        // Delete relationship
+        function deleteRelationship(id) {
+            if (confirm('您确定要删除此关系吗？')) {
+                currentRelationships = currentRelationships.filter(r => r.id !== id);
+                renderRelationships();
+                showAlert('关系删除成功！', 'success');
+            }
+        }
+
+        // Reset filters
+        function resetFilters() {
+            document.getElementById('relationship-search').value = '';
+            document.getElementById('relationship-type-filter').value = 'all';
+            document.getElementById('validation-filter').value = 'all';
+            currentPage = 1;
+            renderRelationships();
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load relationships on page load
+            loadRelationships();
+
+            // Add relationship button
+            document.getElementById('add-relationship-btn').addEventListener('click', () => {
+                document.getElementById('relationship-form').reset();
+                document.getElementById('relationship-id').value = '';
+                document.getElementById('relationship-modal-label').innerHTML = `<i class="fa fa-plus"></i> 添加关系`;
+                relationshipModal.show();
+            });
+
+            // Refresh relationships button
+            document.getElementById('refresh-relationships-btn').addEventListener('click', () => {
+                loadRelationships();
+                showAlert('关系已刷新！', 'success');
+            });
+
+            // Export relationships button
+            document.getElementById('export-relationships-btn').addEventListener('click', () => {
+                showAlert('导出功能将在此处实现。', 'info');
+            });
+
+            // Search button
+            document.getElementById('search-btn').addEventListener('click', () => {
+                currentPage = 1;
+                renderRelationships();
+            });
+
+            // Search input enter key
+            document.getElementById('relationship-search').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    currentPage = 1;
+                    renderRelationships();
+                }
+            });
+
+            // Filter change listeners
+            document.getElementById('relationship-type-filter').addEventListener('change', () => {
+                currentPage = 1;
+                renderRelationships();
+            });
+
+            document.getElementById('validation-filter').addEventListener('change', () => {
+                currentPage = 1;
+                renderRelationships();
+            });
+
+            // Reset filters button
+            document.getElementById('reset-filters-btn').addEventListener('click', resetFilters);
+
+            // Relationship form submission
+            document.getElementById('relationship-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const id = document.getElementById('relationship-id').value;
+                const source = document.getElementById('source-entity').value;
+                const type = document.getElementById('relationship-type').value;
+                const target = document.getElementById('target-entity').value;
+                const validated = document.getElementById('validation-status').value === 'true';
+                const description = document.getElementById('relationship-description').value;
+
+                if (id) {
+                    // Update existing relationship
+                    const relationshipIndex = currentRelationships.findIndex(r => r.id === id);
+                    if (relationshipIndex !== -1) {
+                        currentRelationships[relationshipIndex] = {
+                            ...currentRelationships[relationshipIndex],
+                            source,
+                            type,
+                            target,
+                            validated,
+                            description
+                        };
+                        showAlert('关系更新成功！', 'success');
+                    }
+                } else {
+                    // Add new relationship
+                    const newRelationship = {
+                        id: (currentRelationships.length + 1).toString(),
+                        source,
+                        type,
+                        target,
+                        validated,
+                        description
+                    };
+                    currentRelationships.push(newRelationship);
+                    showAlert('关系添加成功！', 'success');
+                }
+
+                // Close modal and refresh relationships
+                relationshipModal.hide();
+                renderRelationships();
+            });
+        });
+    </script>
+{% endblock %}

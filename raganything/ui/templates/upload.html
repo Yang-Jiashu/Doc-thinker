@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+{% block content %}
+    <!-- Page Content -->
+    <div class="container-fluid" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; height: 100%; overflow-y: auto;">
+        <!-- Page Title -->
+        <div class="mb-6">
+            <h1 style="color: #ececf1; font-weight: 600; font-size: 2rem;">
+                <i class="fa fa-upload me-2"></i> 文档上传
+            </h1>
+            <p style="color: rgba(255, 255, 255, 0.6); font-size: 0.95rem;">支持多种格式的多文档上传，包括PDF、图片、Office文档等</p>
+        </div>
+
+        <div class="row g-6">
+            <!-- Upload Form -->
+            <div class="col-md-8">
+                <!-- Drop Zone -->
+                <div class="border-2 border-dashed border-gray-700 rounded-2xl p-8 text-center mb-6" id="drop-zone" style="background-color: rgba(255, 255, 255, 0.05); border: 2px dashed rgba(255, 255, 255, 0.1); transition: all 0.2s ease;">
+                    <i class="fa fa-cloud-upload fa-4x text-primary mb-3" style="color: #ff6b35;"></i>
+                    <h4 style="color: #ececf1; font-weight: 500; margin-bottom: 0.5rem;">拖放文件到此处</h4>
+                    <p style="color: rgba(255, 255, 255, 0.6); margin-bottom: 2rem;">或</p>
+                    <label class="btn btn-primary" style="background-color: #ff6b35; border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-weight: 500; transition: all 0.2s ease;">
+                        <i class="fa fa-folder-open"></i> 选择文件
+                        <input type="file" id="file-input" multiple class="d-none">
+                    </label>
+                    <p style="color: rgba(255, 255, 255, 0.6); margin-top: 1.5rem; font-size: 0.85rem;">支持的格式：{{ supported_extensions }}</p>
+                </div>
+
+                <!-- File List -->
+                <div class="mb-6" style="background-color: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.5rem;">
+                    <h5 style="color: #ececf1; font-weight: 500; margin-bottom: 1rem;">已选择文件</h5>
+                    <div id="file-list" class="list-group" style="background-color: transparent; border: none;"></div>
+                </div>
+
+                <!-- Upload Button -->
+                <div class="d-flex gap-3 mb-6">
+                    <button type="button" id="upload-btn" class="btn btn-primary" disabled style="background-color: #ff6b35; border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-weight: 500; transition: all 0.2s ease;">
+                        <i class="fa fa-upload"></i> 开始上传
+                    </button>
+                    <button type="button" id="clear-btn" class="btn btn-secondary" disabled style="background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #ececf1; border-radius: 8px; padding: 0.75rem 1.5rem; font-weight: 500; transition: all 0.2s ease;">
+                        <i class="fa fa-trash"></i> 清空列表
+                    </button>
+                </div>
+
+                <!-- Upload Progress -->
+                <div id="upload-progress" class="mt-6 d-none" style="background-color: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.5rem;">
+                    <h5 style="color: #ececf1; font-weight: 500; margin-bottom: 1rem;">上传进度</h5>
+                    <div class="progress mb-3" style="background-color: rgba(255, 255, 255, 0.1); border-radius: 4px; height: 8px;">
+                        <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%; background-color: #ff6b35; border-radius: 4px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div id="progress-text" style="color: rgba(255, 255, 255, 0.6); font-size: 0.85rem;">准备上传...</div>
+                </div>
+
+                <!-- Upload Results -->
+                <div class="mt-6" style="background-color: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.5rem;">
+                    <h5 style="color: #ececf1; font-weight: 500; margin-bottom: 1rem;">
+                        <i class="fa fa-check-circle me-2"></i> 上传结果
+                    </h5>
+                    <div id="upload-results" class="list-group" style="background-color: transparent; border: none;"></div>
+                </div>
+            </div>
+
+            <!-- Upload Info -->
+            <div class="col-md-4">
+                <!-- Upload Info Card -->
+                <div class="mb-6" style="background-color: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.5rem;">
+                    <h5 style="color: #ececf1; font-weight: 500; margin-bottom: 1.5rem;">
+                        <i class="fa fa-info-circle me-2"></i> 上传说明
+                    </h5>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 1.5rem; display: flex; align-items: flex-start;">
+                            <i class="fa fa-check-circle text-primary fa-2x me-3 mt-0.5" style="color: #ff6b35; flex-shrink: 0;"></i>
+                            <div>
+                                <strong style="color: #ececf1; font-weight: 500;">支持多种格式</strong>
+                                <p style="color: rgba(255, 255, 255, 0.6); margin: 0.25rem 0 0; font-size: 0.85rem;">PDF、图片、Word、Excel、PowerPoint、文本文件等</p>
+                            </div>
+                        </li>
+                        <li style="margin-bottom: 1.5rem; display: flex; align-items: flex-start;">
+                            <i class="fa fa-check-circle text-primary fa-2x me-3 mt-0.5" style="color: #ff6b35; flex-shrink: 0;"></i>
+                            <div>
+                                <strong style="color: #ececf1; font-weight: 500;">多文件上传</strong>
+                                <p style="color: rgba(255, 255, 255, 0.6); margin: 0.25rem 0 0; font-size: 0.85rem;">支持同时选择和上传多个文件</p>
+                            </div>
+                        </li>
+                        <li style="margin-bottom: 1.5rem; display: flex; align-items: flex-start;">
+                            <i class="fa fa-check-circle text-primary fa-2x me-3 mt-0.5" style="color: #ff6b35; flex-shrink: 0;"></i>
+                            <div>
+                                <strong style="color: #ececf1; font-weight: 500;">拖放上传</strong>
+                                <p style="color: rgba(255, 255, 255, 0.6); margin: 0.25rem 0 0; font-size: 0.85rem;">直接拖放文件到上传区域</p>
+                            </div>
+                        </li>
+                        <li style="margin-bottom: 1.5rem; display: flex; align-items: flex-start;">
+                            <i class="fa fa-check-circle text-primary fa-2x me-3 mt-0.5" style="color: #ff6b35; flex-shrink: 0;"></i>
+                            <div>
+                                <strong style="color: #ececf1; font-weight: 500;">实时进度</strong>
+                                <p style="color: rgba(255, 255, 255, 0.6); margin: 0.25rem 0 0; font-size: 0.85rem;">显示上传进度和处理状态</p>
+                            </div>
+                        </li>
+                        <li style="display: flex; align-items: flex-start;">
+                            <i class="fa fa-check-circle text-primary fa-2x me-3 mt-0.5" style="color: #ff6b35; flex-shrink: 0;"></i>
+                            <div>
+                                <strong style="color: #ececf1; font-weight: 500;">自动处理</strong>
+                                <p style="color: rgba(255, 255, 255, 0.6); margin: 0.25rem 0 0; font-size: 0.85rem;">上传后自动进行文档处理和分析</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Recent Uploads -->
+                <div style="background-color: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.5rem;">
+                    <h5 style="color: #ececf1; font-weight: 500; margin-bottom: 1.5rem;">
+                        <i class="fa fa-history me-2"></i> 最近上传
+                    </h5>
+                    <div id="recent-uploads" class="list-group" style="background-color: transparent; border: none;">
+                        <div style="color: rgba(255, 255, 255, 0.6); text-align: center; padding: 1.5rem; border-radius: 8px; background-color: rgba(255, 255, 255, 0.03);">
+                            <p style="margin: 0;">暂无上传记录</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supported file extensions
+        const supportedExtensions = {{ supported_extensions | tojson }};
+        const supportedExtensionsRegex = new RegExp(`(${supportedExtensions.map(ext => ext.replace('.', '\\.')).join('|')})$`, 'i');
+        
+        // File list
+        let selectedFiles = [];
+        
+        // Elements
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileList = document.getElementById('file-list');
+        const uploadBtn = document.getElementById('upload-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const uploadProgress = document.getElementById('upload-progress');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const uploadResults = document.getElementById('upload-results');
+        
+        // Initialize
+        function init() {
+            // Event listeners for file input
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // Event listeners for drop zone
+            dropZone.addEventListener('dragover', handleDragOver);
+            dropZone.addEventListener('dragleave', handleDragLeave);
+            dropZone.addEventListener('drop', handleDrop);
+            
+            // Event listeners for buttons
+            uploadBtn.addEventListener('click', uploadFiles);
+            clearBtn.addEventListener('click', clearFiles);
+        }
+        
+        // Handle file selection
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            addFiles(files);
+        }
+        
+        // Handle drag over
+        function handleDragOver(event) {
+            event.preventDefault();
+            dropZone.classList.add('border-success');
+            dropZone.classList.add('bg-light');
+        }
+        
+        // Handle drag leave
+        function handleDragLeave(event) {
+            dropZone.classList.remove('border-success');
+            dropZone.classList.remove('bg-light');
+        }
+        
+        // Handle drop
+        function handleDrop(event) {
+            event.preventDefault();
+            dropZone.classList.remove('border-success');
+            dropZone.classList.remove('bg-light');
+            
+            const files = Array.from(event.dataTransfer.files);
+            addFiles(files);
+        }
+        
+        // Add files to list
+        function addFiles(files) {
+            files.forEach(file => {
+                // Check if file is already in list
+                if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    // Validate file extension
+                    if (supportedExtensionsRegex.test(file.name)) {
+                        selectedFiles.push(file);
+                    } else {
+                        showAlert(`文件 ${file.name} 格式不支持！`, 'danger');
+                    }
+                }
+            });
+            
+            updateFileList();
+            updateButtons();
+        }
+        
+        // Update file list display
+        function updateFileList() {
+            if (selectedFiles.length === 0) {
+                fileList.innerHTML = '<div class="list-group-item"><p class="text-muted text-center">暂无选择文件</p></div>';
+                return;
+            }
+            
+            fileList.innerHTML = selectedFiles.map((file, index) => `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fa fa-file-o me-2"></i>
+                        <strong>${file.name}</strong>
+                        <small class="text-muted d-block">${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeFile(${index})">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        // Remove file from list
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateButtons();
+        }
+        
+        // Clear all files
+        function clearFiles() {
+            selectedFiles = [];
+            fileInput.value = '';
+            updateFileList();
+            updateButtons();
+        }
+        
+        // Update buttons state
+        function updateButtons() {
+            const hasFiles = selectedFiles.length > 0;
+            uploadBtn.disabled = !hasFiles;
+            clearBtn.disabled = !hasFiles;
+        }
+        
+        // Upload files
+        async function uploadFiles() {
+            if (selectedFiles.length === 0) return;
+            
+            // Show progress
+            uploadProgress.classList.remove('d-none');
+            progressBar.style.width = '0%';
+            progressBar.setAttribute('aria-valuenow', '0');
+            progressText.textContent = '准备上传...';
+            
+            // Create FormData
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+            
+            try {
+                // Upload files
+                const response = await fetch('{{ api_config.api_prefix }}/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`上传失败: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                // Update progress to 100%
+                progressBar.style.width = '100%';
+                progressBar.setAttribute('aria-valuenow', '100');
+                progressText.textContent = '上传完成！';
+                
+                // Show results
+                showUploadResults(result);
+                
+                // Clear selected files
+                clearFiles();
+                
+                showAlert('文件上传成功！', 'success');
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                progressText.textContent = `上传失败: ${error.message}`;
+                showAlert(`文件上传失败: ${error.message}`, 'danger');
+            }
+        }
+        
+        // Show upload results
+        function showUploadResults(result) {
+            if (result.success) {
+                uploadResults.innerHTML = `
+                    <div class="list-group-item list-group-item-success">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-1"><i class="fa fa-check-circle"></i> 上传成功</h6>
+                            <span class="badge bg-success">${result.files.length} 个文件</span>
+                        </div>
+                        <p class="mb-1">已成功上传 ${result.files.length} 个文件</p>
+                        <ul class="mb-0">
+                            ${result.files.map(file => `
+                                <li class="mt-1">
+                                    <i class="fa fa-file-o me-2"></i>${file.name}
+                                    <small class="text-muted"> (${file.size} bytes)</small>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            } else {
+                uploadResults.innerHTML = `
+                    <div class="list-group-item list-group-item-danger">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-1"><i class="fa fa-exclamation-circle"></i> 上传失败</h6>
+                        </div>
+                        <p class="mb-1">${result.message}</p>
+                        ${result.errors ? `
+                            <ul class="mb-0">
+                                ${result.errors.map(error => `<li class="mt-1">${error}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                    </div>
+                `;
+            }
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+{% endblock %}

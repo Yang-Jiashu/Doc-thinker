@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "raganything"
+dynamic = ["version"]
+authors = [
+    {name = "Zirui Guo"}
+]
+description = "Doc Thinker (AutoThink): document parsing, graph RAG, and evaluation"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "huggingface_hub",
+    "lightrag-hku",
+    "mineru[core]",
+    "tqdm",
+    "rank-bm25",
+]
+
+[project.optional-dependencies]
+image = ["Pillow>=10.0.0"]
+text = ["reportlab>=4.0.0"]
+office = []  # Requires LibreOffice (external program)
+markdown = [
+    "markdown>=3.4.0",
+    "weasyprint>=60.0",
+    "pygments>=2.10.0",
+]
+all = [
+    "Pillow>=10.0.0",
+    "reportlab>=4.0.0",
+    "markdown>=3.4.0",
+    "weasyprint>=60.0",
+    "pygments>=2.10.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/Yang-Jiashu/doc-thinker"
+Documentation = "https://github.com/Yang-Jiashu/doc-thinker"
+Repository = "https://github.com/Yang-Jiashu/doc-thinker"
+Issues = "https://github.com/Yang-Jiashu/doc-thinker/issues"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=6.0",
+    "pytest-asyncio",
+    "black",
+    "isort",
+    "flake8",
+    "mypy",
+    "openai",
+    "python-dotenv",
+]
+
+[tool.setuptools.packages.find]
+include = ["raganything*"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "raganything.__version__"}
+
+[tool.ruff]
+target-version = "py310"

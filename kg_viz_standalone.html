@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>知识图谱可视化</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { margin: 0; font-family: sans-serif; background: #f5f5f5; }
+        #graph { width: 100vw; height: 100vh; }
+        .node circle { stroke: #fff; stroke-width: 2px; }
+        .link { stroke: #999; stroke-opacity: 0.6; }
+        text { font-size: 12px; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="graph"></div>
+    <script>
+        const data = {
+            nodes: [
+                {id: "AI", name: "人工智能", level: 3},
+                {id: "DL", name: "深度学习", level: 2},
+                {id: "CV", name: "计算机视觉", level: 2},
+                {id: "NLP", name: "自然语言处理", level: 2},
+                {id: "ResNet", name: "ResNet论文", level: 1},
+                {id: "Transformer", name: "Transformer论文", level: 1},
+            ],
+            links: [
+                {source: "AI", target: "DL"},
+                {source: "AI", target: "CV"},
+                {source: "AI", target: "NLP"},
+                {source: "DL", target: "ResNet"},
+                {source: "DL", target: "Transformer"},
+                {source: "NLP", target: "Transformer"},
+            ]
+        };
+        
+        const width = window.innerWidth, height = window.innerHeight;
+        const svg = d3.select("#graph").append("svg").attr("width", width).attr("height", height);
+        
+        const simulation = d3.forceSimulation(data.nodes)
+            .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
+            .force("charge", d3.forceManyBody().strength(-300))
+            .force("center", d3.forceCenter(width/2, height/2));
+        
+        const link = svg.append("g").selectAll("line").data(data.links).join("line")
+            .attr("class", "link").attr("stroke-width", 2);
+        
+        const node = svg.append("g").selectAll("g").data(data.nodes).join("g")
+            .call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended));
+        
+        node.append("circle")
+            .attr("r", d => d.level === 3 ? 30 : d.level === 2 ? 20 : 15)
+            .attr("fill", d => d.level === 3 ? "#e74c3c" : d.level === 2 ? "#3498db" : "#2ecc71");
+        
+        node.append("text").attr("dy", 35).attr("text-anchor", "middle").text(d => d.name);
+        
+        simulation.on("tick", () => {
+            link.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+            node.attr("transform", d => `translate(${d.x},${d.y})`);
+        });
+        
+        function dragstarted(event, d) { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }
+        function dragged(event, d) { d.fx = event.x; d.fy = event.y; }
+        function dragended(event, d) { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }
+    </script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+{% extends "base.html" %}
+{% block content %}
+    <!-- Page Title -->
+    <div class="mb-5">
+        <h1>
+            <i class="fa fa-tag"></i> 实体管理
+        </h1>
+        <p class="text-muted">管理知识图谱实体，支持搜索、筛选和编辑功能</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+                    <button id="add-entity-btn" class="btn btn-primary">
+                        <i class="fa fa-plus"></i> 添加实体
+                    </button>
+                    <button id="refresh-entities-btn" class="btn btn-outline-primary">
+                        <i class="fa fa-refresh"></i> 刷新
+                    </button>
+                    <button id="export-entities-btn" class="btn btn-outline-primary">
+                        <i class="fa fa-download"></i> 导出
+                    </button>
+                </div>
+                
+                <!-- Search and Filter -->
+                <div class="d-flex gap-2">
+                    <div class="input-group" style="width: 300px;">
+                        <input 
+                            type="text" 
+                            id="entity-search" 
+                            class="form-control"
+                            placeholder="搜索实体..."
+                        >
+                        <button 
+                            id="search-btn" 
+                            class="btn btn-primary"
+                        >
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                    <select id="entity-type-filter" class="form-select" style="width: 150px;">
+                        <option value="all" selected>所有类型</option>
+                        <option value="organization">组织</option>
+                        <option value="person">人物</option>
+                        <option value="location">地点</option>
+                        <option value="product">产品</option>
+                        <option value="event">事件</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entity List -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">
+                <i class="fa fa-list"></i> 实体列表
+                <span id="entity-count" class="badge bg-primary float-end">0</span>
+            </h3>
+        </div>
+        <div class="card-body p-0">
+            <!-- Loading State -->
+            <div id="loading-entities" class="text-center py-5">
+                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <h5 class="mt-3">正在加载实体</h5>
+                <p class="text-muted">请稍候，我们正在加载实体...</p>
+            </div>
+
+            <!-- Entity Table -->
+            <div id="entities-container" class="d-none">
+                <table id="entities-table" class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>类型</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="entities-list"></tbody>
+                </table>
+            </div>
+
+            <!-- No Entities State -->
+            <div id="no-entities" class="d-none text-center py-5">
+                <i class="fa fa-search fa-5x text-muted mb-3"></i>
+                <h4>未找到实体</h4>
+                <p class="text-muted">尝试调整搜索或筛选条件</p>
+                <button id="reset-filters-btn" class="btn btn-primary mt-2">
+                    <i class="fa fa-filter"></i> 重置筛选
+                </button>
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="d-none d-flex justify-content-between align-items-center p-3 border-top">
+                <div>
+                    显示 <span id="showing-start">0</span> 到 <span id="showing-end">0</span> 条，共 <span id="total-entities">0</span> 条实体
+                </div>
+                <nav aria-label="Entity pagination">
+                    <ul class="pagination mb-0">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                                <i class="fa fa-chevron-left"></i> 上一页
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">下一页 <i class="fa fa-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entity Details Modal -->
+    <div class="modal fade" id="entity-modal" tabindex="-1" aria-labelledby="entity-modal-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="entity-modal-label">
+                        <i class="fa fa-plus"></i> 添加实体
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <form id="entity-form">
+                    <div class="modal-body">
+                        <input type="hidden" id="entity-id">
+                        
+                        <div class="mb-3">
+                            <label for="entity-name" class="form-label">实体名称</label>
+                            <input 
+                                type="text" 
+                                id="entity-name" 
+                                name="entity-name" 
+                                class="form-control"
+                                placeholder="输入实体名称"
+                                required
+                            >
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="entity-type" class="form-label">实体类型</label>
+                            <select 
+                                id="entity-type" 
+                                name="entity-type" 
+                                class="form-select"
+                                required
+                            >
+                                <option value="" selected disabled>选择实体类型</option>
+                                <option value="organization">组织</option>
+                                <option value="person">人物</option>
+                                <option value="location">地点</option>
+                                <option value="product">产品</option>
+                                <option value="event">事件</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="entity-description" class="form-label">描述</label>
+                            <textarea 
+                                id="entity-description" 
+                                name="entity-description" 
+                                class="form-control"
+                                rows="3"
+                                placeholder="输入实体描述（可选）"
+                            ></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fa fa-times"></i> 取消
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-save"></i> 保存实体
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentEntities = [];
+        let filteredEntities = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        const entityModal = new bootstrap.Modal(document.getElementById('entity-modal'));
+
+        // Mock entity data
+        const mockEntities = [
+            { id: '1', name: 'Apple Inc.', type: 'organization', description: '科技公司' },
+            { id: '2', name: 'iPhone', type: 'product', description: '智能手机' },
+            { id: '3', name: 'Tim Cook', type: 'person', description: '苹果 CEO' },
+            { id: '4', name: 'Cupertino', type: 'location', description: '苹果总部' },
+            { id: '5', name: 'iPad', type: 'product', description: '平板电脑' },
+            { id: '6', name: 'Google', type: 'organization', description: '科技公司' },
+            { id: '7', name: 'Larry Page', type: 'person', description: '谷歌联合创始人' },
+            { id: '8', name: 'Mountain View', type: 'location', description: '谷歌总部' },
+            { id: '9', name: 'Android', type: 'product', description: '移动操作系统' },
+            { id: '10', name: 'Tesla', type: 'organization', description: '电动汽车公司' },
+            { id: '11', name: 'Elon Musk', type: 'person', description: '特斯拉 CEO' },
+            { id: '12', name: 'SpaceX', type: 'organization', description: '航空航天公司' },
+            { id: '13', name: 'Starship', type: 'product', description: '航天器' },
+            { id: '14', name: 'Microsoft', type: 'organization', description: '科技公司' },
+            { id: '15', name: 'Bill Gates', type: 'person', description: '微软联合创始人' }
+        ];
+
+        // Render entity list
+        function renderEntities() {
+            const entityList = document.getElementById('entities-list');
+            const entitiesContainer = document.getElementById('entities-container');
+            const loadingContainer = document.getElementById('loading-entities');
+            const noEntitiesContainer = document.getElementById('no-entities');
+            const paginationContainer = document.getElementById('pagination');
+            const entityCount = document.getElementById('entity-count');
+            const showingStart = document.getElementById('showing-start');
+            const showingEnd = document.getElementById('showing-end');
+            const totalEntities = document.getElementById('total-entities');
+
+            // Show loading state
+            loadingContainer.classList.remove('d-none');
+            entitiesContainer.classList.add('d-none');
+            noEntitiesContainer.classList.add('d-none');
+            paginationContainer.classList.add('d-none');
+
+            // Simulate API call delay
+            setTimeout(() => {
+                // Filter entities based on search and type
+                const searchTerm = document.getElementById('entity-search').value.toLowerCase();
+                const typeFilter = document.getElementById('entity-type-filter').value;
+
+                filteredEntities = currentEntities.filter(entity => {
+                    const matchesSearch = !searchTerm || entity.name.toLowerCase().includes(searchTerm);
+                    const matchesType = typeFilter === 'all' || entity.type === typeFilter;
+                    return matchesSearch && matchesType;
+                });
+
+                // Update entity count
+                entityCount.textContent = filteredEntities.length;
+
+                // Pagination
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const paginatedEntities = filteredEntities.slice(startIndex, endIndex);
+
+                // Render entities
+                if (paginatedEntities.length > 0) {
+                    entityList.innerHTML = paginatedEntities.map(entity => `
+                        <tr>
+                            <td>
+                                <strong>${entity.name}</strong>
+                                ${entity.description ? `<br><small class="text-muted">${entity.description}</small>` : ''}
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">${entity.type}</span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button 
+                                        class="btn btn-sm btn-outline-primary edit-entity-btn"
+                                        data-id="${entity.id}"
+                                    >
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                    <button 
+                                        class="btn btn-sm btn-outline-danger delete-entity-btn"
+                                        data-id="${entity.id}"
+                                    >
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    // Show entities and pagination
+                    entitiesContainer.classList.remove('d-none');
+                    paginationContainer.classList.remove('d-none');
+                    
+                    // Update pagination info
+                    showingStart.textContent = startIndex + 1;
+                    showingEnd.textContent = Math.min(endIndex, filteredEntities.length);
+                    totalEntities.textContent = filteredEntities.length;
+                } else {
+                    // Show no entities state
+                    noEntitiesContainer.classList.remove('d-none');
+                }
+
+                // Hide loading state
+                loadingContainer.classList.add('d-none');
+
+                // Add event listeners to edit/delete buttons
+                addEntityActionListeners();
+            }, 500);
+        }
+
+        // Add event listeners to entity action buttons
+        function addEntityActionListeners() {
+            // Edit buttons
+            document.querySelectorAll('.edit-entity-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const entityId = this.getAttribute('data-id');
+                    editEntity(entityId);
+                });
+            });
+
+            // Delete buttons
+            document.querySelectorAll('.delete-entity-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const entityId = this.getAttribute('data-id');
+                    deleteEntity(entityId);
+                });
+            });
+        }
+
+        // Load entities
+        function loadEntities() {
+            currentEntities = mockEntities;
+            renderEntities();
+        }
+
+        // Edit entity
+        function editEntity(id) {
+            const entity = currentEntities.find(e => e.id === id);
+            if (entity) {
+                document.getElementById('entity-id').value = entity.id;
+                document.getElementById('entity-name').value = entity.name;
+                document.getElementById('entity-type').value = entity.type;
+                document.getElementById('entity-description').value = entity.description || '';
+                document.getElementById('entity-modal-label').innerHTML = `<i class="fa fa-edit"></i> 编辑实体`;
+                entityModal.show();
+            }
+        }
+
+        // Delete entity
+        function deleteEntity(id) {
+            if (confirm('您确定要删除此实体吗？')) {
+                currentEntities = currentEntities.filter(e => e.id !== id);
+                renderEntities();
+                showAlert('实体删除成功！', 'success');
+            }
+        }
+
+        // Reset filters
+        function resetFilters() {
+            document.getElementById('entity-search').value = '';
+            document.getElementById('entity-type-filter').value = 'all';
+            currentPage = 1;
+            renderEntities();
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load entities on page load
+            loadEntities();
+
+            // Add entity button
+            document.getElementById('add-entity-btn').addEventListener('click', () => {
+                document.getElementById('entity-form').reset();
+                document.getElementById('entity-id').value = '';
+                document.getElementById('entity-modal-label').innerHTML = `<i class="fa fa-plus"></i> 添加实体`;
+                entityModal.show();
+            });
+
+            // Refresh entities button
+            document.getElementById('refresh-entities-btn').addEventListener('click', () => {
+                loadEntities();
+                showAlert('实体已刷新！', 'success');
+            });
+
+            // Export entities button
+            document.getElementById('export-entities-btn').addEventListener('click', () => {
+                showAlert('导出功能将在此处实现。', 'info');
+            });
+
+            // Search button
+            document.getElementById('search-btn').addEventListener('click', () => {
+                currentPage = 1;
+                renderEntities();
+            });
+
+            // Search input enter key
+            document.getElementById('entity-search').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    currentPage = 1;
+                    renderEntities();
+                }
+            });
+
+            // Type filter change
+            document.getElementById('entity-type-filter').addEventListener('change', () => {
+                currentPage = 1;
+                renderEntities();
+            });
+
+            // Reset filters button
+            document.getElementById('reset-filters-btn').addEventListener('click', resetFilters);
+
+            // Entity form submission
+            document.getElementById('entity-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const id = document.getElementById('entity-id').value;
+                const name = document.getElementById('entity-name').value;
+                const type = document.getElementById('entity-type').value;
+                const description = document.getElementById('entity-description').value;
+
+                if (id) {
+                    // Update existing entity
+                    const entityIndex = currentEntities.findIndex(e => e.id === id);
+                    if (entityIndex !== -1) {
+                        currentEntities[entityIndex] = {
+                            ...currentEntities[entityIndex],
+                            name,
+                            type,
+                            description
+                        };
+                        showAlert('实体更新成功！', 'success');
+                    }
+                } else {
+                    // Add new entity
+                    const newEntity = {
+                        id: (currentEntities.length + 1).toString(),
+                        name,
+                        type,
+                        description
+                    };
+                    currentEntities.push(newEntity);
+                    showAlert('实体添加成功！', 'success');
+                }
+
+                // Close modal and refresh entities
+                entityModal.hide();
+                renderEntities();
+            });
+        });
+    </script>
+{% endblock %}

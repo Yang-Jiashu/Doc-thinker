@@ -1,0 +1,6925 @@
+[
+    [
+        {
+            "type": "header",
+            "bbox": [
+                0.07,
+                0.053,
+                0.153,
+                0.127
+            ],
+            "angle": 0,
+            "content": "国"
+        },
+        {
+            "type": "header",
+            "bbox": [
+                0.155,
+                0.051,
+                0.289,
+                0.091
+            ],
+            "angle": 0,
+            "content": "NUS"
+        },
+        {
+            "type": "header",
+            "bbox": [
+                0.155,
+                0.093,
+                0.286,
+                0.12
+            ],
+            "angle": 0,
+            "content": "National University of Singapore"
+        },
+        {
+            "type": "header",
+            "bbox": [
+                0.327,
+                0.051,
+                0.442,
+                0.086
+            ],
+            "angle": 0,
+            "content": "NUS"
+        },
+        {
+            "type": "header",
+            "bbox": [
+                0.374,
+                0.088,
+                0.516,
+                0.106
+            ],
+            "angle": 0,
+            "content": "BUSINESS"
+        },
+        {
+            "type": "header",
+            "bbox": [
+                0.374,
+                0.108,
+                0.5,
+                0.125
+            ],
+            "angle": 0,
+            "content": "SCHOOL"
+        },
+        {
+            "type": "header",
+            "bbox": [
+                0.835,
+                0.074,
+                0.884,
+                0.084
+            ],
+            "angle": 0,
+            "content": "THE"
+        },
+        {
+            "type": "header",
+            "bbox": [
+                0.818,
+                0.085,
+                0.901,
+                0.104
+            ],
+            "angle": 0,
+            "content": "NUS"
+        },
+        {
+            "type": "header",
+            "bbox": [
+                0.818,
+                0.106,
+                0.905,
+                0.129
+            ],
+            "angle": 0,
+            "content": "BBA"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.088,
+                0.207,
+                0.422,
+                0.261
+            ],
+            "angle": 0,
+            "content": "EMBARK ON"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.088,
+                0.255,
+                0.659,
+                0.325
+            ],
+            "angle": 0,
+            "content": "YOUR JOURNEY WITH"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.092,
+                0.32,
+                0.71,
+                0.393
+            ],
+            "angle": 0,
+            "content": "BUSINESS SCHOOL"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.071,
+                0.377,
+                0.714,
+                0.443
+            ],
+            "angle": 0,
+            "content": "BACHELOR OF BUSINESS ADMINISTRATION"
+        },
+        {
+            "type": "footer",
+            "bbox": [
+                0.081,
+                0.909,
+                0.325,
+                0.942
+            ],
+            "angle": 0,
+            "content": "Be AGILE, Be YOU"
+        }
+    ],
+    [
+        {
+            "type": "header",
+            "bbox": [
+                0.064,
+                0.07,
+                0.181,
+                0.106
+            ],
+            "angle": 0,
+            "content": "WHY"
+        },
+        {
+            "type": "header",
+            "bbox": [
+                0.12,
+                0.105,
+                0.463,
+                0.157
+            ],
+            "angle": 0,
+            "content": "NUS BUSINESS?"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.131,
+                0.209,
+                0.22,
+                0.627
+            ],
+            "angle": 270,
+            "content": "CONTENTS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.237,
+                0.212,
+                0.8,
+                0.229
+            ],
+            "angle": 0,
+            "content": "At A Glance 01"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.236,
+                0.802,
+                0.251
+            ],
+            "angle": 0,
+            "content": "You Deserve The Best 02"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.258,
+                0.801,
+                0.275
+            ],
+            "angle": 0,
+            "content": "An Agile Experience 03"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.283,
+                0.801,
+                0.301
+            ],
+            "angle": 0,
+            "content": "Academic 04"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.31,
+                0.801,
+                0.327
+            ],
+            "angle": 0,
+            "content": "Curriculum Roadmap 05"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.333,
+                0.801,
+                0.35
+            ],
+            "angle": 0,
+            "content": "Nine Majors, Infinite Possibilities 06"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.356,
+                0.801,
+                0.372
+            ],
+            "angle": 0,
+            "content": "2nd Majors and Minors 07"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.38,
+                0.801,
+                0.401
+            ],
+            "angle": 0,
+            "content": "Global & Experiential 09"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.407,
+                0.801,
+                0.423
+            ],
+            "angle": 0,
+            "content": "Global Immersion 10"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.43,
+                0.801,
+                0.447
+            ],
+            "angle": 0,
+            "content": "Case Competitions 11"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.454,
+                0.801,
+                0.47
+            ],
+            "angle": 0,
+            "content": "Campus Living & Bizad Club 12"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.479,
+                0.801,
+                0.499
+            ],
+            "angle": 0,
+            "content": "Industry Relevant 13"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.506,
+                0.801,
+                0.522
+            ],
+            "angle": 0,
+            "content": "What Our Graduates Do 16"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.531,
+                0.801,
+                0.551
+            ],
+            "angle": 0,
+            "content": "Leadership & Lifelong Learning 17"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.56,
+                0.801,
+                0.58
+            ],
+            "angle": 0,
+            "content": "Entrepreneurial 19"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.587,
+                0.801,
+                0.603
+            ],
+            "angle": 0,
+            "content": "Be An Entrepreneur 20"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.238,
+                0.609,
+                0.801,
+                0.626
+            ],
+            "angle": 0,
+            "content": "Admissions, Scholarships & Financial Aids 21"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.237,
+                0.212,
+                0.802,
+                0.626
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.0,
+                0.648,
+                1.0,
+                1.0
+            ],
+            "angle": 0,
+            "content": null
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.065,
+                0.069,
+                0.388,
+                0.102
+            ],
+            "angle": 0,
+            "content": "AT A GLANCE"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.062,
+                0.152,
+                0.917,
+                0.242
+            ],
+            "angle": 0,
+            "content": "Embark on a rewarding journey at NUS Business School and surround yourself in a community of vibrant, diverse, and passionate individuals. Enjoy the prestige and pride of learning alongside bright and dedicated people who constantly strive to push boundaries in business ideation. Being part of NUS Business School is more than just an education - it could be a life-changing experience."
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.312,
+                0.276,
+                0.686,
+                0.316
+            ],
+            "angle": 0,
+            "content": "FINDINGS FROM 2022 GRADUATE EMPLOYMENT SURVEY*"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.112,
+                0.337,
+                0.885,
+                0.378
+            ],
+            "angle": 0,
+            "content": "*For this graduate cohort, the three degree programmes were accounted for separately as Bachelor of Business Administration, Bachelor of Business Administration (Accountancy) and Bachelor of Science (Real Estate). From 2024, all students will be enrolled into the Bachelor of Business Administration degree through a common admission."
+        },
+        {
+            "type": "image_caption",
+            "bbox": [
+                0.116,
+                0.403,
+                0.44,
+                0.438
+            ],
+            "angle": 0,
+            "content": "GROSS MONTHLY SALARY FOR GRADUATE YEAR 2022 (MEAN)"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.083,
+                0.449,
+                0.475,
+                0.582
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image_caption",
+            "bbox": [
+                0.516,
+                0.403,
+                0.926,
+                0.438
+            ],
+            "angle": 0,
+            "content": "OVERALL EMPLOYMENT FOR GRADUATE YEAR 2022 (WITHIN 6 MONTHS OF GRADUATION)"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.517,
+                0.449,
+                0.918,
+                0.581
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.267,
+                0.603,
+                0.731,
+                0.619
+            ],
+            "angle": 0,
+            "content": "BBA (Hon) - Bachelor of Business Administration (Honours)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.332,
+                0.622,
+                0.665,
+                0.637
+            ],
+            "angle": 0,
+            "content": "BBA - Bachelor of Business Administration"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.214,
+                0.64,
+                0.783,
+                0.656
+            ],
+            "angle": 0,
+            "content": "■ BAC (Hon) - Bachelor of Business Administration (Accountancy) (Honours)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.277,
+                0.659,
+                0.721,
+                0.675
+            ],
+            "angle": 0,
+            "content": "BAC - Bachelor of Business Administration (Accountancy)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.337,
+                0.678,
+                0.662,
+                0.693
+            ],
+            "angle": 0,
+            "content": "BSc RE - Bachelor of Science (Real Estate)"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.214,
+                0.64,
+                0.783,
+                0.693
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.165,
+                0.74,
+                0.314,
+                0.806
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.171,
+                0.816,
+                0.304,
+                0.848
+            ],
+            "angle": 0,
+            "content": "4,350"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.168,
+                0.852,
+                0.309,
+                0.884
+            ],
+            "angle": 0,
+            "content": "TOTAL BBA STUDENTS"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.425,
+                0.738,
+                0.575,
+                0.809
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.42,
+                0.816,
+                0.582,
+                0.897
+            ],
+            "angle": 0,
+            "content": "OVER 55,000 STRONG ALUMNI NETWORK"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.711,
+                0.738,
+                0.808,
+                0.809
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.652,
+                0.817,
+                0.867,
+                0.884
+            ],
+            "angle": 0,
+            "content": "59 YEARS OF DEVELOPING BUSINESS LEADERS"
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.919,
+                0.96,
+                0.933,
+                0.976
+            ],
+            "angle": 0,
+            "content": "1"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.045,
+                0.068,
+                0.611,
+                0.102
+            ],
+            "angle": 0,
+            "content": "YOU DESERVE THE BEST"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.063,
+                0.151,
+                0.533,
+                0.205
+            ],
+            "angle": 0,
+            "content": "We are a highly-ranked business school that provides each student the best preparation and springboard towards a promising career."
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.819,
+                0.067,
+                0.867,
+                0.094
+            ],
+            "angle": 0,
+            "content": "1st"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.812,
+                0.1,
+                0.87,
+                0.113
+            ],
+            "angle": 0,
+            "content": "IN ASIA"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.744,
+                0.116,
+                0.935,
+                0.17
+            ],
+            "angle": 0,
+            "content": "according to the QS World University rankings for 2024."
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.417,
+                0.239,
+                0.582,
+                0.256
+            ],
+            "angle": 0,
+            "content": "NUS BUSINESS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.367,
+                0.258,
+                0.632,
+                0.275
+            ],
+            "angle": 0,
+            "content": "Ranked among the world's best"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.082,
+                0.299,
+                0.333,
+                0.33
+            ],
+            "angle": 0,
+            "content": "TIMES HIGHER EDUCATION\nUNIVERSITY RANKING 2023"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.176,
+                0.35,
+                0.231,
+                0.377
+            ],
+            "angle": 0,
+            "content": "3rd"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.171,
+                0.383,
+                0.236,
+                0.397
+            ],
+            "angle": 0,
+            "content": "IN ASIA"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.392,
+                0.299,
+                0.607,
+                0.33
+            ],
+            "angle": 0,
+            "content": "QS WORLD UNIVERSITY RANKINGS 2023"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.402,
+                0.35,
+                0.458,
+                0.378
+            ],
+            "angle": 0,
+            "content": "\\(8^{\\text{th}}\\)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.371,
+                0.383,
+                0.489,
+                0.397
+            ],
+            "angle": 0,
+            "content": "IN THE WORLD"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.548,
+                0.351,
+                0.596,
+                0.378
+            ],
+            "angle": 0,
+            "content": "1st"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.537,
+                0.383,
+                0.602,
+                0.397
+            ],
+            "angle": 0,
+            "content": "IN ASIA"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.739,
+                0.299,
+                0.843,
+                0.313
+            ],
+            "angle": 0,
+            "content": "US NEWS &"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.693,
+                0.315,
+                0.888,
+                0.329
+            ],
+            "angle": 0,
+            "content": "WORLD REPORT 2023"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.761,
+                0.35,
+                0.822,
+                0.377
+            ],
+            "angle": 0,
+            "content": "2nd"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.758,
+                0.383,
+                0.823,
+                0.397
+            ],
+            "angle": 0,
+            "content": "IN ASIA"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.331,
+                0.44,
+                0.667,
+                0.457
+            ],
+            "angle": 0,
+            "content": "BUSINESS SUBJECT RANKINGS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.128,
+                0.495,
+                0.261,
+                0.508
+            ],
+            "angle": 0,
+            "content": "TIMES HIGHER"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.14,
+                0.51,
+                0.249,
+                0.523
+            ],
+            "angle": 0,
+            "content": "EDUCATION"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.102,
+                0.525,
+                0.285,
+                0.538
+            ],
+            "angle": 0,
+            "content": "WORLD UNIVERSITY"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.125,
+                0.54,
+                0.263,
+                0.553
+            ],
+            "angle": 0,
+            "content": "RANKING 2023"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.349,
+                0.494,
+                0.422,
+                0.522
+            ],
+            "angle": 0,
+            "content": "11th"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.339,
+                0.527,
+                0.43,
+                0.539
+            ],
+            "angle": 0,
+            "content": "BUSINESS &"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.338,
+                0.541,
+                0.432,
+                0.553
+            ],
+            "angle": 0,
+            "content": "ECONOMICS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.115,
+                0.598,
+                0.44,
+                0.613
+            ],
+            "angle": 0,
+            "content": "THE WORLD UNIVERSITY RANKINGS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.149,
+                0.614,
+                0.406,
+                0.63
+            ],
+            "angle": 0,
+            "content": "(IN ASIA) BY SUBJECTS 2022"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.152,
+                0.651,
+                0.199,
+                0.677
+            ],
+            "angle": 0,
+            "content": "1st"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.121,
+                0.682,
+                0.225,
+                0.694
+            ],
+            "angle": 0,
+            "content": "ACCOUNTING"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.133,
+                0.696,
+                0.214,
+                0.708
+            ],
+            "angle": 0,
+            "content": "& FINANCE"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.651,
+                0.408,
+                0.678
+            ],
+            "angle": 0,
+            "content": "1st"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.338,
+                0.682,
+                0.428,
+                0.694
+            ],
+            "angle": 0,
+            "content": "BUSINESS &"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.293,
+                0.696,
+                0.473,
+                0.708
+            ],
+            "angle": 0,
+            "content": "MANAGEMENT STUDIES"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.557,
+                0.483,
+                0.874,
+                0.514
+            ],
+            "angle": 0,
+            "content": "QS WORLD UNIVERSITY RANKINGS (GlobALLY BY SUBJECTS 2023)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.58,
+                0.531,
+                0.635,
+                0.56
+            ],
+            "angle": 0,
+            "content": "\\(9^{\\text {th }}\\)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.561,
+                0.565,
+                0.654,
+                0.577
+            ],
+            "angle": 0,
+            "content": "MARKETING"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.786,
+                0.532,
+                0.861,
+                0.56
+            ],
+            "angle": 0,
+            "content": "\\(13^{\\text{th}}\\)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.778,
+                0.565,
+                0.867,
+                0.577
+            ],
+            "angle": 0,
+            "content": "BUSINESS &"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.733,
+                0.579,
+                0.913,
+                0.591
+            ],
+            "angle": 0,
+            "content": "MANAGEMENT STUDIES"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.57,
+                0.616,
+                0.646,
+                0.644
+            ],
+            "angle": 0,
+            "content": "\\(10^{\\text{th}}\\)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.57,
+                0.649,
+                0.643,
+                0.66
+            ],
+            "angle": 0,
+            "content": "BUSINESS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.566,
+                0.663,
+                0.649,
+                0.675
+            ],
+            "angle": 0,
+            "content": "ANALYTICS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.786,
+                0.616,
+                0.861,
+                0.644
+            ],
+            "angle": 0,
+            "content": "14<sup>th</sup>"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.771,
+                0.649,
+                0.875,
+                0.66
+            ],
+            "angle": 0,
+            "content": "ACCOUNTING"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.782,
+                0.663,
+                0.864,
+                0.674
+            ],
+            "angle": 0,
+            "content": "& FINANCE"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.183,
+                0.776,
+                0.273,
+                0.79
+            ],
+            "angle": 0,
+            "content": "NUS MBA"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.308,
+                0.762,
+                0.356,
+                0.788
+            ],
+            "angle": 0,
+            "content": "1st"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.306,
+                0.793,
+                0.363,
+                0.806
+            ],
+            "angle": 0,
+            "content": "IN ASIA"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.081,
+                0.84,
+                0.266,
+                0.871
+            ],
+            "angle": 0,
+            "content": "QS BUSINESS MASTERS RANKINGS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.136,
+                0.882,
+                0.213,
+                0.91
+            ],
+            "angle": 0,
+            "content": "\\(10^{\\text{th}}\\)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.142,
+                0.919,
+                0.205,
+                0.932
+            ],
+            "angle": 0,
+            "content": "GLOBAL"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.307,
+                0.841,
+                0.457,
+                0.87
+            ],
+            "angle": 0,
+            "content": "QS GLOBAL MBA RANKINGS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.342,
+                0.882,
+                0.423,
+                0.911
+            ],
+            "angle": 0,
+            "content": "\\(24^{\\text{th}}\\)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.351,
+                0.919,
+                0.414,
+                0.932
+            ],
+            "angle": 0,
+            "content": "GLOBAL"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.576,
+                0.706,
+                0.854,
+                0.721
+            ],
+            "angle": 0,
+            "content": "MBA PROGRAMME RANKINGS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.524,
+                0.741,
+                0.69,
+                0.772
+            ],
+            "angle": 0,
+            "content": "UCLA-NUS JOINT PROGRAMMES QS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.58,
+                0.782,
+                0.636,
+                0.811
+            ],
+            "angle": 0,
+            "content": "3rd"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.555,
+                0.815,
+                0.659,
+                0.828
+            ],
+            "angle": 0,
+            "content": "IN EMBA 2023"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.525,
+                0.853,
+                0.688,
+                0.883
+            ],
+            "angle": 0,
+            "content": "FINANCIAL TIMES MBA RANKINGS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.568,
+                0.896,
+                0.646,
+                0.924
+            ],
+            "angle": 0,
+            "content": "\\(25^{\\text{th}}\\)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.559,
+                0.928,
+                0.656,
+                0.941
+            ],
+            "angle": 0,
+            "content": "IN MBA 2023"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.747,
+                0.741,
+                0.898,
+                0.786
+            ],
+            "angle": 0,
+            "content": "POETS & QUANTS INTERNATIONAL MBA RANKINGS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.772,
+                0.787,
+                0.873,
+                0.8
+            ],
+            "angle": 0,
+            "content": "2022-2023"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.8,
+                0.814,
+                0.849,
+                0.84
+            ],
+            "angle": 0,
+            "content": "1st"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.794,
+                0.846,
+                0.853,
+                0.858
+            ],
+            "angle": 0,
+            "content": "IN ASIA"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.797,
+                0.883,
+                0.849,
+                0.911
+            ],
+            "angle": 0,
+            "content": "\\(5^{\\text {th }}\\)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.792,
+                0.921,
+                0.855,
+                0.933
+            ],
+            "angle": 0,
+            "content": "GLOBAL"
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.066,
+                0.958,
+                0.079,
+                0.972
+            ],
+            "angle": 0,
+            "content": "2"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.065,
+                0.069,
+                0.558,
+                0.102
+            ],
+            "angle": 0,
+            "content": "AN AGILE EXPERIENCE"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.076,
+                0.16,
+                0.705,
+                0.181
+            ],
+            "angle": 0,
+            "content": "YOUR AGILE APPROACH TO EDUCATIONAL EXCELLENCE!"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.062,
+                0.203,
+                0.89,
+                0.257
+            ],
+            "angle": 0,
+            "content": "Be equipped with A.G.I.L.E. capabilities tailored for the demands of a Volatile, Uncertain, Complex, and Ambiguous (VUCA) world. You get to cultivate various skill sets across the many disciplines, empowering you with the expertise to navigate and address new business challenges."
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.062,
+                0.272,
+                0.841,
+                0.309
+            ],
+            "angle": 0,
+            "content": "JOIN US and thrive in the face of volatility with the confidence and competence instilled by NUS Business School."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.023,
+                0.353,
+                1.0,
+                0.776
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.919,
+                0.96,
+                0.933,
+                0.975
+            ],
+            "angle": 0,
+            "content": "3"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.062,
+                0.096,
+                0.406,
+                0.169
+            ],
+            "angle": 0,
+            "content": "ACADEMIC"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.062,
+                0.143,
+                0.882,
+                0.263
+            ],
+            "angle": 0,
+            "content": "Our curriculum promises the most customisability, with options to pursue a 2nd major and minor, as well as cross-disciplinary studies. Upon graduation, you will be equipped with skills spanning various professional fields."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.0,
+                0.269,
+                1.0,
+                0.945
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.066,
+                0.956,
+                0.079,
+                0.97
+            ],
+            "angle": 0,
+            "content": "4"
+        }
+    ],
+    [
+        {
+            "type": "header",
+            "bbox": [
+                0.068,
+                0.069,
+                0.592,
+                0.102
+            ],
+            "angle": 0,
+            "content": "CURRICULUM ROADMAP"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.159,
+                0.25,
+                0.248,
+                0.306
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.125,
+                0.315,
+                0.276,
+                0.351
+            ],
+            "angle": 0,
+            "content": "COMMON CURRICULUM"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.149,
+                0.363,
+                0.251,
+                0.38
+            ],
+            "angle": 0,
+            "content": "52UNITS"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.361,
+                0.162,
+                0.614,
+                0.193
+            ],
+            "angle": 0,
+            "content": "General Education Courses 24 Units"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.362,
+                0.198,
+                0.613,
+                0.212
+            ],
+            "angle": 0,
+            "content": "Cultures and Connections"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.362,
+                0.215,
+                0.596,
+                0.231
+            ],
+            "angle": 0,
+            "content": "- Critique and Expression"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.362,
+                0.232,
+                0.511,
+                0.247
+            ],
+            "angle": 0,
+            "content": "Data Literacy"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.362,
+                0.248,
+                0.526,
+                0.264
+            ],
+            "angle": 0,
+            "content": "Digital Literacy"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.362,
+                0.264,
+                0.55,
+                0.28
+            ],
+            "angle": 0,
+            "content": "Singapore Studies"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.362,
+                0.28,
+                0.547,
+                0.313
+            ],
+            "angle": 0,
+            "content": "Communities and Engagement"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.362,
+                0.198,
+                0.613,
+                0.313
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.361,
+                0.344,
+                0.598,
+                0.392
+            ],
+            "angle": 0,
+            "content": "Cross Disciplinary Course -Field Service Project 8 Units"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.428,
+                0.521,
+                0.46
+            ],
+            "angle": 0,
+            "content": "Work Experience Milestone"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.668,
+                0.162,
+                0.877,
+                0.193
+            ],
+            "angle": 0,
+            "content": "Business Environment Courses"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.668,
+                0.195,
+                0.747,
+                0.209
+            ],
+            "angle": 0,
+            "content": "20 Units"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.669,
+                0.215,
+                0.888,
+                0.245
+            ],
+            "angle": 0,
+            "content": "Legal Environment of Business"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.669,
+                0.248,
+                0.894,
+                0.263
+            ],
+            "angle": 0,
+            "content": "Managerial Economics"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.669,
+                0.264,
+                0.904,
+                0.295
+            ],
+            "angle": 0,
+            "content": "Decision Analytics using Spreadsheets"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.669,
+                0.297,
+                0.869,
+                0.342
+            ],
+            "angle": 0,
+            "content": "Business Communication for Leaders"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.669,
+                0.345,
+                0.834,
+                0.374
+            ],
+            "angle": 0,
+            "content": "Introduction to Real Estate"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.669,
+                0.377,
+                0.849,
+                0.392
+            ],
+            "angle": 0,
+            "content": "- Ethics in Business"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.669,
+                0.215,
+                0.904,
+                0.392
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.668,
+                0.428,
+                0.836,
+                0.46
+            ],
+            "angle": 0,
+            "content": "Global Experience Milestone"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.165,
+                0.532,
+                0.241,
+                0.589
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.128,
+                0.599,
+                0.279,
+                0.635
+            ],
+            "angle": 0,
+            "content": "MAJOR CURRICULUM"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.119,
+                0.646,
+                0.287,
+                0.683
+            ],
+            "angle": 0,
+            "content": "Business Majors* 60 UNITS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.104,
+                0.695,
+                0.303,
+                0.731
+            ],
+            "angle": 0,
+            "content": "Accountancy Major 68 UNITS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.113,
+                0.743,
+                0.294,
+                0.78
+            ],
+            "angle": 0,
+            "content": "Real Estate Major 64UNITS"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.36,
+                0.515,
+                0.607,
+                0.547
+            ],
+            "angle": 0,
+            "content": "Level 2000, 3000 and 4000 Courses:"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.36,
+                0.557,
+                0.471,
+                0.573
+            ],
+            "angle": 0,
+            "content": "Accountancy"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.36,
+                0.581,
+                0.587,
+                0.598
+            ],
+            "angle": 0,
+            "content": "Applied Business Analytics*"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.606,
+                0.529,
+                0.621
+            ],
+            "angle": 0,
+            "content": "Business Economics*"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.631,
+                0.434,
+                0.645
+            ],
+            "angle": 0,
+            "content": "Finance*"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.655,
+                0.627,
+                0.672
+            ],
+            "angle": 0,
+            "content": "Innovation & Entrepreneurship*"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.68,
+                0.601,
+                0.713
+            ],
+            "angle": 0,
+            "content": "Leadership & Human Capital Management*"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.72,
+                0.457,
+                0.737
+            ],
+            "angle": 0,
+            "content": "Marketing*"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.746,
+                0.587,
+                0.778
+            ],
+            "angle": 0,
+            "content": "Operations & Supply Chain Management*"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.787,
+                0.455,
+                0.801
+            ],
+            "angle": 0,
+            "content": "Real Estate"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.766,
+                0.513,
+                0.825,
+                0.563
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.687,
+                0.571,
+                0.902,
+                0.608
+            ],
+            "angle": 0,
+            "content": "UNRESTRICTED ELECTIVE COURSES"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.714,
+                0.62,
+                0.876,
+                0.655
+            ],
+            "angle": 0,
+            "content": "Business Majors 48 UNITS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.695,
+                0.668,
+                0.895,
+                0.704
+            ],
+            "angle": 0,
+            "content": "Accountancy Major 40 UNITS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.704,
+                0.716,
+                0.886,
+                0.752
+            ],
+            "angle": 0,
+            "content": "Real Estate Major 44UNITS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.075,
+                0.851,
+                0.624,
+                0.937
+            ],
+            "angle": 0,
+            "content": "Embark with us on an A.G.I.L.E. journey with multiple opportunities to acquire both in-depth business and cross-disciplinary expertise."
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.68,
+                0.797,
+                0.898,
+                0.928
+            ],
+            "angle": 0,
+            "content": "With a curriculum that is at least a quarter of unrestricted electives, students have a higher degree of freedom to broaden their university education and enhance their learning experience."
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.919,
+                0.96,
+                0.933,
+                0.975
+            ],
+            "angle": 0,
+            "content": "5"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.065,
+                0.063,
+                0.685,
+                0.091
+            ],
+            "angle": 0,
+            "content": "NINE MAJORS, INFINITE POSSIBILITIES:"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.087,
+                0.11,
+                0.834,
+                0.136
+            ],
+            "angle": 0,
+            "content": "SHAPE YOUR EDUCATION, SHAPE YOUR FUTURE!"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.078,
+                0.173,
+                0.245,
+                0.19
+            ],
+            "angle": 0,
+            "content": "ACCOUNTANCY"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.209,
+                0.276,
+                0.224
+            ],
+            "angle": 0,
+            "content": "Managerial Accounting"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.226,
+                0.282,
+                0.257
+            ],
+            "angle": 0,
+            "content": "Corporate Accounting & Reporting"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.258,
+                0.28,
+                0.289
+            ],
+            "angle": 0,
+            "content": "Accounting Information Systems"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.29,
+                0.299,
+                0.305
+            ],
+            "angle": 0,
+            "content": "Assurance and Attestation"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.306,
+                0.323,
+                0.322
+            ],
+            "angle": 0,
+            "content": "Corporate and Securities Law"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.323,
+                0.152,
+                0.337
+            ],
+            "angle": 0,
+            "content": "Taxation"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.339,
+                0.23,
+                0.387
+            ],
+            "angle": 0,
+            "content": "Governance, Risk Management and Sustainability"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.388,
+                0.3,
+                0.419
+            ],
+            "angle": 0,
+            "content": "Advanced Corporate Accounting and Reporting"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.42,
+                0.313,
+                0.435
+            ],
+            "angle": 0,
+            "content": "Accounting Analytics and AI"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.067,
+                0.209,
+                0.323,
+                0.435
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.078,
+                0.472,
+                0.28,
+                0.507
+            ],
+            "angle": 0,
+            "content": "APPLIED BUSINESS ANALYTICS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.53,
+                0.333,
+                0.546
+            ],
+            "angle": 0,
+            "content": "Predictive Analytics in Business"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.547,
+                0.248,
+                0.578
+            ],
+            "angle": 0,
+            "content": "Stochastic Models in Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.579,
+                0.267,
+                0.611
+            ],
+            "angle": 0,
+            "content": "Statistical Learning for Managerial Decision"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.612,
+                0.332,
+                0.627
+            ],
+            "angle": 0,
+            "content": "Analytical Tools for Consulting"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.628,
+                0.276,
+                0.66
+            ],
+            "angle": 0,
+            "content": "Marketing Analysis and Decision-making"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.661,
+                0.284,
+                0.692
+            ],
+            "angle": 0,
+            "content": "Big Data Techniques and Technologies"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.693,
+                0.333,
+                0.708
+            ],
+            "angle": 0,
+            "content": "Social Media Network Analysis"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.067,
+                0.53,
+                0.333,
+                0.708
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.078,
+                0.745,
+                0.32,
+                0.761
+            ],
+            "angle": 0,
+            "content": "BUSINESS ECONOMICS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.78,
+                0.316,
+                0.811
+            ],
+            "angle": 0,
+            "content": "Macroeconomic Principles in the Global Economy"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.812,
+                0.303,
+                0.827
+            ],
+            "angle": 0,
+            "content": "Econometrics for Business I"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.828,
+                0.292,
+                0.844
+            ],
+            "angle": 0,
+            "content": "Innovation & Productivity"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.845,
+                0.333,
+                0.86
+            ],
+            "angle": 0,
+            "content": "Predictive Analytics in Business"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.862,
+                0.288,
+                0.892
+            ],
+            "angle": 0,
+            "content": "Game Theory & Strategic Analysis"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.893,
+                0.306,
+                0.909
+            ],
+            "angle": 0,
+            "content": "Business-driven Technology"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.91,
+                0.3,
+                0.925
+            ],
+            "angle": 0,
+            "content": "Psychology and Economics"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.067,
+                0.78,
+                0.333,
+                0.925
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.377,
+                0.174,
+                0.474,
+                0.19
+            ],
+            "angle": 0,
+            "content": "FINANCE"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.364,
+                0.209,
+                0.569,
+                0.241
+            ],
+            "angle": 0,
+            "content": "Investment Analysis & Portfolio Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.364,
+                0.242,
+                0.565,
+                0.273
+            ],
+            "angle": 0,
+            "content": "International Financial Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.364,
+                0.274,
+                0.546,
+                0.289
+            ],
+            "angle": 0,
+            "content": "- Options and Futures"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.364,
+                0.29,
+                0.533,
+                0.305
+            ],
+            "angle": 0,
+            "content": "Risk and Insurance"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.364,
+                0.306,
+                0.524,
+                0.32
+            ],
+            "angle": 0,
+            "content": "Financial Markets"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.364,
+                0.322,
+                0.61,
+                0.355
+            ],
+            "angle": 0,
+            "content": "AI Blockchain and Quantum Computing"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.364,
+                0.209,
+                0.61,
+                0.355
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.374,
+                0.391,
+                0.59,
+                0.427
+            ],
+            "angle": 0,
+            "content": "INNOVATION & ENTREPRENEURSHIP"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.363,
+                0.445,
+                0.585,
+                0.46
+            ],
+            "angle": 0,
+            "content": "Technological Innovation"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.363,
+                0.461,
+                0.561,
+                0.475
+            ],
+            "angle": 0,
+            "content": "New Venture Creation"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.363,
+                0.477,
+                0.582,
+                0.493
+            ],
+            "angle": 0,
+            "content": "- Entrepreneurial Strategy"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.363,
+                0.494,
+                0.572,
+                0.509
+            ],
+            "angle": 0,
+            "content": "Social Entrepreneurship"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.363,
+                0.51,
+                0.6,
+                0.525
+            ],
+            "angle": 0,
+            "content": "New Product Development"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.363,
+                0.526,
+                0.581,
+                0.558
+            ],
+            "angle": 0,
+            "content": "Innovation & Intellectual Property"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.363,
+                0.445,
+                0.6,
+                0.558
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.373,
+                0.595,
+                0.555,
+                0.649
+            ],
+            "angle": 0,
+            "content": "LEADERSHIP & HUMAN CAPITAL MANAGEMENT"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.363,
+                0.667,
+                0.605,
+                0.683
+            ],
+            "angle": 0,
+            "content": "Leading in the 21st Century"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.363,
+                0.684,
+                0.609,
+                0.699
+            ],
+            "angle": 0,
+            "content": "Organisational Effectiveness"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.363,
+                0.7,
+                0.554,
+                0.73
+            ],
+            "angle": 0,
+            "content": "Business with a Social Conscience"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.363,
+                0.732,
+                0.568,
+                0.747
+            ],
+            "angle": 0,
+            "content": "Leading Across Borders"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.363,
+                0.748,
+                0.591,
+                0.78
+            ],
+            "angle": 0,
+            "content": "HR Analytics and Machine Learning"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.363,
+                0.667,
+                0.609,
+                0.78
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.67,
+                0.174,
+                0.803,
+                0.19
+            ],
+            "angle": 0,
+            "content": "MARKETING"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.209,
+                0.909,
+                0.239
+            ],
+            "angle": 0,
+            "content": "Marketing Strategy: Analysis and Practice"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.242,
+                0.844,
+                0.256
+            ],
+            "angle": 0,
+            "content": "Consumer Behaviour"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.258,
+                0.926,
+                0.273
+            ],
+            "angle": 0,
+            "content": "Product & Brand Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.274,
+                0.828,
+                0.289
+            ],
+            "angle": 0,
+            "content": "Services Marketing"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.29,
+                0.874,
+                0.306
+            ],
+            "angle": 0,
+            "content": "SME Marketing Strategy"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.307,
+                0.877,
+                0.338
+            ],
+            "angle": 0,
+            "content": "Advertising & Promotion Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.339,
+                0.802,
+                0.355
+            ],
+            "angle": 0,
+            "content": "AI in Marketing"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.658,
+                0.209,
+                0.926,
+                0.355
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.67,
+                0.391,
+                0.914,
+                0.427
+            ],
+            "angle": 0,
+            "content": "OPERATIONS & SUPPLY CHAIN MANAGEMENT"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.445,
+                0.933,
+                0.46
+            ],
+            "angle": 0,
+            "content": "Service Operations Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.461,
+                0.839,
+                0.493
+            ],
+            "angle": 0,
+            "content": "Physical Distribution Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.494,
+                0.863,
+                0.525
+            ],
+            "angle": 0,
+            "content": "Sustainable Operations Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.526,
+                0.918,
+                0.541
+            ],
+            "angle": 0,
+            "content": "Strategic Information Systems"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.542,
+                0.897,
+                0.558
+            ],
+            "angle": 0,
+            "content": "Supply Chain Management"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.658,
+                0.445,
+                0.933,
+                0.558
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.67,
+                0.595,
+                0.808,
+                0.61
+            ],
+            "angle": 0,
+            "content": "REAL ESTATE"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.63,
+                0.752,
+                0.643
+            ],
+            "angle": 0,
+            "content": "Land Law"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.646,
+                0.814,
+                0.659
+            ],
+            "angle": 0,
+            "content": "Urban Economics"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.661,
+                0.93,
+                0.677
+            ],
+            "angle": 0,
+            "content": "Real Estate Investment Analysis"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.678,
+                0.801,
+                0.693
+            ],
+            "angle": 0,
+            "content": "Urban Planning"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.694,
+                0.868,
+                0.724
+            ],
+            "angle": 0,
+            "content": "Principles of Real Estate Valuation"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.658,
+                0.726,
+                0.862,
+                0.758
+            ],
+            "angle": 0,
+            "content": "REIT and Business Trust Management"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.658,
+                0.63,
+                0.93,
+                0.758
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.437,
+                0.771,
+                0.932,
+                0.965
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.067,
+                0.958,
+                0.079,
+                0.97
+            ],
+            "angle": 0,
+            "content": "6"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.067,
+                0.069,
+                0.643,
+                0.101
+            ],
+            "angle": 0,
+            "content": "2ND MAJORS AND MINORS"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.077,
+                0.16,
+                0.444,
+                0.181
+            ],
+            "angle": 0,
+            "content": "WHAT POSSIBILITIES ARE THERE?"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.062,
+                0.205,
+                0.923,
+                0.26
+            ],
+            "angle": 0,
+            "content": "Our students have the capacity to pursue more possibilities of cross-disciplinary studies within the standard candidature using their pool of unrestricted elective units. They can embark on a second major and/or minors within or outside of NUS Business School. Give it a try!"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.119,
+                0.277,
+                0.884,
+                0.822
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.085,
+                0.881,
+                0.189,
+                0.925
+            ],
+            "angle": 0,
+            "content": "DID YOU KNOW?"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.244,
+                0.866,
+                0.807,
+                0.94
+            ],
+            "angle": 0,
+            "content": "NUS has a grade-free scheme where you can ensure your grades don't impact your GPA for that semester. This allows for our students to transit into university life academically and socially."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.857,
+                0.882,
+                0.905,
+                0.92
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.918,
+                0.959,
+                0.933,
+                0.976
+            ],
+            "angle": 0,
+            "content": "7"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.078,
+                0.078,
+                0.424,
+                0.096
+            ],
+            "angle": 0,
+            "content": "DOUBLE DEGREE PROGRAMME"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.063,
+                0.121,
+                0.915,
+                0.157
+            ],
+            "angle": 0,
+            "content": "Are you a highly motivated student with an interest in two complementing disciplines? You may consider the Double Degree programme (DDP). Choose from the following options:"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.164,
+                0.236,
+                0.181
+            ],
+            "angle": 0,
+            "content": "Business Analytics"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.182,
+                0.351,
+                0.197
+            ],
+            "angle": 0,
+            "content": "Communications & New Media"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.2,
+                0.237,
+                0.215
+            ],
+            "angle": 0,
+            "content": "Computer Science"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.217,
+                0.172,
+                0.232
+            ],
+            "angle": 0,
+            "content": "Economics"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.234,
+                0.187,
+                0.251
+            ],
+            "angle": 0,
+            "content": "Engineering"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.064,
+                0.164,
+                0.351,
+                0.251
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.164,
+                0.703,
+                0.181
+            ],
+            "angle": 0,
+            "content": "Information Systems"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.183,
+                0.561,
+                0.197
+            ],
+            "angle": 0,
+            "content": "Law"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.199,
+                0.793,
+                0.216
+            ],
+            "angle": 0,
+            "content": "NUS - PKU Extended Exchange"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.217,
+                0.589,
+                0.232
+            ],
+            "angle": 0,
+            "content": "Others"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.508,
+                0.164,
+                0.793,
+                0.232
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.065,
+                0.256,
+                0.658,
+                0.271
+            ],
+            "angle": 0,
+            "content": "* Students may apply to pursue self-initiated DDP combinations after the first year of study."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.067,
+                0.294,
+                0.098,
+                0.318
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.105,
+                0.3,
+                0.647,
+                0.315
+            ],
+            "angle": 0,
+            "content": "https://bba.nus.edu.sg/academic-programmes/dcdp/ddp/ad-hoc-double-degrees/"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.077,
+                0.349,
+                0.486,
+                0.366
+            ],
+            "angle": 0,
+            "content": "CONCURRENT DEGREE PROGRAMME"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.063,
+                0.392,
+                0.929,
+                0.462
+            ],
+            "angle": 0,
+            "content": "The Concurrent Degree programme (CDP) is similar to the Double Degree programme in duration. In a DDP, the student is awarded two Bachelor degrees upon graduation. However, for a CDP, the student is awarded a Bachelor and a Master's degree upon completion. A student may choose from the following options:"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.064,
+                0.472,
+                0.373,
+                0.487
+            ],
+            "angle": 0,
+            "content": "BACHELOR & MASTERS DEGREE"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.489,
+                0.66,
+                0.506
+            ],
+            "angle": 0,
+            "content": "- Master in Public Policy (with Lee Kuan Yew School of Public Policy)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.507,
+                0.38,
+                0.524
+            ],
+            "angle": 0,
+            "content": "- Master of Science in Management"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.064,
+                0.489,
+                0.66,
+                0.524
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.067,
+                0.547,
+                0.099,
+                0.571
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.105,
+                0.552,
+                0.521,
+                0.567
+            ],
+            "angle": 0,
+            "content": "https://bba.nus.edu.sg/academic-programmes/dcdp/cdp/mpp/"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.1,
+                0.799,
+                0.28,
+                0.837
+            ],
+            "angle": 0,
+            "content": "FOR MORE INFORMATION ON CURRICULUM, PLEASE SCAN HERE!"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.143,
+                0.842,
+                0.24,
+                0.914
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.314,
+                0.568,
+                0.932,
+                0.89
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.067,
+                0.957,
+                0.079,
+                0.97
+            ],
+            "angle": 0,
+            "content": "8"
+        }
+    ],
+    [
+        {
+            "type": "header",
+            "bbox": [
+                0.067,
+                0.073,
+                0.155,
+                0.142
+            ],
+            "angle": 0,
+            "content": "G"
+        },
+        {
+            "type": "header",
+            "bbox": [
+                0.157,
+                0.074,
+                0.397,
+                0.119
+            ],
+            "angle": 0,
+            "content": "GLOBAL &"
+        },
+        {
+            "type": "header",
+            "bbox": [
+                0.16,
+                0.128,
+                0.544,
+                0.185
+            ],
+            "angle": 0,
+            "content": "EXPERIENTIAL"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.062,
+                0.18,
+                0.949,
+                0.328
+            ],
+            "angle": 0,
+            "content": "As required components in the BBA curriculum, students will be able to meaningfully expand their horizons, and graduate as global-minded, culturally aware individuals, who have gained relevant work experience to thrive in highly diverse work environments."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.0,
+                0.33,
+                0.971,
+                0.899
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.919,
+                0.96,
+                0.933,
+                0.976
+            ],
+            "angle": 0,
+            "content": "9"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.068,
+                0.069,
+                0.504,
+                0.102
+            ],
+            "angle": 0,
+            "content": "GLOBAL IMMERSION"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.077,
+                0.161,
+                0.314,
+                0.201
+            ],
+            "angle": 0,
+            "content": "STUDENT EXCHANGE PROGRAMME (SEP)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.224,
+                0.38,
+                0.396
+            ],
+            "angle": 0,
+            "content": "Students spend a semester reading courses at an overseas partner university, and in doing so, gain invaluable experiences abroad in a different cultural environment that broadens their outlook and approach to doing business. Students can also choose from a wide array of summer or winter programmes which are shorter in duration than SEP."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.068,
+                0.42,
+                0.099,
+                0.444
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.396,
+                0.131,
+                0.933,
+                0.449
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.067,
+                0.47,
+                0.489,
+                0.677
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.077,
+                0.683,
+                0.307,
+                0.7
+            ],
+            "angle": 0,
+            "content": "STEER PROGRAMME"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.725,
+                0.465,
+                0.793
+            ],
+            "angle": 0,
+            "content": "The STEER programme is designed to build and cultivate familiarity and interests in burgeoning economies in India, the Middle East, Vietnam, China and Brazil."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.067,
+                0.817,
+                0.099,
+                0.841
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.105,
+                0.817,
+                0.489,
+                0.842
+            ],
+            "angle": 0,
+            "content": "https://www.nus.edu.sg/gro/global-programmes/special-global-programmes/steer"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.508,
+                0.439,
+                0.933,
+                0.633
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.521,
+                0.636,
+                0.804,
+                0.654
+            ],
+            "angle": 0,
+            "content": "NUS OVERSEAS COLLEGE"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.507,
+                0.679,
+                0.93,
+                0.749
+            ],
+            "angle": 0,
+            "content": "A prestigious entrepreneurship development programme that gives NUS students opportunities to work and study in leading entrepreneurial and academic hubs for up to a year."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.511,
+                0.771,
+                0.54,
+                0.794
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.549,
+                0.77,
+                0.913,
+                0.797
+            ],
+            "angle": 0,
+            "content": "https://bba.nus.edu.sg/academic-programmes/special-programmes/nus-overseas-colleges/"
+        },
+        {
+            "type": "image_caption",
+            "bbox": [
+                0.684,
+                0.833,
+                0.861,
+                0.856
+            ],
+            "angle": 0,
+            "content": "FOR MORE INFORMATION, SCAN HERE!"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.724,
+                0.859,
+                0.822,
+                0.93
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.068,
+                0.956,
+                0.089,
+                0.97
+            ],
+            "angle": 0,
+            "content": "10"
+        }
+    ],
+    [
+        {
+            "type": "header",
+            "bbox": [
+                0.068,
+                0.069,
+                0.51,
+                0.102
+            ],
+            "angle": 0,
+            "content": "CASE COMPETITIONS"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.078,
+                0.161,
+                0.549,
+                0.181
+            ],
+            "angle": 0,
+            "content": "GROWING FROM STRENGTH TO STRENGTH"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.064,
+                0.205,
+                0.345,
+                0.22
+            ],
+            "angle": 0,
+            "content": "HOME-GROWN COMPETITIONS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.062,
+                0.222,
+                0.874,
+                0.275
+            ],
+            "angle": 0,
+            "content": "NUS Business School hosts our very own competitions on a local and international scale. These competitions engage students from local and overseas universities, and are excellent focal points for students to congregate, exchange and share inspiring ideas across borders."
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.064,
+                0.29,
+                0.253,
+                0.305
+            ],
+            "angle": 0,
+            "content": "ACROSS THE YEARS,"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.064,
+                0.307,
+                0.316,
+                0.322
+            ],
+            "angle": 0,
+            "content": "WE HAVE PARTICIPATED IN:"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.063,
+                0.325,
+                0.312,
+                0.341
+            ],
+            "angle": 0,
+            "content": "NUS-Shell Case Competition"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.063,
+                0.342,
+                0.424,
+                0.359
+            ],
+            "angle": 0,
+            "content": "UOB-NUS International Case Competition"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.063,
+                0.36,
+                0.476,
+                0.376
+            ],
+            "angle": 0,
+            "content": "BI Norwegian Business School Case Competition"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.377,
+                0.264,
+                0.393
+            ],
+            "angle": 0,
+            "content": "CBS Case Competition"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.394,
+                0.384,
+                0.427
+            ],
+            "angle": 0,
+            "content": "Belgrade International Business Case Competition"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.429,
+                0.35,
+                0.445
+            ],
+            "angle": 0,
+            "content": "NUS-SP Group Case Competition"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.446,
+                0.357,
+                0.462
+            ],
+            "angle": 0,
+            "content": "- Nestle-NUS Innovation Challenge"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.463,
+                0.47,
+                0.479
+            ],
+            "angle": 0,
+            "content": "John Molson Undergraduate Case Competition"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.481,
+                0.316,
+                0.497
+            ],
+            "angle": 0,
+            "content": "RSM STAR Case Competition"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.498,
+                0.453,
+                0.514
+            ],
+            "angle": 0,
+            "content": "International Case Competition @ Maastricht"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.063,
+                0.325,
+                0.476,
+                0.514
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.485,
+                0.281,
+                0.933,
+                0.561
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.171,
+                0.6,
+                0.237,
+                0.66
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.08,
+                0.662,
+                0.325,
+                0.712
+            ],
+            "angle": 0,
+            "content": "2023 THAMMASAT UNDERGRADUATE BUSINESS CHALLENGE"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.082,
+                0.717,
+                0.325,
+                0.739
+            ],
+            "angle": 0,
+            "content": "2ND RUNNER-UP"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.468,
+                0.602,
+                0.532,
+                0.662
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.365,
+                0.663,
+                0.634,
+                0.712
+            ],
+            "angle": 0,
+            "content": "2023 HONG KONG UNIVERSITY OF SCIENCE AND TECHNOLOGY INTERNATIONAL CASE"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.408,
+                0.714,
+                0.591,
+                0.756
+            ],
+            "angle": 0,
+            "content": "COMPETITION CHAMPIONS"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.761,
+                0.6,
+                0.828,
+                0.659
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.674,
+                0.663,
+                0.916,
+                0.713
+            ],
+            "angle": 0,
+            "content": "2023 JOHN MOLSON UNDERGRADUATE CASE COMPETITION"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.674,
+                0.717,
+                0.916,
+                0.74
+            ],
+            "angle": 0,
+            "content": "2ND RUNNER-UP"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.319,
+                0.775,
+                0.383,
+                0.833
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.261,
+                0.835,
+                0.442,
+                0.867
+            ],
+            "angle": 0,
+            "content": "2023 RSM STAR CASE COMPETITION"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.261,
+                0.872,
+                0.442,
+                0.893
+            ],
+            "angle": 0,
+            "content": "CHAMPIONS"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.616,
+                0.774,
+                0.68,
+                0.833
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.527,
+                0.835,
+                0.767,
+                0.867
+            ],
+            "angle": 0,
+            "content": "2023 CENTRAL EUROPEAN CASE COMPETITION"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.527,
+                0.872,
+                0.767,
+                0.893
+            ],
+            "angle": 0,
+            "content": "2ND RUNNER-UP"
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.91,
+                0.96,
+                0.931,
+                0.974
+            ],
+            "angle": 0,
+            "content": "11"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.067,
+                0.069,
+                0.406,
+                0.101
+            ],
+            "angle": 0,
+            "content": "CAMPUS LIVING"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.063,
+                0.137,
+                0.482,
+                0.31
+            ],
+            "angle": 0,
+            "content": "Immerse yourself in a dynamic campus life brimming with a diverse range of residential options and programmes tailored just for you. Discover countless opportunities that not only enrich your education but also connect you to vibrant communities. Forge lifelong friendships that will support and accompany you on your unique path through both life and career adventures. Your extraordinary experience begins here!"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.077,
+                0.333,
+                0.326,
+                0.351
+            ],
+            "angle": 0,
+            "content": "HALLS & RESIDENCES:"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.063,
+                0.377,
+                0.172,
+                0.391
+            ],
+            "angle": 0,
+            "content": "Eusoff Hall"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.063,
+                0.395,
+                0.211,
+                0.41
+            ],
+            "angle": 0,
+            "content": "Kent Ridge Hall"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.412,
+                0.252,
+                0.428
+            ],
+            "angle": 0,
+            "content": "King Edward VII Hall"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.429,
+                0.424,
+                0.445
+            ],
+            "angle": 0,
+            "content": "Prince George's Park Residences & Houses"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.447,
+                0.175,
+                0.461
+            ],
+            "angle": 0,
+            "content": "Raffles Hall"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.464,
+                0.182,
+                0.479
+            ],
+            "angle": 0,
+            "content": "Sheares Hall"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.481,
+                0.19,
+                0.495
+            ],
+            "angle": 0,
+            "content": "Temasek Hall"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.063,
+                0.377,
+                0.424,
+                0.495
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.068,
+                0.546,
+                0.319,
+                0.577
+            ],
+            "angle": 0,
+            "content": "BIZAD CLUB"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.063,
+                0.614,
+                0.472,
+                0.906
+            ],
+            "angle": 0,
+            "content": "Step into a world crafted just for you by becoming a part of the NUS Students' Business Club – your gateway to an exceptional student experience! As the ultimate student organisational hub, we offer you the ideal platform to cultivate lifelong skills and build meaningful connections. Immerse yourself in the excitement of flagship events like the Bizad Charity Run and Freshmen Orientation Projects, designed to infuse energy into your student life. Join us on this journey of empowerment, where every moment is dedicated to enhancing your personal and professional growth."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.51,
+                0.027,
+                1.0,
+                0.295
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.521,
+                0.333,
+                0.847,
+                0.351
+            ],
+            "angle": 0,
+            "content": "RESIDENTIAL PROGRAMMES:"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.507,
+                0.377,
+                0.834,
+                0.393
+            ],
+            "angle": 0,
+            "content": "College of Alice and Peter Tan (CAPT)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.395,
+                0.689,
+                0.411
+            ],
+            "angle": 0,
+            "content": "NUS College (NUSC)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.509,
+                0.412,
+                0.697,
+                0.428
+            ],
+            "angle": 0,
+            "content": "Residential College 4"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.509,
+                0.429,
+                0.781,
+                0.446
+            ],
+            "angle": 0,
+            "content": "Ridge View Residential College"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.509,
+                0.447,
+                0.665,
+                0.463
+            ],
+            "angle": 0,
+            "content": "Tembusu College"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.507,
+                0.377,
+                0.834,
+                0.463
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.51,
+                0.498,
+                1.0,
+                0.888
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.068,
+                0.956,
+                0.089,
+                0.97
+            ],
+            "angle": 0,
+            "content": "12"
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "bbox": [
+                0.073,
+                0.079,
+                0.105,
+                0.143
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.11,
+                0.077,
+                0.367,
+                0.121
+            ],
+            "angle": 0,
+            "content": "NDUSTRY"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.163,
+                0.138,
+                0.443,
+                0.187
+            ],
+            "angle": 0,
+            "content": "RELEVANT"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.062,
+                0.178,
+                0.951,
+                0.354
+            ],
+            "angle": 0,
+            "content": "Dive into an immersive Career Compass Starter Workshop where you gain valuable skills in interview and resume-writing, together with industry-focused experiences through internships and work-study programmes. This dynamic combination ensures you emerge market-ready and a highly sought-after job candidate."
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.33,
+                0.886,
+                0.427
+            ],
+            "angle": 0,
+            "content": "sought-after Job candidaYour journey to success starts with a programme designed to set you apart and open doors to exciting opportunities!"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.0,
+                0.385,
+                1.0,
+                0.933
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.91,
+                0.96,
+                0.933,
+                0.975
+            ],
+            "angle": 0,
+            "content": "13"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.078,
+                0.078,
+                0.43,
+                0.096
+            ],
+            "angle": 0,
+            "content": "BUSINESS SCHOOL BizCAREERS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.121,
+                0.474,
+                0.254
+            ],
+            "angle": 0,
+            "content": "NUS Business School students are highly sought after by global and local companies. Our BIZCareers team works closely with students to help them achieve their career objectives, while actively engaging and fostering close partnerships with recruiters across the major industries to bring meaningful opportunities to our students."
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.268,
+                0.282,
+                0.284
+            ],
+            "angle": 0,
+            "content": "Alumni Sharing Sessions"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.065,
+                0.285,
+                0.285,
+                0.301
+            ],
+            "angle": 0,
+            "content": "Booster Skills Workshops"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.065,
+                0.302,
+                0.208,
+                0.317
+            ],
+            "angle": 0,
+            "content": "Company Visits"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.065,
+                0.318,
+                0.305,
+                0.332
+            ],
+            "angle": 0,
+            "content": "Career & Recruitment Talks"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.065,
+                0.334,
+                0.285,
+                0.349
+            ],
+            "angle": 0,
+            "content": "Career & Internship Fairs"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.065,
+                0.35,
+                0.353,
+                0.366
+            ],
+            "angle": 0,
+            "content": "- Internship & Job Search Briefings"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.065,
+                0.367,
+                0.294,
+                0.382
+            ],
+            "angle": 0,
+            "content": "Industry Awareness Series"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.064,
+                0.268,
+                0.353,
+                0.382
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.078,
+                0.419,
+                0.227,
+                0.437
+            ],
+            "angle": 0,
+            "content": "INTERNSHIPS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.462,
+                0.472,
+                0.528
+            ],
+            "angle": 0,
+            "content": "Internships are a crucial part of university education. Students are encouraged to embark on internships with many taking up at least two internships during their time at NUS."
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.543,
+                0.48,
+                0.626
+            ],
+            "angle": 0,
+            "content": "At NUS Business School, an internship will be a graduation requirement for students under the new curriculum. Students will gain real world industry experience, with the option to obtain units or not."
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.065,
+                0.642,
+                0.318,
+                0.659
+            ],
+            "angle": 0,
+            "content": "Credit-bearing Internships:"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.065,
+                0.669,
+                0.129,
+                0.716
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.134,
+                0.68,
+                0.2,
+                0.694
+            ],
+            "angle": 0,
+            "content": "BI3704"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.134,
+                0.696,
+                0.287,
+                0.713
+            ],
+            "angle": 0,
+            "content": "8-week internship"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.065,
+                0.722,
+                0.129,
+                0.768
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.134,
+                0.733,
+                0.2,
+                0.747
+            ],
+            "angle": 0,
+            "content": "BI3708"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.135,
+                0.749,
+                0.297,
+                0.765
+            ],
+            "angle": 0,
+            "content": "16-week internship"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.065,
+                0.774,
+                0.129,
+                0.821
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.134,
+                0.785,
+                0.2,
+                0.8
+            ],
+            "angle": 0,
+            "content": "BI3712"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.134,
+                0.802,
+                0.297,
+                0.818
+            ],
+            "angle": 0,
+            "content": "24-week internship"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.065,
+                0.826,
+                0.129,
+                0.873
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.134,
+                0.837,
+                0.199,
+                0.851
+            ],
+            "angle": 0,
+            "content": "BI3003"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.134,
+                0.854,
+                0.287,
+                0.869
+            ],
+            "angle": 0,
+            "content": "8-week internship"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.134,
+                0.869,
+                0.394,
+                0.894
+            ],
+            "angle": 0,
+            "content": "(for non-business/accounting/real estate related internships)"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.067,
+                0.913,
+                0.099,
+                0.937
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.105,
+                0.913,
+                0.475,
+                0.939
+            ],
+            "angle": 0,
+            "content": "https://bba.nus.edu.sg/academic-programmes/general-academic-matters/business-internship-courses/"
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.068,
+                0.956,
+                0.09,
+                0.97
+            ],
+            "angle": 0,
+            "content": "14"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.51,
+                0.036,
+                1.0,
+                0.276
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.507,
+                0.301,
+                0.803,
+                0.317
+            ],
+            "angle": 0,
+            "content": "Industry Specific Skills Workshops"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.318,
+                0.81,
+                0.334
+            ],
+            "angle": 0,
+            "content": "Individual Career Advisory sessions"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.334,
+                0.808,
+                0.349
+            ],
+            "angle": 0,
+            "content": "Individual Mock Interview sessions"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.35,
+                0.892,
+                0.367
+            ],
+            "angle": 0,
+            "content": "Individual Internship & Job Search Strategies"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.367,
+                0.64,
+                0.381
+            ],
+            "angle": 0,
+            "content": "Career Guides"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.507,
+                0.301,
+                0.892,
+                0.381
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.52,
+                0.419,
+                0.831,
+                0.457
+            ],
+            "angle": 0,
+            "content": "CAREER COMPASS STARTER WORKSHOPS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.506,
+                0.482,
+                0.903,
+                0.584
+            ],
+            "angle": 0,
+            "content": "Unlock your future potential with the Career Compass Starter Workshops as we guide you in cultivating the skills essential for your career. Tailored to your needs, we are here to support you on your journey, empowering you to achieve your unique career goals."
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.508,
+                0.598,
+                0.565,
+                0.611
+            ],
+            "angle": 0,
+            "content": "Year 1"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.507,
+                0.613,
+                0.735,
+                0.63
+            ],
+            "angle": 0,
+            "content": "Strategic Career Planning"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.63,
+                0.777,
+                0.646
+            ],
+            "angle": 0,
+            "content": "Resume & Cover letter Writing"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.646,
+                0.675,
+                0.662
+            ],
+            "angle": 0,
+            "content": "Personal Branding"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.663,
+                0.669,
+                0.678
+            ],
+            "angle": 0,
+            "content": "Networking Skills"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.679,
+                0.675,
+                0.694
+            ],
+            "angle": 0,
+            "content": "Interviewing Skills"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.695,
+                0.837,
+                0.711
+            ],
+            "angle": 0,
+            "content": "- Dealing with Others in the Workplace"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.507,
+                0.613,
+                0.837,
+                0.711
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.726,
+                0.766,
+                0.742
+            ],
+            "angle": 0,
+            "content": "Year 2 (led by Career Advisors)"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.743,
+                0.752,
+                0.759
+            ],
+            "angle": 0,
+            "content": "Small Group Resume Clinics"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.508,
+                0.759,
+                0.815,
+                0.775
+            ],
+            "angle": 0,
+            "content": "Small Group Mock Interview Clinics"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.508,
+                0.743,
+                0.815,
+                0.775
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.51,
+                0.782,
+                0.932,
+                0.979
+            ],
+            "angle": 0,
+            "content": null
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.078,
+                0.079,
+                0.344,
+                0.096
+            ],
+            "angle": 0,
+            "content": "FIELD SERVICE PROJECT"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.121,
+                0.474,
+                0.268
+            ],
+            "angle": 0,
+            "content": "The Field Service Project (FSP) course is all about teaming up for a hands-on learning adventure. Imagine working with an organisation in Singapore, or beyond, and getting insights straight from the CEOs and industry leaders themselves. It's not your typical classroom experience; handling real-world business issues, diving into business challenges beyond your regular NUS lessons."
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.283,
+                0.481,
+                0.484
+            ],
+            "angle": 0,
+            "content": "For FSP, you immerse yourself in an organisation's business model, grasp their value propositions, and witness the intricate workings of their operations. However, it goes beyond mere tasks. FSP becomes your backstage pass to awesome networking. You're not just there to observe, but instead you will actively participate, lending your contribution through a perceptive report guided by a supervisor. This is your opportunity to assist them in navigating the complexities of today's business landscape. Will you grab it?"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.067,
+                0.506,
+                0.098,
+                0.53
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.105,
+                0.506,
+                0.476,
+                0.533
+            ],
+            "angle": 0,
+            "content": "https://bba.nus.edu.sg/academic-programmes/general-academic-matters/field-service-project/"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.52,
+                0.078,
+                0.815,
+                0.116
+            ],
+            "angle": 0,
+            "content": "WORK STUDY INTERNSHIP PROGRAMME"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.506,
+                0.141,
+                0.919,
+                0.355
+            ],
+            "angle": 0,
+            "content": "Work Study Internship Programme (WSIP) isn't your typical learning experience; it's a uniquely tailored, hands-on opportunity designed specifically for business students like yourself. Imagine this: instead of sticking to traditional classrooms and textbooks, you're enrolled in a long-term, credit-bearing work-study programme. What sets it apart? It's a personalized journey crafted in collaboration with professional and commercial organisations. While excelling in classroom courses, WSIP immerses you in the real-world action with structured work placements at actual companies."
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.506,
+                0.37,
+                0.922,
+                0.52
+            ],
+            "angle": 0,
+            "content": "But wait, there's more! During your WSIP adventure, you'll connect with workplace mentors, delve into your chosen field, and gain a wealth of real-world experience. Some students may even enjoy progressive stipends, job rotations, and a fast track to entry-level career options upon graduation. Ready to transform your education into an exciting adventure? Let's dive in!"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.0,
+                0.552,
+                0.958,
+                0.953
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.91,
+                0.96,
+                0.933,
+                0.975
+            ],
+            "angle": 0,
+            "content": "15"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.066,
+                0.069,
+                0.658,
+                0.102
+            ],
+            "angle": 0,
+            "content": "WHAT OUR GRADUATES DO"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.082,
+                0.161,
+                0.25,
+                0.178
+            ],
+            "angle": 0,
+            "content": "ACCOUNTANCY"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.193,
+                0.182,
+                0.206
+            ],
+            "angle": 0,
+            "content": "Accountant"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.209,
+                0.15,
+                0.222
+            ],
+            "angle": 0,
+            "content": "Auditor"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.225,
+                0.254,
+                0.239
+            ],
+            "angle": 0,
+            "content": "Forensic Accountant"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.242,
+                0.195,
+                0.256
+            ],
+            "angle": 0,
+            "content": "Risk Advisory"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.258,
+                0.19,
+                0.273
+            ],
+            "angle": 0,
+            "content": "Tax Advisory"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.069,
+                0.193,
+                0.254,
+                0.273
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.082,
+                0.301,
+                0.332,
+                0.319
+            ],
+            "angle": 0,
+            "content": "EVENTS & HOSPITALITY"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.333,
+                0.243,
+                0.346
+            ],
+            "angle": 0,
+            "content": "Accounts Executive"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.349,
+                0.298,
+                0.364
+            ],
+            "angle": 0,
+            "content": "Conference Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.366,
+                0.255,
+                0.38
+            ],
+            "angle": 0,
+            "content": "Marketing Executive"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.382,
+                0.259,
+                0.397
+            ],
+            "angle": 0,
+            "content": "- Optimisation Analyst"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.069,
+                0.333,
+                0.298,
+                0.397
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.082,
+                0.426,
+                0.232,
+                0.442
+            ],
+            "angle": 0,
+            "content": "E-COMMERCE"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.456,
+                0.25,
+                0.487
+            ],
+            "angle": 0,
+            "content": "Analyst, Branding & Marketing"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.489,
+                0.298,
+                0.518
+            ],
+            "angle": 0,
+            "content": "Executive Enterprise Sales Account"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.521,
+                0.28,
+                0.536
+            ],
+            "angle": 0,
+            "content": "Management Associate"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.538,
+                0.254,
+                0.566
+            ],
+            "angle": 0,
+            "content": "Onboarding & Team Coordinator"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.57,
+                0.337,
+                0.585
+            ],
+            "angle": 0,
+            "content": "Regional Operations Associate"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.069,
+                0.456,
+                0.337,
+                0.585
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.082,
+                0.614,
+                0.265,
+                0.65
+            ],
+            "angle": 0,
+            "content": "HUMAN CAPITAL MANAGEMENT"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.665,
+                0.222,
+                0.679
+            ],
+            "angle": 0,
+            "content": "Executive Search"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.681,
+                0.28,
+                0.696
+            ],
+            "angle": 0,
+            "content": "Management Associate"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.698,
+                0.234,
+                0.713
+            ],
+            "angle": 0,
+            "content": "- Talent Acquisition"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.069,
+                0.665,
+                0.28,
+                0.713
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.078,
+                0.741,
+                0.252,
+                0.758
+            ],
+            "angle": 0,
+            "content": "OTHER SECTORS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.772,
+                0.272,
+                0.786
+            ],
+            "angle": 0,
+            "content": "Civil and Public Service"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.789,
+                0.175,
+                0.802
+            ],
+            "angle": 0,
+            "content": "Healthcare"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.806,
+                0.145,
+                0.818
+            ],
+            "angle": 0,
+            "content": "Marine"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.822,
+                0.154,
+                0.834
+            ],
+            "angle": 0,
+            "content": "Aviation"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.838,
+                0.147,
+                0.85
+            ],
+            "angle": 0,
+            "content": "FinTech"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.069,
+                0.853,
+                0.254,
+                0.867
+            ],
+            "angle": 0,
+            "content": "Telecommunications"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.069,
+                0.772,
+                0.272,
+                0.867
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.374,
+                0.161,
+                0.512,
+                0.178
+            ],
+            "angle": 0,
+            "content": "CONSULTING"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.193,
+                0.511,
+                0.208
+            ],
+            "angle": 0,
+            "content": "Business Analyst"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.209,
+                0.588,
+                0.224
+            ],
+            "angle": 0,
+            "content": "Clients & Markets Analyst"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.225,
+                0.533,
+                0.24
+            ],
+            "angle": 0,
+            "content": "- Consulting Analyst"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.242,
+                0.466,
+                0.256
+            ],
+            "angle": 0,
+            "content": "HR Analyst"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.258,
+                0.584,
+                0.272
+            ],
+            "angle": 0,
+            "content": "Management Consultant"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.274,
+                0.547,
+                0.289
+            ],
+            "angle": 0,
+            "content": "Programmer Analyst"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.291,
+                0.545,
+                0.304
+            ],
+            "angle": 0,
+            "content": "Research Consultant"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.306,
+                0.511,
+                0.321
+            ],
+            "angle": 0,
+            "content": "Strategy Analyst"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.323,
+                0.628,
+                0.337
+            ],
+            "angle": 0,
+            "content": "Transaction Advisory Associate"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.361,
+                0.193,
+                0.628,
+                0.337
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.374,
+                0.366,
+                0.584,
+                0.383
+            ],
+            "angle": 0,
+            "content": "CONSUMER GOODS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.397,
+                0.605,
+                0.413
+            ],
+            "angle": 0,
+            "content": "- Advertising Brand Manager"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.414,
+                0.527,
+                0.427
+            ],
+            "angle": 0,
+            "content": "Content Executive"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.43,
+                0.606,
+                0.445
+            ],
+            "angle": 0,
+            "content": "Digital Marketing Executive"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.447,
+                0.603,
+                0.476
+            ],
+            "angle": 0,
+            "content": "Marketing and Communications Executive"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.479,
+                0.628,
+                0.494
+            ],
+            "angle": 0,
+            "content": "Sales and Marketing Executive"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.361,
+                0.397,
+                0.628,
+                0.494
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.374,
+                0.523,
+                0.523,
+                0.538
+            ],
+            "angle": 0,
+            "content": "TECHNOLOGY"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.553,
+                0.633,
+                0.569
+            ],
+            "angle": 0,
+            "content": "Business Operations & Strategy"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.57,
+                0.483,
+                0.585
+            ],
+            "angle": 0,
+            "content": "Data Analyst"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.587,
+                0.591,
+                0.617
+            ],
+            "angle": 0,
+            "content": "Google Squared Data and Analytics Programme"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.618,
+                0.622,
+                0.633
+            ],
+            "angle": 0,
+            "content": "Order Management Specialist"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.635,
+                0.518,
+                0.649
+            ],
+            "angle": 0,
+            "content": "Partner Manager"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.651,
+                0.599,
+                0.666
+            ],
+            "angle": 0,
+            "content": "Product Messaging Analyst"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.667,
+                0.517,
+                0.682
+            ],
+            "angle": 0,
+            "content": "Project Executive"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.684,
+                0.533,
+                0.699
+            ],
+            "angle": 0,
+            "content": "Purchasing Analyst"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.7,
+                0.492,
+                0.715
+            ],
+            "angle": 0,
+            "content": "R&D Engineer"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.361,
+                0.553,
+                0.633,
+                0.715
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.374,
+                0.743,
+                0.59,
+                0.799
+            ],
+            "angle": 0,
+            "content": "LOGISTICS, MANUFACTURING & SUPPLY CHAIN"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.814,
+                0.555,
+                0.829
+            ],
+            "angle": 0,
+            "content": "Operations Associate"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.831,
+                0.558,
+                0.844
+            ],
+            "angle": 0,
+            "content": "Accounts Coordinator"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.847,
+                0.561,
+                0.861
+            ],
+            "angle": 0,
+            "content": "Business Development"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.863,
+                0.572,
+                0.878
+            ],
+            "angle": 0,
+            "content": "Inventory Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.361,
+                0.879,
+                0.538,
+                0.895
+            ],
+            "angle": 0,
+            "content": "Market Intelligence"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.361,
+                0.814,
+                0.572,
+                0.895
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.67,
+                0.161,
+                0.897,
+                0.178
+            ],
+            "angle": 0,
+            "content": "FINANCE & BANKING"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.192,
+                0.865,
+                0.224
+            ],
+            "angle": 0,
+            "content": "Analyst for Commercial Banking"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.226,
+                0.723,
+                0.238
+            ],
+            "angle": 0,
+            "content": "Credit"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.241,
+                0.824,
+                0.273
+            ],
+            "angle": 0,
+            "content": "Global Investment Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.274,
+                0.894,
+                0.287
+            ],
+            "angle": 0,
+            "content": "Global Transaction Services"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.29,
+                0.799,
+                0.303
+            ],
+            "angle": 0,
+            "content": "Global Markets"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.306,
+                0.836,
+                0.321
+            ],
+            "angle": 0,
+            "content": "Investment Banking"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.323,
+                0.77,
+                0.335
+            ],
+            "angle": 0,
+            "content": "Macro Sales"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.338,
+                0.882,
+                0.354
+            ],
+            "angle": 0,
+            "content": "Operations & Technology"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.355,
+                0.799,
+                0.368
+            ],
+            "angle": 0,
+            "content": "Trade Solutions"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.371,
+                0.741,
+                0.386
+            ],
+            "angle": 0,
+            "content": "Treasury"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.388,
+                0.801,
+                0.402
+            ],
+            "angle": 0,
+            "content": "Venture Capital"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.404,
+                0.85,
+                0.419
+            ],
+            "angle": 0,
+            "content": "Commodity Associate"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.42,
+                0.856,
+                0.433
+            ],
+            "angle": 0,
+            "content": "Global Markets Trader"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.436,
+                0.835,
+                0.451
+            ],
+            "angle": 0,
+            "content": "Investment Support"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.452,
+                0.849,
+                0.467
+            ],
+            "angle": 0,
+            "content": "Wealth Management"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.657,
+                0.192,
+                0.894,
+                0.467
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.67,
+                0.497,
+                0.809,
+                0.512
+            ],
+            "angle": 0,
+            "content": "REAL ESTATE"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.527,
+                0.849,
+                0.556
+            ],
+            "angle": 0,
+            "content": "Real Estate Finance & Investment"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.559,
+                0.929,
+                0.607
+            ],
+            "angle": 0,
+            "content": "Real Estate Fund Management - Business Development, Acquisitions & Deal Structuring"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.609,
+                0.911,
+                0.622
+            ],
+            "angle": 0,
+            "content": "Real Estate Investment Trusts"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.624,
+                0.869,
+                0.655
+            ],
+            "angle": 0,
+            "content": "Town Planning & Urban Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.657,
+                0.833,
+                0.672
+            ],
+            "angle": 0,
+            "content": "Asset Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.673,
+                0.851,
+                0.704
+            ],
+            "angle": 0,
+            "content": "Corporate Real Estate Management"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.706,
+                0.897,
+                0.737
+            ],
+            "angle": 0,
+            "content": "Real Estate Development & Entrepreneurship"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.738,
+                0.869,
+                0.769
+            ],
+            "angle": 0,
+            "content": "Real Estate Consultancy, Valuation & Marketing"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.657,
+                0.771,
+                0.836,
+                0.802
+            ],
+            "angle": 0,
+            "content": "Property & Facilities Management"
+        },
+        {
+            "type": "list",
+            "bbox": [
+                0.657,
+                0.527,
+                0.929,
+                0.802
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.068,
+                0.956,
+                0.089,
+                0.97
+            ],
+            "angle": 0,
+            "content": "16"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.068,
+                0.069,
+                0.49,
+                0.147
+            ],
+            "angle": 0,
+            "content": "LEADERSHIP &"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.162,
+                0.116,
+                0.721,
+                0.188
+            ],
+            "angle": 0,
+            "content": "LIFELONG LEARNING"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.065,
+                0.178,
+                0.907,
+                0.333
+            ],
+            "angle": 0,
+            "content": "To foster leadership qualities in the fast-changing corporate world, students will be immersed in a wide range of robust learning opportunities to develop the leader in each of them. The School also seeks to make lifelong learners out of every student, armed with knowledge acquisition skills and a hunger to continually grow."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.0,
+                0.333,
+                1.0,
+                0.936
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.91,
+                0.96,
+                0.933,
+                0.975
+            ],
+            "angle": 0,
+            "content": "17"
+        }
+    ],
+    [
+        {
+            "type": "image",
+            "bbox": [
+                0.0,
+                0.036,
+                0.962,
+                0.389
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.076,
+                0.405,
+                0.72,
+                0.444
+            ],
+            "angle": 0,
+            "content": "NURTURING AGILE LEADERS WITH MARKETPLACE IMPACT AND DRIVE FOR LIFE LONG LEARNING"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.093,
+                0.488,
+                0.333,
+                0.503
+            ],
+            "angle": 0,
+            "content": "COURS ON LEADERSHIP"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.128,
+                0.513,
+                0.205,
+                0.571
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.224,
+                0.526,
+                0.428,
+                0.56
+            ],
+            "angle": 0,
+            "content": "Leadership & Decision Making under Certainty"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.128,
+                0.583,
+                0.205,
+                0.641
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.224,
+                0.593,
+                0.348,
+                0.626
+            ],
+            "angle": 0,
+            "content": "Leading in the 21st Century"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.541,
+                0.513,
+                0.617,
+                0.571
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.637,
+                0.529,
+                0.774,
+                0.561
+            ],
+            "angle": 0,
+            "content": "Leading Accross Borders"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.541,
+                0.583,
+                0.617,
+                0.641
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.637,
+                0.598,
+                0.786,
+                0.63
+            ],
+            "angle": 0,
+            "content": "Business with a Social Conscience"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.079,
+                0.699,
+                0.445,
+                0.738
+            ],
+            "angle": 0,
+            "content": "MAJOR IN LEADERSHIP & HUMAN CAPITAL MANAGEMENT"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.066,
+                0.762,
+                0.454,
+                0.91
+            ],
+            "angle": 0,
+            "content": "In this major, you become the linchpin of organisations and teams. Understand leadership and position yourself at the central node of influence. Inspire people, shape organisational outcomes, and unlock the full potential of human capital—all within your grasp. This places you in the driver's seat of leadership, where you catalyse change and drive success."
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.523,
+                0.699,
+                0.81,
+                0.716
+            ],
+            "angle": 0,
+            "content": "NUS LIFELONG LEARNING"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.509,
+                0.743,
+                0.932,
+                0.89
+            ],
+            "angle": 0,
+            "content": "As part of the NUS Lifelong Learners programme, student enrolment is valid for 20 years from the point of undergraduate/ postgraduate admission. As such, all current and future students are automatically eligible for the NUS Lifelong Learning programme upon graduation and may also take a series of courses to earn higher qualifications such as Graduate Diplomas, second Bachelor's and Master's Degrees."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.514,
+                0.913,
+                0.543,
+                0.935
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.068,
+                0.956,
+                0.089,
+                0.97
+            ],
+            "angle": 0,
+            "content": "18"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.069,
+                0.08,
+                0.62,
+                0.169
+            ],
+            "angle": 0,
+            "content": "ENTREPRENEURIAL"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.062,
+                0.143,
+                0.904,
+                0.258
+            ],
+            "angle": 0,
+            "content": "Fully embracing the entrepreneurial culture amongst the younger generation, the curriculum is designed both to bring out the entrepreneurial spirit in students, and facilitate the generation of new business ideas."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.0,
+                0.257,
+                1.0,
+                0.914
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.91,
+                0.96,
+                0.933,
+                0.975
+            ],
+            "angle": 0,
+            "content": "19"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.068,
+                0.069,
+                0.539,
+                0.102
+            ],
+            "angle": 0,
+            "content": "BE AN ENTREPRENEUR"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.063,
+                0.152,
+                0.496,
+                0.343
+            ],
+            "angle": 0,
+            "content": "Get a taste of entrepreneurship at NUS Business School, where you get to take center stage in one of our newer majors. Equip yourself with expansive theoretical insights, empowering you to lead change effectively—whether you're venturing into an entrepreneurial startup or navigating the landscape of a large multinational corporation. Previous batches of students, who were just like you, have already launched successful businesses in Singapore, with names like Carousell, Playmoolah, and Moovaz making an impact."
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.506,
+                0.152,
+                0.925,
+                0.308
+            ],
+            "angle": 0,
+            "content": "Flip to Page 10, and you will discover the NUS Overseas Colleges (NOC) programme, aimed to cultivate your entrepreneurial spirit. Immerse yourself in this transformative experience — intern in a technology-based startup, while concurrently pursuing part-time courses at reputable universities. It's your opportunity to shape your entrepreneurial journey and make an impact on a global scale."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.023,
+                0.377,
+                0.114,
+                0.425
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.108,
+                0.452,
+                0.454,
+                0.511
+            ],
+            "angle": 0,
+            "content": "BRYAN VOON, Year 4 Business Student who went for NOC, Norway."
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.108,
+                0.535,
+                0.502,
+                0.568
+            ],
+            "angle": 0,
+            "content": "How has your experience in NOC been so far? And how has it impacted you?"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.108,
+                0.568,
+                0.496,
+                0.716
+            ],
+            "angle": 0,
+            "content": "It is difficult to understate how enriching and instructive NOC has been with professional and personal impacts. With the former being to look beyond the usual fields most business students consider when job seeking (e.g., finance, marketing, consulting) while the latter being a future outside of Singapore; a possibility I would not have entertained if it was not for NOC Norway."
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.108,
+                0.733,
+                0.48,
+                0.766
+            ],
+            "angle": 0,
+            "content": "Do you have any advice for your juniors applying to NUS Business School and NOC?"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.108,
+                0.766,
+                0.496,
+                0.849
+            ],
+            "angle": 0,
+            "content": "Keep an open mind and remember that some of the most valuable sources of learning happens outside of the classrooms with programmes such as NOC which will do nothing but enrich your NUS experience."
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.549,
+                0.362,
+                0.704,
+                0.397
+            ],
+            "angle": 0,
+            "content": "Bryan and his colleagues from DNV ReWind gather over a meal"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.537,
+                0.381,
+                0.938,
+                0.85
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image_caption",
+            "bbox": [
+                0.595,
+                0.857,
+                0.847,
+                0.882
+            ],
+            "angle": 0,
+            "content": "Bryan and his team attending EoLIS 2023 Conference @ Rotterdam, Netherlands"
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.067,
+                0.956,
+                0.089,
+                0.972
+            ],
+            "angle": 0,
+            "content": "20"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.078,
+                0.11,
+                0.381,
+                0.129
+            ],
+            "angle": 0,
+            "content": "SCHOLARSHIPS & AWARDS"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.154,
+                0.444,
+                0.22
+            ],
+            "angle": 0,
+            "content": "Apart from numerous NUS-level scholarships, the NUS Business School also offers many of its own scholarships to local and international students."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.067,
+                0.243,
+                0.1,
+                0.267
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.522,
+                0.111,
+                0.65,
+                0.129
+            ],
+            "angle": 0,
+            "content": "BURSARIES"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.507,
+                0.154,
+                0.892,
+                0.237
+            ],
+            "angle": 0,
+            "content": "To ensure that no deserving student is denied higher education due to financial need, financial aid is offered to eligible students. This can take the form of a loan, bursaries, or work-study assistance."
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.078,
+                0.33,
+                0.23,
+                0.347
+            ],
+            "angle": 0,
+            "content": "TUITION FEES"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.064,
+                0.372,
+                0.635,
+                0.39
+            ],
+            "angle": 0,
+            "content": "For more information on tuition fees, please refer to the link below."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.067,
+                0.413,
+                0.1,
+                0.436
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.77,
+                0.324,
+                0.878,
+                0.362
+            ],
+            "angle": 0,
+            "content": "FOR MORE ON FINANCIAL AID, SCAN HERE!"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.776,
+                0.369,
+                0.873,
+                0.442
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.067,
+                0.465,
+                1.0,
+                0.923
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.097,
+                0.78,
+                0.245,
+                0.797
+            ],
+            "angle": 0,
+            "content": "ADMISSIONS"
+        },
+        {
+            "type": "image_caption",
+            "bbox": [
+                0.102,
+                0.822,
+                0.239,
+                0.846
+            ],
+            "angle": 0,
+            "content": "SCAN HERE TO APPLY TO NUS BBA!"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.124,
+                0.85,
+                0.218,
+                0.921
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.051,
+                0.925,
+                0.291,
+                0.938
+            ],
+            "angle": 0,
+            "content": "www.nus.edu.sg/oam/apply-to-nus"
+        },
+        {
+            "type": "page_number",
+            "bbox": [
+                0.909,
+                0.96,
+                0.931,
+                0.974
+            ],
+            "angle": 0,
+            "content": "21"
+        }
+    ],
+    [
+        {
+            "type": "title",
+            "bbox": [
+                0.082,
+                0.059,
+                0.491,
+                0.084
+            ],
+            "angle": 0,
+            "content": "NUS BUSINESS SCHOOL"
+        },
+        {
+            "type": "title",
+            "bbox": [
+                0.082,
+                0.105,
+                0.453,
+                0.13
+            ],
+            "angle": 0,
+            "content": "LEADING FROM ASIA"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.067,
+                0.156,
+                0.927,
+                0.241
+            ],
+            "angle": 0,
+            "content": "At NUS Business School, students take a transformative journey, and make an A.G.I.L.E leap forward through the Academically rigorous and flexible curriculum, diversity of Global and experiential opportunities, Industry-relevant infrastructure, varied options for Leadership development and highly Entrepreneurial environment. Through the full BBA experience, they forge ahead with confidence and future-readiness, prepared to make the most of an increasingly dynamic and unpredictable world."
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.0,
+                0.244,
+                1.0,
+                0.723
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.102,
+                0.743,
+                0.138,
+                0.767
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.149,
+                0.745,
+                0.289,
+                0.763
+            ],
+            "angle": 0,
+            "content": "bba.nus.edu.sg"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.104,
+                0.772,
+                0.138,
+                0.796
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.149,
+                0.776,
+                0.468,
+                0.793
+            ],
+            "angle": 0,
+            "content": "facebook.com/NUSBusinessSchool/"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.104,
+                0.804,
+                0.137,
+                0.827
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.149,
+                0.809,
+                0.244,
+                0.826
+            ],
+            "angle": 0,
+            "content": "@nus_bba"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.104,
+                0.839,
+                0.137,
+                0.861
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.149,
+                0.84,
+                0.539,
+                0.858
+            ],
+            "angle": 0,
+            "content": "https://www.youtube.com/c/NUSBizSchool"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.104,
+                0.873,
+                0.137,
+                0.897
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.149,
+                0.873,
+                0.338,
+                0.888
+            ],
+            "angle": 0,
+            "content": "NUS Business School"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.149,
+                0.89,
+                0.359,
+                0.907
+            ],
+            "angle": 0,
+            "content": "BIZ2 Building Level 5-0,"
+        },
+        {
+            "type": "text",
+            "bbox": [
+                0.151,
+                0.907,
+                0.454,
+                0.924
+            ],
+            "angle": 0,
+            "content": "1 Business Link, Singapore 117592"
+        },
+        {
+            "type": "image",
+            "bbox": [
+                0.78,
+                0.645,
+                0.926,
+                0.756
+            ],
+            "angle": 0,
+            "content": null
+        },
+        {
+            "type": "image_caption",
+            "bbox": [
+                0.814,
+                0.761,
+                0.891,
+                0.771
+            ],
+            "angle": 0,
+            "content": "SCAN HERE"
+        },
+        {
+            "type": "image_caption",
+            "bbox": [
+                0.785,
+                0.774,
+                0.919,
+                0.784
+            ],
+            "angle": 0,
+            "content": "TO FIND OUT MORE"
+        },
+        {
+            "type": "footer",
+            "bbox": [
+                0.147,
+                0.948,
+                0.752,
+                0.962
+            ],
+            "angle": 0,
+            "content": "All information provided is correct at the time of printing and is subject to change without notice."
+        }
+    ]
+]

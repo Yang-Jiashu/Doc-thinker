@@ -1,0 +1,569 @@
+{% extends "base.html" %}
+{% block content %}
+    <!-- Page Title -->
+    <div class="mb-5">
+        <h1>
+            <i class="fa fa-brain"></i> 推理规则
+        </h1>
+        <p class="text-muted">定义和管理知识图谱推理规则以进行自动推理</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+                    <button id="add-rule-btn" class="btn btn-primary">
+                        <i class="fa fa-plus"></i> 添加新规则
+                    </button>
+                    <button id="apply-all-rules-btn" class="btn btn-success">
+                        <i class="fa fa-play"></i> 应用所有规则
+                    </button>
+                    <button id="refresh-rules-btn" class="btn btn-outline-primary">
+                        <i class="fa fa-refresh"></i> 刷新
+                    </button>
+                    <button id="export-rules-btn" class="btn btn-outline-primary">
+                        <i class="fa fa-download"></i> 导出规则
+                    </button>
+                </div>
+                
+                <!-- Search and Filter -->
+                <div class="d-flex gap-2">
+                    <div class="input-group" style="width: 300px;">
+                        <input 
+                            type="text" 
+                            id="rule-search" 
+                            class="form-control"
+                            placeholder="搜索规则..."
+                        >
+                        <button 
+                            id="search-btn" 
+                            class="btn btn-primary"
+                        >
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                    <select id="status-filter" class="form-select" style="width: 150px;">
+                        <option value="all" selected>所有状态</option>
+                        <option value="active">激活</option>
+                        <option value="inactive">停用</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rules List -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">
+                <i class="fa fa-list"></i> 知识图谱推理规则
+                <span id="rule-count" class="badge bg-primary float-end">0</span>
+            </h3>
+        </div>
+        <div class="card-body p-0">
+            <!-- Loading State -->
+            <div id="loading-rules" class="text-center py-5">
+                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <h5 class="mt-3">正在加载推理规则</h5>
+                <p class="text-muted">请稍候，我们正在加载推理规则...</p>
+            </div>
+
+            <!-- Rules Table -->
+            <div id="rules-container" class="d-none">
+                <table id="rules-table" class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>描述</th>
+                            <th>类型</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rules-list"></tbody>
+                </table>
+            </div>
+
+            <!-- No Rules State -->
+            <div id="no-rules" class="d-none text-center py-5">
+                <i class="fa fa-search fa-5x text-muted mb-3"></i>
+                <h4>未找到推理规则</h4>
+                <p class="text-muted">尝试调整搜索或筛选条件，或添加新规则</p>
+                <button id="add-first-rule-btn" class="btn btn-primary mt-2">
+                    <i class="fa fa-plus"></i> 添加第一个规则
+                </button>
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="d-none d-flex justify-content-between align-items-center p-3 border-top">
+                <div>
+                    显示 <span id="showing-start">0</span> 到 <span id="showing-end">0</span> 条，共 <span id="total-rules">0</span> 条规则
+                </div>
+                <nav aria-label="Rule pagination">
+                    <ul class="pagination mb-0">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                                <i class="fa fa-chevron-left"></i> 上一页
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">下一页 <i class="fa fa-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Rule Modal -->
+    <div class="modal fade" id="rule-modal" tabindex="-1" aria-labelledby="rule-modal-label" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rule-modal-label">
+                        <i class="fa fa-plus"></i> 添加新规则
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <form id="rule-form">
+                    <div class="modal-body">
+                        <input type="hidden" id="rule-id">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="rule-name" class="form-label">规则名称</label>
+                                    <input 
+                                        type="text" 
+                                        id="rule-name" 
+                                        name="rule-name" 
+                                        class="form-control"
+                                        placeholder="输入规则名称（例如，organization_products）"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="rule-type" class="form-label">规则类型</label>
+                                    <select 
+                                        id="rule-type" 
+                                        name="rule-type" 
+                                        class="form-select"
+                                        required
+                                    >
+                                        <option value="" selected disabled>选择规则类型</option>
+                                        <option value="inference">推理</option>
+                                        <option value="validation">验证</option>
+                                        <option value="transformation">转换</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="rule-status" class="form-label">状态</label>
+                                    <select 
+                                        id="rule-status" 
+                                        name="rule-status" 
+                                        class="form-select"
+                                        required
+                                    >
+                                        <option value="active" selected>激活</option>
+                                        <option value="inactive">停用</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="rule-description" class="form-label">描述</label>
+                                    <textarea 
+                                        id="rule-description" 
+                                        name="rule-description" 
+                                        class="form-control"
+                                        rows="3"
+                                        placeholder="输入规则描述（例如，从 produces 推断 has_product 关系）"
+                                        required
+                                    ></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="rule-priority" class="form-label">优先级</label>
+                                    <input 
+                                        type="range" 
+                                        id="rule-priority" 
+                                        name="rule-priority" 
+                                        class="form-range"
+                                        min="1"
+                                        max="10"
+                                        value="5"
+                                    >
+                                    <div class="text-center">
+                                        <span id="priority-value">5</span> / 10
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="rule-conditions" class="form-label">条件</label>
+                            <textarea 
+                                id="rule-conditions" 
+                                name="rule-conditions" 
+                                class="form-control"
+                                rows="3"
+                                placeholder="输入规则条件（例如，relation.type == 'produces'）"
+                                required
+                            ></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="rule-consequences" class="form-label">结果</label>
+                            <textarea 
+                                id="rule-consequences" 
+                                name="rule-consequences" 
+                                class="form-control"
+                                rows="3"
+                                placeholder="输入规则结果（例如，create_relation(source, 'has_product', target)）"
+                                required
+                            ></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fa fa-times"></i> 取消
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-save"></i> 保存规则
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentRules = [];
+        let filteredRules = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        const ruleModal = new bootstrap.Modal(document.getElementById('rule-modal'));
+
+        // Mock reasoning rules data
+        const mockRules = [
+            { id: '1', name: 'organization_products', type: 'inference', description: '从 produces 推断 has_product 关系', status: 'active', priority: 5, conditions: 'relation.type == "produces"', consequences: 'create_relation(source, "has_product", target)' },
+            { id: '2', name: 'ceo_organization', type: 'inference', description: '从 CEO of 推断 manages 关系', status: 'active', priority: 6, conditions: 'relation.type == "founded_by"', consequences: 'create_relation(source, "manages", target)' },
+            { id: '3', name: 'location_validation', type: 'validation', description: '验证组织具有有效的位置', status: 'active', priority: 8, conditions: 'entity.type == "organization"', consequences: 'validate_relation(entity, "located_in", location)' },
+            { id: '4', name: 'product_hierarchy', type: 'transformation', description: '从相关产品创建产品层次结构', status: 'inactive', priority: 4, conditions: 'relation.type == "related_to"', consequences: 'create_hierarchy(source, target)' },
+            { id: '5', name: 'person_organization', type: 'inference', description: '从 CEO 和创始人关系推断 works_for 关系', status: 'active', priority: 7, conditions: 'relation.type in ["founded_by", "ceo_of"]', consequences: 'create_relation(source, "works_for", target)' },
+            { id: '6', name: 'duplicate_detection', type: 'validation', description: '检测具有相似名称的重复实体', status: 'active', priority: 9, conditions: 'entity1.name == entity2.name', consequences: 'flag_duplicate(entity1, entity2)' },
+            { id: '7', name: 'temporal_inference', type: 'inference', description: '推断事件之间的时间关系', status: 'inactive', priority: 3, conditions: 'event1.end_time < event2.start_time', consequences: 'create_relation(event1, "precedes", event2)' },
+            { id: '8', name: 'category_assignment', type: 'transformation', description: '根据属性为产品分配类别', status: 'active', priority: 6, conditions: 'entity.type == "product"', consequences: 'assign_category(entity, detect_category(entity))' }
+        ];
+
+        // Render rules list
+        function renderRules() {
+            const ruleList = document.getElementById('rules-list');
+            const rulesContainer = document.getElementById('rules-container');
+            const loadingContainer = document.getElementById('loading-rules');
+            const noRulesContainer = document.getElementById('no-rules');
+            const paginationContainer = document.getElementById('pagination');
+            const ruleCount = document.getElementById('rule-count');
+            const showingStart = document.getElementById('showing-start');
+            const showingEnd = document.getElementById('showing-end');
+            const totalRules = document.getElementById('total-rules');
+
+            // Show loading state
+            loadingContainer.classList.remove('d-none');
+            rulesContainer.classList.add('d-none');
+            noRulesContainer.classList.add('d-none');
+            paginationContainer.classList.add('d-none');
+
+            // Simulate API call delay
+            setTimeout(() => {
+                // Filter rules based on search and status
+                const searchTerm = document.getElementById('rule-search').value.toLowerCase();
+                const statusFilter = document.getElementById('status-filter').value;
+
+                filteredRules = currentRules.filter(rule => {
+                    const matchesSearch = !searchTerm || 
+                        rule.name.toLowerCase().includes(searchTerm) ||
+                        rule.description.toLowerCase().includes(searchTerm) ||
+                        rule.type.toLowerCase().includes(searchTerm);
+                    const matchesStatus = statusFilter === 'all' || rule.status === statusFilter;
+                    return matchesSearch && matchesStatus;
+                });
+
+                // Update rule count
+                ruleCount.textContent = filteredRules.length;
+
+                // Pagination
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const paginatedRules = filteredRules.slice(startIndex, endIndex);
+
+                // Render rules
+                if (paginatedRules.length > 0) {
+                    ruleList.innerHTML = paginatedRules.map(rule => `
+                        <tr>
+                            <td>
+                                <strong>${rule.name}</strong>
+                                <br>
+                                <small class="text-muted">优先级: ${rule.priority}/10</small>
+                            </td>
+                            <td>
+                                ${rule.description}
+                            </td>
+                            <td>
+                                <span class="badge bg-info">${rule.type === 'inference' ? '推理' : rule.type === 'validation' ? '验证' : '转换'}</span>
+                            </td>
+                            <td>
+                                <span class="badge ${rule.status === 'active' ? 'bg-success' : 'bg-secondary'}">
+                                    ${rule.status === 'active' ? '激活' : '停用'}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button 
+                                        class="btn btn-sm btn-outline-primary edit-rule-btn"
+                                        data-id="${rule.id}"
+                                    >
+                                        <i class="fa fa-edit"></i> 编辑
+                                    </button>
+                                    <button 
+                                        class="btn btn-sm ${rule.status === 'active' ? 'btn-outline-secondary' : 'btn-outline-success'} toggle-rule-btn"
+                                        data-id="${rule.id}"
+                                    >
+                                        <i class="fa fa-${rule.status === 'active' ? 'pause' : 'play'}"></i> ${rule.status === 'active' ? '停用' : '激活'}
+                                    </button>
+                                    <button 
+                                        class="btn btn-sm btn-outline-danger delete-rule-btn"
+                                        data-id="${rule.id}"
+                                    >
+                                        <i class="fa fa-trash"></i> 删除
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    // Show rules and pagination
+                    rulesContainer.classList.remove('d-none');
+                    paginationContainer.classList.remove('d-none');
+                    
+                    // Update pagination info
+                    showingStart.textContent = startIndex + 1;
+                    showingEnd.textContent = Math.min(endIndex, filteredRules.length);
+                    totalRules.textContent = filteredRules.length;
+                } else {
+                    // Show no rules state
+                    noRulesContainer.classList.remove('d-none');
+                }
+
+                // Hide loading state
+                loadingContainer.classList.add('d-none');
+
+                // Add event listeners to action buttons
+                addRuleActionListeners();
+            }, 500);
+        }
+
+        // Add event listeners to rule action buttons
+        function addRuleActionListeners() {
+            // Edit buttons
+            document.querySelectorAll('.edit-rule-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const ruleId = this.getAttribute('data-id');
+                    editRule(ruleId);
+                });
+            });
+
+            // Toggle buttons
+            document.querySelectorAll('.toggle-rule-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const ruleId = this.getAttribute('data-id');
+                    toggleRuleStatus(ruleId);
+                });
+            });
+
+            // Delete buttons
+            document.querySelectorAll('.delete-rule-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const ruleId = this.getAttribute('data-id');
+                    deleteRule(ruleId);
+                });
+            });
+        }
+
+        // Load rules
+        function loadRules() {
+            currentRules = mockRules;
+            renderRules();
+        }
+
+        // Edit rule
+        function editRule(id) {
+            const rule = currentRules.find(r => r.id === id);
+            if (rule) {
+                document.getElementById('rule-id').value = rule.id;
+                document.getElementById('rule-name').value = rule.name;
+                document.getElementById('rule-type').value = rule.type;
+                document.getElementById('rule-description').value = rule.description;
+                document.getElementById('rule-status').value = rule.status;
+                document.getElementById('rule-priority').value = rule.priority;
+                document.getElementById('priority-value').textContent = rule.priority;
+                document.getElementById('rule-conditions').value = rule.conditions;
+                document.getElementById('rule-consequences').value = rule.consequences;
+                document.getElementById('rule-modal-label').innerHTML = `<i class="fa fa-edit"></i> 编辑规则`;
+                ruleModal.show();
+            }
+        }
+
+        // Toggle rule status
+        function toggleRuleStatus(id) {
+            const rule = currentRules.find(r => r.id === id);
+            if (rule) {
+                rule.status = rule.status === 'active' ? 'inactive' : 'active';
+                renderRules();
+                showAlert(`规则 ${rule.name} ${rule.status === 'active' ? '激活' : '停用'} 成功！`, 'success');
+            }
+        }
+
+        // Delete rule
+        function deleteRule(id) {
+            if (confirm('您确定要删除此规则吗？此操作无法撤销。')) {
+                currentRules = currentRules.filter(r => r.id !== id);
+                renderRules();
+                showAlert('规则删除成功！', 'success');
+            }
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load rules on page load
+            loadRules();
+
+            // Priority slider update
+            document.getElementById('rule-priority').addEventListener('input', function() {
+                document.getElementById('priority-value').textContent = this.value;
+            });
+
+            // Add rule button
+            document.getElementById('add-rule-btn').addEventListener('click', () => {
+                document.getElementById('rule-form').reset();
+                document.getElementById('rule-id').value = '';
+                document.getElementById('priority-value').textContent = '5';
+                document.getElementById('rule-modal-label').innerHTML = `<i class="fa fa-plus"></i> 添加新规则`;
+                ruleModal.show();
+            });
+
+            // Add first rule button
+            document.getElementById('add-first-rule-btn').addEventListener('click', () => {
+                document.getElementById('rule-form').reset();
+                document.getElementById('rule-id').value = '';
+                document.getElementById('priority-value').textContent = '5';
+                document.getElementById('rule-modal-label').innerHTML = `<i class="fa fa-plus"></i> 添加新规则`;
+                ruleModal.show();
+            });
+
+            // Apply all rules button
+            document.getElementById('apply-all-rules-btn').addEventListener('click', () => {
+                const activeRules = currentRules.filter(r => r.status === 'active').length;
+                if (activeRules === 0) {
+                    showAlert('没有要应用的激活规则！', 'warning');
+                    return;
+                }
+                
+                // Mock application
+                showAlert(`正在应用 ${activeRules} 个激活规则...`, 'info');
+                setTimeout(() => {
+                    showAlert('所有规则应用成功！（模拟）', 'success');
+                }, 1500);
+            });
+
+            // Refresh rules button
+            document.getElementById('refresh-rules-btn').addEventListener('click', () => {
+                loadRules();
+                showAlert('规则已刷新！', 'success');
+            });
+
+            // Export rules button
+            document.getElementById('export-rules-btn').addEventListener('click', () => {
+                showAlert('导出功能将在此处实现。', 'info');
+            });
+
+            // Search button
+            document.getElementById('search-btn').addEventListener('click', () => {
+                currentPage = 1;
+                renderRules();
+            });
+
+            // Search input enter key
+            document.getElementById('rule-search').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    currentPage = 1;
+                    renderRules();
+                }
+            });
+
+            // Filter change listener
+            document.getElementById('status-filter').addEventListener('change', () => {
+                currentPage = 1;
+                renderRules();
+            });
+
+            // Rule form submission
+            document.getElementById('rule-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const id = document.getElementById('rule-id').value;
+                const name = document.getElementById('rule-name').value;
+                const type = document.getElementById('rule-type').value;
+                const description = document.getElementById('rule-description').value;
+                const status = document.getElementById('rule-status').value;
+                const priority = parseInt(document.getElementById('rule-priority').value);
+                const conditions = document.getElementById('rule-conditions').value;
+                const consequences = document.getElementById('rule-consequences').value;
+
+                if (id) {
+                    // Update existing rule
+                    const ruleIndex = currentRules.findIndex(r => r.id === id);
+                    if (ruleIndex !== -1) {
+                        currentRules[ruleIndex] = {
+                            ...currentRules[ruleIndex],
+                            name,
+                            type,
+                            description,
+                            status,
+                            priority,
+                            conditions,
+                            consequences
+                        };
+                        showAlert('规则更新成功！', 'success');
+                    }
+                } else {
+                    // Add new rule
+                    const newRule = {
+                        id: (currentRules.length + 1).toString(),
+                        name,
+                        type,
+                        description,
+                        status,
+                        priority,
+                        conditions,
+                        consequences
+                    };
+                    currentRules.push(newRule);
+                    showAlert('规则添加成功！', 'success');
+                }
+
+                // Close modal and refresh rules
+                ruleModal.hide();
+                renderRules();
+            });
+        });
+    </script>
+{% endblock %}

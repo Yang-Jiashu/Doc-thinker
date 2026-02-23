@@ -1,0 +1,516 @@
+{% extends "base_modern.html" %}
+
+{% block title %}智能对话 - NeuroAgent{% endblock %}
+
+{% block extra_css %}
+<style>
+    .mode-card {
+        transition: all 0.2s;
+        border: 2px solid transparent;
+    }
+    .mode-card:hover {
+        border-color: #e2e8f0;
+    }
+    .mode-card.active {
+        border-color: #3b82f6;
+        background: #eff6ff;
+    }
+    
+    .message-user {
+        background: #2563eb;
+        color: white;
+    }
+    
+    .message-bot {
+        background: white;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .file-tag {
+        background: #dbeafe;
+        color: #1d4ed8;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        margin-right: 4px;
+    }
+    
+    /* Processing animation */
+    .processing-ring {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #e2e8f0;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .progress-container {
+        background: #e2e8f0;
+        border-radius: 999px;
+        overflow: hidden;
+        height: 6px;
+    }
+    
+    .progress-fill {
+        background: linear-gradient(90deg, #3b82f6, #06b6d4);
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    
+    .status-processing {
+        color: #3b82f6;
+    }
+    
+    .status-done {
+        color: #10b981;
+    }
+    
+    .status-error {
+        color: #ef4444;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
+    <div>
+        <h2 class="text-lg font-semibold text-slate-800">智能对话</h2>
+        <p class="text-sm text-slate-500">与 AI 助手进行自然语言交流</p>
+    </div>
+    <button onclick="clearChat()" class="btn-secondary px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+        <i class="fa-solid fa-plus"></i>
+        新对话
+    </button>
+</header>
+
+<div class="flex-1 flex overflow-hidden">
+    <!-- Chat -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <!-- Messages -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <!-- Welcome -->
+            <div class="flex gap-3">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shrink-0">
+                    <i class="fa-solid fa-robot text-sm"></i>
+                </div>
+                <div class="flex-1 max-w-2xl">
+                    <div class="message-bot rounded-2xl rounded-tl-sm px-4 py-3">
+                        <p class="text-slate-700">你好！我是 NeuroAgent，你的 AI 知识助手。</p>
+                        <p class="text-slate-500 text-sm mt-2">我可以帮你：</p>
+                        <ul class="text-slate-600 text-sm mt-1 space-y-1">
+                            <li>• 理解和分析文档内容</li>
+                            <li>• 回答关于知识库的问题</li>
+                            <li>• 通过知识图谱关联信息</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Input Area -->
+        <div class="bg-white border-t border-slate-200 p-4">
+            <!-- Mode Selection -->
+            <div class="flex gap-3 mb-4">
+                <button onclick="setMode('standard')" id="mode-standard" class="mode-card active flex-1 px-4 py-3 rounded-xl bg-slate-50 text-left">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced text-blue-500"></i>
+                        <span class="font-medium text-sm text-slate-700">标准</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">平衡速度与深度</p>
+                </button>
+                <button onclick="setMode('deep')" id="mode-deep" class="mode-card flex-1 px-4 py-3 rounded-xl bg-slate-50 text-left">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-brain text-purple-500"></i>
+                        <span class="font-medium text-sm text-slate-700">深度</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">深度搜索与联想</p>
+                </button>
+                <button onclick="setMode('quick')" id="mode-quick" class="mode-card flex-1 px-4 py-3 rounded-xl bg-slate-50 text-left">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-yellow-500"></i>
+                        <span class="font-medium text-sm text-slate-700">快速</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">快速响应</p>
+                </button>
+            </div>
+            
+            <!-- Attached Files Preview -->
+            <div id="attached-files" class="hidden flex flex-wrap gap-2 mb-3"></div>
+            
+            <!-- File Processing Status List -->
+            <div id="processing-list" class="space-y-2 mb-3"></div>
+            
+            <!-- Input -->
+            <div class="relative">
+                <textarea 
+                    id="message-input" 
+                    placeholder="输入你的问题..." 
+                    class="input-field w-full px-4 py-3 pr-24 rounded-xl resize-none text-slate-700"
+                    rows="2"
+                    onkeydown="handleKeyDown(event)"
+                ></textarea>
+                
+                <!-- File Input (Hidden) -->
+                <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(this)">
+                
+                <!-- Buttons -->
+                <div class="absolute right-2 bottom-2 flex items-center gap-1">
+                    <button onclick="document.getElementById('file-input').click()" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="上传文件">
+                        <i class="fa-solid fa-paperclip"></i>
+                    </button>
+                    
+                    <button onclick="sendMessage()" class="w-9 h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-paper-plane text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <p class="text-xs text-slate-400 mt-2 text-center">按 Enter 发送，Shift+Enter 换行</p>
+        </div>
+    </div>
+</div>
+
+<!-- Loading -->
+<div id="loading" class="hidden absolute inset-0 bg-black/10 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-4 flex items-center gap-3 shadow-lg">
+        <i class="fa-solid fa-circle-notch fa-spin text-blue-500"></i>
+        <span class="text-sm text-slate-600">思考中...</span>
+    </div>
+</div>
+
+<script>
+let currentMode = 'standard';
+let currentFile = null;
+
+function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+    document.getElementById(`mode-${mode}`).classList.add('active');
+}
+
+function handleKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+}
+
+function handleFileSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    if (file.size > 50 * 1024 * 1024) {
+        showToast('文件大小超过50MB限制', 'error');
+        return;
+    }
+    
+    currentFile = file;
+    
+    // Create processing item
+    const fileId = 'proc-' + Date.now();
+    addProcessingItem(fileId, file.name);
+    
+    // Upload file
+    uploadFileWithProgress(file, fileId, (status, data) => {
+        if (status === 'success') {
+            updateProcessingStatus(fileId, 'done', '处理完成');
+            showAttachedFile(file.name, fileId);
+        } else if (status === 'processing') {
+            updateProcessingStatus(fileId, 'processing', data.message || '处理中...', data.progress || 0);
+        } else {
+            updateProcessingStatus(fileId, 'error', data.message || '处理失败');
+        }
+    });
+}
+
+function addProcessingItem(fileId, filename) {
+    const container = document.getElementById('processing-list');
+    
+    const item = document.createElement('div');
+    item.id = fileId;
+    item.className = 'bg-slate-50 rounded-lg p-3 border border-slate-200';
+    item.innerHTML = `
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fa-solid fa-file text-blue-600 text-sm"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-700 truncate">${filename}</p>
+                <div class="flex items-center gap-2 mt-1">
+                    <div class="processing-ring"></div>
+                    <span class="status-text text-xs text-blue-600">上传中...</span>
+                </div>
+                <div class="progress-container mt-2">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+            <button onclick="removeProcessingItem('${fileId}')" class="text-slate-400 hover:text-red-500">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(item);
+    container.classList.remove('hidden');
+}
+
+function updateProcessingStatus(fileId, status, message, progress = 0) {
+    const item = document.getElementById(fileId);
+    if (!item) return;
+    
+    const statusText = item.querySelector('.status-text');
+    const progressBar = item.querySelector('.progress-bar');
+    const ring = item.querySelector('.processing-ring');
+    
+    if (status === 'done') {
+        statusText.textContent = message;
+        statusText.className = 'status-text text-xs status-done';
+        progressBar.style.width = '100%';
+        progressBar.style.background = '#10b981';
+        if (ring) ring.style.display = 'none';
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            item.style.opacity = '0';
+            setTimeout(() => item.remove(), 300);
+        }, 3000);
+    } else if (status === 'error') {
+        statusText.textContent = message;
+        statusText.className = 'status-text text-xs status-error';
+        progressBar.style.width = '100%';
+        progressBar.style.background = '#ef4444';
+        if (ring) ring.style.display = 'none';
+    } else if (status === 'processing') {
+        statusText.textContent = message;
+        statusText.className = 'status-text text-xs status-processing';
+        progressBar.style.width = progress + '%';
+    }
+}
+
+function removeProcessingItem(fileId) {
+    const item = document.getElementById(fileId);
+    if (item) {
+        item.remove();
+        checkProcessingList();
+    }
+}
+
+function checkProcessingList() {
+    const container = document.getElementById('processing-list');
+    if (container.children.length === 0) {
+        container.classList.add('hidden');
+    }
+}
+
+function uploadFileWithProgress(file, fileId, onStatusChange) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Simulate upload progress
+    let uploadProgress = 0;
+    const uploadInterval = setInterval(() => {
+        uploadProgress += Math.random() * 20;
+        if (uploadProgress > 90) {
+            uploadProgress = 90;
+            clearInterval(uploadInterval);
+        }
+        updateProcessingStatus(fileId, 'processing', '上传中...', uploadProgress);
+    }, 200);
+    
+    fetch('/api/v1/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        clearInterval(uploadInterval);
+        
+        if (data.success) {
+            if (data.backend_response) {
+                // Backend processed successfully
+                updateProcessingStatus(fileId, 'done', '处理完成', 100);
+                onStatusChange('success', data);
+            } else {
+                // Saved locally, simulate backend processing
+                updateProcessingStatus(fileId, 'processing', '后端处理中...', 100);
+                simulateBackendProcessing(fileId, onStatusChange);
+            }
+        } else {
+            updateProcessingStatus(fileId, 'error', data.message || '上传失败');
+            onStatusChange('error', data);
+        }
+    })
+    .catch(err => {
+        clearInterval(uploadInterval);
+        updateProcessingStatus(fileId, 'error', '网络错误: ' + err.message);
+        onStatusChange('error', { message: err.message });
+    });
+}
+
+function simulateBackendProcessing(fileId, onStatusChange) {
+    // Simulate backend processing steps
+    const steps = [
+        { message: 'PDF解析中...', progress: 30, delay: 1000 },
+        { message: '文本提取中...', progress: 50, delay: 1500 },
+        { message: '向量化中...', progress: 80, delay: 2000 },
+        { message: '构建知识图谱...', progress: 95, delay: 1000 },
+    ];
+    
+    let currentStep = 0;
+    
+    function nextStep() {
+        if (currentStep < steps.length) {
+            const step = steps[currentStep];
+            updateProcessingStatus(fileId, 'processing', step.message, step.progress);
+            currentStep++;
+            setTimeout(nextStep, step.delay);
+        } else {
+            updateProcessingStatus(fileId, 'done', '处理完成', 100);
+            onStatusChange('success', {});
+        }
+    }
+    
+    nextStep();
+}
+
+function showAttachedFile(filename, fileId) {
+    const container = document.getElementById('attached-files');
+    container.classList.remove('hidden');
+    
+    const tag = document.createElement('div');
+    tag.id = 'tag-' + fileId;
+    tag.className = 'file-tag flex items-center gap-1';
+    tag.innerHTML = `
+        <i class="fa-solid fa-file text-xs"></i>
+        <span>${filename}</span>
+        <button onclick="removeAttachedFile('${fileId}')" class="ml-1 text-blue-600 hover:text-blue-800">
+            <i class="fa-solid fa-times text-xs"></i>
+        </button>
+    `;
+    container.appendChild(tag);
+}
+
+function removeAttachedFile(fileId) {
+    const tag = document.getElementById('tag-' + fileId);
+    if (tag) tag.remove();
+    
+    const container = document.getElementById('attached-files');
+    if (container.children.length === 0) {
+        container.classList.add('hidden');
+        currentFile = null;
+    }
+}
+
+// Track processing files
+let processingFilesCount = 0;
+
+async function sendMessage() {
+    const input = document.getElementById('message-input');
+    const message = input.value.trim();
+    
+    // Check if any files are still processing
+    if (processingFilesCount > 0) {
+        showToast(`还有 ${processingFilesCount} 个文件正在处理中，请稍后再试`, 'warning');
+        return;
+    }
+    
+    if (!message && !currentFile) {
+        showToast('请输入消息或上传文件', 'warning');
+        return;
+    }
+    
+    // Add user message
+    let displayMessage = message;
+    if (currentFile) {
+        displayMessage = `<span class="file-tag"><i class="fa-solid fa-file"></i> ${currentFile.name}</span> ${message}`;
+    }
+    addMessage(displayMessage, 'user');
+    input.value = '';
+    
+    // Clear attached files
+    document.getElementById('attached-files').innerHTML = '';
+    document.getElementById('attached-files').classList.add('hidden');
+    currentFile = null;
+    
+    document.getElementById('loading').classList.remove('hidden');
+    
+    try {
+        const response = await fetch('/api/v1/query/text', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                question: message || '请分析上传的文件',
+                memory_mode: currentMode
+            })
+        });
+        
+        const data = await response.json();
+        document.getElementById('loading').classList.add('hidden');
+        
+        if (response.ok && data.success) {
+            addMessage(data.response, 'bot');
+        } else {
+            addMessage(data.response || '抱歉，处理请求时出现错误。', 'bot', true);
+        }
+    } catch (error) {
+        document.getElementById('loading').classList.add('hidden');
+        addMessage('网络错误，请稍后重试。', 'bot', true);
+    }
+}
+
+function addMessage(content, role, isError = false) {
+    const container = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = 'flex gap-3 animate-fadeIn';
+    
+    if (role === 'user') {
+        div.innerHTML = `
+            <div class="flex-1 flex justify-end">
+                <div class="message-user rounded-2xl rounded-tr-sm px-4 py-3 max-w-xl">
+                    <p>${content}</p>
+                </div>
+            </div>
+        `;
+    } else {
+        div.innerHTML = `
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shrink-0">
+                <i class="fa-solid fa-robot text-sm"></i>
+            </div>
+            <div class="flex-1 max-w-2xl">
+                <div class="message-bot rounded-2xl rounded-tl-sm px-4 py-3 ${isError ? 'border-red-200 bg-red-50' : ''}">
+                    <p class="${isError ? 'text-red-600' : 'text-slate-700'}">${content.replace(/\n/g, '<br>')}</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function clearChat() {
+    document.getElementById('chat-messages').innerHTML = `
+        <div class="flex gap-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shrink-0">
+                <i class="fa-solid fa-robot text-sm"></i>
+            </div>
+            <div class="flex-1 max-w-2xl">
+                <div class="message-bot rounded-2xl rounded-tl-sm px-4 py-3">
+                    <p class="text-slate-700">新对话已开始。有什么可以帮你的吗？</p>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('attached-files').innerHTML = '';
+    document.getElementById('attached-files').classList.add('hidden');
+    document.getElementById('processing-list').innerHTML = '';
+    document.getElementById('processing-list').classList.add('hidden');
+    currentFile = null;
+}
+</script>
+{% endblock %}

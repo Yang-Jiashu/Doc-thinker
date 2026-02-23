@@ -1,0 +1,4920 @@
+[
+    {
+        "type": "text",
+        "text": "EMBARK ON",
+        "text_level": 1,
+        "bbox": [
+            86,
+            205,
+            421,
+            259
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "YOUR JOURNEY WITH",
+        "text_level": 1,
+        "bbox": [
+            86,
+            253,
+            657,
+            324
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "BUSINESS SCHOOL",
+        "text_level": 1,
+        "bbox": [
+            90,
+            319,
+            709,
+            391
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "BACHELOR OF BUSINESS ADMINISTRATION",
+        "bbox": [
+            70,
+            376,
+            713,
+            442
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "国",
+        "bbox": [
+            68,
+            52,
+            151,
+            126
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "NUS",
+        "bbox": [
+            153,
+            49,
+            288,
+            90
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "National University of Singapore",
+        "bbox": [
+            153,
+            91,
+            284,
+            118
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "NUS",
+        "bbox": [
+            326,
+            49,
+            441,
+            85
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "BUSINESS",
+        "bbox": [
+            372,
+            87,
+            514,
+            105
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "SCHOOL",
+        "bbox": [
+            372,
+            106,
+            500,
+            124
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "THE",
+        "bbox": [
+            834,
+            73,
+            883,
+            82
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "NUS",
+        "bbox": [
+            816,
+            84,
+            899,
+            103
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "BBA",
+        "bbox": [
+            816,
+            105,
+            903,
+            127
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "footer",
+        "text": "Be AGILE, Be YOU",
+        "bbox": [
+            80,
+            908,
+            324,
+            941
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "CONTENTS",
+        "text_level": 1,
+        "bbox": [
+            129,
+            208,
+            219,
+            626
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "At A Glance 01",
+            "You Deserve The Best 02",
+            "An Agile Experience 03",
+            "Academic 04",
+            "Curriculum Roadmap 05",
+            "Nine Majors, Infinite Possibilities 06",
+            "2nd Majors and Minors 07",
+            "Global & Experiential 09",
+            "Global Immersion 10",
+            "Case Competitions 11",
+            "Campus Living & Bizad Club 12",
+            "Industry Relevant 13",
+            "What Our Graduates Do 16",
+            "Leadership & Lifelong Learning 17",
+            "Entrepreneurial 19",
+            "Be An Entrepreneur 20",
+            "Admissions, Scholarships & Financial Aids 21"
+        ],
+        "bbox": [
+            235,
+            211,
+            800,
+            624
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/215c45c1716bbc1238d861b9fd4fc5b6ba1adc7744b668734014bbb709bfd7b1.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            0,
+            647,
+            1000,
+            1000
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "header",
+        "text": "WHY",
+        "bbox": [
+            62,
+            69,
+            179,
+            105
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "header",
+        "text": "NUS BUSINESS?",
+        "bbox": [
+            118,
+            103,
+            461,
+            156
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "AT A GLANCE",
+        "text_level": 1,
+        "bbox": [
+            64,
+            67,
+            387,
+            100
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Embark on a rewarding journey at NUS Business School and surround yourself in a community of vibrant, diverse, and passionate individuals. Enjoy the prestige and pride of learning alongside bright and dedicated people who constantly strive to push boundaries in business ideation. Being part of NUS Business School is more than just an education - it could be a life-changing experience.",
+        "bbox": [
+            60,
+            151,
+            915,
+            241
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "FINDINGS FROM 2022 GRADUATE EMPLOYMENT SURVEY*",
+        "text_level": 1,
+        "bbox": [
+            310,
+            274,
+            685,
+            315
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "*For this graduate cohort, the three degree programmes were accounted for separately as Bachelor of Business Administration, Bachelor of Business Administration (Accountancy) and Bachelor of Science (Real Estate). From 2024, all students will be enrolled into the Bachelor of Business Administration degree through a common admission.",
+        "bbox": [
+            110,
+            336,
+            883,
+            376
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/e0feb02f683f6f47346334cf06a64592e1b1bbe8e3ea230b81fd000f55d47424.jpg",
+        "image_caption": [
+            "GROSS MONTHLY SALARY FOR GRADUATE YEAR 2022 (MEAN)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            82,
+            448,
+            473,
+            581
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/04a17ea1ea2a709ab09ab9d9cd7c64d78c5e63537002e6edc04a25abcc8fbd8e.jpg",
+        "image_caption": [
+            "OVERALL EMPLOYMENT FOR GRADUATE YEAR 2022 (WITHIN 6 MONTHS OF GRADUATION)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            516,
+            448,
+            917,
+            579
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "BBA (Hon) - Bachelor of Business Administration (Honours)",
+        "bbox": [
+            266,
+            602,
+            729,
+            618
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "BBA - Bachelor of Business Administration",
+        "bbox": [
+            330,
+            621,
+            663,
+            636
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "■ BAC (Hon) - Bachelor of Business Administration (Accountancy) (Honours)",
+            "BAC - Bachelor of Business Administration (Accountancy)",
+            "BSc RE - Bachelor of Science (Real Estate)"
+        ],
+        "bbox": [
+            213,
+            639,
+            782,
+            692
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/e19963b74614b7900a7cef97de2a9ccdef07a9b3e29e01096ae5d3ad75f2c235.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            163,
+            738,
+            312,
+            804
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "4,350",
+        "bbox": [
+            169,
+            815,
+            302,
+            846
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "TOTAL BBA STUDENTS",
+        "bbox": [
+            167,
+            851,
+            308,
+            882
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/3b77434772b3b774f804a9c93b4c3907b37dfbc619b72a963eff85d2890dcbdf.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            423,
+            737,
+            574,
+            807
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "OVER 55,000 STRONG ALUMNI NETWORK",
+        "bbox": [
+            419,
+            815,
+            580,
+            896
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/7ef86e9288aef91e9d11bf0567b47a57257efb703bcb52fc3ccdbc35d8343c6e.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            709,
+            737,
+            806,
+            807
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "59 YEARS OF DEVELOPING BUSINESS LEADERS",
+        "bbox": [
+            651,
+            816,
+            866,
+            882
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_number",
+        "text": "1",
+        "bbox": [
+            917,
+            959,
+            931,
+            975
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "YOU DESERVE THE BEST",
+        "text_level": 1,
+        "bbox": [
+            44,
+            67,
+            610,
+            100
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "We are a highly-ranked business school that provides each student the best preparation and springboard towards a promising career.",
+        "bbox": [
+            62,
+            150,
+            532,
+            204
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "1st",
+        "bbox": [
+            818,
+            66,
+            866,
+            93
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "IN ASIA",
+        "bbox": [
+            810,
+            99,
+            868,
+            112
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "according to the QS World University rankings for 2024.",
+        "bbox": [
+            743,
+            115,
+            933,
+            169
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "NUS BUSINESS",
+        "text_level": 1,
+        "bbox": [
+            415,
+            238,
+            580,
+            255
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Ranked among the world's best",
+        "bbox": [
+            366,
+            256,
+            631,
+            274
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "TIMES HIGHER EDUCATION\nUNIVERSITY RANKING 2023",
+        "bbox": [
+            80,
+            298,
+            332,
+            328
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "3rd",
+        "bbox": [
+            175,
+            349,
+            229,
+            376
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "IN ASIA",
+        "bbox": [
+            169,
+            382,
+            235,
+            396
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "QS WORLD UNIVERSITY RANKINGS 2023",
+        "bbox": [
+            391,
+            298,
+            606,
+            328
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$8^{\\text{th}}$",
+        "bbox": [
+            401,
+            349,
+            457,
+            376
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "IN THE WORLD",
+        "bbox": [
+            370,
+            382,
+            487,
+            396
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "1st",
+        "bbox": [
+            546,
+            349,
+            594,
+            376
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "IN ASIA",
+        "bbox": [
+            536,
+            382,
+            600,
+            396
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "US NEWS &",
+        "bbox": [
+            737,
+            298,
+            842,
+            312
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "WORLD REPORT 2023",
+        "bbox": [
+            691,
+            313,
+            887,
+            328
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "2nd",
+        "bbox": [
+            760,
+            349,
+            820,
+            376
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "IN ASIA",
+        "bbox": [
+            756,
+            382,
+            822,
+            396
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "BUSINESS SUBJECT RANKINGS",
+        "text_level": 1,
+        "bbox": [
+            330,
+            439,
+            665,
+            456
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "TIMES HIGHER",
+        "bbox": [
+            127,
+            493,
+            260,
+            507
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "EDUCATION",
+        "bbox": [
+            139,
+            509,
+            247,
+            522
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "WORLD UNIVERSITY",
+        "bbox": [
+            100,
+            524,
+            284,
+            537
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "RANKING 2023",
+        "bbox": [
+            125,
+            539,
+            262,
+            552
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "11th",
+        "bbox": [
+            348,
+            493,
+            421,
+            521
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "BUSINESS &",
+        "bbox": [
+            338,
+            525,
+            429,
+            537
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "ECONOMICS",
+        "bbox": [
+            336,
+            540,
+            431,
+            552
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "THE WORLD UNIVERSITY RANKINGS",
+        "bbox": [
+            114,
+            597,
+            439,
+            612
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "(IN ASIA) BY SUBJECTS 2022",
+        "bbox": [
+            147,
+            612,
+            405,
+            629
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "1st",
+        "bbox": [
+            151,
+            650,
+            197,
+            675
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "ACCOUNTING",
+        "bbox": [
+            120,
+            681,
+            223,
+            693
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "& FINANCE",
+        "bbox": [
+            131,
+            695,
+            213,
+            707
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "1st",
+        "bbox": [
+            360,
+            650,
+            407,
+            677
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "BUSINESS &",
+        "bbox": [
+            336,
+            681,
+            427,
+            693
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "MANAGEMENT STUDIES",
+        "bbox": [
+            292,
+            695,
+            471,
+            707
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "QS WORLD UNIVERSITY RANKINGS (GlobALLY BY SUBJECTS 2023)",
+        "bbox": [
+            556,
+            481,
+            872,
+            513
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$9^{\\text {th }}$",
+        "bbox": [
+            578,
+            530,
+            633,
+            558
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "MARKETING",
+        "bbox": [
+            560,
+            564,
+            653,
+            576
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$13^{\\text{th}}$",
+        "bbox": [
+            784,
+            531,
+            860,
+            558
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "BUSINESS &",
+        "bbox": [
+            776,
+            564,
+            866,
+            576
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "MANAGEMENT STUDIES",
+        "bbox": [
+            731,
+            578,
+            911,
+            590
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$10^{\\text{th}}$",
+        "bbox": [
+            568,
+            615,
+            645,
+            642
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "BUSINESS",
+        "bbox": [
+            568,
+            648,
+            641,
+            659
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "ANALYTICS",
+        "bbox": [
+            564,
+            662,
+            647,
+            674
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "14<sup>th</sup>",
+        "bbox": [
+            784,
+            615,
+            860,
+            642
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "ACCOUNTING",
+        "bbox": [
+            770,
+            648,
+            875,
+            659
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "& FINANCE",
+        "bbox": [
+            780,
+            662,
+            862,
+            672
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "NUS MBA",
+        "bbox": [
+            181,
+            774,
+            272,
+            789
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "1st",
+        "bbox": [
+            306,
+            761,
+            354,
+            786
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "IN ASIA",
+        "bbox": [
+            304,
+            792,
+            362,
+            804
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "QS BUSINESS MASTERS RANKINGS",
+        "bbox": [
+            80,
+            839,
+            264,
+            870
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$10^{\\text{th}}$",
+        "bbox": [
+            135,
+            881,
+            211,
+            909
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "GLOBAL",
+        "bbox": [
+            141,
+            918,
+            203,
+            930
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "QS GLOBAL MBA RANKINGS",
+        "bbox": [
+            306,
+            840,
+            455,
+            869
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$24^{\\text{th}}$",
+        "bbox": [
+            340,
+            881,
+            421,
+            909
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "GLOBAL",
+        "bbox": [
+            350,
+            918,
+            413,
+            930
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "MBA PROGRAMME RANKINGS",
+        "text_level": 1,
+        "bbox": [
+            574,
+            705,
+            852,
+            720
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "UCLA-NUS JOINT PROGRAMMES QS",
+        "bbox": [
+            522,
+            740,
+            689,
+            771
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "3rd",
+        "bbox": [
+            578,
+            780,
+            635,
+            810
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "IN EMBA 2023",
+        "bbox": [
+            554,
+            813,
+            657,
+            827
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "FINANCIAL TIMES MBA RANKINGS",
+        "bbox": [
+            524,
+            852,
+            687,
+            882
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$25^{\\text{th}}$",
+        "bbox": [
+            566,
+            894,
+            645,
+            923
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "IN MBA 2023",
+        "bbox": [
+            558,
+            927,
+            655,
+            939
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "POETS & QUANTS INTERNATIONAL MBA RANKINGS",
+        "bbox": [
+            745,
+            740,
+            897,
+            785
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "2022-2023",
+        "bbox": [
+            770,
+            786,
+            872,
+            798
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "1st",
+        "bbox": [
+            798,
+            813,
+            848,
+            839
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "IN ASIA",
+        "bbox": [
+            792,
+            845,
+            852,
+            857
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "$5^{\\text {th }}$",
+        "bbox": [
+            796,
+            882,
+            848,
+            909
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "GLOBAL",
+        "bbox": [
+            790,
+            920,
+            854,
+            932
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_number",
+        "text": "2",
+        "bbox": [
+            64,
+            957,
+            78,
+            971
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "AN AGILE EXPERIENCE",
+        "text_level": 1,
+        "bbox": [
+            64,
+            67,
+            556,
+            100
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "YOUR AGILE APPROACH TO EDUCATIONAL EXCELLENCE!",
+        "text_level": 1,
+        "bbox": [
+            74,
+            159,
+            703,
+            180
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Be equipped with A.G.I.L.E. capabilities tailored for the demands of a Volatile, Uncertain, Complex, and Ambiguous (VUCA) world. You get to cultivate various skill sets across the many disciplines, empowering you with the expertise to navigate and address new business challenges.",
+        "bbox": [
+            60,
+            202,
+            889,
+            256
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "JOIN US and thrive in the face of volatility with the confidence and competence instilled by NUS Business School.",
+        "bbox": [
+            60,
+            271,
+            840,
+            307
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/aef10ada154d2b67592679a36bad38b1dcda74539cc168c24e5b7c9e2b1a3f05.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            22,
+            352,
+            1000,
+            774
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "page_number",
+        "text": "3",
+        "bbox": [
+            917,
+            959,
+            931,
+            974
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "ACADEMIC",
+        "text_level": 1,
+        "bbox": [
+            60,
+            94,
+            405,
+            168
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Our curriculum promises the most customisability, with options to pursue a 2nd major and minor, as well as cross-disciplinary studies. Upon graduation, you will be equipped with skills spanning various professional fields.",
+        "bbox": [
+            60,
+            142,
+            881,
+            262
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "image",
+        "img_path": "images/64b1f6b60127c7527c74702c6ee417240b4bc71ca4875135ebdb85dfef284acb.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            0,
+            268,
+            1000,
+            944
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "page_number",
+        "text": "4",
+        "bbox": [
+            64,
+            954,
+            78,
+            969
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "image",
+        "img_path": "images/3ff516d06d5c36111d72b4a3dc372be99ca2cb5710c01674d6bda03562e1fca1.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            157,
+            249,
+            247,
+            304
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "COMMON CURRICULUM",
+        "bbox": [
+            125,
+            313,
+            274,
+            349
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "52UNITS",
+        "bbox": [
+            147,
+            361,
+            250,
+            379
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "General Education Courses 24 Units",
+        "text_level": 1,
+        "bbox": [
+            360,
+            160,
+            612,
+            192
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Cultures and Connections",
+            "- Critique and Expression",
+            "Data Literacy",
+            "Digital Literacy",
+            "Singapore Studies",
+            "Communities and Engagement"
+        ],
+        "bbox": [
+            360,
+            196,
+            612,
+            312
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Cross Disciplinary Course -Field Service Project 8 Units",
+        "text_level": 1,
+        "bbox": [
+            360,
+            343,
+            596,
+            391
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Work Experience Milestone",
+        "bbox": [
+            360,
+            427,
+            520,
+            459
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Business Environment Courses",
+        "text_level": 1,
+        "bbox": [
+            667,
+            160,
+            875,
+            192
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "20 Units",
+        "text_level": 1,
+        "bbox": [
+            667,
+            193,
+            745,
+            208
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Legal Environment of Business",
+            "Managerial Economics",
+            "Decision Analytics using Spreadsheets",
+            "Business Communication for Leaders",
+            "Introduction to Real Estate",
+            "- Ethics in Business"
+        ],
+        "bbox": [
+            667,
+            214,
+            903,
+            391
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Global Experience Milestone",
+        "bbox": [
+            667,
+            427,
+            834,
+            459
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/3b48adc22f0590a75fe9221d4fbc78c769a095aef3f37be6f09d3e5469bde46a.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            163,
+            531,
+            239,
+            588
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "MAJOR CURRICULUM",
+        "bbox": [
+            127,
+            597,
+            278,
+            633
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Business Majors* 60 UNITS",
+        "bbox": [
+            118,
+            645,
+            286,
+            681
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Accountancy Major 68 UNITS",
+        "bbox": [
+            102,
+            693,
+            302,
+            729
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Real Estate Major 64UNITS",
+        "bbox": [
+            112,
+            741,
+            292,
+            779
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Level 2000, 3000 and 4000 Courses:",
+        "text_level": 1,
+        "bbox": [
+            358,
+            513,
+            606,
+            546
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Accountancy",
+        "bbox": [
+            358,
+            555,
+            469,
+            572
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Applied Business Analytics*",
+        "bbox": [
+            358,
+            579,
+            586,
+            597
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Business Economics*",
+        "bbox": [
+            360,
+            605,
+            528,
+            620
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Finance*",
+        "bbox": [
+            360,
+            630,
+            433,
+            644
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Innovation & Entrepreneurship*",
+        "bbox": [
+            360,
+            654,
+            625,
+            671
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Leadership & Human Capital Management*",
+        "bbox": [
+            360,
+            678,
+            600,
+            711
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Marketing*",
+        "bbox": [
+            360,
+            719,
+            455,
+            735
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Operations & Supply Chain Management*",
+        "bbox": [
+            360,
+            744,
+            586,
+            777
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Real Estate",
+        "bbox": [
+            360,
+            786,
+            453,
+            800
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/f3b0a06192cff06ef9629ea97846923e9a7b87a53cf9582cf545bd1e9f8c3a14.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            764,
+            512,
+            824,
+            561
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "UNRESTRICTED ELECTIVE COURSES",
+        "text_level": 1,
+        "bbox": [
+            685,
+            570,
+            901,
+            606
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Business Majors 48 UNITS",
+        "bbox": [
+            713,
+            618,
+            875,
+            654
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Accountancy Major 40 UNITS",
+        "bbox": [
+            693,
+            666,
+            893,
+            702
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Real Estate Major 44UNITS",
+        "bbox": [
+            703,
+            714,
+            885,
+            750
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Embark with us on an A.G.I.L.E. journey with multiple opportunities to acquire both in-depth business and cross-disciplinary expertise.",
+        "bbox": [
+            74,
+            849,
+            622,
+            936
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "With a curriculum that is at least a quarter of unrestricted electives, students have a higher degree of freedom to broaden their university education and enhance their learning experience.",
+        "bbox": [
+            679,
+            795,
+            897,
+            927
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "header",
+        "text": "CURRICULUM ROADMAP",
+        "bbox": [
+            66,
+            67,
+            590,
+            100
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "page_number",
+        "text": "5",
+        "bbox": [
+            917,
+            959,
+            931,
+            974
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "NINE MAJORS, INFINITE POSSIBILITIES:",
+        "text_level": 1,
+        "bbox": [
+            64,
+            61,
+            683,
+            90
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "SHAPE YOUR EDUCATION, SHAPE YOUR FUTURE!",
+        "text_level": 1,
+        "bbox": [
+            86,
+            109,
+            832,
+            135
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "ACCOUNTANCY",
+        "text_level": 1,
+        "bbox": [
+            76,
+            172,
+            243,
+            189
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Managerial Accounting",
+            "Corporate Accounting & Reporting",
+            "Accounting Information Systems",
+            "Assurance and Attestation",
+            "Corporate and Securities Law",
+            "Taxation",
+            "Governance, Risk Management and Sustainability",
+            "Advanced Corporate Accounting and Reporting",
+            "Accounting Analytics and AI"
+        ],
+        "bbox": [
+            66,
+            208,
+            322,
+            433
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "APPLIED BUSINESS ANALYTICS",
+        "text_level": 1,
+        "bbox": [
+            76,
+            471,
+            278,
+            506
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Predictive Analytics in Business",
+            "Stochastic Models in Management",
+            "Statistical Learning for Managerial Decision",
+            "Analytical Tools for Consulting",
+            "Marketing Analysis and Decision-making",
+            "Big Data Techniques and Technologies",
+            "Social Media Network Analysis"
+        ],
+        "bbox": [
+            66,
+            528,
+            332,
+            707
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "BUSINESS ECONOMICS",
+        "text_level": 1,
+        "bbox": [
+            76,
+            744,
+            318,
+            759
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Macroeconomic Principles in the Global Economy",
+            "Econometrics for Business I",
+            "Innovation & Productivity",
+            "Predictive Analytics in Business",
+            "Game Theory & Strategic Analysis",
+            "Business-driven Technology",
+            "Psychology and Economics"
+        ],
+        "bbox": [
+            66,
+            779,
+            332,
+            924
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "FINANCE",
+        "text_level": 1,
+        "bbox": [
+            375,
+            172,
+            473,
+            189
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Investment Analysis & Portfolio Management",
+            "International Financial Management",
+            "- Options and Futures",
+            "Risk and Insurance",
+            "Financial Markets",
+            "AI Blockchain and Quantum Computing"
+        ],
+        "bbox": [
+            362,
+            208,
+            608,
+            354
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "INNOVATION & ENTREPRENEURSHIP",
+        "text_level": 1,
+        "bbox": [
+            372,
+            390,
+            588,
+            426
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Technological Innovation",
+            "New Venture Creation",
+            "- Entrepreneurial Strategy",
+            "Social Entrepreneurship",
+            "New Product Development",
+            "Innovation & Intellectual Property"
+        ],
+        "bbox": [
+            362,
+            444,
+            598,
+            557
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "LEADERSHIP & HUMAN CAPITAL MANAGEMENT",
+        "text_level": 1,
+        "bbox": [
+            372,
+            594,
+            554,
+            648
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Leading in the 21st Century",
+            "Organisational Effectiveness",
+            "Business with a Social Conscience",
+            "Leading Across Borders",
+            "HR Analytics and Machine Learning"
+        ],
+        "bbox": [
+            362,
+            666,
+            608,
+            779
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "MARKETING",
+        "text_level": 1,
+        "bbox": [
+            669,
+            172,
+            802,
+            189
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Marketing Strategy: Analysis and Practice",
+            "Consumer Behaviour",
+            "Product & Brand Management",
+            "Services Marketing",
+            "SME Marketing Strategy",
+            "Advertising & Promotion Management",
+            "AI in Marketing"
+        ],
+        "bbox": [
+            657,
+            208,
+            925,
+            354
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "OPERATIONS & SUPPLY CHAIN MANAGEMENT",
+        "text_level": 1,
+        "bbox": [
+            669,
+            390,
+            913,
+            426
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Service Operations Management",
+            "Physical Distribution Management",
+            "Sustainable Operations Management",
+            "Strategic Information Systems",
+            "Supply Chain Management"
+        ],
+        "bbox": [
+            657,
+            444,
+            931,
+            557
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "REAL ESTATE",
+        "text_level": 1,
+        "bbox": [
+            669,
+            594,
+            806,
+            609
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Land Law",
+            "Urban Economics",
+            "Real Estate Investment Analysis",
+            "Urban Planning",
+            "Principles of Real Estate Valuation",
+            "REIT and Business Trust Management"
+        ],
+        "bbox": [
+            657,
+            629,
+            929,
+            756
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/742aad6814feabd5d7cf787a33ed0cbc29e63f3f7bf553f3c11ae8b4a1ca5755.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            435,
+            770,
+            931,
+            963
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "page_number",
+        "text": "6",
+        "bbox": [
+            66,
+            957,
+            78,
+            969
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "2ND MAJORS AND MINORS",
+        "text_level": 1,
+        "bbox": [
+            66,
+            67,
+            641,
+            100
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "WHAT POSSIBILITIES ARE THERE?",
+        "text_level": 1,
+        "bbox": [
+            76,
+            159,
+            443,
+            180
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Our students have the capacity to pursue more possibilities of cross-disciplinary studies within the standard candidature using their pool of unrestricted elective units. They can embark on a second major and/or minors within or outside of NUS Business School. Give it a try!",
+        "bbox": [
+            60,
+            204,
+            921,
+            259
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "image",
+        "img_path": "images/0cdaf15a7c2ca3e80bfcfbedd8a42a6effe83276becae10323d2ae4d6ea3ca9f.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            118,
+            276,
+            883,
+            821
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "DID YOU KNOW?",
+        "bbox": [
+            84,
+            879,
+            187,
+            924
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "NUS has a grade-free scheme where you can ensure your grades don't impact your GPA for that semester. This allows for our students to transit into university life academically and socially.",
+        "bbox": [
+            243,
+            864,
+            806,
+            939
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "image",
+        "img_path": "images/01bda732d3f7074b1cb6112e360407bf4784f6947f66d12117f3103ee8ac80ff.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            856,
+            881,
+            903,
+            918
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "page_number",
+        "text": "7",
+        "bbox": [
+            917,
+            957,
+            931,
+            975
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "DOUBLE DEGREE PROGRAMME",
+        "text_level": 1,
+        "bbox": [
+            76,
+            76,
+            423,
+            94
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "Are you a highly motivated student with an interest in two complementing disciplines? You may consider the Double Degree programme (DDP). Choose from the following options:",
+        "bbox": [
+            62,
+            120,
+            913,
+            156
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Business Analytics",
+            "Communications & New Media",
+            "Computer Science",
+            "Economics",
+            "Engineering"
+        ],
+        "bbox": [
+            62,
+            163,
+            350,
+            250
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Information Systems",
+            "Law",
+            "NUS - PKU Extended Exchange",
+            "Others"
+        ],
+        "bbox": [
+            506,
+            163,
+            792,
+            231
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "* Students may apply to pursue self-initiated DDP combinations after the first year of study.",
+        "bbox": [
+            64,
+            255,
+            657,
+            270
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "image",
+        "img_path": "images/363c06ea4946b0606f397fb8cb7e51fdbca04f1d64ab5f7efa60c29a9d313ae2.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            66,
+            292,
+            96,
+            316
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "https://bba.nus.edu.sg/academic-programmes/dcdp/ddp/ad-hoc-double-degrees/",
+        "bbox": [
+            104,
+            298,
+            645,
+            313
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "CONCURRENT DEGREE PROGRAMME",
+        "text_level": 1,
+        "bbox": [
+            76,
+            348,
+            485,
+            364
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "The Concurrent Degree programme (CDP) is similar to the Double Degree programme in duration. In a DDP, the student is awarded two Bachelor degrees upon graduation. However, for a CDP, the student is awarded a Bachelor and a Master's degree upon completion. A student may choose from the following options:",
+        "bbox": [
+            62,
+            391,
+            927,
+            460
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "BACHELOR & MASTERS DEGREE",
+        "text_level": 1,
+        "bbox": [
+            62,
+            471,
+            372,
+            486
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- Master in Public Policy (with Lee Kuan Yew School of Public Policy)",
+            "- Master of Science in Management"
+        ],
+        "bbox": [
+            62,
+            487,
+            659,
+            522
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "image",
+        "img_path": "images/80e28a55ddbd4699a935092d72cbf6ce8a0248ad33aaeea876c81bc7303b4156.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            66,
+            546,
+            98,
+            570
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "https://bba.nus.edu.sg/academic-programmes/dcdp/cdp/mpp/",
+        "bbox": [
+            104,
+            551,
+            520,
+            566
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "FOR MORE INFORMATION ON CURRICULUM, PLEASE SCAN HERE!",
+        "bbox": [
+            98,
+            798,
+            278,
+            836
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "image",
+        "img_path": "images/658d04eccd3f41a794e4ab82d6062aa5d49e7998be0c0f49e2e3a96f8c8fb9ac.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            141,
+            840,
+            239,
+            912
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "image",
+        "img_path": "images/0ee535481f37143512bedb0afaee5acfb7f12748c67104b61f8e18ff660ad8bd.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            312,
+            567,
+            931,
+            888
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "page_number",
+        "text": "8",
+        "bbox": [
+            66,
+            956,
+            78,
+            969
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "As required components in the BBA curriculum, students will be able to meaningfully expand their horizons, and graduate as global-minded, culturally aware individuals, who have gained relevant work experience to thrive in highly diverse work environments.",
+        "bbox": [
+            60,
+            178,
+            947,
+            327
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "image",
+        "img_path": "images/12da328d398d9e4e12458b7e5758e6f3f2d7149f084f041e6a2b1def528b09ef.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            0,
+            328,
+            969,
+            897
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "header",
+        "text": "G",
+        "bbox": [
+            66,
+            72,
+            153,
+            141
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "header",
+        "text": "GLOBAL &",
+        "bbox": [
+            155,
+            73,
+            395,
+            118
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "header",
+        "text": "EXPERIENTIAL",
+        "bbox": [
+            159,
+            127,
+            542,
+            184
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "page_number",
+        "text": "9",
+        "bbox": [
+            917,
+            959,
+            931,
+            975
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "GLOBAL IMMERSION",
+        "text_level": 1,
+        "bbox": [
+            66,
+            67,
+            502,
+            100
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "STUDENT EXCHANGE PROGRAMME (SEP)",
+        "text_level": 1,
+        "bbox": [
+            76,
+            160,
+            312,
+            199
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Students spend a semester reading courses at an overseas partner university, and in doing so, gain invaluable experiences abroad in a different cultural environment that broadens their outlook and approach to doing business. Students can also choose from a wide array of summer or winter programmes which are shorter in duration than SEP.",
+        "bbox": [
+            62,
+            223,
+            379,
+            394
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/a3b083d91827188c22e946b8764234ca3952e5acf6419cf154d9ef8b6e715050.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            66,
+            418,
+            98,
+            442
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/171056ed2bdf50a173abb00056fe0ded5d44289418a1daf3473a2ed0c444a481.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            395,
+            130,
+            931,
+            448
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/585faae2e6f19901f2a452376a49765699c98acb507406290529a1a060153a31.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            66,
+            469,
+            487,
+            675
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "STEER PROGRAMME",
+        "text_level": 1,
+        "bbox": [
+            76,
+            681,
+            306,
+            699
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "The STEER programme is designed to build and cultivate familiarity and interests in burgeoning economies in India, the Middle East, Vietnam, China and Brazil.",
+        "bbox": [
+            62,
+            723,
+            463,
+            792
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/7d6c8d4261c59b12f820c7a71217e7362cc415d6c80cbfc2ec065e40a72a4698.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            66,
+            816,
+            98,
+            840
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "https://www.nus.edu.sg/gro/global-programmes/special-global-programmes/steer",
+        "bbox": [
+            104,
+            816,
+            487,
+            840
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/9e554c8cdddf5e044cdce0a9f1e010da40b6c640144c2143d72d0e8ea48dbd0e.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            506,
+            438,
+            931,
+            632
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "NUS OVERSEAS COLLEGE",
+        "text_level": 1,
+        "bbox": [
+            520,
+            635,
+            802,
+            653
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "A prestigious entrepreneurship development programme that gives NUS students opportunities to work and study in leading entrepreneurial and academic hubs for up to a year.",
+        "bbox": [
+            506,
+            678,
+            929,
+            747
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/91628fd6a951e2040348434423412bc3f20292e452efeffe4c12683003798985.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            510,
+            770,
+            538,
+            792
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "https://bba.nus.edu.sg/academic-programmes/special-programmes/nus-overseas-colleges/",
+        "bbox": [
+            548,
+            768,
+            911,
+            795
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/4bb06dfb2c579091d4502e5ae2712a4d2da8463d4da3124f9883ec32505e02f5.jpg",
+        "image_caption": [
+            "FOR MORE INFORMATION, SCAN HERE!"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            723,
+            858,
+            820,
+            929
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "page_number",
+        "text": "10",
+        "bbox": [
+            66,
+            954,
+            88,
+            969
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "GROWING FROM STRENGTH TO STRENGTH",
+        "text_level": 1,
+        "bbox": [
+            76,
+            160,
+            548,
+            180
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "HOME-GROWN COMPETITIONS",
+        "text_level": 1,
+        "bbox": [
+            62,
+            204,
+            344,
+            219
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "NUS Business School hosts our very own competitions on a local and international scale. These competitions engage students from local and overseas universities, and are excellent focal points for students to congregate, exchange and share inspiring ideas across borders.",
+        "bbox": [
+            60,
+            220,
+            872,
+            274
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "ACROSS THE YEARS,",
+        "text_level": 1,
+        "bbox": [
+            62,
+            289,
+            252,
+            304
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "WE HAVE PARTICIPATED IN:",
+        "text_level": 1,
+        "bbox": [
+            62,
+            306,
+            314,
+            321
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "NUS-Shell Case Competition",
+            "UOB-NUS International Case Competition",
+            "BI Norwegian Business School Case Competition",
+            "CBS Case Competition",
+            "Belgrade International Business Case Competition",
+            "NUS-SP Group Case Competition",
+            "- Nestle-NUS Innovation Challenge",
+            "John Molson Undergraduate Case Competition",
+            "RSM STAR Case Competition",
+            "International Case Competition @ Maastricht"
+        ],
+        "bbox": [
+            62,
+            324,
+            475,
+            513
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "image",
+        "img_path": "images/c776eb5f671ff7b0fc5e34c0ca04ab2744b51f3c2a63b7d6576410da3927b0e3.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            483,
+            280,
+            931,
+            560
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "image",
+        "img_path": "images/461d376e6774834f8e21fbc00bb8f659691de24a77fcb2e5b6a5ae742393c39f.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            169,
+            599,
+            235,
+            659
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "2023 THAMMASAT UNDERGRADUATE BUSINESS CHALLENGE",
+        "bbox": [
+            78,
+            660,
+            324,
+            711
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "2ND RUNNER-UP",
+        "bbox": [
+            80,
+            716,
+            324,
+            738
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "image",
+        "img_path": "images/8a5e5cb0214f34895b84c0c3f7924027b980ccfe9e3cc9f412c28400e55e1ace.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            467,
+            600,
+            530,
+            660
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "2023 HONG KONG UNIVERSITY OF SCIENCE AND TECHNOLOGY INTERNATIONAL CASE",
+        "bbox": [
+            364,
+            662,
+            633,
+            711
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "COMPETITION CHAMPIONS",
+        "bbox": [
+            407,
+            713,
+            590,
+            755
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "image",
+        "img_path": "images/b2708fdc03fe0bb97979e0311f0f354e5ab39de8ed1e02603cbd195356b4adbe.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            760,
+            599,
+            826,
+            657
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "2023 JOHN MOLSON UNDERGRADUATE CASE COMPETITION",
+        "bbox": [
+            673,
+            662,
+            915,
+            711
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "2ND RUNNER-UP",
+        "bbox": [
+            673,
+            716,
+            915,
+            738
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "image",
+        "img_path": "images/d5c29512efe6fa90e0dbde5748ca670877545cb50e0a51894fd2cf53fb7f0ad3.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            318,
+            774,
+            381,
+            831
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "2023 RSM STAR CASE COMPETITION",
+        "bbox": [
+            260,
+            834,
+            441,
+            866
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "CHAMPIONS",
+        "bbox": [
+            260,
+            870,
+            441,
+            891
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "image",
+        "img_path": "images/f06dedaaeb40ea5622c26c0128f9915a6d861069eb419da248971b4a99bcfebd.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            614,
+            773,
+            679,
+            831
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "2023 CENTRAL EUROPEAN CASE COMPETITION",
+        "bbox": [
+            526,
+            834,
+            766,
+            866
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "2ND RUNNER-UP",
+        "bbox": [
+            526,
+            870,
+            766,
+            891
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "header",
+        "text": "CASE COMPETITIONS",
+        "bbox": [
+            66,
+            67,
+            508,
+            100
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "page_number",
+        "text": "11",
+        "bbox": [
+            909,
+            959,
+            929,
+            972
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "CAMPUS LIVING",
+        "text_level": 1,
+        "bbox": [
+            66,
+            67,
+            405,
+            100
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Immerse yourself in a dynamic campus life brimming with a diverse range of residential options and programmes tailored just for you. Discover countless opportunities that not only enrich your education but also connect you to vibrant communities. Forge lifelong friendships that will support and accompany you on your unique path through both life and career adventures. Your extraordinary experience begins here!",
+        "bbox": [
+            62,
+            136,
+            481,
+            309
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "HALLS & RESIDENCES:",
+        "text_level": 1,
+        "bbox": [
+            76,
+            331,
+            324,
+            349
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Eusoff Hall",
+            "Kent Ridge Hall",
+            "King Edward VII Hall",
+            "Prince George's Park Residences & Houses",
+            "Raffles Hall",
+            "Sheares Hall",
+            "Temasek Hall"
+        ],
+        "bbox": [
+            62,
+            376,
+            423,
+            493
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "BIZAD CLUB",
+        "text_level": 1,
+        "bbox": [
+            66,
+            545,
+            318,
+            576
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Step into a world crafted just for you by becoming a part of the NUS Students' Business Club – your gateway to an exceptional student experience! As the ultimate student organisational hub, we offer you the ideal platform to cultivate lifelong skills and build meaningful connections. Immerse yourself in the excitement of flagship events like the Bizad Charity Run and Freshmen Orientation Projects, designed to infuse energy into your student life. Join us on this journey of empowerment, where every moment is dedicated to enhancing your personal and professional growth.",
+        "bbox": [
+            62,
+            612,
+            471,
+            905
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/1ec544a3149f0ae51f4664a4751e12c41e79f2f7623ec0462b05314f46910545.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            508,
+            25,
+            1000,
+            294
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "RESIDENTIAL PROGRAMMES:",
+        "text_level": 1,
+        "bbox": [
+            520,
+            331,
+            846,
+            349
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "College of Alice and Peter Tan (CAPT)",
+            "NUS College (NUSC)",
+            "Residential College 4",
+            "Ridge View Residential College",
+            "Tembusu College"
+        ],
+        "bbox": [
+            506,
+            376,
+            832,
+            462
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/e5f20567fece51ec210fd3894f79cea435ff7b1124d6a951bb6f8f20bf0c345a.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            508,
+            496,
+            1000,
+            887
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "page_number",
+        "text": "12",
+        "bbox": [
+            66,
+            954,
+            88,
+            969
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/86576d7b5ebc5fbebe854bcf7c877da6ac6599d3c338e7f0d18ea36e3166d41e.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            72,
+            78,
+            104,
+            142
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "NDUSTRY",
+        "text_level": 1,
+        "bbox": [
+            108,
+            76,
+            366,
+            120
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "RELEVANT",
+        "text_level": 1,
+        "bbox": [
+            161,
+            136,
+            441,
+            186
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Dive into an immersive Career Compass Starter Workshop where you gain valuable skills in interview and resume-writing, together with industry-focused experiences through internships and work-study programmes. This dynamic combination ensures you emerge market-ready and a highly sought-after job candidate.",
+        "bbox": [
+            60,
+            177,
+            949,
+            352
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "sought-after Job candidaYour journey to success starts with a programme designed to set you apart and open doors to exciting opportunities!",
+        "bbox": [
+            62,
+            328,
+            885,
+            426
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "image",
+        "img_path": "images/7999d19d481096e01d9891851948604f8fca252b77e632a2d94985ae07b67271.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            0,
+            384,
+            1000,
+            932
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "page_number",
+        "text": "13",
+        "bbox": [
+            909,
+            959,
+            931,
+            974
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "BUSINESS SCHOOL BizCAREERS",
+        "text_level": 1,
+        "bbox": [
+            76,
+            76,
+            429,
+            94
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "NUS Business School students are highly sought after by global and local companies. Our BIZCareers team works closely with students to help them achieve their career objectives, while actively engaging and fostering close partnerships with recruiters across the major industries to bring meaningful opportunities to our students.",
+        "bbox": [
+            62,
+            120,
+            473,
+            253
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Alumni Sharing Sessions",
+            "Booster Skills Workshops",
+            "Company Visits",
+            "Career & Recruitment Talks",
+            "Career & Internship Fairs",
+            "- Internship & Job Search Briefings",
+            "Industry Awareness Series"
+        ],
+        "bbox": [
+            62,
+            267,
+            352,
+            381
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "INTERNSHIPS",
+        "text_level": 1,
+        "bbox": [
+            76,
+            418,
+            225,
+            436
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "Internships are a crucial part of university education. Students are encouraged to embark on internships with many taking up at least two internships during their time at NUS.",
+        "bbox": [
+            62,
+            460,
+            471,
+            527
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "At NUS Business School, an internship will be a graduation requirement for students under the new curriculum. Students will gain real world industry experience, with the option to obtain units or not.",
+        "bbox": [
+            62,
+            542,
+            479,
+            624
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "Credit-bearing Internships:",
+        "text_level": 1,
+        "bbox": [
+            64,
+            641,
+            316,
+            657
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "image",
+        "img_path": "images/cc668d93f70e494835862ceabde91e8c301f8fb7825eccd9ea0eb2eeb93f39e1.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            64,
+            668,
+            127,
+            714
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "BI3704",
+        "text_level": 1,
+        "bbox": [
+            133,
+            678,
+            199,
+            693
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "8-week internship",
+        "bbox": [
+            133,
+            695,
+            286,
+            711
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "image",
+        "img_path": "images/663f18124f6d6ac4cd50f5441bf77139f996dd01375b7bddbcfd17835ba0c5ba.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            64,
+            720,
+            127,
+            767
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "BI3708",
+        "text_level": 1,
+        "bbox": [
+            133,
+            732,
+            199,
+            746
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "16-week internship",
+        "bbox": [
+            133,
+            747,
+            296,
+            764
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "image",
+        "img_path": "images/707e7828bd6799df1a368e6d5cfc995d40d93c9e12633521dc68e1eaef850375.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            64,
+            773,
+            127,
+            819
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "BI3712",
+        "text_level": 1,
+        "bbox": [
+            133,
+            783,
+            199,
+            798
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "24-week internship",
+        "bbox": [
+            133,
+            801,
+            296,
+            816
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "image",
+        "img_path": "images/c610f2676a6d003f43eb2aa11ab6a3226f100d459e31ddc094f8beff34aa6b5a.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            64,
+            825,
+            127,
+            872
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "BI3003",
+        "text_level": 1,
+        "bbox": [
+            133,
+            836,
+            197,
+            849
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "8-week internship",
+        "bbox": [
+            133,
+            852,
+            286,
+            867
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "(for non-business/accounting/real estate related internships)",
+        "bbox": [
+            133,
+            867,
+            393,
+            893
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "image",
+        "img_path": "images/87d5cd77b987b069bcec0b33434adc4077499d2703137147dfd4744d8e6fe5d8.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            66,
+            912,
+            98,
+            936
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "https://bba.nus.edu.sg/academic-programmes/general-academic-matters/business-internship-courses/",
+        "bbox": [
+            104,
+            912,
+            473,
+            938
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "image",
+        "img_path": "images/9e43b95b72102d21ff853293617a3ce51b6af3303a38f761e991767db82ec2d3.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            508,
+            34,
+            1000,
+            274
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Industry Specific Skills Workshops",
+            "Individual Career Advisory sessions",
+            "Individual Mock Interview sessions",
+            "Individual Internship & Job Search Strategies",
+            "Career Guides"
+        ],
+        "bbox": [
+            506,
+            300,
+            891,
+            379
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "CAREER COMPASS STARTER WORKSHOPS",
+        "text_level": 1,
+        "bbox": [
+            518,
+            418,
+            830,
+            456
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "Unlock your future potential with the Career Compass Starter Workshops as we guide you in cultivating the skills essential for your career. Tailored to your needs, we are here to support you on your journey, empowering you to achieve your unique career goals.",
+        "bbox": [
+            504,
+            481,
+            901,
+            582
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "Year 1",
+        "text_level": 1,
+        "bbox": [
+            506,
+            597,
+            564,
+            609
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Strategic Career Planning",
+            "Resume & Cover letter Writing",
+            "Personal Branding",
+            "Networking Skills",
+            "Interviewing Skills",
+            "- Dealing with Others in the Workplace"
+        ],
+        "bbox": [
+            506,
+            612,
+            836,
+            710
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "Year 2 (led by Career Advisors)",
+        "bbox": [
+            506,
+            725,
+            764,
+            741
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Small Group Resume Clinics",
+            "Small Group Mock Interview Clinics"
+        ],
+        "bbox": [
+            506,
+            741,
+            814,
+            774
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "image",
+        "img_path": "images/fa881fc4f588df7be4ab9a7ed21af22c42a4333ff4684c30dcec17cef51726d8.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            508,
+            780,
+            931,
+            978
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "page_number",
+        "text": "14",
+        "bbox": [
+            66,
+            954,
+            88,
+            969
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "FIELD SERVICE PROJECT",
+        "text_level": 1,
+        "bbox": [
+            76,
+            78,
+            342,
+            94
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "The Field Service Project (FSP) course is all about teaming up for a hands-on learning adventure. Imagine working with an organisation in Singapore, or beyond, and getting insights straight from the CEOs and industry leaders themselves. It's not your typical classroom experience; handling real-world business issues, diving into business challenges beyond your regular NUS lessons.",
+        "bbox": [
+            62,
+            120,
+            473,
+            267
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "For FSP, you immerse yourself in an organisation's business model, grasp their value propositions, and witness the intricate workings of their operations. However, it goes beyond mere tasks. FSP becomes your backstage pass to awesome networking. You're not just there to observe, but instead you will actively participate, lending your contribution through a perceptive report guided by a supervisor. This is your opportunity to assist them in navigating the complexities of today's business landscape. Will you grab it?",
+        "bbox": [
+            62,
+            282,
+            479,
+            483
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "image",
+        "img_path": "images/6f52285c7271d8469461e958344083a2626562da5b990a1032605af2ac465a0e.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            66,
+            504,
+            96,
+            528
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "https://bba.nus.edu.sg/academic-programmes/general-academic-matters/field-service-project/",
+        "bbox": [
+            104,
+            504,
+            475,
+            531
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "WORK STUDY INTERNSHIP PROGRAMME",
+        "text_level": 1,
+        "bbox": [
+            518,
+            76,
+            814,
+            115
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "Work Study Internship Programme (WSIP) isn't your typical learning experience; it's a uniquely tailored, hands-on opportunity designed specifically for business students like yourself. Imagine this: instead of sticking to traditional classrooms and textbooks, you're enrolled in a long-term, credit-bearing work-study programme. What sets it apart? It's a personalized journey crafted in collaboration with professional and commercial organisations. While excelling in classroom courses, WSIP immerses you in the real-world action with structured work placements at actual companies.",
+        "bbox": [
+            504,
+            139,
+            917,
+            354
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "But wait, there's more! During your WSIP adventure, you'll connect with workplace mentors, delve into your chosen field, and gain a wealth of real-world experience. Some students may even enjoy progressive stipends, job rotations, and a fast track to entry-level career options upon graduation. Ready to transform your education into an exciting adventure? Let's dive in!",
+        "bbox": [
+            504,
+            369,
+            921,
+            519
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "image",
+        "img_path": "images/9869b214b4cca2d6254030f4ec2f8c7ad56eb5125c897c5630f67942ebee22c4.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            0,
+            551,
+            957,
+            951
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "page_number",
+        "text": "15",
+        "bbox": [
+            909,
+            959,
+            931,
+            974
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "WHAT OUR GRADUATES DO",
+        "text_level": 1,
+        "bbox": [
+            64,
+            67,
+            657,
+            100
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "ACCOUNTANCY",
+        "text_level": 1,
+        "bbox": [
+            80,
+            160,
+            250,
+            177
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Accountant",
+            "Auditor",
+            "Forensic Accountant",
+            "Risk Advisory",
+            "Tax Advisory"
+        ],
+        "bbox": [
+            68,
+            192,
+            252,
+            271
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "EVENTS & HOSPITALITY",
+        "text_level": 1,
+        "bbox": [
+            80,
+            300,
+            330,
+            318
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Accounts Executive",
+            "Conference Management",
+            "Marketing Executive",
+            "- Optimisation Analyst"
+        ],
+        "bbox": [
+            68,
+            331,
+            296,
+            396
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "E-COMMERCE",
+        "text_level": 1,
+        "bbox": [
+            80,
+            424,
+            231,
+            441
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Analyst, Branding & Marketing",
+            "Executive Enterprise Sales Account",
+            "Management Associate",
+            "Onboarding & Team Coordinator",
+            "Regional Operations Associate"
+        ],
+        "bbox": [
+            68,
+            454,
+            336,
+            584
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "HUMAN CAPITAL MANAGEMENT",
+        "text_level": 1,
+        "bbox": [
+            80,
+            612,
+            264,
+            648
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Executive Search",
+            "Management Associate",
+            "- Talent Acquisition"
+        ],
+        "bbox": [
+            68,
+            663,
+            278,
+            711
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "OTHER SECTORS",
+        "text_level": 1,
+        "bbox": [
+            76,
+            740,
+            250,
+            756
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Civil and Public Service",
+            "Healthcare",
+            "Marine",
+            "Aviation",
+            "FinTech",
+            "Telecommunications"
+        ],
+        "bbox": [
+            68,
+            771,
+            270,
+            866
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "CONSULTING",
+        "text_level": 1,
+        "bbox": [
+            372,
+            160,
+            510,
+            177
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Business Analyst",
+            "Clients & Markets Analyst",
+            "- Consulting Analyst",
+            "HR Analyst",
+            "Management Consultant",
+            "Programmer Analyst",
+            "Research Consultant",
+            "Strategy Analyst",
+            "Transaction Advisory Associate"
+        ],
+        "bbox": [
+            360,
+            192,
+            627,
+            336
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "CONSUMER GOODS",
+        "text_level": 1,
+        "bbox": [
+            372,
+            364,
+            582,
+            382
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- Advertising Brand Manager",
+            "Content Executive",
+            "Digital Marketing Executive",
+            "Marketing and Communications Executive",
+            "Sales and Marketing Executive"
+        ],
+        "bbox": [
+            360,
+            396,
+            627,
+            493
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "TECHNOLOGY",
+        "text_level": 1,
+        "bbox": [
+            372,
+            522,
+            522,
+            537
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Business Operations & Strategy",
+            "Data Analyst",
+            "Google Squared Data and Analytics Programme",
+            "Order Management Specialist",
+            "Partner Manager",
+            "Product Messaging Analyst",
+            "Project Executive",
+            "Purchasing Analyst",
+            "R&D Engineer"
+        ],
+        "bbox": [
+            360,
+            552,
+            631,
+            714
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "LOGISTICS, MANUFACTURING & SUPPLY CHAIN",
+        "text_level": 1,
+        "bbox": [
+            372,
+            741,
+            588,
+            798
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Operations Associate",
+            "Accounts Coordinator",
+            "Business Development",
+            "Inventory Management",
+            "Market Intelligence"
+        ],
+        "bbox": [
+            360,
+            813,
+            570,
+            894
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "FINANCE & BANKING",
+        "text_level": 1,
+        "bbox": [
+            669,
+            160,
+            895,
+            177
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Analyst for Commercial Banking",
+            "Credit",
+            "Global Investment Management",
+            "Global Transaction Services",
+            "Global Markets",
+            "Investment Banking",
+            "Macro Sales",
+            "Operations & Technology",
+            "Trade Solutions",
+            "Treasury",
+            "Venture Capital",
+            "Commodity Associate",
+            "Global Markets Trader",
+            "Investment Support",
+            "Wealth Management"
+        ],
+        "bbox": [
+            655,
+            190,
+            893,
+            466
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "REAL ESTATE",
+        "text_level": 1,
+        "bbox": [
+            669,
+            496,
+            808,
+            510
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "Real Estate Finance & Investment",
+            "Real Estate Fund Management - Business Development, Acquisitions & Deal Structuring",
+            "Real Estate Investment Trusts",
+            "Town Planning & Urban Management",
+            "Asset Management",
+            "Corporate Real Estate Management",
+            "Real Estate Development & Entrepreneurship",
+            "Real Estate Consultancy, Valuation & Marketing",
+            "Property & Facilities Management"
+        ],
+        "bbox": [
+            655,
+            525,
+            927,
+            801
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "page_number",
+        "text": "16",
+        "bbox": [
+            66,
+            954,
+            88,
+            969
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "LEADERSHIP &",
+        "text_level": 1,
+        "bbox": [
+            66,
+            67,
+            489,
+            145
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "LIFELONG LEARNING",
+        "text_level": 1,
+        "bbox": [
+            161,
+            115,
+            719,
+            187
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "To foster leadership qualities in the fast-changing corporate world, students will be immersed in a wide range of robust learning opportunities to develop the leader in each of them. The School also seeks to make lifelong learners out of every student, armed with knowledge acquisition skills and a hunger to continually grow.",
+        "bbox": [
+            64,
+            177,
+            905,
+            331
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "image",
+        "img_path": "images/de77de9853db3571826d4d85d07d2023204c7a7e9470e2bcdb521b8550d9fa0c.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            0,
+            331,
+            1000,
+            935
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "page_number",
+        "text": "17",
+        "bbox": [
+            909,
+            959,
+            931,
+            974
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "image",
+        "img_path": "images/b26b5fccdd350e980b84bb1602b089a8181dda6aa574fae209b6dce6c69a1bd2.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            0,
+            34,
+            961,
+            388
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "NURTURING AGILE LEADERS WITH MARKETPLACE IMPACT AND DRIVE FOR LIFE LONG LEARNING",
+        "text_level": 1,
+        "bbox": [
+            74,
+            403,
+            719,
+            442
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "COURS ON LEADERSHIP",
+        "text_level": 1,
+        "bbox": [
+            92,
+            487,
+            332,
+            501
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "image",
+        "img_path": "images/ed6759065b97d27285851abd78017de37f17ff7e34a76c6cfb0bc002df31da23.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            127,
+            512,
+            203,
+            570
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Leadership & Decision Making under Certainty",
+        "bbox": [
+            223,
+            525,
+            427,
+            558
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "image",
+        "img_path": "images/2304be5f28469a2a30ed2ea1530fd2552f9dcdc75e8bf731584a8c2c985fe82d.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            127,
+            582,
+            203,
+            639
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Leading in the 21st Century",
+        "bbox": [
+            223,
+            591,
+            346,
+            624
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "image",
+        "img_path": "images/1ae5cb5c36a806ecdcfe54f8b1fc0eb0cbd0264283f3d6fae536559c422467df.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            540,
+            512,
+            616,
+            570
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Leading Accross Borders",
+        "bbox": [
+            635,
+            528,
+            772,
+            560
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "image",
+        "img_path": "images/ec8ea0d195f8a396e2c5c87ebb391f12922248f577e3d8ad7f0ff1b737edbb9c.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            540,
+            582,
+            616,
+            639
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "Business with a Social Conscience",
+        "bbox": [
+            635,
+            597,
+            784,
+            629
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "MAJOR IN LEADERSHIP & HUMAN CAPITAL MANAGEMENT",
+        "text_level": 1,
+        "bbox": [
+            78,
+            698,
+            443,
+            737
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "In this major, you become the linchpin of organisations and teams. Understand leadership and position yourself at the central node of influence. Inspire people, shape organisational outcomes, and unlock the full potential of human capital—all within your grasp. This places you in the driver's seat of leadership, where you catalyse change and drive success.",
+        "bbox": [
+            64,
+            761,
+            453,
+            909
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "NUS LIFELONG LEARNING",
+        "text_level": 1,
+        "bbox": [
+            522,
+            698,
+            808,
+            714
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "As part of the NUS Lifelong Learners programme, student enrolment is valid for 20 years from the point of undergraduate/ postgraduate admission. As such, all current and future students are automatically eligible for the NUS Lifelong Learning programme upon graduation and may also take a series of courses to earn higher qualifications such as Graduate Diplomas, second Bachelor's and Master's Degrees.",
+        "bbox": [
+            508,
+            741,
+            931,
+            888
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "image",
+        "img_path": "images/b8279a7e9ef4e1714b7ae884bea99797d75f4c7122b3cbd56d634de48f299863.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            512,
+            912,
+            542,
+            933
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "page_number",
+        "text": "18",
+        "bbox": [
+            66,
+            954,
+            88,
+            969
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "ENTREPRENEURIAL",
+        "text_level": 1,
+        "bbox": [
+            68,
+            79,
+            618,
+            168
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "Fully embracing the entrepreneurial culture amongst the younger generation, the curriculum is designed both to bring out the entrepreneurial spirit in students, and facilitate the generation of new business ideas.",
+        "bbox": [
+            60,
+            142,
+            903,
+            256
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "image",
+        "img_path": "images/4a743df2fbc7c557b0b87a52ab409cb64fcf447121231921a54a14db15fe6e0f.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            0,
+            256,
+            1000,
+            912
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "page_number",
+        "text": "19",
+        "bbox": [
+            909,
+            959,
+            931,
+            974
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "BE AN ENTREPRENEUR",
+        "text_level": 1,
+        "bbox": [
+            66,
+            67,
+            538,
+            100
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "Get a taste of entrepreneurship at NUS Business School, where you get to take center stage in one of our newer majors. Equip yourself with expansive theoretical insights, empowering you to lead change effectively—whether you're venturing into an entrepreneurial startup or navigating the landscape of a large multinational corporation. Previous batches of students, who were just like you, have already launched successful businesses in Singapore, with names like Carousell, Playmoolah, and Moovaz making an impact.",
+        "bbox": [
+            62,
+            151,
+            495,
+            342
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "Flip to Page 10, and you will discover the NUS Overseas Colleges (NOC) programme, aimed to cultivate your entrepreneurial spirit. Immerse yourself in this transformative experience — intern in a technology-based startup, while concurrently pursuing part-time courses at reputable universities. It's your opportunity to shape your entrepreneurial journey and make an impact on a global scale.",
+        "bbox": [
+            504,
+            151,
+            923,
+            307
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "image",
+        "img_path": "images/5587375201cd5bf69f04ce5ffe7abe6b4621600178ae1f34e12ddd4ec9b3cade.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            22,
+            376,
+            112,
+            424
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "BRYAN VOON, Year 4 Business Student who went for NOC, Norway.",
+        "text_level": 1,
+        "bbox": [
+            106,
+            451,
+            453,
+            510
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "How has your experience in NOC been so far? And how has it impacted you?",
+        "bbox": [
+            106,
+            534,
+            500,
+            567
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "It is difficult to understate how enriching and instructive NOC has been with professional and personal impacts. With the former being to look beyond the usual fields most business students consider when job seeking (e.g., finance, marketing, consulting) while the latter being a future outside of Singapore; a possibility I would not have entertained if it was not for NOC Norway.",
+        "bbox": [
+            106,
+            567,
+            495,
+            714
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "Do you have any advice for your juniors applying to NUS Business School and NOC?",
+        "bbox": [
+            106,
+            732,
+            479,
+            765
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "Keep an open mind and remember that some of the most valuable sources of learning happens outside of the classrooms with programmes such as NOC which will do nothing but enrich your NUS experience.",
+        "bbox": [
+            106,
+            765,
+            495,
+            848
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "Bryan and his colleagues from DNV ReWind gather over a meal",
+        "bbox": [
+            548,
+            361,
+            703,
+            396
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "image",
+        "img_path": "images/484abd12872636172a0d832555a69015771e410a0a332a31c717aea54f32f84e.jpg",
+        "image_caption": [
+            "Bryan and his team attending EoLIS 2023 Conference @ Rotterdam, Netherlands"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            536,
+            379,
+            937,
+            849
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "page_number",
+        "text": "20",
+        "bbox": [
+            66,
+            954,
+            88,
+            971
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "SCHOLARSHIPS & AWARDS",
+        "text_level": 1,
+        "bbox": [
+            76,
+            109,
+            379,
+            127
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "Apart from numerous NUS-level scholarships, the NUS Business School also offers many of its own scholarships to local and international students.",
+        "bbox": [
+            62,
+            153,
+            443,
+            219
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "image",
+        "img_path": "images/f45a7507a80d6e0a182c64a95d402a8d1747743c3a0f8e61cbf709c53f050179.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            66,
+            241,
+            98,
+            265
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "BURSARIES",
+        "text_level": 1,
+        "bbox": [
+            520,
+            109,
+            649,
+            127
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "To ensure that no deserving student is denied higher education due to financial need, financial aid is offered to eligible students. This can take the form of a loan, bursaries, or work-study assistance.",
+        "bbox": [
+            506,
+            153,
+            891,
+            235
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "TUITION FEES",
+        "text_level": 1,
+        "bbox": [
+            76,
+            328,
+            229,
+            346
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "For more information on tuition fees, please refer to the link below.",
+        "bbox": [
+            62,
+            370,
+            633,
+            388
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "image",
+        "img_path": "images/2e3fab65ab86c68e97d09957954eceb59d607d9f86e04edbcc77d2248df057a8.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            66,
+            412,
+            98,
+            435
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "FOR MORE ON FINANCIAL AID, SCAN HERE!",
+        "bbox": [
+            768,
+            322,
+            877,
+            361
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "image",
+        "img_path": "images/1db0c3f873770444f75f6b391b209f828772624fcd2ca4d5dd18f277acf6f2ce.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            774,
+            367,
+            872,
+            441
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "image",
+        "img_path": "images/5829a588fda70fc7dabf94c82906b294d46fccfaf47166815dcba509fb5e49e6.jpg",
+        "image_caption": [
+            "SCAN HERE TO APPLY TO NUS BBA!"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            66,
+            463,
+            1000,
+            921
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "ADMISSIONS",
+        "text_level": 1,
+        "bbox": [
+            96,
+            779,
+            243,
+            795
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "",
+        "bbox": [
+            122,
+            849,
+            217,
+            920
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "www.nus.edu.sg/oam/apply-to-nus",
+        "bbox": [
+            50,
+            924,
+            290,
+            936
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "page_number",
+        "text": "21",
+        "bbox": [
+            907,
+            959,
+            929,
+            972
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "NUS BUSINESS SCHOOL",
+        "text_level": 1,
+        "bbox": [
+            80,
+            58,
+            489,
+            82
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "LEADING FROM ASIA",
+        "text_level": 1,
+        "bbox": [
+            80,
+            103,
+            451,
+            129
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "At NUS Business School, students take a transformative journey, and make an A.G.I.L.E leap forward through the Academically rigorous and flexible curriculum, diversity of Global and experiential opportunities, Industry-relevant infrastructure, varied options for Leadership development and highly Entrepreneurial environment. Through the full BBA experience, they forge ahead with confidence and future-readiness, prepared to make the most of an increasingly dynamic and unpredictable world.",
+        "bbox": [
+            66,
+            154,
+            925,
+            240
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "image",
+        "img_path": "images/1b814a5381fec8d74b7c9d442d6693d1766ea7d173c94c1d887cca86936c2528.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            0,
+            243,
+            1000,
+            722
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "image",
+        "img_path": "images/a4f76d540de8ef146c47f1e4d6a2a5b0ae94d3045d3a99af4456e24982701723.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            100,
+            741,
+            137,
+            765
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "bba.nus.edu.sg",
+        "bbox": [
+            147,
+            744,
+            288,
+            762
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "image",
+        "img_path": "images/050d490fb3cb8243a909280bf3a7b0353d343766283e388c0a2adb7c39f737eb.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            102,
+            771,
+            137,
+            795
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "facebook.com/NUSBusinessSchool/",
+        "bbox": [
+            147,
+            774,
+            467,
+            792
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "image",
+        "img_path": "images/dd299999048bc9ce2ea638b61a609d99fe6a9feaea97e177c2f6f9a87e5c2956.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            102,
+            803,
+            135,
+            825
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "@nus_bba",
+        "bbox": [
+            147,
+            807,
+            243,
+            825
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "image",
+        "img_path": "images/f9c9165924175acf841c67762cd0f4a2fff7ea24a5272d4d44cb899c94229ced.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            102,
+            837,
+            135,
+            860
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "https://www.youtube.com/c/NUSBizSchool",
+        "bbox": [
+            147,
+            839,
+            538,
+            857
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "image",
+        "img_path": "images/9b69572d5334e5460c9d6a7340a8acc6943c0953bf5adeea7507c8fd8475c600.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            102,
+            872,
+            135,
+            896
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "NUS Business School",
+        "bbox": [
+            147,
+            872,
+            336,
+            887
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "BIZ2 Building Level 5-0,",
+        "bbox": [
+            147,
+            888,
+            358,
+            906
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "1 Business Link, Singapore 117592",
+        "bbox": [
+            149,
+            906,
+            453,
+            923
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "image",
+        "img_path": "images/1266de3230512d838d90dc3c7749c710d0c77af12e1c90c5a0e424b580cb75d1.jpg",
+        "image_caption": [
+            "SCAN HERE",
+            "TO FIND OUT MORE"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            778,
+            644,
+            925,
+            755
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "footer",
+        "text": "All information provided is correct at the time of printing and is subject to change without notice.",
+        "bbox": [
+            145,
+            947,
+            750,
+            960
+        ],
+        "page_idx": 23
+    }
+]
