@@ -19,7 +19,15 @@ class EdgeType(str, Enum):
     ANALOGOUS_TO = "analogous_to"                 # 结构类比
     SAME_THEME = "same_theme"                     # 同一主题
     CO_ACTIVATED = "co_activated"                 # 巩固时共同激活
+    MENTIONS = "mentions"                         # 桥接边：记忆图 episode 引用主 KG 实体
 
+
+# 边权上限：达到后不再增强
+DEFAULT_MAX_EDGE_WEIGHT: float = 1.0
+# 扩散激活时每次激活的权重增量
+DEFAULT_ACTIVATION_WEIGHT_DELTA: float = 0.05
+# 巩固时对近期激活边的权重增量
+DEFAULT_CONSOLIDATION_WEIGHT_DELTA: float = 0.08
 
 # 每跳衰减系数（越大衰减越慢）
 EDGE_TYPE_DECAY: Dict[EdgeType, float] = {
@@ -30,6 +38,7 @@ EDGE_TYPE_DECAY: Dict[EdgeType, float] = {
     EdgeType.CONCEPT_LINK: 0.75,
     EdgeType.INFERRED_RELATION: 0.75,
     EdgeType.CO_ACTIVATED: 0.70,
+    EdgeType.MENTIONS: 0.75,
     EdgeType.SAME_DOCUMENT: 0.60,
 }
 
@@ -120,6 +129,7 @@ class MemoryEdge:
     edge_type: EdgeType
     weight: float = 1.0
     created_at: float = field(default_factory=time.time)
+    last_activated_at: Optional[float] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def edge_key(self) -> str:

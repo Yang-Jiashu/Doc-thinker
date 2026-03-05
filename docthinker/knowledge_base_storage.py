@@ -150,11 +150,24 @@ class KnowledgeBaseStorage:
                 raise ValueError(f"Knowledge base '{kb_name}' not found")
             
             kb_id = kb_row["id"]
-            
-            # Insert entry
+
+            # Build metadata, include timestamp for chat messages
+            meta_dict = dict(entry.metadata) if entry.metadata else {}
+            if entry.created_at and "timestamp" not in meta_dict:
+                meta_dict["timestamp"] = entry.created_at.isoformat()
+            metadata_json = json.dumps(meta_dict) if meta_dict else None
+
+            # Insert entry; include created_at/updated_at when provided for explicit timestamp
+            ts_created = entry.created_at.isoformat() if entry.created_at else None
+            ts_updated = entry.updated_at.isoformat() if entry.updated_at else None
+            if ts_created is None:
+                ts_created = datetime.now().isoformat()
+            if ts_updated is None:
+                ts_updated = ts_created
+
             cursor.execute(
-                "INSERT INTO knowledge_entries (id, kb_id, content, type, metadata) VALUES (?, ?, ?, ?, ?)",
-                (entry.id, kb_id, entry.content, entry.entry_type, json.dumps(entry.metadata) if entry.metadata else None)
+                "INSERT INTO knowledge_entries (id, kb_id, content, type, metadata, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (entry.id, kb_id, entry.content, entry.entry_type, metadata_json, ts_created, ts_updated),
             )
             
             # Insert relations

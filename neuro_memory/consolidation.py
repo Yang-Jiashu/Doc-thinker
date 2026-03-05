@@ -5,11 +5,17 @@ from __future__ import annotations
 
 import asyncio
 import random
+import time
 from collections import Counter
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from .models import EdgeType, Episode
-from .graph_store import MemoryGraphStore
+from .models import (
+    EdgeType,
+    Episode,
+    DEFAULT_MAX_EDGE_WEIGHT,
+    DEFAULT_CONSOLIDATION_WEIGHT_DELTA,
+)
+from .graph_store import MemoryGraphStore, SECONDS_PER_DAY
 
 
 async def infer_cross_episode_relations(
@@ -51,6 +57,28 @@ async def infer_cross_episode_relations(
         return []
 
 
+def strengthen_recently_activated_edges(
+    graph: MemoryGraphStore,
+    *,
+    recent_days: float = 7.0,
+    weight_delta: float = DEFAULT_CONSOLIDATION_WEIGHT_DELTA,
+    max_weight: float = DEFAULT_MAX_EDGE_WEIGHT,
+) -> int:
+    """
+    对近期激活的边做 weight += delta（ capped at max_weight）。
+    recent_days 内 last_activated_at 的边会被加强。
+    返回被加强的边数。
+    """
+    cutoff = time.time() - recent_days * SECONDS_PER_DAY
+    count = 0
+    for e in graph.get_all_edges():
+        last = e.last_activated_at or e.created_at
+        if last >= cutoff and e.weight < max_weight:
+            e.weight = min(max_weight, e.weight + weight_delta)
+            count += 1
+    return count
+
+
 def build_structure_description(episode: Episode) -> str:
     """从 episode 的实体与关系生成结构描述，用于结构相似度。"""
     parts = []
@@ -74,6 +102,9 @@ async def consolidate(
     llm_func: Optional[Callable[..., Any]] = None,
     content_sim_fn: Optional[Callable[..., Union[float, Any]]] = None,
     structure_sim_fn: Optional[Callable[..., Union[float, Any]]] = None,
+    recent_activation_days: float = 7.0,
+    consolidation_weight_delta: float = DEFAULT_CONSOLIDATION_WEIGHT_DELTA,
+    max_weight: float = DEFAULT_MAX_EDGE_WEIGHT,
 ) -> Dict[str, Any]:
     """
     巩固流程：采样 → 配对 → 跨事件推断 → 写回图。
@@ -92,7 +123,15 @@ async def consolidate(
 
     episode_ids = list(episodes.keys())
     if not episode_ids:
-        return {"edges_added": 0, "pairs_processed": 0}
+        return {"edges_added": 0, "pairs_processed": 0, "edges_strengthened": 0}
+
+    # 对近期激活的边做 weight += delta（达到 max_weight 后不再增加）
+    edges_strengthened = strengthen_recently_activated_edges(
+        graph,
+        recent_days=recent_activation_days,
+        weight_delta=consolidation_weight_delta,
+        max_weight=max_weight,
+    )
 
     # 按时间与 retrieval_count 排序，取近期 + 高显著性
     def salience_key(eid: str) -> Tuple[float, int]:
@@ -151,4 +190,8 @@ async def consolidate(
                     graph.add_edge(eid_b, eid_a, EdgeType.EPISODE_SIMILARITY, weight=content_sim)
                     edges_added += 2
 
-    return {"edges_added": edges_added, "pairs_processed": pairs_processed}
+    return {
+        "edges_added": edges_added,
+        "pairs_processed": pairs_processed,
+        "edges_strengthened": edges_strengthened,
+    }

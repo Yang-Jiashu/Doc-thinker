@@ -1,71 +1,48 @@
-# Doc Thinker / AutoThink 项目结构说明
+﻿# PROJECT_STRUCTURE
 
-> **从文档到检索的完整代码与文档总览**：见 [CODE_AND_DOCS_OVERVIEW.md](CODE_AND_DOCS_OVERVIEW.md)（文档、解析、入库、查询、各类 RAG 职责与数据流）。  
-> **各文件夹用途与整理建议**：见 [FOLDERS.md](FOLDERS.md)（必留/可选/可删目录、.gitignore 建议）。
+## 1. 当前唯一主线
 
-## 一、入口与启动方式
+当前仓库只维护以下主线：
+- `run_ui.py` -> `docthinker/ui/app.py`（Flask UI）
+- `uvicorn docthinker.server.app:app`（FastAPI 后端）
 
-### 1. UI（Flask，端口 5000）
+旧 NeuroAgent 主线已从仓库中移除。
 
-**推荐唯一启动方式（在项目根目录 `doc` 下）：**
+## 2. 顶层结构
 
-```bash
-python run_ui.py
-```
+- `docthinker/`：应用主代码
+- `graphcore/`：图检索底层能力
+- `neuro_memory/`：类脑记忆模块
+- `docs/`：维护文档
+- `tests/`：新主线测试
+- `run_ui.py`：UI 启动入口
 
-或从项目根运行核心库的 UI 入口（见仓库结构）。
+## 3. docthinker 子结构
 
-- 聊天页: http://127.0.0.1:5000/query  
-- 知识图谱: http://127.0.0.1:5000/knowledge-graph  
-- 模板目录为核心库下的 `ui/templates/`，由 Jinja 指定。
+- `docthinker/server/app.py`：后端应用入口与生命周期初始化
+- `docthinker/server/routers/`：API 路由
+  - `query.py`：查询与回答
+  - `ingest.py`：文档/文本入库
+  - `graph.py`：图谱查询、记忆接口、KG扩展接口
+  - `sessions.py`：会话管理
+  - `health.py`：健康检查
+- `docthinker/ui/app.py`：UI 路由与后端代理
+- `docthinker/ui/templates/`：现代化模板（`*_modern.html`）
+- `docthinker/auto_thinking/`：自动思考与多步推理
+- `docthinker/hypergraph/`：超图 RAG
+- `docthinker/kg_expansion/`：KG 扩展模块
 
-### 2. 后端 API（FastAPI，端口 8000）
+## 4. 关键数据流
 
-```bash
-python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000
-```
+1. UI 将请求转发到 `/api/v1/*`
+2. 后端在 `lifespan` 初始化 RAG + MemoryEngine
+3. `query` 路由调用编排器与记忆引擎
+4. `graph` 路由负责图谱数据、记忆统计、KG扩展
 
-- 会话、检索、知识图谱/记忆图谱等接口挂载在 `/api/v1/` 下；Flask UI 会代理到该后端。
+## 5. 已移除范围（摘要）
 
----
+- 旧入口：`main.py`、`neuro_agent.py`、`neuro_agent_v2.py`
+- 旧目录：`agent/`、`cognition/`、`perception/`、`retrieval/`、`neuro_core/`、`api/`
+- 旧 UI 模板与旧路由：`docthinker/ui/routers/kg_visualization.py`、非 modern 模板
 
-## 二、UI 相关目录（唯一一套）
-
-| 路径 | 说明 |
-|------|------|
-| 核心库/ui/app.py | Flask 应用：路由、API 代理、HTML 注入「知识图谱」 |
-| 核心库/ui/templates/ | 所有页面模板（唯一模板来源） |
-| 核心库/ui/templates/base.html | 全站布局；侧栏 + 固定右上角「知识图谱」入口 |
-| 核心库/ui/templates/query.html | 聊天页 |
-| 核心库/ui/templates/knowledge_graph.html | 知识图谱 / 记忆图谱可视化 |
-| 核心库/ui/static/ | 静态资源 |
-
-- 已删除：项目根目录下重复的 `templates/`、`output.html`。  
-- 已移除：`app.py` 内约 764 行“默认模板”死代码，不再写入或覆盖任何模板。
-
----
-
-## 三、后端与核心模块
-
-| 路径 | 说明 |
-|------|------|
-| 核心库/server/app.py | FastAPI 应用、生命周期、路由挂载 |
-| 核心库/server/routers/ | 健康、会话、入库、查询、图谱等路由 |
-| 核心库 | AutoThink 核心：检索、知识图谱、会话、认知处理、自动思考、超图等 |
-| `neuro_memory/` | 类脑记忆（扩散激活、巩固、类比检索等） |
-
----
-
-## 四、「知识图谱」入口（三重保障）
-
-1. **base.html**：侧栏「新会话」下方有「知识图谱」链接；`<body>` 开头有固定右上角按钮。  
-2. **app.py 注入**：对所有返回的 HTML 在 `</body>` 前注入同一固定按钮，不依赖模板内容。  
-3. **直接访问**：任意时刻可打开 http://127.0.0.1:5000/knowledge-graph 。
-
----
-
-## 五、启动顺序建议
-
-1. 先启动后端：`python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000`  
-2. 再启动 UI：`python run_ui.py`  
-3. 浏览器访问：http://127.0.0.1:5000/query ，右上角或侧栏应可见「知识图谱」。
+详细清单见：`docs/CLEANUP_EXECUTION_2026-03-05.md`。

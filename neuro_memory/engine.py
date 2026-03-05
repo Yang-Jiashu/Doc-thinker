@@ -35,10 +35,12 @@ class MemoryEngine:
         embedding_func: Optional[Callable[..., Any]] = None,
         llm_func: Optional[Callable[..., Any]] = None,
         working_dir: Optional[str] = None,
+        kg_entity_resolver: Optional[Callable[[str], bool]] = None,
     ):
         self.embedding_func = embedding_func
         self.llm_func = llm_func
         self.working_dir = working_dir or "neuro_memory_data"
+        self.kg_entity_resolver = kg_entity_resolver
         self.graph = MemoryGraphStore()
         self.episode_store = InMemoryEpisodeStore(
             persist_path=str(Path(self.working_dir) / "episodes.json")
@@ -73,6 +75,7 @@ class MemoryEngine:
         source_type: str = "generic",
         session_id: Optional[str] = None,
         existing_insight: Optional[Any] = None,
+        timestamp: Optional[float] = None,
     ) -> Optional[Episode]:
         """
         写入一次新经历并做即时联想：建 Episode、算 content/graph embedding、
@@ -100,7 +103,7 @@ class MemoryEngine:
                     if s and t:
                         relation_triples.append((s, rel, t))
 
-        ts = time.time()
+        ts = timestamp if timestamp is not None else time.time()
         episode_id = _make_episode_id(summary, ts, source_type)
         ep = Episode(
             episode_id=episode_id,
@@ -147,10 +150,14 @@ class MemoryEngine:
                 self.graph.add_edge(eid, episode_id, EdgeType.EPISODE_SIMILARITY, weight=sim)
 
         # 与 entity/chunk 建边（若调用方传入了 entity_ids / raw_text_refs）
+        # 若 entity 在主 KG 存在，建 MENTIONS 桥接边（跨图互联）
+        resolve = self.kg_entity_resolver
         for eid in entity_ids[:20]:
             if eid:
                 self.graph.add_node(eid, "entity", {})
                 self.graph.add_edge(episode_id, eid, EdgeType.CONCEPT_LINK, weight=0.7)
+                if resolve and resolve(eid):
+                    self.graph.add_edge(episode_id, eid, EdgeType.MENTIONS, weight=0.8)
         for ref in raw_text_refs[:20]:
             if ref:
                 self.graph.add_node(ref, "chunk", {})
@@ -171,7 +178,7 @@ class MemoryEngine:
         """执行一次记忆巩固。"""
         episodes = self.episode_store.all_episodes()
         if not episodes:
-            return {"edges_added": 0, "pairs_processed": 0}
+            return {"edges_added": 0, "pairs_processed": 0, "edges_strengthened": 0}
 
         async def content_sim(a: str, b: str) -> float:
             emb_a = await self._embed([a])
@@ -265,6 +272,44 @@ class MemoryEngine:
             results = results[:top_k]
 
         return results
+
+    def record_co_activation(
+        self,
+        episode_ids: List[str],
+        entity_ids: List[str],
+        *,
+        weight_delta: float = 0.15,
+    ) -> int:
+        """为共激活的 episode–entity 对建边或加强，支持 CO_ACTIVATED 与 MENTIONS。"""
+        if not episode_ids or not entity_ids:
+            return 0
+        resolve = self.kg_entity_resolver
+        count = 0
+        for ep_id in episode_ids[:20]:
+            if not self.graph.has_node(ep_id):
+                continue
+            for ent_id in entity_ids[:30]:
+                if not ent_id:
+                    continue
+                self.graph.add_node(ent_id, "entity", {})
+                self.graph.add_edge(ep_id, ent_id, EdgeType.CO_ACTIVATED, weight=weight_delta)
+                count += 1
+                if resolve and resolve(ent_id):
+                    self.graph.add_edge(ep_id, ent_id, EdgeType.MENTIONS, weight=weight_delta)
+                    count += 1
+        return count
+
+    def decay_and_prune(
+        self,
+        *,
+        decay_factor: float = 0.9,
+        max_age_days: float = 30.0,
+        min_weight: float = 0.05,
+    ) -> Dict[str, int]:
+        """边权衰减 + 低权剪枝。返回 {"decayed": n, "pruned": m}。"""
+        decayed = self.graph.decay_edges(decay_factor=decay_factor, max_age_days=max_age_days)
+        pruned = self.graph.prune_edges(min_weight=min_weight)
+        return {"decayed": decayed, "pruned": pruned}
 
     def load(self) -> None:
         """从 working_dir 加载已持久化的 episode 列表与图。"""

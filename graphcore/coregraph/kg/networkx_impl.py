@@ -34,7 +34,10 @@ class NetworkXStorage(BaseGraphStorage):
         logger.info(
             f"[{workspace}] Writing graph with {graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges"
         )
-        nx.write_graphml(graph, file_name)
+        try:
+            nx.write_graphml(graph, file_name, named_key_ids=True)
+        except TypeError:
+            nx.write_graphml(graph, file_name)
 
     def __post_init__(self):
         working_dir = self.global_config["working_dir"]
@@ -500,11 +503,14 @@ class NetworkXStorage(BaseGraphStorage):
             all_edges.append(edge_data_with_nodes)
         return all_edges
 
-    async def index_done_callback(self) -> bool:
-        """Save data to disk"""
+    async def index_done_callback(self, force_save: bool = False) -> bool:
+        """Save data to disk.
+        When force_save=True, always persist current in-memory graph (e.g. after LLM expansion)
+        and skip reload-from-disk, which would otherwise discard newly added nodes.
+        """
         async with self._storage_lock:
-            # Check if storage was updated by another process
-            if self.storage_updated.value:
+            # When force_save (e.g. expand just added nodes), do NOT reload - we'd lose them
+            if not force_save and self.storage_updated.value:
                 # Storage was updated by another process, reload data instead of saving
                 logger.info(
                     f"[{self.workspace}] Graph was updated by another process, reloading..."

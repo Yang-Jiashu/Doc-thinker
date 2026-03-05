@@ -1,3 +1,0 @@
-This is a test document for RAG ingestion.
-It contains some text to be indexed by the system.
-The system should be able to process this file and make it searchable.

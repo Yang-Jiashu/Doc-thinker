@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Body
 
@@ -69,6 +69,47 @@ async def update_config(payload: Dict[str, Any] = Body(...)):
         return {"success": False, "message": f"Error updating configuration: {str(e)}"}
 
 
+@router.get("/knowledge-graph/stats-all")
+async def get_all_graph_stats():
+    """
+    返回全局及各会话的图谱节点数，用于诊断「只有 9 节点」问题。
+    若文档在会话中上传，节点在对应 session 的图谱中；全局与各 session 分离存储。
+    """
+    if not state.rag_instance or not state.session_manager:
+        raise HTTPException(status_code=500, detail="Service not initialized")
+    result: Dict[str, Any] = {"global": {"nodes": 0, "edges": 0}, "sessions": {}}
+    try:
+        G = state.rag_instance.graphcore.chunk_entity_relation_graph
+        await state.rag_instance._ensure_graphcore_initialized()
+        nd = await G.get_all_nodes()
+        ed = await G.get_all_edges()
+        result["global"]["nodes"] = len(nd)
+        result["global"]["edges"] = len(ed)
+        if hasattr(G, "_graphml_xml_file"):
+            result["global"]["path"] = str(getattr(G, "_graphml_xml_file", ""))
+    except Exception as e:
+        result["global"]["error"] = str(e)
+    for s in state.session_manager.list_sessions():
+        sid = s.get("id")
+        if not sid:
+            continue
+        try:
+            config = state.rag_instance.config
+            session_rag = state.session_manager.get_session_rag(sid, config)
+            await session_rag._ensure_graphcore_initialized()
+            SG = session_rag.graphcore.chunk_entity_relation_graph
+            snd = await SG.get_all_nodes()
+            sed = await SG.get_all_edges()
+            result["sessions"][sid] = {
+                "nodes": len(snd),
+                "edges": len(sed),
+                "title": s.get("title", "未知"),
+            }
+        except Exception as e:
+            result["sessions"][sid] = {"error": str(e), "title": s.get("title", "未知")}
+    return result
+
+
 @router.get("/knowledge-graph/data")
 async def get_graph_data(session_id: Optional[str] = None):
     if not state.rag_instance or not state.session_manager:
@@ -95,19 +136,31 @@ async def get_graph_data(session_id: Optional[str] = None):
 
         nodes = []
         edges = []
-        max_nodes = 200
-
-        for i, node_info in enumerate(nodes_data):
-            if i >= max_nodes:
-                break
-            node_id = node_info["id"]
+        max_nodes = 1000  # 提高上限以支持 500+ 节点图谱，之前 250 会截断
+        # 优先保留扩展节点（黄色）：is_expanded=1 或 source_id=llm_expansion
+        def _is_expanded(n: dict) -> bool:
+            ie = n.get("is_expanded")
+            if ie is not None and ie != "":
+                if ie == 1 or ie == "1" or str(ie).strip() == "1":
+                    return True
+            sid = str(n.get("source_id") or "").strip()
+            return sid == "llm_expansion"
+        expanded_nodes = [n for n in nodes_data if _is_expanded(n)]
+        other_nodes = [n for n in nodes_data if not _is_expanded(n)]
+        nodes_to_use = expanded_nodes + other_nodes[: max(0, max_nodes - len(expanded_nodes))]
+        for node_info in nodes_to_use:
+            node_id = node_info.get("id") or node_info.get("entity_id") or ""
+            if not node_id:
+                continue
+            is_expanded = _is_expanded(node_info)
             nodes.append(
                 {
                     "id": node_id,
                     "label": node_id,
                     "type": node_info.get("entity_type", "unknown"),
                     "size": 20,
-                    "color": "#3498db",
+                    "color": "#FFD700" if is_expanded else "#3498db",
+                    "is_expanded": is_expanded,
                 }
             )
 
@@ -127,17 +180,146 @@ async def get_graph_data(session_id: Optional[str] = None):
                     }
                 )
 
+        expanded_in_response = sum(1 for x in nodes if x.get("is_expanded"))
+        meta = {
+            "total_nodes": len(nodes_data),
+            "total_edges": len(edges_data),
+            "session_id": session_id,
+            "nodes_returned": len(nodes),
+            "expanded_in_response": expanded_in_response,
+        }
+        if hasattr(G, "_graphml_xml_file"):
+            meta["graph_file"] = str(getattr(G, "_graphml_xml_file", ""))
         return {
             "nodes": nodes,
             "edges": edges,
-            "metadata": {
-                "total_nodes": len(nodes_data),
-                "total_edges": len(edges_data),
-                "session_id": session_id,
-            },
+            "metadata": meta,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to extract graph data: {str(e)}")
+
+
+@router.post("/knowledge-graph/expand")
+async def expand_knowledge_graph(payload: Dict[str, Any] = Body(default={})):
+    """
+    知识图谱 LLM 扩展：多角度联想生成新节点。
+    payload: { session_id?, angle_indices?, apply? }
+    - angle_indices: 使用的角度索引 [0..6]，默认 [0,1,5]（上位、下位、应用场景）
+    - apply: 是否将新节点写入图谱，否则仅返回建议
+    """
+    session_id = payload.get("session_id")
+    angle_indices = payload.get("angle_indices")
+    apply = payload.get("apply", True)
+    if not state.rag_instance:
+        raise HTTPException(status_code=500, detail="Service not initialized")
+    target_rag = state.rag_instance
+    if session_id:
+        try:
+            config = state.rag_instance.config
+            graphcore_kwargs = getattr(state.rag_instance, "graphcore_kwargs", {})
+            session_rag = state.session_manager.get_session_rag(
+                session_id, config, graphcore_kwargs
+            )
+            session_rag.llm_model_func = state.rag_instance.llm_model_func
+            session_rag.embedding_func = state.rag_instance.embedding_func
+            await session_rag._ensure_graphcore_initialized()
+            target_rag = session_rag
+        except Exception as e:
+            raise HTTPException(status_code=404, detail=f"Session not found: {e}")
+    try:
+        if not target_rag.graphcore:
+            await target_rag._ensure_graphcore_initialized()
+        G = target_rag.graphcore.chunk_entity_relation_graph
+        nodes_data = await G.get_all_nodes()
+        edges_data = await G.get_all_edges()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get graph: {e}")
+
+    llm_fn = getattr(target_rag, "llm_model_func", None)
+    if not llm_fn:
+        raise HTTPException(status_code=500, detail="LLM not available")
+    embed_fn = getattr(target_rag, "embedding_func", None)
+    if embed_fn and hasattr(embed_fn, "func"):
+        embed_fn = embed_fn.func
+
+    try:
+        from docthinker.kg_expansion import KGExpander
+
+        expander = KGExpander(
+            llm_func=llm_fn,
+            embedding_func=embed_fn,
+            min_per_angle=15,
+            semantic_dedup_threshold=1.0,
+        )
+        result = await expander.expand(
+            nodes_data,
+            edges_data,
+            angle_indices=angle_indices if angle_indices is not None else [0, 1, 5],
+            apply_to_graph=G if apply else None,
+            session_id=session_id,
+        )
+        return {"success": True, **result}
+    except Exception as e:
+        err = str(e)
+        raise HTTPException(status_code=500, detail=err or "扩展执行失败")
+
+
+@router.get("/knowledge-graph/debug-expanded")
+async def debug_expanded_nodes(session_id: Optional[str] = None):
+    """
+    调试接口：验证 LLM 扩展节点是否真正写入图谱。
+    返回 source_id=llm_expansion 的节点数量及部分示例，用于排查扩展后不显示黄色节点的问题。
+    """
+    if not state.rag_instance or not state.session_manager:
+        raise HTTPException(status_code=500, detail="Service not initialized")
+
+    target_rag = state.rag_instance
+    if session_id:
+        try:
+            config = state.rag_instance.config
+            graphcore_kwargs = getattr(state.rag_instance, "graphcore_kwargs", {})
+            session_rag = state.session_manager.get_session_rag(
+                session_id, config, graphcore_kwargs
+            )
+            session_rag.llm_model_func = state.rag_instance.llm_model_func
+            session_rag.embedding_func = state.rag_instance.embedding_func
+            await session_rag._ensure_graphcore_initialized()
+            target_rag = session_rag
+        except Exception as e:
+            raise HTTPException(status_code=404, detail=f"Session not found: {e}")
+
+    try:
+        if not target_rag.graphcore:
+            await target_rag._ensure_graphcore_initialized()
+        G = target_rag.graphcore.chunk_entity_relation_graph
+        nodes_data = await G.get_all_nodes()
+
+        def _is_expanded_node(n: dict) -> bool:
+            ie = n.get("is_expanded")
+            if ie is not None and ie != "":
+                if ie == 1 or ie == "1" or str(ie).strip() == "1":
+                    return True
+            return str(n.get("source_id") or "").strip() == "llm_expansion"
+
+        expanded = [
+            {"id": n.get("id") or n.get("entity_id"), "is_expanded": n.get("is_expanded")}
+            for n in nodes_data
+            if _is_expanded_node(n)
+        ]
+        total = len(nodes_data)
+        storage_info = {}
+        if hasattr(G, "_graphml_xml_file"):
+            storage_info["graph_file"] = getattr(G, "_graphml_xml_file", "N/A")
+
+        return {
+            "expanded_count": len(expanded),
+            "total_nodes": total,
+            "expanded_sample": expanded[:20],
+            "storage_info": storage_info,
+            "session_id": session_id,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/knowledge-graph/stats")
@@ -331,6 +513,38 @@ async def memory_consolidate(recent_n: int = 50, run_llm: bool = True):
         result = await state.memory_engine.consolidate(
             recent_n=recent_n,
             run_llm=run_llm,
+        )
+        # 巩固后执行神经可塑性：边权衰减与低权剪枝
+        try:
+            dp = state.memory_engine.decay_and_prune(
+                decay_factor=0.9,
+                max_age_days=30.0,
+                min_weight=0.05,
+            )
+            result["decayed"] = dp.get("decayed", 0)
+            result["pruned"] = dp.get("pruned", 0)
+        except Exception:
+            pass
+        state.memory_engine.save()
+        return {"success": True, **result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/memory/decay-prune")
+async def memory_decay_prune(
+    decay_factor: float = 0.9,
+    max_age_days: float = 30.0,
+    min_weight: float = 0.05,
+):
+    """单独触发记忆图边权衰减与低权剪枝（神经可塑性）。"""
+    if not getattr(state, "memory_engine", None) or state.memory_engine is None:
+        raise HTTPException(status_code=501, detail="Memory engine not initialized")
+    try:
+        result = state.memory_engine.decay_and_prune(
+            decay_factor=decay_factor,
+            max_age_days=max_age_days,
+            min_weight=min_weight,
         )
         state.memory_engine.save()
         return {"success": True, **result}

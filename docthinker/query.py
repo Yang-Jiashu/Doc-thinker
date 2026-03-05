@@ -1211,6 +1211,7 @@ Please provide a comprehensive answer that integrates information from all relev
             return initial_answer
         
         # Build enhancement prompt
+        knowledge_text = "\n\n".join(relevant_content[:5])
         prompt = f"""
         You are a helpful assistant that enhances answers using additional knowledge.
         Please use the following information to enhance the initial answer to the user's question.
@@ -1220,7 +1221,7 @@ Please provide a comprehensive answer that integrates information from all relev
         Initial Answer: {initial_answer}
         
         Additional Knowledge:
-        {"\n\n".join(relevant_content[:5])}  # Limit to first 5 results to avoid prompt overflow
+        {knowledge_text}
         
         Please provide an enhanced answer that integrates the initial answer with the additional knowledge. Make sure the answer is comprehensive and accurate.
         """
@@ -1355,6 +1356,7 @@ Please provide a comprehensive answer that integrates information from all relev
             return "No relevant information found in the knowledge base."
         
         # Build prompt for answer generation
+        kb_info_text = "\n\n".join(result_content)
         prompt = f"""
         Please answer the user's question using the following information from the knowledge base.
         Make sure your answer is accurate, comprehensive, and directly addresses the question.
@@ -1362,7 +1364,7 @@ Please provide a comprehensive answer that integrates information from all relev
         User Question: {query}
         
         Knowledge Base Information:
-        {"\n\n".join(result_content)}
+        {kb_info_text}
         
         Answer:
         """

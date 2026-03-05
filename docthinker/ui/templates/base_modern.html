@@ -171,7 +171,7 @@
                         智能对话
                     </a>
                     
-                    <a href="/kg-viz" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {% if request.endpoint == 'kg_viz.kg_viz_page' %}active{% endif %}">
+                    <a href="/knowledge-graph" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {% if request.endpoint in ['knowledge_graph_page', 'kg_viz_page'] %}active{% endif %}">
                         <i class="fa-solid fa-circle-nodes w-5 text-center"></i>
                         知识图谱
                     </a>

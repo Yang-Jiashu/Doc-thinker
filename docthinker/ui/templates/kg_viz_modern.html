@@ -11,16 +11,22 @@
     .level-3 { fill: #ec4899; }
     .level-2 { fill: #3b82f6; }
     .level-1 { fill: #10b981; }
+    .level-expanded { fill: #fbbf24; }
 </style>
 {% endblock %}
 
 {% block content %}
+<script>window.KG_API_PREFIX = '{{ (api_config.api_prefix if api_config else none)|default("/api/v1") }}';</script>
 <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
     <div>
         <h2 class="text-lg font-semibold text-slate-800">知识图谱</h2>
-        <p class="text-sm text-slate-500">可视化展示知识关联与层次结构</p>
+        <p class="text-sm text-slate-500">可视化展示知识关联与层次结构
+            <span id="data-source-hint" class="text-amber-600 font-medium"></span>
+        </p>
     </div>
-    <div class="flex gap-2">
+    <div class="flex gap-2 items-center">
+        <a id="switch-global-btn" href="/knowledge-graph" class="px-3 py-2 rounded-lg text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 hidden" title="扩展节点在全局图谱中">切到全局图谱</a>
+        <button id="expand-btn" onclick="expandGraph()" class="px-4 py-2 rounded-lg text-sm font-medium bg-amber-400 hover:bg-amber-500 text-slate-800" title="LLM 多角度联想扩展节点">扩展</button>
         <button onclick="resetZoom()" class="btn-secondary px-4 py-2 rounded-lg text-sm">重置视图</button>
         <button onclick="refreshGraph()" class="btn-primary px-4 py-2 rounded-lg text-sm">刷新</button>
     </div>
@@ -56,7 +62,18 @@
                         <span class="w-2 h-2 rounded-full bg-green-500"></span>
                         <span class="text-slate-600">Instance</span>
                     </label>
+                    <label class="flex items-center gap-2 text-sm cursor-pointer mt-2 pt-2 border-t border-slate-200">
+                        <input type="checkbox" checked onchange="toggleExpanded()" class="rounded" id="chk-expanded">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#FFD700"></span>
+                        <span class="text-slate-600">扩展节点</span>
+                    </label>
                 </div>
+            </div>
+            <div class="card p-3">
+                <p class="text-xs font-semibold text-slate-500 mb-2">调试</p>
+                <button onclick="checkExpandedNodes()" class="px-3 py-1.5 rounded text-xs bg-slate-100 hover:bg-slate-200 text-slate-600">检查扩展节点 (API)</button>
+                <p id="debug-result" class="text-xs text-slate-500 mt-2 break-all"></p>
+                <p class="text-xs text-slate-400 mt-1">API 返回 Not Found 时，需启动 DocThinker 后端；或直接在 doc-thinker 目录运行: <code class="text-xs">python scripts/check_graph_storage.py</code></p>
             </div>
         </div>
     </div>
@@ -91,7 +108,7 @@ let svg, g, simulation, node, link, label;
 let currentTransform = d3.zoomIdentity;
 let graphData = { nodes: [], links: [] };
 let selectedNode = null;
-let visibleLevels = { 1: true, 2: true, 3: true };
+let visibleLevels = { 1: true, 2: true, 3: true, expanded: true };
 
 window.onload = initGraph;
 
@@ -110,12 +127,88 @@ function initGraph() {
     svg.call(zoom);
     
     g = svg.append('g');
-    
-    useDemoData();
+    loadRealData();
     
     window.addEventListener('resize', () => {
         svg.attr('width', container.clientWidth).attr('height', container.clientHeight);
     });
+}
+
+function getKgApiPrefix() {
+    return (window.KG_API_PREFIX || '/api/v1').replace(/\/$/, '');
+}
+
+async function loadRealData() {
+    try {
+        const url = getKgApiPrefix() + '/knowledge-graph/data';
+        console.log('[KG] Fetching:', url);
+        const resp = await fetch(url);
+        const text = await resp.text();
+        console.log('[KG] Status:', resp.status, 'Length:', text.length, 'CT:', resp.headers.get('content-type'));
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (parseErr) {
+            if (text && (text.trim().startsWith('<') || text.toLowerCase().includes('<!doctype'))) {
+                throw new Error('服务返回了 HTML 而非 JSON (HTTP ' + resp.status + ')。请确认 Flask UI (5000) 和 FastAPI 后端 (8000) 均已启动。');
+            }
+            throw new Error('JSON 解析失败: ' + parseErr.message + ' (HTTP ' + resp.status + ', 前100字符: ' + text.slice(0, 100) + ')');
+        }
+        const meta = data.metadata || {};
+        if (meta.error || meta.hint) {
+            document.getElementById('data-source-hint').textContent = ' (全局图谱) | ' + (meta.hint || meta.error);
+            graphData = { nodes: [], links: [] };
+            renderGraph();
+            return;
+        }
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const expandedCount = (data.nodes || []).filter(n => n.is_expanded === true || n.is_expanded === 1 || n.is_expanded === '1' || n.color === '#FFD700').length;
+        const backendExpanded = meta.expanded_in_response != null ? meta.expanded_in_response : expandedCount;
+        const totalNodes = meta.total_nodes ?? (data.nodes?.length || 0);
+        let hint = ' (全局图谱) | ' + totalNodes + ' 节点';
+        if (meta.nodes_returned && meta.nodes_returned !== totalNodes) hint += ' (展示' + meta.nodes_returned + ')';
+        hint += ', ' + expandedCount + ' 扩展';
+        if (meta.graph_file) hint += ' [' + (meta.graph_file.split(/[/\\]/).pop() || meta.graph_file) + ']';
+        if (backendExpanded !== expandedCount) hint += ' [后端:' + backendExpanded + ']';
+        document.getElementById('data-source-hint').textContent = hint;
+        document.getElementById('switch-global-btn').classList.add('hidden');
+        if (data.nodes && data.nodes.length > 0) {
+            const levelMap = { 'field': 3, 'domain': 3, 'concept': 2, 'method': 2, 'artifact': 1, 'data': 1, 'person': 1, 'event': 1, 'location': 1, 'organization': 1, 'content': 1, 'naturalobject': 1 };
+            graphData = {
+                nodes: data.nodes.map(n => ({
+                    id: n.id,
+                    name: n.label || n.id,
+                    level: levelMap[n.type] || 2,
+                    type: n.type,
+                    connections: [],
+                    is_expanded: !!(n.is_expanded || n.is_expanded === 1 || n.is_expanded === '1' || n.color === '#FFD700'),
+                    color: n.color
+                })),
+                links: (data.edges || []).map(e => ({
+                    source: e.source,
+                    target: e.target,
+                    label: e.label || ''
+                }))
+            };
+            const nodeIds = new Set(graphData.nodes.map(n => n.id));
+            graphData.nodes.forEach(n => {
+                n.connections = graphData.links
+                    .filter(l => l.source === n.id || l.target === n.id)
+                    .map(l => l.source === n.id ? l.target : l.source)
+                    .filter(id => nodeIds.has(id));
+            });
+            renderGraph();
+            return;
+        }
+        document.getElementById('data-source-hint').textContent = ' (全局图谱) | 暂无节点，请先上传文档或批处理入库';
+        graphData = { nodes: [], links: [] };
+        renderGraph();
+    } catch (e) {
+        console.warn('Failed to load real data:', e);
+        document.getElementById('data-source-hint').textContent = ' (全局图谱) | 加载失败: ' + (e.message || e) + '。请确认后端已启动 (port 8000)';
+        graphData = { nodes: [], links: [] };
+        renderGraph();
+    }
 }
 
 function useDemoData() {
@@ -147,7 +240,11 @@ function useDemoData() {
 function renderGraph() {
     g.selectAll('*').remove();
     
-    const visibleNodes = graphData.nodes.filter(n => visibleLevels[n.level]);
+    const isExpanded = n => !!(n.is_expanded || n.is_expanded === 1 || n.is_expanded === '1' || n.color === '#FFD700');
+    const visibleNodes = graphData.nodes.filter(n => {
+        if (isExpanded(n)) return !!visibleLevels.expanded;
+        return !!visibleLevels[n.level];
+    });
     const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
     const visibleLinks = graphData.links.filter(l => 
         visibleNodeIds.has(typeof l.source === 'object' ? l.source.id : l.source) && 
@@ -173,7 +270,10 @@ function renderGraph() {
     
     node.append('circle')
         .attr('r', d => 10 + d.level * 5)
-        .attr('class', d => `level-${d.level}`);
+        .attr('class', d => isExpanded(d) ? 'level-expanded' : `level-${d.level}`)
+        .attr('fill', d => isExpanded(d) ? '#FFD700' : null)
+        .attr('stroke', d => isExpanded(d) ? '#B8860B' : null)
+        .attr('stroke-width', d => isExpanded(d) ? 2 : 0);
     
     label = g.append('g').selectAll('text').data(visibleNodes)
         .enter().append('text').attr('class', 'node-label')
@@ -193,7 +293,8 @@ function selectNode(d) {
     selectedNode = d;
     document.getElementById('detail-panel').classList.remove('hidden');
     document.getElementById('detail-name').textContent = d.name;
-    document.getElementById('detail-level').textContent = ['Instance', 'Concept', 'Domain'][d.level - 1];
+    const isExp = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1' || d.color === '#FFD700');
+    document.getElementById('detail-level').textContent = isExp ? 'LLM 扩展' : ['Instance', 'Concept', 'Domain'][d.level - 1];
     document.getElementById('detail-connections').textContent = d.connections ? d.connections.length : 0;
 }
 
@@ -216,6 +317,11 @@ function toggleLevel(level) {
     renderGraph();
 }
 
+function toggleExpanded() {
+    visibleLevels.expanded = !visibleLevels.expanded;
+    renderGraph();
+}
+
 function searchNodes(query) {
     if (!query) {
         node.attr('opacity', 1);
@@ -232,7 +338,62 @@ function resetZoom() {
 }
 
 function refreshGraph() {
+    loadRealData();
     showToast('知识图谱已刷新', 'success');
+}
+
+async function checkExpandedNodes() {
+    const el = document.getElementById('debug-result');
+    el.textContent = '检查中...';
+    try {
+        const prefix = getKgApiPrefix();
+        const url = prefix + '/knowledge-graph/debug-expanded';
+        const resp = await fetch(url);
+        const data = await resp.json().catch(() => ({}));
+        if (data.expanded_count !== undefined) {
+            el.textContent = `总节点: ${data.total_nodes || 0}, 扩展节点: ${data.expanded_count}。${data.storage_info?.graph_file ? ' 文件: ' + data.storage_info.graph_file : ''}`;
+            if (data.expanded_count === 0 && (data.total_nodes || 0) > 0) {
+                el.textContent += ' (扩展节点未写入。可点击「扩展」生成)';
+            }
+        } else {
+            const err = data.detail || data.error || (resp.status ? 'HTTP ' + resp.status : '') || '请求失败';
+            let msg = err;
+            if (resp.status === 404) msg += '（知识图谱调试接口需 DocThinker 后端，非 NeuroAgent）';
+            if (resp.status === 0) msg += '。请确认后端已启动: python -m uvicorn docthinker.server.app:app --port 8000';
+            el.textContent = msg + '。可在 doc-thinker 目录运行: python scripts/check_graph_storage.py 直接检查图谱文件';
+        }
+    } catch (e) {
+        el.textContent = '错误: ' + e.message + '。可在 doc-thinker 目录运行: python scripts/check_graph_storage.py';
+    }
+}
+
+async function expandGraph() {
+    const btn = document.getElementById('expand-btn');
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.textContent = '扩展中...';
+    try {
+        const resp = await fetch(getKgApiPrefix() + '/knowledge-graph/expand', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apply: true, angle_indices: [0, 1, 5] })
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (data.success) {
+            const n = (data.added || []).length;
+            showToast('扩展完成！新增 ' + n + ' 个节点（黄色显示）', 'success');
+            loadRealData();
+        } else {
+            const msg = data.detail || data.error || (resp.status === 503 ? '后端未启动，请先运行: python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000' : '未知错误');
+            console.error('扩展失败', resp.status, data);
+            showToast('扩展失败: ' + msg, 'error');
+        }
+    } catch (err) {
+        console.error('扩展请求异常', err);
+        showToast('扩展请求失败: ' + err.message + '（请确认后端 8000 已启动）', 'error');
+    }
+    btn.disabled = false;
+    btn.textContent = '扩展';
 }
 
 function dragstarted(e, d) { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }

@@ -1,6 +1,10 @@
 import os
 from pydantic import BaseModel
 
+# 项目根目录（doc-thinker），确保 workdir 不随 CWD 变化
+_DOC_THINKER_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+_DEFAULT_WORKDIR = os.path.join(_DOC_THINKER_ROOT, "rag_storage_api")
+
 
 class AppSettings(BaseModel):
     llm_api_key: str
@@ -36,7 +40,7 @@ def load_settings() -> AppSettings:
         rerank_api_key=os.getenv("RERANK_API_KEY") or llm_api_key or "EMPTY",
         rerank_base_url=os.getenv("RERANK_HOST") or os.getenv("EMBEDDING_BINDING_HOST") or os.getenv("LLM_BINDING_HOST") or "https://api.bltcy.ai/v1",
         rerank_model=os.getenv("RERANK_MODEL") or "qwen3-reranker-8b",
-        workdir=os.getenv("RAG_WORKDIR") or "./rag_storage_api",
+        workdir=os.getenv("RAG_WORKDIR") or _DEFAULT_WORKDIR,
         timeout_seconds=int(os.getenv("TIMEOUT") or 3600),
     )
 

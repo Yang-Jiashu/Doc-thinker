@@ -140,12 +140,30 @@
   - retrieval_count, last_retrieved_at（用于显著性）。
 
 - **边类型**  
-  - SEMANTIC_SIMILARITY, SAME_DOCUMENT, CONCEPT_LINK, INFERRED_RELATION, EPISODE_SIMILARITY, ANALOGOUS_TO, SAME_THEME。
+  - SEMANTIC_SIMILARITY, SAME_DOCUMENT, CONCEPT_LINK, INFERRED_RELATION, EPISODE_SIMILARITY, ANALOGOUS_TO, SAME_THEME, CO_ACTIVATED, MENTIONS（桥接边：记忆图 episode 引用主 KG 实体）。
 
 - **存储**  
   - Episode 列表：KV（如 JSON 或 SQLite）；  
   - Episode 向量：episodes_vdb（content + 可选 graph）；  
-  - 联想图：节点 = episode_id | entity_id | chunk_id；边 = 上述类型 + weight。可用现有 KnowledgeGraph / chunk_entity_relation_graph 扩展，或单独一张 memory_graph。
+  - 联想图：节点 = episode_id | entity_id | chunk_id；边 = 上述类型 + weight + last_activated_at。可用现有 KnowledgeGraph / chunk_entity_relation_graph 扩展，或单独一张 memory_graph。
+
+---
+
+## 五、神经可塑性 (Neuroplasticity)
+
+**自主建连**  
+- 共激活建连：查询时 `retrieve_analogies` 命中的 episode 与 RAG/主 KG 命中的 entity 共同激活时，建 CO_ACTIVATED、MENTIONS 边。  
+- 桥接边：`add_observation` 时，若 episode 的 entity_ids 在主 KG 存在，建 MENTIONS 桥接边（跨图互联）。
+
+**自主断连**  
+- 边权衰减：`decay_edges(decay_factor, max_age_days)` 对超过 max_age_days 未激活的边做 `weight *= decay_factor`。  
+- 剪枝：`prune_edges(min_weight)` 删除 weight < min_weight 的边。
+
+**扩散时更新**  
+- `spreading_activation` 遍历边时调用 `record_edge_activation`，更新边的 `last_activated_at`。
+
+**触发时机**  
+- consolidate 之后自动调用 `decay_and_prune`；或单独调用 `POST /memory/decay-prune`。
 
 ---
 

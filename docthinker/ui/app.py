@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 whitecat Web UI
 
@@ -24,29 +24,27 @@ try:
     from docthinker.config import DocThinkerConfig
     from docthinker.api_config import api_config, api_routes
     from docthinker.knowledge_graph import KnowledgeGraph
-    
+
     # 模板目录与静态目录：固定为与本文件同目录
     _UI_DIR = os.path.abspath(os.path.dirname(__file__))
     template_dir = os.path.join(_UI_DIR, 'templates')
     static_dir = os.path.join(_UI_DIR, 'static')
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir, static_url_path='/static')
     app.jinja_loader = FileSystemLoader(template_dir)
-    
+
     # Load configuration
     config = DocThinkerConfig()
-    
+
     # Enable CORS if configured
     if api_config.enable_cors:
         CORS(app, origins=api_config.cors_origins)
-    
+
     # Configure app
     app.config['DEBUG'] = False
     app.config['SECRET_KEY'] = 'dev-secret-key'
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.jinja_env.auto_reload = True
-    
-    # 移除调试日志，避免暴露内部路径/实现细节
-    
+
     # Simple in-memory storage for demo purposes
     # In production, this would be replaced with actual DocThinker instance
     rag_instance = None
@@ -54,19 +52,19 @@ try:
 except ImportError as e:
     print(f"Warning: Failed to import full DocThinker configuration: {e}")
     print("Starting UI with minimal configuration...")
-    
+
     # Create a minimal configuration
     class MockConfig:
         def __init__(self):
             self.ui_host = '0.0.0.0'
             self.ui_port = 5000
-    
+
     class MockAPIConfig:
         def __init__(self):
             self.api_prefix = '/api/v1'
             self.enable_cors = True
             self.cors_origins = ['*']
-    
+
     class MockAPIRoutes:
         def __init__(self):
             self.kg_base = '/knowledge-graph'
@@ -77,41 +75,32 @@ except ImportError as e:
             self.viz_data = '/data'
             self.vc_base = '/version-control'
             self.vc_snapshots = '/snapshots'
-    
+
     # 模板目录与静态目录：固定为与本文件同目录
     _UI_DIR = os.path.abspath(os.path.dirname(__file__))
     template_dir = os.path.join(_UI_DIR, 'templates')
     static_dir = os.path.join(_UI_DIR, 'static')
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir, static_url_path='/static')
     app.jinja_loader = FileSystemLoader(template_dir)
-    # 移除调试日志，避免暴露内部路径/实现细节
-    
+
     # Minimal configuration
     config = MockConfig()
     api_config = MockAPIConfig()
     api_routes = MockAPIRoutes()
-    
+
     # Enable CORS
     CORS(app, origins=['*'])
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.jinja_env.auto_reload = True
-    
+
     # Configure app
     app.config['DEBUG'] = True
     app.config['SECRET_KEY'] = 'dev-secret-key'
-    
+
     rag_instance = None
     knowledge_graph = None
 
-# 注册知识图谱可视化蓝图
-try:
-    from docthinker.ui.routers.kg_visualization import kg_viz_bp
-    app.register_blueprint(kg_viz_bp)
-    print("[whitecat] 知识图谱可视化路由已注册: /kg-viz")
-except ImportError as e:
-    print(f"[whitecat] 知识图谱可视化路由注册失败: {e}")
-
-# 开发时禁止缓存页面，确保模板修改后刷新即生效
+# 寮€鍙戞椂绂佹缂撳瓨椤甸潰锛岀‘淇濇ā鏉夸慨鏀瑰悗鍒锋柊鍗崇敓鏁?
 @app.after_request
 def _no_cache_html(response):
     if response.content_type and "text/html" in response.content_type:
@@ -142,13 +131,13 @@ aside img[alt="DocThinker"] {
             pass
     return response
 
-# Logo: 从项目根目录直接提供，确保左上角能显示（app.py 在 docthinker/ui/，上两级为项目根）
+# Logo: 浠庨」鐩牴鐩綍鐩存帴鎻愪緵锛岀‘淇濆乏涓婅鑳芥樉绀猴紙app.py 鍦?docthinker/ui/锛屼笂涓ょ骇涓洪」鐩牴锛?
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _LOGO_PATH = _PROJECT_ROOT / "logo.png"
 
 @app.route('/logo.png')
 def serve_logo():
-    """从项目根 logo.png 提供 logo，避免 static 路径或缓存问题"""
+    """Serve logo.png from project root as the primary logo source."""
     if _LOGO_PATH.exists():
         return send_file(_LOGO_PATH, mimetype='image/png', max_age=3600)
     return send_file(Path(__file__).resolve().parent / 'static' / 'logo.png', mimetype='image/png', max_age=3600)
@@ -177,29 +166,10 @@ def knowledge_graph_page():
     """Knowledge graph visualization page"""
     return render_template('kg_viz_modern.html', config=config, api_config=api_config)
 
-# Entity management page
-@app.route('/entities')
-def entities_page():
-    """Entity management page"""
-    return render_template('entities.html', config=config, api_config=api_config)
-
-# Relationship management page
-@app.route('/relationships')
-def relationships_page():
-    """Relationship management page"""
-    return render_template('relationships.html', config=config, api_config=api_config)
-
-# Version control page
-@app.route('/version-control')
-def version_control_page():
-    """Version control page"""
-    return render_template('version_control.html', config=config, api_config=api_config)
-
-# Reasoning rules page
-@app.route('/reasoning-rules')
-def reasoning_rules_page():
-    """Reasoning rules page"""
-    return render_template('reasoning_rules.html', config=config, api_config=api_config)
+@app.route('/kg-viz')
+def kg_viz_page():
+    """Legacy alias route for the knowledge graph page."""
+    return redirect(url_for('knowledge_graph_page'))
 
 # Upload page - Modern UI
 @app.route('/upload')
@@ -210,20 +180,32 @@ def upload_page():
 # File upload API endpoint - Connects to backend
 @app.route(f'{api_config.api_prefix}/upload', methods=['POST'])
 def upload_files():
-    """API endpoint for file uploads - connects to FastAPI backend"""
+    """API endpoint for file uploads - proxies to FastAPI (supports chat multi-file with key 'files')"""
     import requests
     import time
     
+    # 鑱婂ぉ椤典娇鐢?formData.append('files', file)锛屽涓枃浠剁敤鍚屼竴 key
+    files_list = request.files.getlist('files')
+    if files_list and any(f and f.filename for f in files_list):
+        try:
+            backend_url = "http://127.0.0.1:8000/api/v1/ingest"
+            files_to_send = [
+                ('files', (f.filename, f.stream.read(), f.content_type or 'application/octet-stream'))
+                for f in files_list if f and f.filename
+            ]
+            data = {k: request.form.get(k) for k in ['session_id', 'query', 'mode'] if request.form.get(k)}
+            response = requests.post(backend_url, files=files_to_send, data=data, timeout=300)
+            ct = response.headers.get('content-type', '')
+            return jsonify(response.json() if 'application/json' in ct else {'status': response.text}), response.status_code
+        except requests.exceptions.ConnectionError:
+            return jsonify({'success': False, 'message': '鏃犳硶杩炴帴鍚庣锛岃鍏堝惎鍔? python -m uvicorn docthinker.server.app:app --port 8000'}), 503
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)}), 500
+    
     try:
-        # Check if file was uploaded
         if 'file' not in request.files:
-            return jsonify({
-                'success': False,
-                'message': 'No file uploaded'
-            }), 400
-        
+            return jsonify({'success': False, 'message': 'No file uploaded'}), 400
         file = request.files['file']
-        
         if file.filename == '':
             return jsonify({
                 'success': False,
@@ -334,6 +316,109 @@ def session_files_proxy(session_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route(f'{api_config.api_prefix}/knowledge-graph/data', methods=['GET'])
+def kg_data_proxy():
+    import requests as req_lib
+    session_id = request.args.get('session_id', '')
+    backend_url = f"http://127.0.0.1:8000{api_config.api_prefix}/knowledge-graph/data"
+    if session_id:
+        backend_url += f"?session_id={session_id}"
+    try:
+        resp = req_lib.get(backend_url, timeout=30)
+        if resp.status_code == 404:
+            return jsonify({
+                'nodes': [],
+                'edges': [],
+                'metadata': {'error': '鍚庣 404', 'hint': '璇峰厛鍚姩 DocThinker 鍚庣: cd doc-thinker && python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000'}
+            }), 200
+        try:
+            data = resp.json()
+        except Exception:
+            data = {'nodes': [], 'edges': [], 'metadata': {'error': f'鍚庣杩斿洖闈?JSON (HTTP {resp.status_code})', 'raw': resp.text[:200] if resp.text else ''}}
+        return jsonify(data), 200
+    except req_lib.exceptions.ConnectionError:
+        return jsonify({
+            'nodes': [],
+            'edges': [],
+            'metadata': {'error': '鏃犳硶杩炴帴鍚庣 (port 8000)', 'hint': '璇峰厛鍚姩: cd doc-thinker && python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000'}
+        }), 200
+    except Exception as e:
+        return jsonify({'nodes': [], 'edges': [], 'metadata': {'error': str(e)}}), 200
+
+@app.route(f'{api_config.api_prefix}/knowledge-graph/expand', methods=['POST'])
+def kg_expand_proxy():
+    import requests
+    data = request.get_json() or {}
+    session_id = data.get('session_id')
+    backend_url = f"http://127.0.0.1:8000{api_config.api_prefix}/knowledge-graph/expand"
+    try:
+        resp = requests.post(backend_url, json={
+            'session_id': session_id,
+            'angle_indices': data.get('angle_indices'),
+            'apply': data.get('apply', True),
+        }, timeout=120)
+        body = resp.json() if resp.content and 'application/json' in resp.headers.get('content-type', '') else {}
+        if resp.status_code == 404:
+            body = {
+                'success': False,
+                'error': '鎵╁睍鎺ュ彛涓嶅瓨鍦?(404)銆傝鐢ㄤ互涓嬪懡浠ら噸鍚悗绔? python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000',
+                'detail': body.get('detail', 'Not Found'),
+            }
+        elif resp.status_code >= 400 and 'detail' not in body and 'error' not in body:
+            body['error'] = (resp.text[:200] if resp.text else None) or f'HTTP {resp.status_code}'
+        return jsonify(body), resp.status_code if resp.status_code != 404 else 200
+    except requests.exceptions.ConnectionError:
+        return jsonify({
+            'success': False,
+            'error': '鏃犳硶杩炴帴鍚庣 (127.0.0.1:8000)銆傝鍏堝惎鍔? python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000'
+        }), 503
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route(f'{api_config.api_prefix}/knowledge-graph/debug-expanded', methods=['GET'])
+def kg_debug_expanded_proxy():
+    import requests
+    session_id = request.args.get('session_id', '')
+    backend_url = f"http://127.0.0.1:8000{api_config.api_prefix}/knowledge-graph/debug-expanded"
+    if session_id:
+        backend_url += f"?session_id={session_id}"
+    try:
+        resp = requests.get(backend_url, timeout=30)
+        return jsonify(resp.json()), resp.status_code
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route(f'{api_config.api_prefix}/knowledge-graph/stats', methods=['GET'])
+def kg_stats_proxy():
+    import requests
+    backend_url = f"http://127.0.0.1:8000{api_config.api_prefix}/knowledge-graph/stats"
+    try:
+        resp = requests.get(backend_url, timeout=30)
+        return jsonify(resp.json()), resp.status_code
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route(f'{api_config.api_prefix}/knowledge-graph/stats-all', methods=['GET'])
+def kg_stats_all_proxy():
+    """Diagnostic endpoint: aggregate graph stats for global and sessions."""
+    import requests
+    backend_url = f"http://127.0.0.1:8000{api_config.api_prefix}/knowledge-graph/stats-all"
+    try:
+        resp = requests.get(backend_url, timeout=30)
+        return jsonify(resp.json()), resp.status_code
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route(f'{api_config.api_prefix}/graph/memory/graph-data', methods=['GET'])
+def memory_graph_proxy():
+    import requests
+    backend_url = f"http://127.0.0.1:8000{api_config.api_prefix}/memory/graph-data"
+    try:
+        resp = requests.get(backend_url, timeout=30)
+        return jsonify(resp.json()), resp.status_code
+    except Exception as e:
+        return jsonify({'nodes': [], 'edges': [], 'error': str(e)}), 500
+
 # Query endpoint - Connect to backend
 @app.route(f'{api_config.api_prefix}/query/text', methods=['POST'])
 def text_query():
@@ -358,26 +443,26 @@ def text_query():
             result = response.json()
             return jsonify({
                 'success': True,
-                'response': result.get('response', result.get('answer', '无回答')),
+                'response': result.get('response', result.get('answer', 'No response')),
                 'sources': result.get('sources', []),
                 'reasoning': result.get('reasoning', '')
             })
         else:
             return jsonify({
                 'success': False,
-                'response': f'后端错误 (状态码: {response.status_code}): {response.text}'
+                'response': f'鍚庣閿欒 (鐘舵€佺爜: {response.status_code}): {response.text}'
             }), 500
             
     except requests.exceptions.ConnectionError:
         return jsonify({
             'success': False,
-            'response': '无法连接到后端服务 (127.0.0.1:8000)。\n\n请确保后端已启动:\npython -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000'
+            'response': '鏃犳硶杩炴帴鍒板悗绔湇鍔?(127.0.0.1:8000)銆俓n\n璇风‘淇濆悗绔凡鍚姩:\npython -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000'
         }), 503
     except Exception as e:
         return jsonify({
             'success': False,
             'error': str(e),
-            'response': f'请求处理失败: {str(e)}'
+            'response': f'璇锋眰澶勭悊澶辫触: {str(e)}'
         }), 500
 
 
@@ -405,7 +490,7 @@ def update_config_proxy():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
-# Snapshots endpoint (若后端未实现则用 mock)
+# Snapshots endpoint (鑻ュ悗绔湭瀹炵幇鍒欑敤 mock)
 @app.route(f'{api_config.api_prefix}/version-control/snapshots')
 def mock_snapshots():
     """Mock snapshots endpoint"""
@@ -438,7 +523,7 @@ def mock_snapshots():
         ]
     })
 
-# 通用 API 代理：将未单独定义的 /api/v1/* 转发到 FastAPI 后端 (8000)，供知识图谱、记忆图等使用
+# 閫氱敤 API 浠ｇ悊锛氬皢鏈崟鐙畾涔夌殑 /api/v1/* 杞彂鍒?FastAPI 鍚庣 (8000)锛屼緵鐭ヨ瘑鍥捐氨銆佽蹇嗗浘绛変娇鐢?
 @app.route(f'{api_config.api_prefix}/<path:subpath>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 def api_proxy(subpath):
     import requests
@@ -454,9 +539,13 @@ def api_proxy(subpath):
             r = requests.delete(backend, params=request.args, timeout=30)
         else:
             r = requests.request(request.method, backend, params=request.args, timeout=30)
-        return jsonify(r.json() if r.headers.get('content-type', '').startswith('application/json') else {}), r.status_code
+        try:
+            body = r.json()
+        except Exception:
+            body = {'detail': f'鍚庣杩斿洖闈?JSON (HTTP {r.status_code})'}
+        return jsonify(body), r.status_code
     except requests.exceptions.ConnectionError:
-        return jsonify({'detail': '请先启动 FastAPI 后端: uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000'}), 503
+        return jsonify({'detail': '璇峰厛鍚姩 FastAPI 鍚庣: uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000'}), 503
     except Exception as e:
         return jsonify({'detail': str(e)}), 500
 
@@ -473,7 +562,8 @@ if __name__ == '__main__':
     print("  ========================================")
     print("  Templates:", templates_dir)
     print("  URL:      http://127.0.0.1:{}/query".format(config.ui_port))
-    print("  知识图谱: http://127.0.0.1:{}/knowledge-graph".format(config.ui_port))
+    print("  鐭ヨ瘑鍥捐氨: http://127.0.0.1:{}/knowledge-graph".format(config.ui_port))
     print("  ========================================")
     print()
     app.run(host=config.ui_host, port=config.ui_port, debug=False, use_reloader=False)
+

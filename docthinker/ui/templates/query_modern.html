@@ -195,6 +195,42 @@
 <script>
 let currentMode = 'standard';
 let currentFile = null;
+let currentSessionId = null;
+
+async function initSession() {
+    try {
+        const resp = await fetch('/api/v1/sessions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: '新会话' })
+        });
+        const data = await resp.json();
+        if (data.session && data.session.id) {
+            currentSessionId = data.session.id;
+            await loadHistory(currentSessionId);
+        }
+    } catch (e) {
+        console.warn('Session init failed:', e);
+    }
+}
+
+async function loadHistory(sessionId) {
+    if (!sessionId) return;
+    try {
+        const resp = await fetch(`/api/v1/sessions/${sessionId}/history`);
+        const data = await resp.json();
+        if (data.history && data.history.length > 0) {
+            const welcome = document.querySelector('#chat-messages .message-bot');
+            if (welcome) welcome.closest('.flex.gap-3')?.remove();
+            data.history.forEach(msg => {
+                const role = (msg.role === 'user' || msg.role === 'question') ? 'user' : 'bot';
+                addMessage(msg.content, role, false, msg.created_at || msg.timestamp);
+            });
+        }
+    } catch (e) {
+        console.warn('Load history failed:', e);
+    }
+}
 
 function setMode(mode) {
     currentMode = mode;
@@ -438,7 +474,7 @@ async function sendMessage() {
     if (currentFile) {
         displayMessage = `<span class="file-tag"><i class="fa-solid fa-file"></i> ${currentFile.name}</span> ${message}`;
     }
-    addMessage(displayMessage, 'user');
+    addMessage(displayMessage, 'user', false, new Date().toISOString());
     input.value = '';
     
     // Clear attached files
@@ -454,7 +490,8 @@ async function sendMessage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 question: message || '请分析上传的文件',
-                memory_mode: currentMode
+                memory_mode: currentMode,
+                session_id: currentSessionId
             })
         });
         
@@ -462,7 +499,7 @@ async function sendMessage() {
         document.getElementById('loading').classList.add('hidden');
         
         if (response.ok && data.success) {
-            addMessage(data.response, 'bot');
+            addMessage(data.response, 'bot', false, new Date().toISOString());
         } else {
             addMessage(data.response || '抱歉，处理请求时出现错误。', 'bot', true);
         }
@@ -472,16 +509,35 @@ async function sendMessage() {
     }
 }
 
-function addMessage(content, role, isError = false) {
+function formatTimestamp(ts) {
+    if (!ts) return '刚刚';
+    let d;
+    if (typeof ts === 'number') {
+        d = ts < 1e12 ? new Date(ts * 1000) : new Date(ts);
+    } else {
+        d = new Date(ts);
+    }
+    if (isNaN(d.getTime())) return '刚刚';
+    const now = new Date();
+    const diff = (now - d) / 1000;
+    if (diff < 60) return '刚刚';
+    if (diff < 3600) return Math.floor(diff / 60) + ' 分钟前';
+    if (diff < 86400) return Math.floor(diff / 3600) + ' 小时前';
+    return d.toLocaleDateString('zh-CN') + ' ' + d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+}
+
+function addMessage(content, role, isError = false, timestamp = null) {
     const container = document.getElementById('chat-messages');
     const div = document.createElement('div');
     div.className = 'flex gap-3 animate-fadeIn';
-    
+    const timeStr = formatTimestamp(timestamp);
+
     if (role === 'user') {
         div.innerHTML = `
             <div class="flex-1 flex justify-end">
                 <div class="message-user rounded-2xl rounded-tr-sm px-4 py-3 max-w-xl">
                     <p>${content}</p>
+                    <p class="text-xs text-blue-100 mt-1">${timeStr}</p>
                 </div>
             </div>
         `;
@@ -493,16 +549,17 @@ function addMessage(content, role, isError = false) {
             <div class="flex-1 max-w-2xl">
                 <div class="message-bot rounded-2xl rounded-tl-sm px-4 py-3 ${isError ? 'border-red-200 bg-red-50' : ''}">
                     <p class="${isError ? 'text-red-600' : 'text-slate-700'}">${content.replace(/\n/g, '<br>')}</p>
+                    <p class="text-xs text-slate-400 mt-1">${timeStr}</p>
                 </div>
             </div>
         `;
     }
-    
+
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
 }
 
-function clearChat() {
+async function clearChat() {
     document.getElementById('chat-messages').innerHTML = `
         <div class="flex gap-3">
             <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shrink-0">
@@ -510,7 +567,13 @@ function clearChat() {
             </div>
             <div class="flex-1 max-w-2xl">
                 <div class="message-bot rounded-2xl rounded-tl-sm px-4 py-3">
-                    <p class="text-slate-700">新对话已开始。有什么可以帮你的吗？</p>
+                    <p class="text-slate-700">你好！我是 NeuroAgent，你的 AI 知识助手。</p>
+                    <p class="text-slate-500 text-sm mt-2">我可以帮你：</p>
+                    <ul class="text-slate-600 text-sm mt-1 space-y-1">
+                        <li>• 理解和分析文档内容</li>
+                        <li>• 回答关于知识库的问题</li>
+                        <li>• 通过知识图谱关联信息</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -520,6 +583,9 @@ function clearChat() {
     document.getElementById('processing-list').innerHTML = '';
     document.getElementById('processing-list').classList.add('hidden');
     currentFile = null;
+    await initSession();
 }
+
+document.addEventListener('DOMContentLoaded', () => initSession());
 </script>
 {% endblock %}

@@ -39,22 +39,14 @@ class IngestionService:
         return session_rag
 
     async def ingest_text(self, text: str, session_id: Optional[str] = None) -> None:
+        """所有 ingest 均写入全局图谱，不考虑 session。"""
         await self._insert_text(self.rag_global, text)
-        if session_id:
-            session_rag = await self._get_session_rag(session_id)
-            await self._insert_text(session_rag, text)
 
     async def ingest_folder(self, folder_path: str, session_id: Optional[str] = None) -> None:
+        """所有 ingest 均写入全局图谱，不考虑 session。"""
         await self.rag_global.process_folder_complete(folder_path)
-        if session_id:
-            session_rag = await self._get_session_rag(session_id)
-            await session_rag.process_folder_complete(folder_path)
 
     async def ingest_files(self, file_paths: List[str], session_id: Optional[str] = None) -> None:
+        """所有 ingest 均写入全局图谱，不考虑 session。"""
         for file_path in file_paths:
             await self.rag_global.process_document_complete(file_path)
-        
-        if session_id:
-            session_rag = await self._get_session_rag(session_id)
-            for file_path in file_paths:
-                await session_rag.process_document_complete(file_path)

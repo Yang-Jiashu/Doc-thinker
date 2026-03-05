@@ -19,6 +19,7 @@ def spreading_activation(
     decay_per_hop: Optional[Dict[EdgeType, float]] = None,
     query_similarity_fn: Optional[Callable[[str], float]] = None,
     min_activation: float = 1e-4,
+    record_activation: bool = True,
 ) -> List[Tuple[str, float]]:
     """
     从种子节点出发做扩散激活，返回 (node_id, activation_score) 列表，按分数降序。
@@ -43,6 +44,8 @@ def spreading_activation(
             if score < min_activation:
                 continue
             for target_id, edge in graph.get_neighbors_with_edges(node_id):
+                if record_activation:
+                    graph.record_edge_activation(node_id, target_id, edge.edge_type)
                 decay_factor = decay.get(edge.edge_type) or get_decay_for_edge_type(edge.edge_type)
                 transfer = score * edge.weight * (decay_factor ** (hop + 1))
                 if query_similarity_fn:

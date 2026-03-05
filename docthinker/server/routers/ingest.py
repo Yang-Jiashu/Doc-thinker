@@ -12,6 +12,7 @@ from ..schemas import IngestRequest, SignalIngestRequest
 from ..state import state
 from docthinker.hypergraph.schemas import StructuredChunk
 from docthinker.hypergraph.utils import compute_mdhash_id
+from docthinker.utils import separate_content
 
 
 router = APIRouter()
@@ -799,9 +800,27 @@ async def ingest_files(
                     except Exception:
                         pass
 
-                # 4. Process complex files (PDF/Doc) via ingestion service (MinerU)
-                if complex_paths and state.ingestion_service:
-                    await state.ingestion_service.ingest_files([str(p) for p in complex_paths], session_id=sid)
+                # 4. Process complex files (PDF/Doc): parse → KG update → ingest
+                # PDF 需先解析出文本，经认知分析后更新知识图谱，再走常规 ingest（含 graphcore）
+                if complex_paths and state.rag_instance:
+                    for p in complex_paths:
+                        try:
+                            content_list, _ = await state.rag_instance.parse_document(str(p))
+                            text_content, _ = separate_content(content_list)
+                            if text_content.strip():
+                                processed_text, metadata = await _process_text_for_ingest(text_content, "file")
+                                await _insert_structured_kg(processed_text, metadata)
+                                await _update_local_knowledge_graph(processed_text, metadata)
+                                await _update_local_knowledge_base(
+                                    text_content,
+                                    metadata,
+                                    source_type="file",
+                                    session_id=sid,
+                                )
+                        except Exception as e:
+                            print(f"PDF KG update failed for {p}: {e}")
+                    if complex_paths and state.ingestion_service:
+                        await state.ingestion_service.ingest_files([str(p) for p in complex_paths], session_id=sid)
 
             except Exception as e:
                 print(f"Background processing error: {e}")

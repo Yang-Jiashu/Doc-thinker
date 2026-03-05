@@ -134,6 +134,20 @@ async def lifespan(app: FastAPI):
     state.session_manager = SessionManager(base_storage_path=state.settings.workdir)
 
     state.rag_instance = await _initialize_rag()
+    try:
+        await state.rag_instance._ensure_graphcore_initialized()
+    except Exception:
+        pass
+
+    # 预先加载主 KG 实体 ID，供记忆桥接边 (MENTIONS) 判断
+    try:
+        if state.rag_instance and state.rag_instance.graphcore:
+            G = state.rag_instance.graphcore.chunk_entity_relation_graph
+            nodes = await G.get_all_nodes()
+            state.kg_entity_ids = {n.get("id", "") for n in nodes if n.get("id")}
+    except Exception:
+        state.kg_entity_ids = set()
+
     state.cognitive_processor = CognitiveProcessor(
         llm_func=state.rag_instance.llm_model_func,
         embedding_func=state.rag_instance.embedding_func,
@@ -151,10 +165,14 @@ async def lifespan(app: FastAPI):
                 return out.tolist()
             return list(out) if out else []
 
+        def _kg_entity_resolver(entity_id: str) -> bool:
+            return entity_id in getattr(state, "kg_entity_ids", set())
+
         state.memory_engine = MemoryEngine(
             embedding_func=_neuro_embed,
             llm_func=state.rag_instance.llm_model_func,
             working_dir=state.settings.workdir,
+            kg_entity_resolver=_kg_entity_resolver,
         )
         state.memory_engine.load()
         print("INFO: Neuro memory engine (brain-like association) initialized.")
@@ -169,10 +187,6 @@ async def lifespan(app: FastAPI):
         get_llm_model_func=_get_llm_model_func,
         get_embedding_func=_get_embedding_func,
     )
-    try:
-        await state.rag_instance._ensure_graphcore_initialized()
-    except Exception:
-        pass
 
     # Initialize Auto-Thinking Orchestrator
     try:

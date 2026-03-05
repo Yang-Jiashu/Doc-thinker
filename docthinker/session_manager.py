@@ -3,7 +3,7 @@ import uuid
 import shutil
 import logging
 from pathlib import Path
-from typing import List, Dict, Optional, Any
+from typing import Any, Dict, List, Optional
 from datetime import datetime
 
 from docthinker.knowledge_base_storage import KnowledgeBaseStorage
@@ -127,18 +127,27 @@ class SessionManager:
             
         return True
 
-    def add_message(self, session_id: str, role: str, content: str) -> str:
-        """Add a chat message to session history"""
+    def add_message(
+        self,
+        session_id: str,
+        role: str,
+        content: str,
+        timestamp: Optional[datetime] = None,
+    ) -> str:
+        """Add a chat message to session history with timestamp."""
         name = f"session_{session_id}"
         entry_id = str(uuid.uuid4())
-        
+        ts = timestamp or datetime.now()
+
         entry = KnowledgeEntry(
             id=entry_id,
             content=content,
             entry_type="question" if role == "user" else "answer",
-            metadata={"role": role}
+            metadata={"role": role, "timestamp": ts.isoformat()},
+            created_at=ts,
+            updated_at=ts,
         )
-        
+
         self.kb_storage.add_entry(name, entry)
         return entry_id
 
@@ -153,12 +162,14 @@ class SessionManager:
         history = []
         for entry in entries:
             if entry.entry_type in ["question", "answer"]:
+                ts_iso = entry.created_at.isoformat() if entry.created_at else ""
+                ts_float = entry.created_at.timestamp() if entry.created_at else 0.0
                 history.append({
                     "role": entry.metadata.get("role", "user"),
                     "content": entry.content,
-                    "created_at": entry.created_at.isoformat()
+                    "created_at": ts_iso,
+                    "timestamp": ts_float,
                 })
-        
         history.sort(key=lambda x: x["created_at"])
         return history
 

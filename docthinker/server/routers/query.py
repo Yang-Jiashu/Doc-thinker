@@ -1,6 +1,7 @@
 from typing import Optional, Any, Dict, List, Tuple
 import json
 import tempfile
+import time
 import textwrap
 from pathlib import Path
 
@@ -287,7 +288,12 @@ async def _try_fast_qa(request: QueryRequest) -> Tuple[Optional[str], Optional[D
     return answer, {"fast_qa": True, "file": file_path.name}
 
 
-async def _ingest_chat_turn(question: str, answer: str, session_id: Optional[str]):
+async def _ingest_chat_turn(
+    question: str,
+    answer: str,
+    session_id: Optional[str],
+    timestamp: Optional[float] = None,
+):
     if not state.ingestion_service:
         return
     base_text = f"User Question: {question}\nAssistant Answer: {answer}"
@@ -341,6 +347,7 @@ async def _ingest_chat_turn(question: str, answer: str, session_id: Optional[str
                     source_type="chat",
                     session_id=session_id,
                     existing_insight=insight,
+                    timestamp=timestamp,
                 )
             except Exception:
                 pass
@@ -399,6 +406,18 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
                             if hint:
                                 lines.append(f"  关联: {hint}")
                         context_prefix += "\n".join(lines) + "\n\n"
+                        # 神经可塑性：共激活建连 — episode 与 episode 中实体的共现
+                        ep_ids = [ep.episode_id for ep, _, _ in analogies]
+                        kg_ids = getattr(state, "kg_entity_ids", set())
+                        ent_ids = []
+                        for ep, _, _ in analogies:
+                            ent_ids.extend(ep.entity_ids or [])
+                        ent_ids = [e for e in dict.fromkeys(ent_ids) if e and e in kg_ids]
+                        if ep_ids or ent_ids:
+                            try:
+                                state.memory_engine.record_co_activation(ep_ids, ent_ids)
+                            except Exception:
+                                pass
                 except Exception:
                     pass
             if request.session_id and request.memory_mode in {"session", "hybrid"}:
@@ -549,7 +568,14 @@ If the User Instruction conflicts with the Default Policy, follow the User Instr
             except Exception:
                 pass
 
-        background_tasks.add_task(_ingest_chat_turn, request.question, answer, request.session_id)
+        chat_turn_ts = time.time()
+        background_tasks.add_task(
+            _ingest_chat_turn,
+            request.question,
+            answer,
+            request.session_id,
+            chat_turn_ts,
+        )
 
         if not sources and hasattr(state.rag_instance, "get_last_query_evidence"):
             evidence = state.rag_instance.get_last_query_evidence()
