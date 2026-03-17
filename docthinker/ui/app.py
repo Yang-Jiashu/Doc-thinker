@@ -340,9 +340,9 @@ def kg_expand_proxy():
     try:
         resp = requests.post(backend_url, json={
             'session_id': session_id,
-            'angle_indices': data.get('angle_indices'),
             'apply': data.get('apply', True),
-        }, timeout=120)
+            'root_entity_ids': data.get('root_entity_ids'),
+        }, timeout=180)
         body = resp.json() if resp.content and 'application/json' in resp.headers.get('content-type', '') else {}
         if resp.status_code == 404:
             body = {

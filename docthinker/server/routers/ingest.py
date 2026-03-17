@@ -1,9 +1,12 @@
 import json
+import logging
 import re
 import shutil
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Any, Dict, Iterable
+
 import numpy as np
 
 from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile, Form, Request
@@ -13,112 +16,9 @@ from ..state import state, get_tri_graph_manager
 from docthinker.hypergraph.utils import compute_mdhash_id
 from docthinker.utils import separate_content
 
+_log = logging.getLogger("docthinker.ingest")
 
 router = APIRouter()
-
-
-<<<<<<< Updated upstream
-=======
-def _collect_session_text_for_causal(session_id: str, max_chars: int = 6000) -> str:
-    """Read parsed text chunks from session's KV store for causal extraction.
-
-    After GraphCore processes any file (PDF, TXT, etc.), text chunks are
-    stored in ``kv_store_text_chunks.json``.  For long documents we sample
-    uniformly (head / middle / tail) so that causal chains spanning the
-    entire document have a chance of being captured.
-    """
-    if not state.session_manager:
-        return ""
-    session = state.session_manager.get_session(session_id)
-    if not session:
-        return ""
-    metadata = session.get("metadata") or {}
-    knowledge_dir = metadata.get("knowledge_dir") or session.get("knowledge_dir")
-    if not knowledge_dir:
-        return ""
-    chunks_path = Path(knowledge_dir) / "kv_store_text_chunks.json"
-    if not chunks_path.exists():
-        return ""
-    try:
-        with chunks_path.open("r", encoding="utf-8") as f:
-            chunks_data = json.load(f)
-
-        all_chunks = sorted(
-            [
-                (chunk.get("chunk_order_index", idx), (chunk.get("content") or "").strip())
-                for idx, chunk in enumerate(chunks_data.values())
-            ],
-            key=lambda x: x[0],
-        )
-        all_chunks = [(i, t) for i, t in all_chunks if t]
-        if not all_chunks:
-            return ""
-
-        total_chars = sum(len(t) for _, t in all_chunks)
-        if total_chars <= max_chars:
-            return "\n\n".join(t for _, t in all_chunks)
-
-        # Uniform sampling: take from head, middle, tail
-        n = len(all_chunks)
-        budget = max_chars // 3
-        head = _take_until(all_chunks, 0, budget)
-        mid_start = max(0, n // 2 - n // 6)
-        middle = _take_until(all_chunks, mid_start, budget)
-        tail = _take_until(all_chunks, max(0, n - n // 4), budget)
-
-        seen_idx: set = set()
-        parts: List[str] = []
-        for section in (head, middle, tail):
-            for idx, text in section:
-                if idx not in seen_idx:
-                    seen_idx.add(idx)
-                    parts.append(text)
-
-        _log.info("[causal] collected %d chars from %d/%d chunks (total %d chars)",
-                  sum(len(p) for p in parts), len(parts), n, total_chars)
-        return "\n\n".join(parts)
-    except Exception as exc:
-        _log.warning("[causal] failed to read text chunks for session %s: %s", session_id, exc)
-        return ""
-
-
-def _take_until(
-    chunks: List[tuple], start: int, budget: int,
-) -> List[tuple]:
-    """Take chunks starting at *start* until *budget* chars are filled."""
-    result: List[tuple] = []
-    used = 0
-    for idx, text in chunks[start:]:
-        if used + len(text) > budget:
-            remaining = budget - used
-            if remaining > 100:
-                result.append((idx, text[:remaining]))
-            break
-        result.append((idx, text))
-        used += len(text)
-    return result
-
-
-async def _build_causal_dag(text: str, session_id: str, source_id: str) -> Dict[str, Any]:
-    """Extract causal relations from ingested text and build DAG.
-
-    Returns a result dict or raises on failure. Caller is responsible for
-    catching exceptions and logging.
-    """
-    clean = (text or "").strip()
-    if len(clean) < 200:
-        _log.info("[causal:bg] skipped: text too short (%d chars) for session %s", len(clean), session_id)
-        return {"skipped": True, "reason": "text_too_short", "chars": len(clean)}
-
-    tri_mgr = get_tri_graph_manager(session_id)
-    if tri_mgr is None:
-        _log.info("[causal:bg] SKIPPED: get_tri_graph_manager returned None for session %s", session_id)
-        return {"skipped": True, "reason": "no_tri_graph_manager"}
-
-    _log.info("[causal:bg] starting causal extraction for session %s (%d chars)", session_id, len(clean))
-    result = await tri_mgr.build_causal_from_text(clean, source_id=source_id)
-    _log.info("[causal:bg] DAG result for session %s: %s", session_id, result)
-    return result
 
 
 async def _sync_kg_entity_ids(session_id: str) -> None:
@@ -143,7 +43,92 @@ async def _sync_kg_entity_ids(session_id: str) -> None:
         _log.warning("[kg_sync] failed for session %s: %s", session_id, e)
 
 
->>>>>>> Stashed changes
+async def _run_density_clustering(sid: str) -> None:
+    """Run density clustering on KG node embeddings and save cluster summaries."""
+    if not state.session_manager or not state.ingestion_service:
+        return
+    session = state.session_manager.get_session(sid)
+    if not session:
+        return
+    metadata = session.get("metadata") or {}
+    knowledge_dir = metadata.get("knowledge_dir") or session.get("knowledge_dir")
+    if not knowledge_dir:
+        return
+
+    config = state.ingestion_service.create_rag_config()
+    graphcore_kwargs = getattr(state.rag_instance, "graphcore_kwargs", {}) if state.rag_instance else {}
+    session_rag = state.session_manager.get_session_rag(sid, config, graphcore_kwargs)
+    if state.rag_instance:
+        session_rag.llm_model_func = state.rag_instance.llm_model_func
+        session_rag.embedding_func = state.rag_instance.embedding_func
+    await session_rag._ensure_graphcore_initialized()
+    gc = session_rag.graphcore
+    if gc is None:
+        return
+
+    graph = gc.chunk_entity_relation_graph
+    nodes_data = await graph.get_all_nodes()
+    if len(nodes_data) < 4:
+        _log.info("[cluster] only %d nodes for session %s, skipping clustering", len(nodes_data), sid)
+        return
+
+    # Collect embeddings from the entities VDB
+    try:
+        storage = gc.entities_vdb
+        if hasattr(storage, "_NanoVectorDB__storage"):
+            raw = storage._NanoVectorDB__storage
+        elif hasattr(storage, "__storage"):
+            raw = storage.__storage
+        else:
+            _log.warning("[cluster] cannot access VDB internal storage for session %s", sid)
+            return
+
+        if raw is None or len(raw) == 0:
+            _log.info("[cluster] VDB storage empty for session %s", sid)
+            return
+
+        # Build a mapping from entity name → embedding
+        node_ids = [str(n.get("id") or n.get("entity_id") or "") for n in nodes_data]
+        vdb_names = {}
+        emb_list = []
+        filtered_nodes = []
+        for rec in raw:
+            name = str(rec.get("entity_name") or "").strip()
+            if name:
+                vdb_names[name] = rec.get("__vector__")
+
+        for i, nid in enumerate(node_ids):
+            vec = vdb_names.get(nid)
+            if vec is not None:
+                emb_list.append(vec)
+                filtered_nodes.append(nodes_data[i])
+
+        if len(emb_list) < 4:
+            _log.info("[cluster] only %d nodes with embeddings for session %s, skipping", len(emb_list), sid)
+            return
+
+        embeddings = np.array(emb_list)
+    except Exception as exc:
+        _log.warning("[cluster] failed to extract embeddings for session %s: %s", sid, exc)
+        return
+
+    llm_fn = getattr(session_rag, "llm_model_func", None)
+    if not llm_fn:
+        _log.warning("[cluster] no LLM func available for session %s", sid)
+        return
+
+    from docthinker.kg_expansion import build_cluster_summaries, save_cluster_summaries
+
+    summaries = await build_cluster_summaries(
+        filtered_nodes, embeddings, llm_fn, session_id=sid,
+    )
+    if summaries:
+        save_cluster_summaries(summaries, Path(knowledge_dir) / "cluster_summaries.json")
+        _log.info("[cluster] saved %d cluster summaries for session %s", len(summaries), sid)
+    else:
+        _log.info("[cluster] no dense clusters found for session %s", sid)
+
+
 def _truncate_text(text: str, limit: int = 8000) -> str:
     if len(text) <= limit:
         return text
@@ -876,15 +861,10 @@ async def ingest_stream(request: IngestRequest, background_tasks: BackgroundTask
         except Exception:
             pass
 
-    async def _stream_ingest_and_causal(content: str, source_type: str, session_id: Optional[str]):
+    async def _stream_ingest_task(content: str, source_type: str, session_id: Optional[str]):
         await _process_and_ingest(content, source_type, session_id)
-        if session_id and len((content or "").strip()) >= 200:
-            try:
-                await _build_causal_dag(content, session_id, "stream_ingest")
-            except Exception as exc:
-                _log.error("[causal:stream] extraction failed for session %s: %s", session_id, exc)
 
-    background_tasks.add_task(_stream_ingest_and_causal, request.content, request.source_type, request.session_id)
+    background_tasks.add_task(_stream_ingest_task, request.content, request.source_type, request.session_id)
     return {"status": "processing", "message": "Stream accepted for cognitive processing"}
 
 
@@ -1141,31 +1121,18 @@ async def ingest_files(
                                 )
                         raise
 
-<<<<<<< Updated upstream
-=======
+                # ── Post-processing: sync KG entity IDs + density clustering ──
                 await _sync_kg_entity_ids(sid)
-                _log.info("[ingest T+%.2fs] file processing COMPLETE, starting causal extraction...",
-                          time.perf_counter() - _bg_t0)
 
-                # C2: Build Causal DAG from ALL ingested text (TXT, PDF, etc.)
-                causal_text = _collect_session_text_for_causal(sid)
-                _log.info("[causal] collected %d chars from session %s for causal extraction",
-                          len((causal_text or "").strip()), sid)
-                if causal_text and len(causal_text.strip()) >= 200:
-                    try:
-                        causal_result = await _build_causal_dag(causal_text, sid, "file_ingest")
-                        _log.info("[causal] extraction done for session %s: %s", sid, causal_result)
-                    except Exception as exc:
-                        _log.error("[causal] extraction FAILED for session %s: %s", sid, exc, exc_info=True)
-                else:
-                    _log.info("[causal] skipped: insufficient text (%d chars) for session %s",
-                              len((causal_text or "").strip()), sid)
+                try:
+                    await _run_density_clustering(sid)
+                except Exception as exc:
+                    _log.warning("[ingest] density clustering failed (non-fatal): %s", exc)
 
-                _log.info("[ingest T+%.2fs] background processing COMPLETE (incl. causal)",
-                          time.perf_counter() - _bg_t0)
->>>>>>> Stashed changes
+                _log.info("[ingest] background processing COMPLETE for session %s", sid)
+
             except Exception as e:
-                print(f"Background processing error: {e}")
+                _log.error("[ingest] background processing error: %s", e, exc_info=True)
                 for path_str in file_paths:
                     try:
                         if state.session_manager:

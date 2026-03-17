@@ -252,6 +252,7 @@ async def get_graph_data(session_id: Optional[str] = None):
                     "id": node_id,
                     "label": node_id,
                     "type": node_info.get("entity_type", "unknown"),
+                    "description": node_info.get("description", ""),
                     "size": 20,
                     "color": resolve_graph_node_color(
                         node_info, is_expanded=is_expanded
@@ -300,9 +301,12 @@ async def get_graph_data(session_id: Optional[str] = None):
 
 @router.post("/knowledge-graph/expand")
 async def expand_knowledge_graph(payload: Dict[str, Any] = Body(default={})):
-    """Expand a session knowledge graph with LLM-generated candidate nodes."""
+    """Expand a session KG via two-part pipeline: cluster-based + top-node expansion.
+
+    Loads pre-computed cluster summaries (from ingest), runs parallel LLM
+    expansion with self-validation, writes nodes + edges to graph + VDB.
+    """
     session_id = payload.get("session_id")
-    angle_indices = payload.get("angle_indices")
     apply = payload.get("apply", True)
     root_entity_ids = payload.get("root_entity_ids")
     if not state.rag_instance or not state.session_manager:
@@ -338,21 +342,81 @@ async def expand_knowledge_graph(payload: Dict[str, Any] = Body(default={})):
         embed_fn = embed_fn.func
 
     try:
-        from docthinker.kg_expansion import KGExpander
+        from docthinker.kg_expansion import KGExpander, load_cluster_summaries
+        from docthinker.hypergraph.utils import compute_mdhash_id
+
+        # Load cluster summaries generated during ingestion
+        cluster_summaries = load_cluster_summaries(
+            Path(target_rag.graphcore.working_dir) / "cluster_summaries.json"
+        )
+        _log.info("[expand] loaded %d cluster summaries for session %s",
+                  len(cluster_summaries), session_id)
 
         expander = KGExpander(
             llm_func=llm_fn,
             embedding_func=embed_fn,
-            min_per_angle=15,
-            semantic_dedup_threshold=1.0,
+            min_per_cluster=8,
+            min_per_topnode=15,
+            semantic_dedup_threshold=0.92,
+            enable_validation=True,
+            validation_min_score=0.6,
+            session_id=session_id,
         )
         result = await expander.expand(
             nodes_data,
             edges_data,
-            angle_indices=angle_indices if angle_indices is not None else [0, 1, 5],
+            cluster_summaries=cluster_summaries if cluster_summaries else None,
             apply_to_graph=G if apply else None,
-            session_id=session_id,
         )
+
+        # ── Upsert expanded nodes/edges into VDB for retrieval ───────
+        added = result.get("added_nodes") or []
+        added_edges = result.get("added_edges") or []
+        gc = target_rag.graphcore
+        if apply and gc and (added or added_edges):
+            entity_vdb_data = {}
+            for ent in added:
+                name = str(ent.get("entity") or "").strip()
+                desc = str(ent.get("description") or name)
+                etype = str(ent.get("entity_type") or "concept")
+                entity_vdb_data[compute_mdhash_id(name, prefix="ent-")] = {
+                    "content": f"{name}\n{desc}",
+                    "entity_name": name,
+                    "source_id": "llm_expansion",
+                    "description": desc,
+                    "entity_type": etype,
+                    "file_path": "llm_expansion",
+                }
+            if entity_vdb_data:
+                try:
+                    await gc.entities_vdb.upsert(entity_vdb_data)
+                    _log.info("[expand] upserted %d expanded entities into VDB", len(entity_vdb_data))
+                except Exception as vdb_exc:
+                    _log.warning("[expand] entities_vdb upsert failed: %s", vdb_exc)
+
+            rel_vdb_data = {}
+            for edge in added_edges:
+                src = str(edge.get("source") or "").strip()
+                tgt = str(edge.get("target") or "").strip()
+                rel = str(edge.get("relation") or "related")
+                edesc = str(edge.get("description") or "")
+                if src and tgt:
+                    rel_vdb_data[compute_mdhash_id(src + tgt, prefix="rel-")] = {
+                        "src_id": src,
+                        "tgt_id": tgt,
+                        "source_id": "llm_expansion",
+                        "content": f"{rel}\t{src}\n{tgt}\n{edesc}",
+                        "keywords": rel,
+                        "description": edesc,
+                    }
+            if rel_vdb_data:
+                try:
+                    await gc.relationships_vdb.upsert(rel_vdb_data)
+                    _log.info("[expand] upserted %d expanded relations into VDB", len(rel_vdb_data))
+                except Exception as vdb_exc:
+                    _log.warning("[expand] relationships_vdb upsert failed: %s", vdb_exc)
+
+        # ── Update lifecycle manager ──
         manager = _get_expanded_node_manager_or_raise(session_id)
         if isinstance(root_entity_ids, list) and root_entity_ids:
             root_ids = [str(x).strip() for x in root_entity_ids if str(x).strip()]
@@ -360,19 +424,25 @@ async def expand_knowledge_graph(payload: Dict[str, Any] = Body(default={})):
             root_ids = _pick_root_entity_ids(nodes_data, edges_data)
 
         lifecycle = manager.upsert_candidates(
-            [*(result.get("added") or []), *(result.get("suggested") or [])],
+            added,
             default_root_ids=root_ids,
             source="llm_expansion",
         )
 
         return {
             "success": True,
-            **result,
+            "added_nodes": len(added),
+            "added_edges": len(added_edges),
+            "raw_count": result.get("raw_count", 0),
+            "validated_count": result.get("validated_count", 0),
+            "cluster_count": result.get("cluster_count", 0),
+            "top_node_count": result.get("top_node_count", 0),
             "root_entity_ids": root_ids,
             "lifecycle": lifecycle,
         }
     except Exception as e:
         err = str(e)
+        _log.error("[expand] expansion failed: %s", err, exc_info=True)
         raise HTTPException(status_code=500, detail=err or "Expansion failed")
 
 
@@ -796,4 +866,35 @@ async def get_flow_activation(session_id: Optional[str] = None, top_k: int = 20)
         "session_id": session_id,
         "activations": [{"node": name, "level": round(level, 4)} for name, level in top],
     }
+
+
+# ── LLM Trace observability endpoints ──────────────────────────────
+
+@router.get("/traces")
+async def get_traces(
+    session_id: Optional[str] = None,
+    stage: Optional[str] = None,
+    limit: int = 50,
+):
+    """Return recent LLM call traces for a session (preview mode)."""
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id is required")
+    from docthinker.llm_trace import list_traces
+    traces = list_traces(session_id, stage=stage, limit=limit)
+    return {"session_id": session_id, "count": len(traces), "traces": traces}
+
+
+@router.get("/traces/{call_id}")
+async def get_trace_detail_endpoint(
+    call_id: str,
+    session_id: Optional[str] = None,
+):
+    """Return full trace record including complete prompt and response."""
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id is required")
+    from docthinker.llm_trace import get_trace_detail
+    record = get_trace_detail(call_id, session_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail=f"Trace {call_id} not found")
+    return record
 

@@ -24,28 +24,18 @@
             <span id="data-source-hint" class="text-amber-600 font-medium"></span>
         </p>
     </div>
-<<<<<<< Updated upstream
-    <div class="flex gap-2 items-center">
-        <select id="kg-session-selector" class="input-field px-3 py-2 rounded-lg text-sm min-w-[260px]" onchange="handleKgSessionSwitch(this.value)"></select>
-        <button id="expand-btn" onclick="expandGraph()" class="px-4 py-2 rounded-lg text-sm font-medium bg-amber-400 hover:bg-amber-500 text-slate-800" title="LLM 多角度联想扩展节点">扩展</button>
-        <button onclick="resetZoom()" class="btn-secondary px-4 py-2 rounded-lg text-sm">重置视图</button>
-        <button onclick="refreshGraph()" class="btn-primary px-4 py-2 rounded-lg text-sm">刷新</button>
-=======
     <div class="flex flex-wrap gap-2 items-center">
         <select id="kg-session-selector" class="input-field px-2 sm:px-3 py-2 rounded-lg text-sm min-w-[140px] sm:min-w-[260px]" onchange="handleKgSessionSwitch(this.value)"></select>
 
-        <!-- Tri-Graph view toggle -->
         <div class="flex rounded-lg border border-slate-200 overflow-hidden" id="graph-view-toggle">
             <button onclick="switchGraphView('semantic')" id="btn-view-semantic" class="px-3 py-1.5 text-xs font-medium bg-blue-500 text-white" title="语义知识图谱">语义KG</button>
-            <button onclick="switchGraphView('causal')" id="btn-view-causal" class="px-3 py-1.5 text-xs font-medium bg-white text-slate-600 hover:bg-slate-50 border-l border-slate-200" title="因果推理DAG">因果DAG</button>
             <button onclick="switchGraphView('episodic')" id="btn-view-episodic" class="px-3 py-1.5 text-xs font-medium bg-white text-slate-600 hover:bg-slate-50 border-l border-slate-200" title="情景记忆图谱">情景记忆</button>
         </div>
 
-        <button id="expand-btn" onclick="expandGraph()" class="px-3 sm:px-4 py-2 rounded-lg text-sm font-medium bg-amber-400 hover:bg-amber-500 text-slate-800" title="LLM 多角度联想扩展节点">扩展</button>
+        <button id="expand-btn" onclick="expandGraph()" class="px-3 sm:px-4 py-2 rounded-lg text-sm font-medium bg-amber-400 hover:bg-amber-500 text-slate-800" title="LLM 知识扩展">扩展</button>
         <button onclick="resetHighlight()" class="btn-secondary px-3 sm:px-4 py-2 rounded-lg text-sm hidden sm:inline-flex" title="取消聚焦">取消聚焦</button>
         <button onclick="resetZoom()" class="btn-secondary px-3 sm:px-4 py-2 rounded-lg text-sm hidden sm:inline-flex">重置</button>
         <button onclick="refreshGraph()" class="btn-primary px-3 sm:px-4 py-2 rounded-lg text-sm">刷新</button>
->>>>>>> Stashed changes
     </div>
 </header>
 
@@ -114,6 +104,7 @@
                     <span id="detail-connections" class="text-sm font-medium text-blue-600">-</span>
                 </div>
             </div>
+            <div id="detail-description" class="mt-3 p-3 bg-blue-50 rounded-lg text-sm text-slate-700" style="display:none;"></div>
             <button onclick="focusNode()" class="btn-primary w-full mt-4 py-2 rounded-lg text-sm">聚焦节点</button>
         </div>
     </div>
@@ -127,11 +118,8 @@ let graphData = { nodes: [], links: [] };
 let selectedNode = null;
 let visibleLevels = { 1: true, 2: true, 3: true, expanded: true };
 let currentSessionId = '';
-<<<<<<< Updated upstream
-=======
 let focusedNodeId = null;
-let currentGraphView = 'semantic';  // 'semantic' | 'causal' | 'episodic'
->>>>>>> Stashed changes
+let currentGraphView = 'semantic';
 
 window.onload = initGraph;
 
@@ -296,13 +284,7 @@ async function loadRealData() {
         const viewLabels = { semantic: '语义KG', causal: '因果DAG', episodic: '情景记忆' };
         let hint = ` | ${viewLabels[currentGraphView] || '语义KG'} | 会话 ${currentSessionId} | ${totalNodes} 节点`;
         if (meta.nodes_returned && meta.nodes_returned !== totalNodes) hint += ` (显示${meta.nodes_returned})`;
-<<<<<<< Updated upstream
-        hint += `, ${expandedCount} 扩展`;
-        if (meta.graph_file) hint += ' [' + (meta.graph_file.split(/[/\\]/).pop() || meta.graph_file) + ']';
-        if (backendExpanded !== expandedCount) hint += ` [后端:${backendExpanded}]`;
-=======
         if (currentGraphView === 'semantic') hint += `, ${expandedCount} 扩展`;
->>>>>>> Stashed changes
         document.getElementById('data-source-hint').textContent = hint;
 
         if (data.nodes && data.nodes.length > 0) {
@@ -313,6 +295,7 @@ async function loadRealData() {
                     name: n.label || n.id,
                     level: levelMap[n.type] || 2,
                     type: n.type,
+                    description: n.description || '',
                     connections: [],
                     is_expanded: !!(n.is_expanded || n.is_expanded === 1 || n.is_expanded === '1' || n.color === '#FFD700'),
                     color: n.color
@@ -368,63 +351,40 @@ function renderGraph() {
         .force('charge', d3.forceManyBody().strength(-300))
         .force('center', d3.forceCenter(width / 2, height / 2));
 
-<<<<<<< Updated upstream
-    link = g.append('g').selectAll('line').data(visibleLinks)
-        .enter().append('line').attr('class', 'link').attr('stroke-width', 1.5);
-=======
     linkGroup = g.append('g').attr('class', 'links');
-    const linkSel = linkGroup.selectAll('.link').data(visibleLinks)
+    link = linkGroup.selectAll('.link').data(visibleLinks)
         .enter().append('line').attr('class', 'link')
-        .attr('stroke', currentGraphView === 'causal' ? '#fca5a5' : (currentGraphView === 'episodic' ? '#6ee7b7' : null))
-        .attr('stroke-opacity', currentGraphView === 'causal' ? 0.7 : null)
-        .attr('marker-end', currentGraphView === 'causal' ? 'url(#arrow-causal)' : null);
-
-    if (currentGraphView === 'causal') {
-        const defs = svg.select('defs').empty() ? svg.append('defs') : svg.select('defs');
-        if (defs.select('#arrow-causal').empty()) {
-            defs.append('marker').attr('id', 'arrow-causal')
-                .attr('viewBox', '0 0 10 10').attr('refX', 20).attr('refY', 5)
-                .attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto-start-reverse')
-                .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z').attr('fill', '#ef4444');
-        }
-    }
->>>>>>> Stashed changes
+        .attr('stroke', currentGraphView === 'episodic' ? '#6ee7b7' : null);
 
     node = g.append('g').selectAll('g').data(visibleNodes)
         .enter().append('g').attr('class', 'node')
         .call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
         .on('click', (e, d) => selectNode(d));
 
-<<<<<<< Updated upstream
     node.append('circle')
         .attr('r', d => 10 + d.level * 5)
-        .attr('class', d => isExpanded(d) ? 'level-expanded' : `level-${d.level}`)
-        .attr('fill', d => isExpanded(d) ? '#FFD700' : null)
-        .attr('stroke', d => isExpanded(d) ? '#B8860B' : null)
-        .attr('stroke-width', d => isExpanded(d) ? 2 : 0);
-=======
-    nodeSel.append('circle')
-        .attr('r', d => nodeRadius(d))
         .attr('class', d => {
-            if (currentGraphView === 'causal') return '';
             if (currentGraphView === 'episodic') return '';
-            if (isExp(d)) return 'level-expanded';
+            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
+            if (isE) return 'level-expanded';
             if (d.is_image_node) return 'level-image';
             return `level-${d.level}`;
         })
         .attr('fill', d => {
-            if (currentGraphView === 'causal') return d.color || '#ef4444';
             if (currentGraphView === 'episodic') return d.color || '#10b981';
-            if (isExp(d)) return '#FFD700';
+            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
+            if (isE) return '#FFD700';
             return null;
         })
         .attr('stroke', d => {
-            if (currentGraphView === 'causal') return '#b91c1c';
             if (currentGraphView === 'episodic') return '#047857';
-            return isExp(d) ? '#B8860B' : (d.is_image_node ? '#6d28d9' : '#fff');
+            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
+            return isE ? '#B8860B' : (d.is_image_node ? '#6d28d9' : '#fff');
         })
-        .attr('stroke-width', d => isExp(d) ? 2 : (d.is_image_node ? 2 : 1.5));
->>>>>>> Stashed changes
+        .attr('stroke-width', d => {
+            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
+            return isE ? 2 : (d.is_image_node ? 2 : 1.5);
+        });
 
     label = g.append('g').selectAll('text').data(visibleNodes)
         .enter().append('text').attr('class', 'node-label')
@@ -447,6 +407,11 @@ function selectNode(d) {
     const isExp = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1' || d.color === '#FFD700');
     document.getElementById('detail-level').textContent = isExp ? 'LLM 扩展' : ['Instance', 'Concept', 'Domain'][d.level - 1];
     document.getElementById('detail-connections').textContent = d.connections ? d.connections.length : 0;
+    const descEl = document.getElementById('detail-description');
+    if (descEl) {
+        descEl.textContent = d.description || '';
+        descEl.style.display = d.description ? 'block' : 'none';
+    }
 }
 
 function closePanel() {
@@ -529,12 +494,15 @@ async function expandGraph() {
         const resp = await fetch(getKgApiPrefix() + '/knowledge-graph/expand', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ session_id: currentSessionId, apply: true, angle_indices: [0, 1, 5] })
+            body: JSON.stringify({ session_id: currentSessionId, apply: true })
         });
         const data = await resp.json().catch(() => ({}));
         if (data.success) {
-            const n = (data.added || []).length;
-            showToast('扩展完成，新增 ' + n + ' 个节点', 'success');
+            const nodes = data.added_nodes || 0;
+            const edges = data.added_edges || 0;
+            const clusters = data.cluster_count || 0;
+            const validated = data.validated_count || 0;
+            showToast(`扩展完成：+${nodes} 节点, +${edges} 边 (聚类=${clusters}, 校验通过=${validated})`, 'success');
             loadRealData();
         } else {
             const msg = data.detail || data.error || '未知错误';
