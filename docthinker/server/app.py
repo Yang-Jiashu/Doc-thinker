@@ -205,9 +205,31 @@ async def _initialize_rag() -> DocThinker:
         "llm_model_max_async": state.settings.graphcore_llm_max_async,
         "embedding_func_max_async": state.settings.graphcore_embedding_max_async,
         "max_parallel_insert": state.settings.graphcore_max_parallel_insert,
+        "entity_extract_max_gleaning": state.settings.graphcore_max_gleaning,
     }
     if rerank_func:
         graphcore_kwargs["rerank_model_func"] = rerank_func
+
+    # Use a dedicated fast model for entity extraction if configured
+    extraction_model = state.settings.extraction_llm_model
+    if extraction_model and extraction_model != state.settings.llm_model:
+        extraction_router = AsyncModelRouter(
+            client=vlm_client,
+            models=[extraction_model],
+            max_concurrency=state.settings.llm_router_max_concurrency,
+        )
+
+        async def extraction_chat_complete(prompt: str, system_prompt: str | None = None, **_: Any) -> str:
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "user", "content": prompt})
+            resp = await extraction_router.chat_completion(messages=messages, max_tokens=2048, stream=False)
+            if not hasattr(resp, "choices") or not resp.choices:
+                return str(resp)
+            return resp.choices[0].message.content
+
+        graphcore_kwargs["entity_extraction_llm_model_func"] = extraction_chat_complete
 
     return DocThinker(
         config=config,
@@ -317,13 +339,6 @@ async def lifespan(app: FastAPI):
         print(f"WARNING: Failed to initialize Auto-Thinking Orchestrator: {e}")
 
     yield
-
-    # Save tri-graph state on shutdown
-    for sid, mgr in getattr(state, "tri_graph_managers", {}).items():
-        try:
-            mgr.save_all()
-        except Exception:
-            pass
 
     save_all_memory_engines()
     for client_attr in ("auto_thinking_vlm_client", "vision_vlm_client"):

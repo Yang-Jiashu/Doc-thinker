@@ -1,0 +1,615 @@
+{
+  "entities": {
+    "190eb358-6b3a-4a99-ac1f-a78f464a014e": {
+      "id": "190eb358-6b3a-4a99-ac1f-a78f464a014e",
+      "name": "doc:doc-91c32f7f186cde7d463397232c76a40d",
+      "type": "DOCUMENT",
+      "properties": {
+        "macro_text": "Summary: 该片段记录了李飞飞 1999 年至 2009 年的早期学术与职业轨迹，展现了一条从顶尖本科到博士，再到多校教职的精英发展路径，中间穿插独特的跨文化研究经历。\nReasoning: 时间线显示其在核心专业（计算机/电机）建立前曾进行非相关领域（藏药）探索，暗示其思维广度；教职从 UIUC 回流普林斯顿，表明学术影响力快速上升；数据截止 2009 年，缺失后续关键成就（如 ImageNet）。\nKey Points: 1999 年普林斯顿大学本科毕业, 1999-2000 年赴西藏研究藏药, 2005 年获加州理工学院博士学位, 2005-2006 年任 UIUC 电机系助理教授, 2007-2009 年任普林斯顿计算机系助理教授\nConcepts: 学术生涯阶梯, 跨学科探索, 精英教育网络, 早期职业流动\nHypotheses: 藏药研究可能发生在博士期间或毕业后的间隔年，旨在获取跨文化视角而非单纯的专业深造, 重返普林斯顿大学任教体现了精英教育网络中的校友回流与认可机制, 早期在多所顶尖高校的职业流动是为了积累不同学术环境的资源与影响力, 独特的跨文化研究经历可能为其后来倡导以人为本的人工智能研究奠定了思想基础\nAction Items: 补充 2009 年后斯坦福任教及 ImageNet 相关数据, 分析藏药研究经历对其认知科学研究的潜在影响, 构建完整学术成果引用时间轴\nContent: Source: file\nContent:\n李飞飞于1999年从普林斯顿大学本科毕业后赴西藏研究一年藏药；2000年进入加州理工学院；2005年获得加州理工学院博士学位；2005年至2006年担任伊利诺伊大学厄巴纳-香槟分校电机系助理教授；2007年至2009年担任普林斯顿大学计算机科学系助理教授；\n\n[Cognitive Analysis]:\nSummary: 该片段记录了李飞飞 1999 年至 2009 年的早期学术与职业轨迹，展现了一条从顶尖本科到博士，再到多校教职的精英发展路径，中间穿插独特的跨文化研究经历。\nReasoning: 时间线显示其在核心专业（计算机/电机）建立前曾进行非相关领域（藏药）探索，暗示其思维广度；教职从 UIUC 回流普林斯顿，表明学术影响力快速上升；数据截止 2009 年，缺失后续关键成就（如 ImageNet）。\nKey Points: 1999 年普林斯顿大学本科毕业, 1999-2000 年赴西藏研究藏药, 2005 年获加州理工学院博士学位, 2005-2006 年任 UIUC 电机系助理教授, 2007-2009 年任普林斯顿计算机系助理教授\nConcepts: 学术生涯阶梯, 跨学科探索, 精英教育网络, 早期职业流动\nEntities: 李飞飞, 普林斯顿大学, 加州理工学院, 伊利诺伊大学厄巴纳 - 香槟分校, 助理教授, 藏药, 博士\nRelations: 李飞飞->教育经历->普林斯顿大学, 李飞飞->研究->藏药, 李飞飞->教育经历->加州理工学院, 李飞飞->获得学位->博士, 李飞飞->工作经历->伊利诺伊大学厄巴纳 - 香槟分校, 李飞飞->担任职位->助理教授, 李飞飞->工作经历->普林斯顿大学\nInferred Relations: 加州理工学院->授予学位->博士, 李飞飞->本科就读->普林斯顿大学, 藏药->实例体现->跨学科探索, 助理教授->任职机构->伊利诺伊大学厄巴纳 - 香槟分校, 李飞飞->核心成员->精英教育网络\nHypotheses: 藏药研究可能发生在博士期间或毕业后的间隔年，旨在获取跨文化视角而非单纯的专业深造, 重返普林斯顿大学任教体现了精英教育网络中的校友回流与认可机制, 早期在多所顶尖高校的职业流动是为了积累不同学术环境的资源与影响力, 独特的跨文化研究经历可能为其后来倡导以人为本的人工智能研究奠定了思想基础\nPotential Links: ",
+        "macro_terms": [
+          "1999 年普林斯顿大学本科毕业",
+          "1999-2000 年赴西藏研究藏药",
+          "2005 年获加州理工学院博士学位",
+          "2005-2006 年任 uiuc 电机系助理教授",
+          "2007-2009 年任普林斯顿计算机系助理教授",
+          "学术生涯阶梯",
+          "早期职业流动",
+          "精英教育网络",
+          "跨学科探索"
+        ],
+        "summary": "该片段记录了李飞飞 1999 年至 2009 年的早期学术与职业轨迹，展现了一条从顶尖本科到博士，再到多校教职的精英发展路径，中间穿插独特的跨文化研究经历。"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "aliases": [],
+      "description": "该片段记录了李飞飞 1999 年至 2009 年的早期学术与职业轨迹，展现了一条从顶尖本科到博士，再到多校教职的精英发展路径，中间穿插独特的跨文化研究经历。",
+      "confidence": 0.6,
+      "created_at": 1773735668.090044,
+      "updated_at": 1773735668.090044,
+      "sources": [
+        "cognitive"
+      ]
+    },
+    "e1b27846-3579-4a7c-adf5-700f8a49727c": {
+      "id": "e1b27846-3579-4a7c-adf5-700f8a49727c",
+      "name": "李飞飞",
+      "type": "人物",
+      "properties": {
+        "生涯阶段": "早期职业流动至成熟期",
+        "关键特征": "跨学科探索，精英教育网络"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "aliases": [
+        "李飞飞教授",
+        "Fei-Fei Li"
+      ],
+      "description": "知名科学家，本文描述的核心主体，展现了典型的学术生涯阶梯与跨学科背景。",
+      "confidence": 0.99,
+      "created_at": 1773735668.0922804,
+      "updated_at": 1773735668.0922804,
+      "sources": [
+        "cognitive"
+      ]
+    },
+    "d385cef3-e5d4-4398-8da4-373d0325e7a0": {
+      "id": "d385cef3-e5d4-4398-8da4-373d0325e7a0",
+      "name": "普林斯顿大学",
+      "type": "教育机构",
+      "properties": {
+        "本科毕业时间": "1999 年",
+        "任职部门": "计算机科学系",
+        "任职职位": "助理教授",
+        "任职时间": "2007 年至 2009 年"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "aliases": [
+        "Princeton University",
+        "普林斯顿"
+      ],
+      "description": "世界顶尖研究型大学，属于精英教育网络，既是主体的本科母校也是早期教职机构。",
+      "confidence": 0.98,
+      "created_at": 1773735668.0966177,
+      "updated_at": 1773735668.0966177,
+      "sources": [
+        "cognitive"
+      ]
+    },
+    "b94ff25b-8709-4e6b-be29-c97aa05b9cdf": {
+      "id": "b94ff25b-8709-4e6b-be29-c97aa05b9cdf",
+      "name": "加州理工学院",
+      "type": "教育机构",
+      "properties": {
+        "入学时间": "2000 年",
+        "获得学位": "博士",
+        "毕业时间": "2005 年"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "aliases": [
+        "加州理工",
+        "California Institute of Technology",
+        "Caltech"
+      ],
+      "description": "世界顶尖理工科大学，精英教育网络核心成员，主体在此获得最高学位。",
+      "confidence": 0.98,
+      "created_at": 1773735668.1011508,
+      "updated_at": 1773735668.1011508,
+      "sources": [
+        "cognitive"
+      ]
+    },
+    "ff725e2f-96d4-4475-9145-ae236177a312": {
+      "id": "ff725e2f-96d4-4475-9145-ae236177a312",
+      "name": "伊利诺伊大学厄巴纳 - 香槟分校",
+      "type": "教育机构",
+      "properties": {
+        "任职部门": "电机系",
+        "任职职位": "助理教授",
+        "任职时间": "2005 年至 2006 年"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "aliases": [
+        "UIUC",
+        "University of Illinois Urbana-Champaign",
+        "伊利诺伊大学"
+      ],
+      "description": "著名公立研究型大学，精英教育网络成员，主体早期职业流动的第一站。",
+      "confidence": 0.97,
+      "created_at": 1773735668.1056943,
+      "updated_at": 1773735668.1056943,
+      "sources": [
+        "cognitive"
+      ]
+    },
+    "6cfa0c50-b6e0-42ec-a3aa-4511eb6e06aa": {
+      "id": "6cfa0c50-b6e0-42ec-a3aa-4511eb6e06aa",
+      "name": "助理教授",
+      "type": "学术职位",
+      "properties": {
+        "任职机构": [
+          "伊利诺伊大学厄巴纳 - 香槟分校",
+          "普林斯顿大学"
+        ],
+        "职业阶段": "早期职业",
+        "流动性": "高"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "aliases": [
+        "Asst. Prof.",
+        "Assistant Professor"
+      ],
+      "description": "学术生涯阶梯中的早期终身轨职位，体现了主体的早期职业流动。",
+      "confidence": 0.95,
+      "created_at": 1773735668.1123376,
+      "updated_at": 1773735668.1123376,
+      "sources": [
+        "cognitive"
+      ]
+    },
+    "2c2dee8d-177b-4380-bd2f-0681d5a4d6e2": {
+      "id": "2c2dee8d-177b-4380-bd2f-0681d5a4d6e2",
+      "name": "藏药",
+      "type": "研究领域",
+      "properties": {
+        "研究地点": "西藏",
+        "研究时长": "一年",
+        "探索性质": "跨学科探索",
+        "时间点": "1999 年毕业后"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "aliases": [
+        "西藏医药",
+        "Tibetan Medicine"
+      ],
+      "description": "传统医学领域，主体在本科毕业后进行的跨学科探索活动。",
+      "confidence": 0.96,
+      "created_at": 1773735668.1181433,
+      "updated_at": 1773735668.1181433,
+      "sources": [
+        "cognitive"
+      ]
+    },
+    "5e06e334-e4dc-4557-93a8-2d3c410e8b61": {
+      "id": "5e06e334-e4dc-4557-93a8-2d3c410e8b61",
+      "name": "博士",
+      "type": "学位",
+      "properties": {
+        "授予机构": "加州理工学院",
+        "获得时间": "2005 年"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "aliases": [
+        "Doctorate",
+        "PhD"
+      ],
+      "description": "最高学术学位，学术生涯阶梯中的关键节点。",
+      "confidence": 0.98,
+      "created_at": 1773735668.1243775,
+      "updated_at": 1773735668.1243775,
+      "sources": [
+        "cognitive"
+      ]
+    },
+    "7591e172-d182-4ccc-8da8-5958d0506fc2": {
+      "id": "7591e172-d182-4ccc-8da8-5958d0506fc2",
+      "name": "跨学科探索",
+      "type": "UNKNOWN",
+      "properties": {},
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "aliases": [],
+      "description": "",
+      "confidence": 0.1,
+      "created_at": 1773735668.1666882,
+      "updated_at": 1773735668.1666882,
+      "sources": [
+        "cognitive"
+      ]
+    },
+    "c4424e7b-e9a7-4db5-b085-7f067180ccfb": {
+      "id": "c4424e7b-e9a7-4db5-b085-7f067180ccfb",
+      "name": "精英教育网络",
+      "type": "UNKNOWN",
+      "properties": {},
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "aliases": [],
+      "description": "",
+      "confidence": 0.1,
+      "created_at": 1773735668.1797621,
+      "updated_at": 1773735668.1797621,
+      "sources": [
+        "cognitive"
+      ]
+    }
+  },
+  "relationships": {
+    "86e21576-b6df-4a8a-ae81-dc0e23a557b9": {
+      "id": "86e21576-b6df-4a8a-ae81-dc0e23a557b9",
+      "source_id": "e1b27846-3579-4a7c-adf5-700f8a49727c",
+      "target_id": "190eb358-6b3a-4a99-ac1f-a78f464a014e",
+      "type": "mentioned_in",
+      "properties": {},
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "auto linked entity to document",
+      "confidence": 0.8,
+      "created_at": 1773735668.0944536,
+      "updated_at": 1773735668.0944536,
+      "sources": [
+        "auto:doc"
+      ],
+      "is_validated": false
+    },
+    "7f1570b0-b2aa-4602-9ae7-951af8aa0e0e": {
+      "id": "7f1570b0-b2aa-4602-9ae7-951af8aa0e0e",
+      "source_id": "d385cef3-e5d4-4398-8da4-373d0325e7a0",
+      "target_id": "190eb358-6b3a-4a99-ac1f-a78f464a014e",
+      "type": "mentioned_in",
+      "properties": {},
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "auto linked entity to document",
+      "confidence": 0.8,
+      "created_at": 1773735668.0986362,
+      "updated_at": 1773735668.0986362,
+      "sources": [
+        "auto:doc"
+      ],
+      "is_validated": false
+    },
+    "7c27af44-aa14-4732-914c-9803b64d7842": {
+      "id": "7c27af44-aa14-4732-914c-9803b64d7842",
+      "source_id": "b94ff25b-8709-4e6b-be29-c97aa05b9cdf",
+      "target_id": "190eb358-6b3a-4a99-ac1f-a78f464a014e",
+      "type": "mentioned_in",
+      "properties": {},
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "auto linked entity to document",
+      "confidence": 0.8,
+      "created_at": 1773735668.1036737,
+      "updated_at": 1773735668.1036737,
+      "sources": [
+        "auto:doc"
+      ],
+      "is_validated": false
+    },
+    "4621cb11-595e-4608-95b9-6f15f9315b0d": {
+      "id": "4621cb11-595e-4608-95b9-6f15f9315b0d",
+      "source_id": "ff725e2f-96d4-4475-9145-ae236177a312",
+      "target_id": "190eb358-6b3a-4a99-ac1f-a78f464a014e",
+      "type": "mentioned_in",
+      "properties": {},
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "auto linked entity to document",
+      "confidence": 0.8,
+      "created_at": 1773735668.1091208,
+      "updated_at": 1773735668.1091208,
+      "sources": [
+        "auto:doc"
+      ],
+      "is_validated": false
+    },
+    "fc633375-f279-4827-9347-298e0404a06d": {
+      "id": "fc633375-f279-4827-9347-298e0404a06d",
+      "source_id": "6cfa0c50-b6e0-42ec-a3aa-4511eb6e06aa",
+      "target_id": "190eb358-6b3a-4a99-ac1f-a78f464a014e",
+      "type": "mentioned_in",
+      "properties": {},
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "auto linked entity to document",
+      "confidence": 0.8,
+      "created_at": 1773735668.1151302,
+      "updated_at": 1773735668.1151302,
+      "sources": [
+        "auto:doc"
+      ],
+      "is_validated": false
+    },
+    "dcd85163-a8dd-4802-9add-9dd64c833a8d": {
+      "id": "dcd85163-a8dd-4802-9add-9dd64c833a8d",
+      "source_id": "2c2dee8d-177b-4380-bd2f-0681d5a4d6e2",
+      "target_id": "190eb358-6b3a-4a99-ac1f-a78f464a014e",
+      "type": "mentioned_in",
+      "properties": {},
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "auto linked entity to document",
+      "confidence": 0.8,
+      "created_at": 1773735668.120991,
+      "updated_at": 1773735668.120991,
+      "sources": [
+        "auto:doc"
+      ],
+      "is_validated": false
+    },
+    "9ce47db9-3d89-4848-b84c-756b2751c313": {
+      "id": "9ce47db9-3d89-4848-b84c-756b2751c313",
+      "source_id": "5e06e334-e4dc-4557-93a8-2d3c410e8b61",
+      "target_id": "190eb358-6b3a-4a99-ac1f-a78f464a014e",
+      "type": "mentioned_in",
+      "properties": {},
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "auto linked entity to document",
+      "confidence": 0.8,
+      "created_at": 1773735668.1271048,
+      "updated_at": 1773735668.1271048,
+      "sources": [
+        "auto:doc"
+      ],
+      "is_validated": false
+    },
+    "cf1eac7e-82b4-4292-8963-81395e6ce87f": {
+      "id": "cf1eac7e-82b4-4292-8963-81395e6ce87f",
+      "source_id": "e1b27846-3579-4a7c-adf5-700f8a49727c",
+      "target_id": "d385cef3-e5d4-4398-8da4-373d0325e7a0",
+      "type": "教育经历",
+      "properties": {
+        "evidence": "李飞飞于 1999 年从普林斯顿大学本科毕业后"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "1999 年本科毕业",
+      "confidence": 1.0,
+      "created_at": 1773735668.130691,
+      "updated_at": 1773735668.130691,
+      "sources": [
+        "cognitive"
+      ],
+      "is_validated": true
+    },
+    "acda1143-7453-4a5e-b83b-3c5d6f74c93b": {
+      "id": "acda1143-7453-4a5e-b83b-3c5d6f74c93b",
+      "source_id": "e1b27846-3579-4a7c-adf5-700f8a49727c",
+      "target_id": "2c2dee8d-177b-4380-bd2f-0681d5a4d6e2",
+      "type": "研究",
+      "properties": {
+        "evidence": "赴西藏研究一年藏药"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "赴西藏研究一年",
+      "confidence": 1.0,
+      "created_at": 1773735668.1338842,
+      "updated_at": 1773735668.1338842,
+      "sources": [
+        "cognitive"
+      ],
+      "is_validated": true
+    },
+    "0d2c220c-ee65-4a92-986f-74d380c3a428": {
+      "id": "0d2c220c-ee65-4a92-986f-74d380c3a428",
+      "source_id": "e1b27846-3579-4a7c-adf5-700f8a49727c",
+      "target_id": "b94ff25b-8709-4e6b-be29-c97aa05b9cdf",
+      "type": "教育经历",
+      "properties": {
+        "evidence": "2000 年进入加州理工学院；2005 年获得加州理工学院博士学位"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "2000 年进入，2005 年获得博士学位",
+      "confidence": 1.0,
+      "created_at": 1773735668.1367307,
+      "updated_at": 1773735668.1367307,
+      "sources": [
+        "cognitive"
+      ],
+      "is_validated": true
+    },
+    "171ab317-90e8-4130-96d4-7950ed22b956": {
+      "id": "171ab317-90e8-4130-96d4-7950ed22b956",
+      "source_id": "e1b27846-3579-4a7c-adf5-700f8a49727c",
+      "target_id": "5e06e334-e4dc-4557-93a8-2d3c410e8b61",
+      "type": "获得学位",
+      "properties": {
+        "evidence": "2005 年获得加州理工学院博士学位"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "2005 年获得",
+      "confidence": 1.0,
+      "created_at": 1773735668.1397476,
+      "updated_at": 1773735668.1397476,
+      "sources": [
+        "cognitive"
+      ],
+      "is_validated": true
+    },
+    "84ef5600-d4ec-49ca-b603-3e8d8bcf0231": {
+      "id": "84ef5600-d4ec-49ca-b603-3e8d8bcf0231",
+      "source_id": "e1b27846-3579-4a7c-adf5-700f8a49727c",
+      "target_id": "ff725e2f-96d4-4475-9145-ae236177a312",
+      "type": "工作经历",
+      "properties": {
+        "evidence": "2005 年至 2006 年担任伊利诺伊大学厄巴纳 - 香槟分校电机系助理教授"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "2005 年至 2006 年担任电机系助理教授",
+      "confidence": 1.0,
+      "created_at": 1773735668.1442535,
+      "updated_at": 1773735668.1442535,
+      "sources": [
+        "cognitive"
+      ],
+      "is_validated": true
+    },
+    "52b532f9-5c5e-4c89-9797-99897d570639": {
+      "id": "52b532f9-5c5e-4c89-9797-99897d570639",
+      "source_id": "e1b27846-3579-4a7c-adf5-700f8a49727c",
+      "target_id": "6cfa0c50-b6e0-42ec-a3aa-4511eb6e06aa",
+      "type": "担任职位",
+      "properties": {
+        "evidence": "担任伊利诺伊大学厄巴纳 - 香槟分校电机系助理教授；...担任普林斯顿大学计算机科学系助理教授"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "在伊利诺伊大学厄巴纳 - 香槟分校和普林斯顿大学担任",
+      "confidence": 1.0,
+      "created_at": 1773735668.1485682,
+      "updated_at": 1773735668.1485682,
+      "sources": [
+        "cognitive"
+      ],
+      "is_validated": true
+    },
+    "422aadb3-4421-46fc-b0dd-27823c1ca59a": {
+      "id": "422aadb3-4421-46fc-b0dd-27823c1ca59a",
+      "source_id": "e1b27846-3579-4a7c-adf5-700f8a49727c",
+      "target_id": "d385cef3-e5d4-4398-8da4-373d0325e7a0",
+      "type": "工作经历",
+      "properties": {
+        "evidence": "2007 年至 2009 年担任普林斯顿大学计算机科学系助理教授"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "2007 年至 2009 年担任计算机科学系助理教授",
+      "confidence": 1.0,
+      "created_at": 1773735668.1530476,
+      "updated_at": 1773735668.1530476,
+      "sources": [
+        "cognitive"
+      ],
+      "is_validated": true
+    },
+    "e73511a9-b8c0-4eef-bc35-7cd6c6a2afab": {
+      "id": "e73511a9-b8c0-4eef-bc35-7cd6c6a2afab",
+      "source_id": "b94ff25b-8709-4e6b-be29-c97aa05b9cdf",
+      "target_id": "5e06e334-e4dc-4557-93a8-2d3c410e8b61",
+      "type": "授予学位",
+      "properties": {
+        "inferred": true,
+        "evidence": "Explicit Relations: 李飞飞->教育经历->加州理工学院，李飞飞->获得学位->博士; Summary: 从顶尖本科到博士"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "基于教育经历与获得学位的关联，推断博士学位具体由加州理工学院授予，而非普林斯顿",
+      "confidence": 0.9,
+      "created_at": 1773735668.1574125,
+      "updated_at": 1773735668.1574125,
+      "sources": [
+        "cognitive:inferred"
+      ],
+      "is_validated": false
+    },
+    "4cc8ee06-161d-4504-bd26-ab1d58e85fce": {
+      "id": "4cc8ee06-161d-4504-bd26-ab1d58e85fce",
+      "source_id": "e1b27846-3579-4a7c-adf5-700f8a49727c",
+      "target_id": "d385cef3-e5d4-4398-8da4-373d0325e7a0",
+      "type": "本科就读",
+      "properties": {
+        "inferred": true,
+        "evidence": "Summary: 从顶尖本科到博士; Explicit Relations: 李飞飞->教育经历->普林斯顿大学"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "结合总结中'顶尖本科'的描述及教育经历，推断普林斯顿大学主要对应其本科阶段，区别于后续工作经历",
+      "confidence": 0.85,
+      "created_at": 1773735668.161655,
+      "updated_at": 1773735668.161655,
+      "sources": [
+        "cognitive:inferred"
+      ],
+      "is_validated": false
+    },
+    "79360a3e-be35-4a2d-910b-7cb62d594ceb": {
+      "id": "79360a3e-be35-4a2d-910b-7cb62d594ceb",
+      "source_id": "2c2dee8d-177b-4380-bd2f-0681d5a4d6e2",
+      "target_id": "7591e172-d182-4ccc-8da8-5958d0506fc2",
+      "type": "实例体现",
+      "properties": {
+        "inferred": true,
+        "evidence": "Concepts: 跨学科探索; Explicit Relations: 李飞飞->研究->藏药; Summary: 独特的跨文化研究经历"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "藏药研究作为非传统计算机领域的研究，是跨学科探索概念的具体实践案例",
+      "confidence": 0.95,
+      "created_at": 1773735668.1711702,
+      "updated_at": 1773735668.1711702,
+      "sources": [
+        "cognitive:inferred"
+      ],
+      "is_validated": false
+    },
+    "09688168-90a6-4e87-a804-e115ca3b19d3": {
+      "id": "09688168-90a6-4e87-a804-e115ca3b19d3",
+      "source_id": "6cfa0c50-b6e0-42ec-a3aa-4511eb6e06aa",
+      "target_id": "ff725e2f-96d4-4475-9145-ae236177a312",
+      "type": "任职机构",
+      "properties": {
+        "inferred": true,
+        "evidence": "Explicit Relations: 李飞飞->工作经历->伊利诺伊大学厄巴纳 - 香槟分校，李飞飞->担任职位->助理教授"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "基于工作经历与职位的关联，推断助理教授职位主要在伊利诺伊大学厄巴纳 - 香槟分校担任",
+      "confidence": 0.8,
+      "created_at": 1773735668.175174,
+      "updated_at": 1773735668.175174,
+      "sources": [
+        "cognitive:inferred"
+      ],
+      "is_validated": false
+    },
+    "bd17d996-7614-4c3f-8b5b-ab4252d99f82": {
+      "id": "bd17d996-7614-4c3f-8b5b-ab4252d99f82",
+      "source_id": "e1b27846-3579-4a7c-adf5-700f8a49727c",
+      "target_id": "c4424e7b-e9a7-4db5-b085-7f067180ccfb",
+      "type": "核心成员",
+      "properties": {
+        "inferred": true,
+        "evidence": "Concepts: 精英教育网络; Entities: 普林斯顿大学，加州理工学院"
+      },
+      "document_ids": [
+        "doc-91c32f7f186cde7d463397232c76a40d"
+      ],
+      "description": "通过在普林斯顿、加州理工等顶尖高校的学习与任教，成为精英教育网络的一部分",
+      "confidence": 0.9,
+      "created_at": 1773735668.1840394,
+      "updated_at": 1773735668.1840394,
+      "sources": [
+        "cognitive:inferred"
+      ],
+      "is_validated": false
+    }
+  }
+}

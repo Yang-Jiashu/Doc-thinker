@@ -1,0 +1,955 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="truncate" for="edge" attr.name="truncate" attr.type="string" />
+  <key id="created_at" for="edge" attr.name="created_at" attr.type="long" />
+  <key id="file_path" for="edge" attr.name="file_path" attr.type="string" />
+  <key id="source_id" for="edge" attr.name="source_id" attr.type="string" />
+  <key id="keywords" for="edge" attr.name="keywords" attr.type="string" />
+  <key id="description" for="edge" attr.name="description" attr.type="string" />
+  <key id="weight" for="edge" attr.name="weight" attr.type="double" />
+  <key id="truncate" for="node" attr.name="truncate" attr.type="string" />
+  <key id="created_at" for="node" attr.name="created_at" attr.type="long" />
+  <key id="file_path" for="node" attr.name="file_path" attr.type="string" />
+  <key id="source_id" for="node" attr.name="source_id" attr.type="string" />
+  <key id="description" for="node" attr.name="description" attr.type="string" />
+  <key id="entity_type" for="node" attr.name="entity_type" attr.type="string" />
+  <key id="entity_id" for="node" attr.name="entity_id" attr.type="string" />
+  <graph edgedefault="undirected">
+    <node id="美团">
+      <data key="entity_id">美团</data>
+      <data key="entity_type">organization</data>
+      <data key="description">Meituan is the platform where the order was placed and completed.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="乐购达超市(黄浦路店)">
+      <data key="entity_id">乐购达超市(黄浦路店)</data>
+      <data key="entity_type">organization</data>
+      <data key="description">Legou Da Supermarket Huangpu Road Branch is the merchant that sold the goods in the order.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="黄浦路">
+      <data key="entity_id">黄浦路</data>
+      <data key="entity_type">location</data>
+      <data key="description">Huangpu Road is the location associated with the supermarket branch.&lt;SEP&gt;黄浦路is a specific store location mentioned as an example for geocoding.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0&lt;SEP&gt;chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="HD Network Camera">
+      <data key="entity_id">HD Network Camera</data>
+      <data key="entity_type">artifact</data>
+      <data key="description">HD Network Camera (网络摄像头) is a product with 1080P resolution that was purchased in the order.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Completed Order">
+      <data key="entity_id">Completed Order</data>
+      <data key="entity_type">event</data>
+      <data key="description">The transaction event where the user purchased items and payment was processed successfully.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Customer">
+      <data key="entity_id">Customer</data>
+      <data key="entity_type">person</data>
+      <data key="description">The implicit user who placed the order and holds a membership level.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Black Gold Membership">
+      <data key="entity_id">Black Gold Membership</data>
+      <data key="entity_type">concept</data>
+      <data key="description">A membership status level held by the customer, indicated by a 4-star rating.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Growth Points">
+      <data key="entity_id">Growth Points</data>
+      <data key="entity_type">data</data>
+      <data key="description">Growth Points are dynamic values earned by members through activities like orders.&lt;SEP&gt;Growth Points are loyalty points earned by the user, with +98 from this order and 18594 total current value.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0&lt;SEP&gt;chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="安心闪购">
+      <data key="entity_id">安心闪购</data>
+      <data key="entity_type">concept</data>
+      <data key="description">A service guarantee program covering the order with return policies.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Packaging Fee">
+      <data key="entity_id">Packaging Fee</data>
+      <data key="entity_type">data</data>
+      <data key="description">A fee of ¥1 charged for packaging in the order.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Delivery Fee">
+      <data key="entity_id">Delivery Fee</data>
+      <data key="entity_type">data</data>
+      <data key="description">A fee of ¥10 that was waived for this order.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Total Payment">
+      <data key="entity_id">Total Payment</data>
+      <data key="entity_type">data</data>
+      <data key="description">The final amount paid by the customer, totaling ¥97.8.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Meituan">
+      <data key="entity_id">Meituan</data>
+      <data key="entity_type">organization</data>
+      <data key="description">Meituan is a Chinese technology platform that provides food delivery and retail services, where the order was placed.&lt;SEP&gt;A platform where products are sold and queries are executed.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0&lt;SEP&gt;chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Legou Da Supermarket">
+      <data key="entity_id">Legou Da Supermarket</data>
+      <data key="entity_type">organization</data>
+      <data key="description">Legou Da Supermarket (乐购达超市) is a retail store located on Huangpu Road that sold products in this order.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Huangpu Road">
+      <data key="entity_id">Huangpu Road</data>
+      <data key="entity_type">location</data>
+      <data key="description">Huangpu Road (黄浦路) is the location where the Legou Da Supermarket branch is situated.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Order">
+      <data key="entity_id">Order</data>
+      <data key="entity_type">event</data>
+      <data key="description">The order is a completed transaction on Meituan platform with total payment of ¥97.8.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="User">
+      <data key="entity_id">User</data>
+      <data key="entity_type">person</data>
+      <data key="description">The user is a customer who placed the order and holds Black Gold membership status on Meituan.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Black Gold Member">
+      <data key="entity_id">Black Gold Member</data>
+      <data key="entity_type">concept</data>
+      <data key="description">Black Gold Member (黑金会员) is a membership level on Meituan platform with 4-star rating.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Anxin Flash Purchase">
+      <data key="entity_id">Anxin Flash Purchase</data>
+      <data key="entity_type">concept</data>
+      <data key="description">Anxin Flash Purchase (安心闪购) is a service guarantee that includes 7-day no-reason return policy.</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Product Title">
+      <data key="entity_id">Product Title</data>
+      <data key="entity_type">data</data>
+      <data key="description">Product Title is a data field describing the product, which may contain quantity information like "1个".</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Quantity Field">
+      <data key="entity_id">Quantity Field</data>
+      <data key="entity_type">data</data>
+      <data key="description">Quantity Field is a data attribute indicating the item count, which may conflict with the product title.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Product">
+      <data key="entity_id">Product</data>
+      <data key="entity_type">artifact</data>
+      <data key="description">Product is an item for sale that can be listed with specific attributes like return policies.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Membership Level">
+      <data key="entity_id">Membership Level</data>
+      <data key="entity_type">concept</data>
+      <data key="description">Membership Level is a dynamic attribute defining user status and associated benefits.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Benefits">
+      <data key="entity_id">Benefits</data>
+      <data key="entity_type">concept</data>
+      <data key="description">Benefits are dynamic properties granted based on membership level.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Store Location">
+      <data key="entity_id">Store Location</data>
+      <data key="entity_type">concept</data>
+      <data key="description">Store Location is an attribute that can be geocoded for spatial queries.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Promotional Logic">
+      <data key="entity_id">Promotional Logic</data>
+      <data key="entity_type">method</data>
+      <data key="description">Promotional Logic refers to rule-based conditions governing promotions like free delivery.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="免配送费">
+      <data key="entity_id">免配送费</data>
+      <data key="entity_type">concept</data>
+      <data key="description">免配送费is a specific promotional concept implying conditional logic such as free delivery.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Orders">
+      <data key="entity_id">Orders</data>
+      <data key="entity_type">data</data>
+      <data key="description">Orders are transaction records that can be queried based on member status and benefits.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Black Gold Members">
+      <data key="entity_id">Black Gold Members</data>
+      <data key="entity_type">concept</data>
+      <data key="description">Black Gold Members are a specific tier within the membership level system.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Return Policy">
+      <data key="entity_id">Return Policy</data>
+      <data key="entity_type">concept</data>
+      <data key="description">Return Policy is a product attribute defining conditions for returns, such as a 7-day window.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Supermarkets">
+      <data key="entity_id">Supermarkets</data>
+      <data key="entity_type">organization</data>
+      <data key="description">Supermarkets are organizations that sell products on platforms.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="Data Structure">
+      <data key="entity_id">Data Structure</data>
+      <data key="entity_type">concept</data>
+      <data key="description">Data Structure refers to the modeled information schema enabling rich querying.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="RDF/TTL">
+      <data key="entity_id">RDF/TTL</data>
+      <data key="entity_type">method</data>
+      <data key="description">RDF/TTL is a format option for exporting the data structure.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735390</data>
+      <data key="truncate" />
+    </node>
+    <node id="JSON-LD">
+      <data key="entity_id">JSON-LD</data>
+      <data key="entity_type">method</data>
+      <data key="description">JSON-LD is a format option for exporting the data structure.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735391</data>
+      <data key="truncate" />
+    </node>
+    <node id="Dynamic Attributes">
+      <data key="entity_id">Dynamic Attributes</data>
+      <data key="entity_type">concept</data>
+      <data key="description">Properties such as membership level and growth points that change over time or state.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735392</data>
+      <data key="truncate" />
+    </node>
+    <node id="Geolocation">
+      <data key="entity_id">Geolocation</data>
+      <data key="entity_type">method</data>
+      <data key="description">A method or property for encoding store locations for spatial queries.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735392</data>
+      <data key="truncate" />
+    </node>
+    <node id="Products">
+      <data key="entity_id">Products</data>
+      <data key="entity_type">artifact</data>
+      <data key="description">Items sold by supermarkets on Meituan, subject to return policies.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735392</data>
+      <data key="truncate" />
+    </node>
+    <node id="7-Day Return Policy">
+      <data key="entity_id">7-Day Return Policy</data>
+      <data key="entity_type">concept</data>
+      <data key="description">A policy attribute associated with products sold by supermarkets.</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735392</data>
+      <data key="truncate" />
+    </node>
+    <node id="李飞飞">
+      <data key="entity_id">李飞飞</data>
+      <data key="entity_type">person</data>
+      <data key="description">李飞飞is a person who graduated from Princeton University in 1999, researched Tibetan medicine in Tibet, received a doctoral degree from California Institute of Technology in 2005, and served as assistant professor at University of Illinois at Urbana-Champaign and Princeton University.</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735661</data>
+      <data key="truncate" />
+    </node>
+    <node id="普林斯顿大学">
+      <data key="entity_id">普林斯顿大学</data>
+      <data key="entity_type">organization</data>
+      <data key="description">Princeton University is an educational institution where李飞飞completed undergraduate studies in 1999 and later served as assistant professor in the Computer Science Department from 2007 to 2009.</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735661</data>
+      <data key="truncate" />
+    </node>
+    <node id="西藏">
+      <data key="entity_id">西藏</data>
+      <data key="entity_type">location</data>
+      <data key="description">Tibet is a location where李飞飞conducted one year of research on Tibetan medicine after graduation in 1999.</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735661</data>
+      <data key="truncate" />
+    </node>
+    <node id="藏药">
+      <data key="entity_id">藏药</data>
+      <data key="entity_type">concept</data>
+      <data key="description">Tibetan medicine is a field of study that李飞飞researched for one year in Tibet.</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735661</data>
+      <data key="truncate" />
+    </node>
+    <node id="加州理工学院">
+      <data key="entity_id">加州理工学院</data>
+      <data key="entity_type">organization</data>
+      <data key="description">California Institute of Technology is an educational institution where李飞飞entered in 2000 and received a doctoral degree in 2005.</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735661</data>
+      <data key="truncate" />
+    </node>
+    <node id="博士学位">
+      <data key="entity_id">博士学位</data>
+      <data key="entity_type">concept</data>
+      <data key="description">Doctoral degree is an academic qualification that李飞飞received from California Institute of Technology in 2005.</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735661</data>
+      <data key="truncate" />
+    </node>
+    <node id="伊利诺伊大学厄巴纳-香槟分校">
+      <data key="entity_id">伊利诺伊大学厄巴纳-香槟分校</data>
+      <data key="entity_type">organization</data>
+      <data key="description">University of Illinois at Urbana-Champaign is an educational institution where李飞飞served as assistant professor in the Electrical Engineering Department from 2005 to 2006.</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735661</data>
+      <data key="truncate" />
+    </node>
+    <node id="助理教授">
+      <data key="entity_id">助理教授</data>
+      <data key="entity_type">concept</data>
+      <data key="description">Assistant Professor is an academic job title held by Li Feifei at multiple universities.</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735661</data>
+      <data key="truncate" />
+    </node>
+    <node id="电机系">
+      <data key="entity_id">电机系</data>
+      <data key="entity_type">organization</data>
+      <data key="description">The Electrical Engineering Department is a department at University of Illinois at Urbana-Champaign where李飞飞served as assistant professor.</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735661</data>
+      <data key="truncate" />
+    </node>
+    <node id="计算机科学系">
+      <data key="entity_id">计算机科学系</data>
+      <data key="entity_type">organization</data>
+      <data key="description">The Computer Science Department is a department at Princeton University where李飞飞served as assistant professor from 2007 to 2009.</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735661</data>
+      <data key="truncate" />
+    </node>
+    <edge source="美团" target="Completed Order">
+      <data key="weight">1.0</data>
+      <data key="description">The order was processed through the Meituan platform.</data>
+      <data key="keywords">platform,transaction</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="乐购达超市(黄浦路店)" target="Completed Order">
+      <data key="weight">1.0</data>
+      <data key="description">The order was placed with Legou Da Supermarket.</data>
+      <data key="keywords">merchant,seller</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="乐购达超市(黄浦路店)" target="黄浦路">
+      <data key="weight">1.0</data>
+      <data key="description">The supermarket is located on Huangpu Road.</data>
+      <data key="keywords">branch,location</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="黄浦路" target="Store Location">
+      <data key="weight">1.0</data>
+      <data key="description">Store Location can take specific values like黄浦路for spatial queries.</data>
+      <data key="keywords">geocoding example,spatial data</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="HD Network Camera" target="Order">
+      <data key="weight">1.0</data>
+      <data key="description">The order contains HD Network Camera as the purchased product.</data>
+      <data key="keywords">product,purchase</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735394</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="HD Network Camera" target="Completed Order">
+      <data key="weight">1.0</data>
+      <data key="description">The order included the purchase of HD Network Cameras.</data>
+      <data key="keywords">product,purchase</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735396</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Completed Order" target="Customer">
+      <data key="weight">1.0</data>
+      <data key="description">The customer placed and completed the order.</data>
+      <data key="keywords">buyer,placement</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735396</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Completed Order" target="Total Payment">
+      <data key="weight">1.0</data>
+      <data key="description">The order resulted in a total payment of ¥97.8.</data>
+      <data key="keywords">cost,value</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735397</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Completed Order" target="安心闪购">
+      <data key="weight">1.0</data>
+      <data key="description">The order is covered by the Anxin Flash Purchase service guarantee.</data>
+      <data key="keywords">guarantee,service</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735397</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Customer" target="Black Gold Membership">
+      <data key="weight">1.0</data>
+      <data key="description">The customer holds a Black Gold Membership status.</data>
+      <data key="keywords">affiliation,status</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Customer" target="Growth Points">
+      <data key="weight">1.0</data>
+      <data key="description">The customer earned growth points from the transaction.</data>
+      <data key="keywords">accrual,loyalty</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735395</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Growth Points" target="User">
+      <data key="weight">1.0</data>
+      <data key="description">The user earned growth points from the order transaction.</data>
+      <data key="keywords">accrual,loyalty</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Growth Points" target="Membership Level">
+      <data key="weight">1.0</data>
+      <data key="description">Membership Level is associated with dynamic Growth Points.</data>
+      <data key="keywords">dynamic attribute,status tracking</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735394</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Growth Points" target="Orders">
+      <data key="weight">1.0</data>
+      <data key="description">Orders can result in earning Growth Points.</data>
+      <data key="keywords">accumulation,transaction reward</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735395</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Growth Points" target="Dynamic Attributes">
+      <data key="weight">1.0</data>
+      <data key="description">Growth points are categorized as a dynamic attribute.</data>
+      <data key="keywords">classification,property modeling</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735396</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Growth Points" target="Black Gold Members">
+      <data key="weight">1.0</data>
+      <data key="description">Black Gold members earn growth points from orders.</data>
+      <data key="keywords">membership earning,performance metric</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735396</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Packaging Fee" target="Total Payment">
+      <data key="weight">1.0</data>
+      <data key="description">The total payment includes the packaging fee.</data>
+      <data key="keywords">composition,fee</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Delivery Fee" target="Total Payment">
+      <data key="weight">1.0</data>
+      <data key="description">The total payment calculation involves the delivery fee which was waived.</data>
+      <data key="keywords">composition,fee</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Meituan" target="Order">
+      <data key="weight">1.0</data>
+      <data key="description">The order was placed and completed on the Meituan platform.</data>
+      <data key="keywords">platform,transaction</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Meituan" target="Supermarkets">
+      <data key="weight">1.0</data>
+      <data key="description">Supermarkets operate on the Meituan platform.</data>
+      <data key="keywords">platform presence,sales venue</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Meituan" target="Products">
+      <data key="weight">1.0</data>
+      <data key="description">Products are sold on the Meituan platform.</data>
+      <data key="keywords">distribution,platform selling</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735394</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Legou Da Supermarket" target="Order">
+      <data key="weight">1.0</data>
+      <data key="description">The order was purchased from Legou Da Supermarket.</data>
+      <data key="keywords">merchant,purchase</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Legou Da Supermarket" target="Huangpu Road">
+      <data key="weight">1.0</data>
+      <data key="description">Legou Da Supermarket is located at Huangpu Road branch.</data>
+      <data key="keywords">branch,location</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735394</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Order" target="User">
+      <data key="weight">1.0</data>
+      <data key="description">The user placed and completed the order.</data>
+      <data key="keywords">customer,transaction</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735394</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Order" target="Anxin Flash Purchase">
+      <data key="weight">1.0</data>
+      <data key="description">The order is covered by Anxin Flash Purchase service guarantee.</data>
+      <data key="keywords">guarantee,service</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735395</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="User" target="Black Gold Member">
+      <data key="weight">1.0</data>
+      <data key="description">The user holds Black Gold membership level on Meituan.</data>
+      <data key="keywords">membership,status</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Black Gold Member" target="Anxin Flash Purchase">
+      <data key="weight">1.0</data>
+      <data key="description">Black Gold membership includes benefits like free return shipping under service guarantees.</data>
+      <data key="keywords">benefit,privilege</data>
+      <data key="source_id">chunk-65404b026cc70376992a9790603d80b0</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735395</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Product Title" target="Quantity Field">
+      <data key="weight">1.0</data>
+      <data key="description">Product Title and Quantity Field may contain conflicting information requiring data cleaning.</data>
+      <data key="keywords">data inconsistency,validation</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Product Title" target="Product">
+      <data key="weight">1.0</data>
+      <data key="description">Product is described by the Product Title.</data>
+      <data key="keywords">attribute description,identification</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Quantity Field" target="Product">
+      <data key="weight">1.0</data>
+      <data key="description">Product quantity is tracked in the Quantity Field.</data>
+      <data key="keywords">attribute definition,inventory</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735394</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Product" target="Return Policy">
+      <data key="weight">1.0</data>
+      <data key="description">Product is associated with a Return Policy.</data>
+      <data key="keywords">product attribute,service term</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735394</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Product" target="Supermarkets">
+      <data key="weight">1.0</data>
+      <data key="description">Product is sold by Supermarkets.</data>
+      <data key="keywords">sales channel,vendor</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735395</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Membership Level" target="Benefits">
+      <data key="weight">1.0</data>
+      <data key="description">Membership Level determines the Benefits available to users.</data>
+      <data key="keywords">dynamic attribute,status reward</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Membership Level" target="Black Gold Members">
+      <data key="weight">1.0</data>
+      <data key="description">Black Gold Members are a specific classification within the Membership Level.</data>
+      <data key="keywords">classification,hierarchy</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Membership Level" target="Dynamic Attributes">
+      <data key="weight">1.0</data>
+      <data key="description">Membership level is categorized as a dynamic attribute.</data>
+      <data key="keywords">classification,property modeling</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735394</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Benefits" target="Dynamic Attributes">
+      <data key="weight">1.0</data>
+      <data key="description">Benefits are categorized as a dynamic attribute.</data>
+      <data key="keywords">classification,property modeling</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735396</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Store Location" target="Geolocation">
+      <data key="weight">1.0</data>
+      <data key="description">Geolocation methods are applied to store locations for spatial queries.</data>
+      <data key="keywords">encoding,spatial query</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Promotional Logic" target="免配送费">
+      <data key="weight">1.0</data>
+      <data key="description">Promotional Logic implements concepts like免配送费based on conditions.</data>
+      <data key="keywords">condition,rule implementation</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="免配送费" target="Orders">
+      <data key="weight">1.0</data>
+      <data key="description">Orders may include benefits like免配送费.</data>
+      <data key="keywords">promotion,transaction benefit</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="免配送费" target="Black Gold Members">
+      <data key="weight">1.0</data>
+      <data key="description">Black Gold members are associated with orders including free delivery.</data>
+      <data key="keywords">membership benefit,order attribute</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735394</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Orders" target="Black Gold Members">
+      <data key="weight">1.0</data>
+      <data key="description">Orders can be filtered by Black Gold Members.</data>
+      <data key="keywords">transaction origin,user segmentation</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735394</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Supermarkets" target="Products">
+      <data key="weight">1.0</data>
+      <data key="description">Products are sold by supermarkets.</data>
+      <data key="keywords">sales,vendor relationship</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735394</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Data Structure" target="RDF/TTL">
+      <data key="weight">1.0</data>
+      <data key="description">Data Structure can be exported in RDF/TTL format.</data>
+      <data key="keywords">export format,serialization</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735393</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Data Structure" target="JSON-LD">
+      <data key="weight">1.0</data>
+      <data key="description">Data Structure can be exported in JSON-LD format.</data>
+      <data key="keywords">export format,serialization</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735394</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="Products" target="7-Day Return Policy">
+      <data key="weight">1.0</data>
+      <data key="description">Products are associated with a 7-day return policy.</data>
+      <data key="keywords">policy association,sales condition</data>
+      <data key="source_id">chunk-f35258ded14762bcc1ee0aec8fef8106</data>
+      <data key="file_path">unknown_source</data>
+      <data key="created_at">1773735395</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="李飞飞" target="普林斯顿大学">
+      <data key="weight">1.0</data>
+      <data key="description">李飞飞graduated from Princeton University in 1999 and later served as assistant professor in the Computer Science Department from 2007 to 2009.</data>
+      <data key="keywords">education,employment</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735663</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="李飞飞" target="西藏">
+      <data key="weight">1.0</data>
+      <data key="description">李飞飞conducted one year of research in Tibet after graduation in 1999.</data>
+      <data key="keywords">fieldwork,research location</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735663</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="李飞飞" target="藏药">
+      <data key="weight">1.0</data>
+      <data key="description">Li Feifei studied Tibetan medicine during the time in Tibet.</data>
+      <data key="keywords">research subject,study</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735664</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="李飞飞" target="加州理工学院">
+      <data key="weight">1.0</data>
+      <data key="description">李飞飞entered California Institute of Technology in 2000 and received a doctoral degree in 2005.</data>
+      <data key="keywords">degree attainment,education</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735664</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="李飞飞" target="博士学位">
+      <data key="weight">1.0</data>
+      <data key="description">李飞飞received a doctoral degree from California Institute of Technology in 2005.</data>
+      <data key="keywords">academic achievement,qualification</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735665</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="李飞飞" target="伊利诺伊大学厄巴纳-香槟分校">
+      <data key="weight">1.0</data>
+      <data key="description">李飞飞served as assistant professor at University of Illinois at Urbana-Champaign from 2005 to 2006.</data>
+      <data key="keywords">academic position,employment</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735665</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="李飞飞" target="助理教授">
+      <data key="weight">1.0</data>
+      <data key="description">Li Feifei held the position of Assistant Professor at multiple institutions.</data>
+      <data key="keywords">job role,position</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735666</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="李飞飞" target="电机系">
+      <data key="weight">1.0</data>
+      <data key="description">李飞飞served as assistant professor in the Electrical Engineering Department from 2005 to 2006.</data>
+      <data key="keywords">department affiliation,employment</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735666</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="李飞飞" target="计算机科学系">
+      <data key="weight">1.0</data>
+      <data key="description">李飞飞served as assistant professor in the Computer Science Department from 2007 to 2009.</data>
+      <data key="keywords">department affiliation,employment</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735667</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="普林斯顿大学" target="计算机科学系">
+      <data key="weight">1.0</data>
+      <data key="description">The Computer Science Department is a department within Princeton University.</data>
+      <data key="keywords">department,organizational structure</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735663</data>
+      <data key="truncate" />
+    </edge>
+    <edge source="伊利诺伊大学厄巴纳-香槟分校" target="电机系">
+      <data key="weight">1.0</data>
+      <data key="description">The Electrical Engineering Department is a department within University of Illinois at Urbana-Champaign.</data>
+      <data key="keywords">department,organizational structure</data>
+      <data key="source_id">chunk-ccab72c6530160d3335b16207b953310</data>
+      <data key="file_path">李飞飞.txt</data>
+      <data key="created_at">1773735666</data>
+      <data key="truncate" />
+    </edge>
+  </graph>
+</graphml>

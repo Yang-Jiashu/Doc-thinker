@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Body
 
 from ..schemas import EntityRelationshipRequest, RelationshipRequest
-from ..state import state, get_tri_graph_manager
+from ..state import state
 from ..memory import get_session_memory_engine
 from docthinker.kg_expansion import ExpandedNodeManager
 from docthinker.image_assets import is_image_node, resolve_graph_node_color
@@ -237,11 +237,24 @@ async def get_graph_data(session_id: Optional[str] = None):
 
         nodes = []
         edges = []
-        max_nodes = 1000  # 提高上限，支持 500+ 节点图谱
-        # 优先保留扩展节点（黄色）：is_expanded=1 或 source_id=llm_expansion
+        max_nodes = 200
+
+        # Sort non-expanded nodes by degree (most connected first) so the
+        # 200-node cap keeps the most important entities visible.
+        edge_degree: Dict[str, int] = {}
+        for e in edges_data:
+            for k in ("source", "target"):
+                nid = e.get(k, "")
+                edge_degree[nid] = edge_degree.get(nid, 0) + 1
+
         expanded_nodes = [n for n in nodes_data if _is_expanded_node(n)]
-        other_nodes = [n for n in nodes_data if not _is_expanded_node(n)]
-        nodes_to_use = expanded_nodes + other_nodes[: max(0, max_nodes - len(expanded_nodes))]
+        other_nodes = sorted(
+            [n for n in nodes_data if not _is_expanded_node(n)],
+            key=lambda n: edge_degree.get(n.get("id") or n.get("entity_id") or "", 0),
+            reverse=True,
+        )
+        budget = max(0, max_nodes - len(expanded_nodes))
+        nodes_to_use = expanded_nodes + other_nodes[:budget]
         for node_info in nodes_to_use:
             node_id = node_info.get("id") or node_info.get("entity_id") or ""
             if not node_id:
@@ -267,22 +280,27 @@ async def get_graph_data(session_id: Optional[str] = None):
             u = edge_info["source"]
             v = edge_info["target"]
             if u in node_ids and v in node_ids:
+                is_discovered = str(edge_info.get("is_discovered", "0")) == "1"
                 edges.append(
                     {
                         "id": f"{u}-{v}",
                         "source": u,
                         "target": v,
                         "label": edge_info.get("keywords", "related"),
-                        "color": "#95a5a6",
-                        "width": 1,
+                        "description": edge_info.get("description", ""),
+                        "color": "#ef4444" if is_discovered else "#95a5a6",
+                        "width": 2 if is_discovered else 1,
+                        "is_discovered": is_discovered,
                     }
                 )
 
         expanded_in_response = sum(1 for x in nodes if x.get("is_expanded"))
         image_nodes_in_response = sum(1 for x in nodes if x.get("is_image_node"))
+        discovered_edges_count = sum(1 for x in edges if x.get("is_discovered"))
         meta = {
             "total_nodes": len(nodes_data),
             "total_edges": len(edges_data),
+            "discovered_edges": discovered_edges_count,
             "session_id": session_id,
             "nodes_returned": len(nodes),
             "expanded_in_response": expanded_in_response,
@@ -773,100 +791,6 @@ async def memory_decay_prune(
         return {"success": True, "session_id": session_id, **result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# ── C2: Causal DAG endpoints ────────────────────────────────────────
-
-@router.get("/knowledge-graph/causal-data")
-async def get_causal_graph_data(session_id: Optional[str] = None):
-    """Return causal DAG nodes and edges for frontend visualization."""
-    if not session_id:
-        raise HTTPException(status_code=400, detail="session_id is required")
-    tri_mgr = get_tri_graph_manager(session_id)
-    if tri_mgr is None:
-        return {"nodes": [], "edges": [], "metadata": {"source": "causal_dag", "total_nodes": 0, "total_edges": 0, "session_id": session_id}}
-    try:
-        data = tri_mgr.causal_dag.to_graph_data()
-        data["metadata"]["session_id"] = session_id
-        return data
-    except Exception as e:
-        _log.warning("[causal] graph data failed: %s", e)
-        return {"nodes": [], "edges": [], "metadata": {"source": "causal_dag", "error": str(e), "session_id": session_id}}
-
-
-@router.get("/knowledge-graph/causal-stats")
-async def get_causal_stats(session_id: Optional[str] = None):
-    """Return causal DAG statistics."""
-    if not session_id:
-        raise HTTPException(status_code=400, detail="session_id is required")
-    tri_mgr = get_tri_graph_manager(session_id)
-    if tri_mgr is None:
-        return {"session_id": session_id, "nodes": 0, "edges": 0}
-    return {"session_id": session_id, **tri_mgr.causal_dag.stats()}
-
-
-@router.get("/knowledge-graph/trigraph-stats")
-async def get_trigraph_stats(session_id: Optional[str] = None):
-    """Return full tri-graph statistics (semantic, causal, flow, seal)."""
-    if not session_id:
-        raise HTTPException(status_code=400, detail="session_id is required")
-    tri_mgr = get_tri_graph_manager(session_id)
-    if tri_mgr is None:
-        return {"session_id": session_id, "enabled": False}
-    return {"session_id": session_id, "enabled": True, **tri_mgr.stats()}
-
-
-@router.post("/knowledge-graph/build-causal")
-async def build_causal_dag(payload: Dict[str, Any] = Body(default={})):
-    """Manually trigger causal DAG construction from existing session text."""
-    session_id = payload.get("session_id")
-    text = payload.get("text", "")
-    if not session_id:
-        raise HTTPException(status_code=400, detail="session_id is required")
-    tri_mgr = get_tri_graph_manager(session_id)
-    if tri_mgr is None:
-        raise HTTPException(status_code=500, detail="TriGraphManager not available")
-    if not text:
-        raise HTTPException(status_code=400, detail="text is required")
-    try:
-        result = await tri_mgr.build_causal_from_text(text, source_id="manual_build")
-        return {"success": True, "session_id": session_id, **result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/knowledge-graph/seal-evolve")
-async def trigger_seal_evolution(payload: Dict[str, Any] = Body(default={})):
-    """Manually trigger one SEAL evolution pass."""
-    session_id = payload.get("session_id")
-    if not session_id:
-        raise HTTPException(status_code=400, detail="session_id is required")
-    tri_mgr = get_tri_graph_manager(session_id)
-    if tri_mgr is None:
-        raise HTTPException(status_code=500, detail="TriGraphManager not available")
-    try:
-        result = await tri_mgr.post_query_evolution(
-            question=payload.get("question", ""),
-            answer=payload.get("answer", ""),
-        )
-        return {"success": True, "session_id": session_id, **result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/knowledge-graph/flow-activation")
-async def get_flow_activation(session_id: Optional[str] = None, top_k: int = 20):
-    """Return top activated nodes from knowledge flow dynamics."""
-    if not session_id:
-        raise HTTPException(status_code=400, detail="session_id is required")
-    tri_mgr = get_tri_graph_manager(session_id)
-    if tri_mgr is None:
-        return {"session_id": session_id, "activations": []}
-    top = tri_mgr.flow_dynamics.get_top_activated(top_k)
-    return {
-        "session_id": session_id,
-        "activations": [{"node": name, "level": round(level, 4)} for name, level in top],
-    }
-
 
 # ── LLM Trace observability endpoints ──────────────────────────────
 

@@ -4,3 +4,8 @@
 {"entities_tokens": 2454, "relations_tokens": 3375, "chunks_tokens": 5519, "total_tokens": 11432, "max_total_tokens": 60000}
 {"entities_tokens": 2305, "relations_tokens": 3221, "chunks_tokens": 8258, "total_tokens": 13868, "max_total_tokens": 60000}
 {"entities_tokens": 2169, "relations_tokens": 2938, "chunks_tokens": 5448, "total_tokens": 10639, "max_total_tokens": 60000}
+{"entities_tokens": 434, "relations_tokens": 517, "chunks_tokens": 110, "total_tokens": 1143, "max_total_tokens": 60000}
+{"entities_tokens": 434, "relations_tokens": 517, "chunks_tokens": 110, "total_tokens": 1143, "max_total_tokens": 60000}
+{"entities_tokens": 1974, "relations_tokens": 2321, "chunks_tokens": 3776, "total_tokens": 8163, "max_total_tokens": 60000}
+{"entities_tokens": 1974, "relations_tokens": 2321, "chunks_tokens": 3776, "total_tokens": 8163, "max_total_tokens": 60000}
+{"entities_tokens": 1923, "relations_tokens": 3163, "chunks_tokens": 20078, "total_tokens": 25275, "max_total_tokens": 60000}

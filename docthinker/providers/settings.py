@@ -24,6 +24,8 @@ class AppSettings(BaseModel):
     graphcore_llm_max_async: int = 16
     graphcore_embedding_max_async: int = 16
     graphcore_max_parallel_insert: int = 8
+    graphcore_max_gleaning: int = 0
+    extraction_llm_model: str = ""
 
     workdir: str = "./data/_system"
     timeout_seconds: int = 3600
@@ -73,6 +75,8 @@ def load_settings() -> AppSettings:
         graphcore_max_parallel_insert=int(
             os.getenv("GRAPHCORE_MAX_PARALLEL_INSERT") or os.getenv("MAX_PARALLEL_INSERT") or 8
         ),
+        graphcore_max_gleaning=int(os.getenv("MAX_GLEANING") or 0),
+        extraction_llm_model=os.getenv("EXTRACTION_LLM_MODEL") or "",
         workdir=os.getenv("RAG_WORKDIR") or _DEFAULT_WORKDIR,
         timeout_seconds=int(os.getenv("TIMEOUT") or 3600),
     )

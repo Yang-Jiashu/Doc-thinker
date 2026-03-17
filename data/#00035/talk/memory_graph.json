@@ -1,0 +1,36 @@
+{
+  "nodes": {
+    "ep-f2c217a46727e26f": {
+      "id": "ep-f2c217a46727e26f",
+      "type": "episode",
+      "created_at": 1773737807.0348868,
+      "episode_id": "ep-f2c217a46727e26f"
+    },
+    "ep-5d8bb72822748d51": {
+      "id": "ep-5d8bb72822748d51",
+      "type": "episode",
+      "created_at": 1773740403.2818305,
+      "episode_id": "ep-5d8bb72822748d51"
+    }
+  },
+  "edges": [
+    {
+      "source_id": "ep-5d8bb72822748d51",
+      "target_id": "ep-f2c217a46727e26f",
+      "edge_type": "episode_similarity",
+      "weight": 0.6069039284135134,
+      "created_at": 1773740403.2823741,
+      "last_activated_at": 1773740404.824283,
+      "metadata": {}
+    },
+    {
+      "source_id": "ep-f2c217a46727e26f",
+      "target_id": "ep-5d8bb72822748d51",
+      "edge_type": "episode_similarity",
+      "weight": 0.6069039284135134,
+      "created_at": 1773740403.2823741,
+      "last_activated_at": 1773740404.824283,
+      "metadata": {}
+    }
+  ]
+}

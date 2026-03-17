@@ -1,0 +1,506 @@
+{
+  "Completed Order<SEP>乐购达超市(黄浦路店)": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Completed Order<SEP>乐购达超市(黄浦路店)"
+  },
+  "Packaging Fee<SEP>Total Payment": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Packaging Fee<SEP>Total Payment"
+  },
+  "Black Gold Membership<SEP>Customer": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Black Gold Membership<SEP>Customer"
+  },
+  "Meituan<SEP>Order": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Meituan<SEP>Order"
+  },
+  "Black Gold Member<SEP>User": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Black Gold Member<SEP>User"
+  },
+  "Product Title<SEP>Quantity Field": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Product Title<SEP>Quantity Field"
+  },
+  "Benefits<SEP>Membership Level": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Benefits<SEP>Membership Level"
+  },
+  "Store Location<SEP>黄浦路": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Store Location<SEP>黄浦路"
+  },
+  "Promotional Logic<SEP>免配送费": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Promotional Logic<SEP>免配送费"
+  },
+  "Completed Order<SEP>美团": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Completed Order<SEP>美团"
+  },
+  "Product<SEP>Product Title": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Product<SEP>Product Title"
+  },
+  "乐购达超市(黄浦路店)<SEP>黄浦路": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "乐购达超市(黄浦路店)<SEP>黄浦路"
+  },
+  "Data Structure<SEP>RDF/TTL": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Data Structure<SEP>RDF/TTL"
+  },
+  "Legou Da Supermarket<SEP>Order": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Legou Da Supermarket<SEP>Order"
+  },
+  "Meituan<SEP>Supermarkets": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Meituan<SEP>Supermarkets"
+  },
+  "Delivery Fee<SEP>Total Payment": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Delivery Fee<SEP>Total Payment"
+  },
+  "Orders<SEP>免配送费": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Orders<SEP>免配送费"
+  },
+  "Growth Points<SEP>User": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Growth Points<SEP>User"
+  },
+  "Black Gold Members<SEP>Membership Level": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Black Gold Members<SEP>Membership Level"
+  },
+  "Geolocation<SEP>Store Location": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735393,
+    "update_time": 1773735393,
+    "_id": "Geolocation<SEP>Store Location"
+  },
+  "Products<SEP>Supermarkets": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735394,
+    "update_time": 1773735394,
+    "_id": "Products<SEP>Supermarkets"
+  },
+  "Data Structure<SEP>JSON-LD": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735394,
+    "update_time": 1773735394,
+    "_id": "Data Structure<SEP>JSON-LD"
+  },
+  "Product<SEP>Quantity Field": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735394,
+    "update_time": 1773735394,
+    "_id": "Product<SEP>Quantity Field"
+  },
+  "HD Network Camera<SEP>Order": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735394,
+    "update_time": 1773735394,
+    "_id": "HD Network Camera<SEP>Order"
+  },
+  "Huangpu Road<SEP>Legou Da Supermarket": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735394,
+    "update_time": 1773735394,
+    "_id": "Huangpu Road<SEP>Legou Da Supermarket"
+  },
+  "Dynamic Attributes<SEP>Membership Level": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735394,
+    "update_time": 1773735394,
+    "_id": "Dynamic Attributes<SEP>Membership Level"
+  },
+  "Black Gold Members<SEP>Orders": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735394,
+    "update_time": 1773735394,
+    "_id": "Black Gold Members<SEP>Orders"
+  },
+  "Meituan<SEP>Products": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735394,
+    "update_time": 1773735394,
+    "_id": "Meituan<SEP>Products"
+  },
+  "Order<SEP>User": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735394,
+    "update_time": 1773735394,
+    "_id": "Order<SEP>User"
+  },
+  "Black Gold Members<SEP>免配送费": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735394,
+    "update_time": 1773735394,
+    "_id": "Black Gold Members<SEP>免配送费"
+  },
+  "Product<SEP>Return Policy": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735394,
+    "update_time": 1773735394,
+    "_id": "Product<SEP>Return Policy"
+  },
+  "Growth Points<SEP>Membership Level": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735394,
+    "update_time": 1773735394,
+    "_id": "Growth Points<SEP>Membership Level"
+  },
+  "Product<SEP>Supermarkets": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735395,
+    "update_time": 1773735395,
+    "_id": "Product<SEP>Supermarkets"
+  },
+  "7-Day Return Policy<SEP>Products": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735395,
+    "update_time": 1773735395,
+    "_id": "7-Day Return Policy<SEP>Products"
+  },
+  "Anxin Flash Purchase<SEP>Order": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735395,
+    "update_time": 1773735395,
+    "_id": "Anxin Flash Purchase<SEP>Order"
+  },
+  "Growth Points<SEP>Orders": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735395,
+    "update_time": 1773735395,
+    "_id": "Growth Points<SEP>Orders"
+  },
+  "Anxin Flash Purchase<SEP>Black Gold Member": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735395,
+    "update_time": 1773735395,
+    "_id": "Anxin Flash Purchase<SEP>Black Gold Member"
+  },
+  "Customer<SEP>Growth Points": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735395,
+    "update_time": 1773735395,
+    "_id": "Customer<SEP>Growth Points"
+  },
+  "Dynamic Attributes<SEP>Growth Points": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735396,
+    "update_time": 1773735396,
+    "_id": "Dynamic Attributes<SEP>Growth Points"
+  },
+  "Completed Order<SEP>Customer": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735396,
+    "update_time": 1773735396,
+    "_id": "Completed Order<SEP>Customer"
+  },
+  "Completed Order<SEP>HD Network Camera": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735396,
+    "update_time": 1773735396,
+    "_id": "Completed Order<SEP>HD Network Camera"
+  },
+  "Black Gold Members<SEP>Growth Points": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735396,
+    "update_time": 1773735396,
+    "_id": "Black Gold Members<SEP>Growth Points"
+  },
+  "Benefits<SEP>Dynamic Attributes": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735396,
+    "update_time": 1773735396,
+    "_id": "Benefits<SEP>Dynamic Attributes"
+  },
+  "Completed Order<SEP>Total Payment": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735397,
+    "update_time": 1773735397,
+    "_id": "Completed Order<SEP>Total Payment"
+  },
+  "Completed Order<SEP>安心闪购": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735397,
+    "update_time": 1773735397,
+    "_id": "Completed Order<SEP>安心闪购"
+  },
+  "普林斯顿大学<SEP>李飞飞": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735663,
+    "update_time": 1773735663,
+    "_id": "普林斯顿大学<SEP>李飞飞"
+  },
+  "李飞飞<SEP>西藏": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735663,
+    "update_time": 1773735663,
+    "_id": "李飞飞<SEP>西藏"
+  },
+  "普林斯顿大学<SEP>计算机科学系": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735663,
+    "update_time": 1773735663,
+    "_id": "普林斯顿大学<SEP>计算机科学系"
+  },
+  "李飞飞<SEP>藏药": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735664,
+    "update_time": 1773735664,
+    "_id": "李飞飞<SEP>藏药"
+  },
+  "加州理工学院<SEP>李飞飞": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735664,
+    "update_time": 1773735664,
+    "_id": "加州理工学院<SEP>李飞飞"
+  },
+  "博士学位<SEP>李飞飞": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735665,
+    "update_time": 1773735665,
+    "_id": "博士学位<SEP>李飞飞"
+  },
+  "伊利诺伊大学厄巴纳-香槟分校<SEP>李飞飞": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735665,
+    "update_time": 1773735665,
+    "_id": "伊利诺伊大学厄巴纳-香槟分校<SEP>李飞飞"
+  },
+  "助理教授<SEP>李飞飞": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735666,
+    "update_time": 1773735666,
+    "_id": "助理教授<SEP>李飞飞"
+  },
+  "伊利诺伊大学厄巴纳-香槟分校<SEP>电机系": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735666,
+    "update_time": 1773735666,
+    "_id": "伊利诺伊大学厄巴纳-香槟分校<SEP>电机系"
+  },
+  "李飞飞<SEP>电机系": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735666,
+    "update_time": 1773735666,
+    "_id": "李飞飞<SEP>电机系"
+  },
+  "李飞飞<SEP>计算机科学系": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735667,
+    "update_time": 1773735667,
+    "_id": "李飞飞<SEP>计算机科学系"
+  }
+}

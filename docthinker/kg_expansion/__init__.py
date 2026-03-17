@@ -1,4 +1,4 @@
-"""KG expansion: density clustering + two-part LLM expansion with rich edges."""
+"""KG expansion: density clustering + two-part LLM expansion + edge discovery."""
 
 from .expander import KGExpander
 from .clustering import (
@@ -9,6 +9,7 @@ from .clustering import (
     load_cluster_summaries,
 )
 from .manager import ExpandedNodeManager, extract_entities_from_text
+from .edge_discovery import discover_edges, DiscoveredEdge
 
 __all__ = [
     "KGExpander",
@@ -19,4 +20,6 @@ __all__ = [
     "ClusterSummary",
     "save_cluster_summaries",
     "load_cluster_summaries",
+    "discover_edges",
+    "DiscoveredEdge",
 ]

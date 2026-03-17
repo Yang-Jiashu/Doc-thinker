@@ -487,7 +487,7 @@ function checkProcessingList() {
     }
 }
 
-async function waitForFileProcessed(sessionId, filename, timeoutMs = 5 * 60 * 1000, intervalMs = 2000) {
+async function waitForFileProcessed(sessionId, filename, timeoutMs = 5 * 60 * 1000, intervalMs = 5000) {
     const doneStatuses = new Set(['processed', 'completed', 'complete', 'done', 'success', 'ready', 'finished']);
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
@@ -506,57 +506,6 @@ async function waitForFileProcessed(sessionId, filename, timeoutMs = 5 * 60 * 10
         await new Promise((resolve) => setTimeout(resolve, intervalMs));
     }
     return { ok: false, status: 'timeout' };
-}
-
-function uploadFileWithProgress(file, fileId, onStatusChange) {
-    const formData = new FormData();
-    formData.append('files', file);
-    if (currentSessionId) {
-        formData.append('session_id', currentSessionId);
-    }
-
-    let uploadProgress = 0;
-    const uploadInterval = setInterval(() => {
-        uploadProgress += Math.random() * 20;
-        if (uploadProgress > 90) {
-            uploadProgress = 90;
-            clearInterval(uploadInterval);
-        }
-        updateProcessingStatus(fileId, 'processing', '上传中...', uploadProgress);
-    }, 200);
-
-    fetch('/api/v1/upload', {
-        method: 'POST',
-        body: formData
-    })
-    .then(async (res) => {
-        const data = await res.json().catch(() => ({}));
-        return { ok: res.ok, data };
-    })
-    .then(({ ok, data }) => {
-        clearInterval(uploadInterval);
-
-        let success = false;
-        if (data && typeof data === 'object') {
-            success = data.success === true || data.status === 'success';
-        }
-        if (!success && ok && (!data || (!('success' in data) && !('status' in data)))) {
-            success = true;
-        }
-
-        if (success) {
-            updateProcessingStatus(fileId, 'done', '处理完成', 100);
-            onStatusChange('success', data || {});
-        } else {
-            updateProcessingStatus(fileId, 'error', (data && data.message) || '上传失败');
-            onStatusChange('error', data || { message: '上传失败' });
-        }
-    })
-    .catch((err) => {
-        clearInterval(uploadInterval);
-        updateProcessingStatus(fileId, 'error', '网络错误: ' + err.message);
-        onStatusChange('error', { message: err.message });
-    });
 }
 
 function showAttachedFile(filename, fileId) {

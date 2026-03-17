@@ -5,9 +5,10 @@
 {% block extra_css %}
 <style>
     .node circle { cursor: pointer; transition: all 0.2s; }
-    .node:hover circle { r: 20; }
-    .link { stroke: #cbd5e1; stroke-opacity: 0.6; }
-    .node-label { font-size: 11px; fill: #64748b; pointer-events: none; }
+    .node:hover circle { filter: brightness(1.15); stroke-width: 2.5; }
+    .link { stroke: #cbd5e1; stroke-opacity: 0.6; cursor: pointer; }
+    .link:hover { stroke: #3b82f6; stroke-opacity: 1; stroke-width: 2.5; }
+    .node-label { font-size: 10px; fill: #fff; pointer-events: none; text-anchor: middle; dominant-baseline: central; font-weight: 500; }
     .level-3 { fill: #ec4899; }
     .level-2 { fill: #3b82f6; }
     .level-1 { fill: #10b981; }
@@ -112,7 +113,7 @@
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
-let svg, g, simulation, node, link, label;
+let svg, g, simulation, node, link;
 let currentTransform = d3.zoomIdentity;
 let graphData = { nodes: [], links: [] };
 let selectedNode = null;
@@ -303,7 +304,11 @@ async function loadRealData() {
                 links: (data.edges || []).map(e => ({
                     source: e.source,
                     target: e.target,
-                    label: e.label || ''
+                    label: e.label || '',
+                    description: e.description || '',
+                    is_discovered: !!e.is_discovered,
+                    color: e.color || null,
+                    width: e.width || 1
                 }))
             };
             const nodeIds = new Set(graphData.nodes.map(n => n.id));
@@ -328,14 +333,30 @@ async function loadRealData() {
     }
 }
 
+function nodeRadius(d) {
+    const degree = (d.connections ? d.connections.length : 0);
+    // Base 14, scales with degree (weight); level adds a small bonus
+    return Math.min(14 + Math.sqrt(degree) * 5 + d.level * 2, 50);
+}
+
+function truncName(name, maxLen) {
+    if (!name) return '';
+    return name.length <= maxLen ? name : name.slice(0, maxLen - 1) + '…';
+}
+
 function renderGraph() {
     g.selectAll('*').remove();
 
+    const MAX_RENDER_NODES = 200;
     const isExpanded = n => !!(n.is_expanded || n.is_expanded === 1 || n.is_expanded === '1' || n.color === '#FFD700');
-    const visibleNodes = graphData.nodes.filter(n => {
+    let visibleNodes = graphData.nodes.filter(n => {
         if (isExpanded(n)) return !!visibleLevels.expanded;
         return !!visibleLevels[n.level];
     });
+    if (visibleNodes.length > MAX_RENDER_NODES) {
+        visibleNodes.sort((a, b) => (b.connections?.length || 0) - (a.connections?.length || 0));
+        visibleNodes = visibleNodes.slice(0, MAX_RENDER_NODES);
+    }
     const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
     const visibleLinks = graphData.links.filter(l =>
         visibleNodeIds.has(typeof l.source === 'object' ? l.source.id : l.source) &&
@@ -345,24 +366,33 @@ function renderGraph() {
     const container = document.getElementById('graph-container');
     const width = container.clientWidth;
     const height = container.clientHeight;
+    const pad = 60;
 
     simulation = d3.forceSimulation(visibleNodes)
-        .force('link', d3.forceLink(visibleLinks).id(d => d.id).distance(100))
-        .force('charge', d3.forceManyBody().strength(-300))
-        .force('center', d3.forceCenter(width / 2, height / 2));
+        .force('link', d3.forceLink(visibleLinks).id(d => d.id).distance(120))
+        .force('charge', d3.forceManyBody().strength(-350))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collide', d3.forceCollide().radius(d => nodeRadius(d) + 6))
+        .force('x', d3.forceX(width / 2).strength(0.05))
+        .force('y', d3.forceY(height / 2).strength(0.05));
 
-    linkGroup = g.append('g').attr('class', 'links');
+    // --- Edges (lines + labels, clickable) ---
+    const linkGroup = g.append('g').attr('class', 'links');
     link = linkGroup.selectAll('.link').data(visibleLinks)
         .enter().append('line').attr('class', 'link')
-        .attr('stroke', currentGraphView === 'episodic' ? '#6ee7b7' : null);
+        .attr('stroke', d => d.is_discovered ? '#ef4444' : (currentGraphView === 'episodic' ? '#6ee7b7' : null))
+        .attr('stroke-width', d => d.is_discovered ? 2 : 1)
+        .attr('stroke-dasharray', d => d.is_discovered ? '6,3' : null)
+        .on('click', (e, d) => selectEdge(d));
 
+    // --- Nodes (circle + label INSIDE) ---
     node = g.append('g').selectAll('g').data(visibleNodes)
         .enter().append('g').attr('class', 'node')
         .call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
         .on('click', (e, d) => selectNode(d));
 
     node.append('circle')
-        .attr('r', d => 10 + d.level * 5)
+        .attr('r', d => nodeRadius(d))
         .attr('class', d => {
             if (currentGraphView === 'episodic') return '';
             const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
@@ -386,17 +416,25 @@ function renderGraph() {
             return isE ? 2 : (d.is_image_node ? 2 : 1.5);
         });
 
-    label = g.append('g').selectAll('text').data(visibleNodes)
-        .enter().append('text').attr('class', 'node-label')
-        .attr('dy', d => 25 + d.level * 5)
-        .attr('text-anchor', 'middle')
-        .text(d => d.name);
+    // Label inside the circle — always truncate to 4 chars max
+    node.append('text').attr('class', 'node-label')
+        .attr('dy', '0.35em')
+        .text(d => truncName(d.name, 4))
+        .style('fill', d => {
+            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
+            return isE ? '#7c2d12' : '#fff';
+        });
 
+    // Constrain nodes within viewport bounds on each tick
     simulation.on('tick', () => {
+        visibleNodes.forEach(d => {
+            const r = nodeRadius(d);
+            d.x = Math.max(pad + r, Math.min(width - pad - r, d.x));
+            d.y = Math.max(pad + r, Math.min(height - pad - r, d.y));
+        });
         link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
             .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
         node.attr('transform', d => `translate(${d.x},${d.y})`);
-        label.attr('x', d => d.x).attr('y', d => d.y);
     });
 }
 
@@ -412,6 +450,59 @@ function selectNode(d) {
         descEl.textContent = d.description || '';
         descEl.style.display = d.description ? 'block' : 'none';
     }
+
+    // Highlight connected edges
+    if (link) {
+        link.attr('stroke', l => {
+            const sid = typeof l.source === 'object' ? l.source.id : l.source;
+            const tid = typeof l.target === 'object' ? l.target.id : l.target;
+            if (sid === d.id || tid === d.id) return '#3b82f6';
+            return l.is_discovered ? '#ef4444' : null;
+        }).attr('stroke-width', l => {
+            const sid = typeof l.source === 'object' ? l.source.id : l.source;
+            const tid = typeof l.target === 'object' ? l.target.id : l.target;
+            if (sid === d.id || tid === d.id) return 2.5;
+            return l.is_discovered ? 2 : 1;
+        });
+    }
+}
+
+function selectEdge(d) {
+    const srcName = typeof d.source === 'object' ? (d.source.name || d.source.id) : d.source;
+    const tgtName = typeof d.target === 'object' ? (d.target.name || d.target.id) : d.target;
+
+    document.getElementById('detail-panel').classList.remove('hidden');
+    const tag = d.is_discovered ? '🔴 发现的潜在关系' : '边 (Relation)';
+    document.getElementById('detail-name').textContent = d.label || '关系';
+    document.getElementById('detail-level').textContent = tag;
+    document.getElementById('detail-connections').textContent = `${srcName} → ${tgtName}`;
+    const descEl = document.getElementById('detail-description');
+    if (descEl) {
+        let desc = `关系类型: ${d.label || 'related'}\n${srcName} → ${tgtName}`;
+        if (d.description) desc += `\n\n${d.description}`;
+        if (d.is_discovered) desc += '\n\n[由后台智能发现的潜在关系]';
+        descEl.textContent = desc;
+        descEl.style.display = 'block';
+    }
+
+    // Highlight this edge
+    if (link) {
+        const defaultStroke = l => l.is_discovered ? '#ef4444' : null;
+        link.attr('stroke', l => (l === d) ? '#f59e0b' : defaultStroke(l))
+            .attr('stroke-width', l => (l === d) ? 3 : (l.is_discovered ? 2 : 1));
+    }
+}
+
+function resetHighlight() {
+    if (link) {
+        link.attr('stroke', l => l.is_discovered ? '#ef4444' : (currentGraphView === 'episodic' ? '#6ee7b7' : null))
+            .attr('stroke-width', l => l.is_discovered ? 2 : 1);
+    }
+    if (node) {
+        node.attr('opacity', 1);
+    }
+    focusedNodeId = null;
+    closePanel();
 }
 
 function closePanel() {
@@ -441,12 +532,10 @@ function toggleExpanded() {
 function searchNodes(query) {
     if (!query) {
         node.attr('opacity', 1);
-        label.attr('opacity', 1);
         return;
     }
     const q = query.toLowerCase();
-    node.attr('opacity', d => d.name.toLowerCase().includes(q) ? 1 : 0.2);
-    label.attr('opacity', d => d.name.toLowerCase().includes(q) ? 1 : 0.2);
+    node.attr('opacity', d => d.name.toLowerCase().includes(q) ? 1 : 0.15);
 }
 
 function resetZoom() {

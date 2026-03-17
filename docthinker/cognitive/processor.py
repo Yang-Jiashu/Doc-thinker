@@ -1,6 +1,10 @@
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
+import asyncio
 import json
+import logging
+
+_log = logging.getLogger("docthinker.cognitive")
 
 class PotentialLink(BaseModel):
     kind: str = "entity"
@@ -61,7 +65,7 @@ class CognitiveProcessor:
         2. Associate: Check against existing knowledge (if available).
         3. Reason: Formulate insights and next steps.
         """
-        print(f"Cognitive Processor: Thinking about incoming {source_type}...")
+        _log.info("Thinking about incoming %s...", source_type)
         
         # Step 1 & 3: Understand and Reason (Combined for efficiency)
         insight = await self._analyze_content(content, source_type)
@@ -70,7 +74,7 @@ class CognitiveProcessor:
             try:
                 insight.potential_links = await self._associate(insight)
             except Exception as e:
-                print(f"Cognitive Associate Failed: {e}")
+                _log.warning("Cognitive associate failed: %s", e)
             
         return insight
 
@@ -211,10 +215,14 @@ Return JSON:
             concepts = understanding.get("concepts", [])
             reasoning = understanding.get("reasoning", "")
             action_items = understanding.get("action_items", [])
-            entities = await self._extract_entities(content, concepts)
-            relations = await self._extract_relations(content, entities)
+
+            # Run entity and relation extraction in parallel
+            entities_task = asyncio.create_task(self._extract_entities(content, concepts))
+            relations_task = asyncio.create_task(self._extract_relations(content, []))
+            entities, relations_raw = await asyncio.gather(entities_task, relations_task)
+
             inferred_relations, hypotheses = await self._infer_relations(
-                summary, concepts, entities, relations
+                summary, concepts, entities, relations_raw
             )
             return CognitiveInsight(
                 summary=summary,
@@ -224,12 +232,12 @@ Return JSON:
                 reasoning=reasoning,
                 action_items=action_items,
                 entities=entities,
-                relations=relations,
+                relations=relations_raw,
                 inferred_relations=inferred_relations,
                 hypotheses=hypotheses,
             )
         except Exception as e:
-            print(f"Cognitive Analysis Failed: {e}")
+            _log.warning("Cognitive analysis failed: %s", e)
             return CognitiveInsight(
                 summary="Analysis failed",
                 key_points=[],

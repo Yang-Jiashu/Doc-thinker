@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import re
@@ -12,7 +13,7 @@ import numpy as np
 from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile, Form, Request
 
 from ..schemas import IngestRequest, SignalIngestRequest
-from ..state import state, get_tri_graph_manager
+from ..state import state
 from docthinker.hypergraph.utils import compute_mdhash_id
 from docthinker.utils import separate_content
 
@@ -74,16 +75,17 @@ async def _run_density_clustering(sid: str) -> None:
 
     # Collect embeddings from the entities VDB
     try:
-        storage = gc.entities_vdb
-        if hasattr(storage, "_NanoVectorDB__storage"):
-            raw = storage._NanoVectorDB__storage
-        elif hasattr(storage, "__storage"):
-            raw = storage.__storage
+        vdb = gc.entities_vdb
+        # NanoVectorDBStorage exposes an async `client_storage` property
+        # that returns the underlying NanoVectorDB.__storage dict.
+        if hasattr(vdb, "client_storage"):
+            raw_storage = await vdb.client_storage
         else:
-            _log.warning("[cluster] cannot access VDB internal storage for session %s", sid)
+            _log.warning("[cluster] VDB has no client_storage accessor for session %s", sid)
             return
 
-        if raw is None or len(raw) == 0:
+        raw = raw_storage.get("data", []) if isinstance(raw_storage, dict) else raw_storage
+        if not raw or len(raw) == 0:
             _log.info("[cluster] VDB storage empty for session %s", sid)
             return
 
@@ -127,6 +129,91 @@ async def _run_density_clustering(sid: str) -> None:
         _log.info("[cluster] saved %d cluster summaries for session %s", len(summaries), sid)
     else:
         _log.info("[cluster] no dense clusters found for session %s", sid)
+
+
+async def _background_edge_discovery(sid: str) -> None:
+    """Run latent edge discovery in the background after ingestion.
+
+    Discovered edges are written into the graph with ``is_discovered=1``
+    so the frontend can render them in red.  This never blocks user queries.
+    """
+    try:
+        if not state.session_manager or not state.rag_instance:
+            return
+        session = state.session_manager.get_session(sid)
+        if not session:
+            return
+
+        config = state.rag_instance.config
+        graphcore_kwargs = getattr(state.rag_instance, "graphcore_kwargs", {})
+        session_rag = state.session_manager.get_session_rag(sid, config, graphcore_kwargs)
+        session_rag.llm_model_func = state.rag_instance.llm_model_func
+        session_rag.embedding_func = state.rag_instance.embedding_func
+        await session_rag._ensure_graphcore_initialized()
+        gc = session_rag.graphcore
+        if gc is None:
+            return
+
+        graph = gc.chunk_entity_relation_graph
+        nodes_data = await graph.get_all_nodes()
+        edges_data = await graph.get_all_edges()
+
+        if len(nodes_data) < 3:
+            _log.info("[edge_discovery] only %d nodes for session %s, skipping", len(nodes_data), sid)
+            return
+
+        from docthinker.kg_expansion.edge_discovery import discover_edges
+
+        llm_fn = getattr(session_rag, "llm_model_func", None)
+        if not llm_fn:
+            return
+
+        discovered = await discover_edges(
+            nodes_data, edges_data, llm_fn,
+            window_size=30, overlap=10, max_parallel=2,
+        )
+
+        if not discovered:
+            _log.info("[edge_discovery] no new edges discovered for session %s", sid)
+            return
+
+        # Write discovered edges into the graph
+        added = 0
+        for edge in discovered:
+            if await graph.has_edge(edge.source, edge.target):
+                continue
+            await graph.upsert_edge(edge.source, edge.target, {
+                "keywords": edge.keywords,
+                "description": edge.description,
+                "weight": "0.5",
+                "is_discovered": "1",
+                "source_id": "edge_discovery",
+            })
+            added += 1
+
+        if added > 0:
+            await graph.index_done_callback(force_save=True)
+
+            # Also index discovered edges into the relationships VDB
+            if gc.relationships_vdb and session_rag.embedding_func:
+                vdb_data = {}
+                for edge in discovered:
+                    edge_key = f"{edge.source}-{edge.target}"
+                    content = f"{edge.source} {edge.keywords} {edge.target}: {edge.description}"
+                    vdb_data[edge_key] = {
+                        "src_id": edge.source,
+                        "tgt_id": edge.target,
+                        "content": content,
+                    }
+                if vdb_data:
+                    await gc.relationships_vdb.upsert(vdb_data)
+                    await gc.relationships_vdb.index_done_callback()
+
+        _log.info("[edge_discovery:bg] session %s — discovered %d, persisted %d edges",
+                  sid, len(discovered), added)
+
+    except Exception as exc:
+        _log.warning("[edge_discovery:bg] failed for session %s (non-fatal): %s", sid, exc)
 
 
 def _truncate_text(text: str, limit: int = 8000) -> str:
@@ -374,9 +461,23 @@ async def _extract_session_id(session_id: Optional[str], request: Optional[Reque
     return None
 
 
-async def _process_text_for_ingest(content: str, source_type: str) -> tuple[str, Dict[str, Any]]:
+async def _process_text_for_ingest(
+    content: str, source_type: str, *, skip_cognitive: bool = False,
+) -> tuple[str, Dict[str, Any]]:
+    """Pre-process text before feeding to GraphCore.
+
+    For file-based ingestion (image, file, content_list) the cognitive
+    processor is **skipped** because GraphCore already performs entity/
+    relation extraction.  Running the cognitive processor would add 4
+    sequential LLM calls (~60s) that duplicate GraphCore's work.
+    """
     processed_text = content
     metadata: Dict[str, Any] = {"source_type": source_type, "type": "text"}
+
+    if skip_cognitive or source_type in ("image", "file", "content_list"):
+        _log.info("[cognitive] skipped (redundant for %s — GraphCore handles extraction)", source_type)
+        return processed_text, metadata
+
     if state.cognitive_processor:
         try:
             insight = await state.cognitive_processor.process(content, source_type=source_type)
@@ -1130,6 +1231,10 @@ async def ingest_files(
                     _log.warning("[ingest] density clustering failed (non-fatal): %s", exc)
 
                 _log.info("[ingest] background processing COMPLETE for session %s", sid)
+
+                # Fire-and-forget: discover latent edges in the background.
+                # This does NOT block the user — they can query immediately.
+                asyncio.create_task(_background_edge_discovery(sid))
 
             except Exception as e:
                 _log.error("[ingest] background processing error: %s", e, exc_info=True)

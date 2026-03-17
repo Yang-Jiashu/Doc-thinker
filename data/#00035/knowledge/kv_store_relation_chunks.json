@@ -1,0 +1,1910 @@
+{
+  "普林斯顿大学<SEP>李飞飞": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773736523,
+    "update_time": 1773736523,
+    "_id": "普林斯顿大学<SEP>李飞飞"
+  },
+  "李飞飞<SEP>西藏": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773736524,
+    "update_time": 1773736524,
+    "_id": "李飞飞<SEP>西藏"
+  },
+  "普林斯顿大学<SEP>计算机科学系": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773736524,
+    "update_time": 1773736524,
+    "_id": "普林斯顿大学<SEP>计算机科学系"
+  },
+  "李飞飞<SEP>藏药": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773736524,
+    "update_time": 1773736524,
+    "_id": "李飞飞<SEP>藏药"
+  },
+  "加州理工学院<SEP>李飞飞": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773736525,
+    "update_time": 1773736525,
+    "_id": "加州理工学院<SEP>李飞飞"
+  },
+  "博士学位<SEP>李飞飞": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773736526,
+    "update_time": 1773736526,
+    "_id": "博士学位<SEP>李飞飞"
+  },
+  "伊利诺伊大学厄巴纳-香槟分校<SEP>李飞飞": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773736526,
+    "update_time": 1773736526,
+    "_id": "伊利诺伊大学厄巴纳-香槟分校<SEP>李飞飞"
+  },
+  "加州理工学院<SEP>博士学位": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773736526,
+    "update_time": 1773736526,
+    "_id": "加州理工学院<SEP>博士学位"
+  },
+  "李飞飞<SEP>电机系": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773736527,
+    "update_time": 1773736527,
+    "_id": "李飞飞<SEP>电机系"
+  },
+  "伊利诺伊大学厄巴纳-香槟分校<SEP>电机系": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773736527,
+    "update_time": 1773736527,
+    "_id": "伊利诺伊大学厄巴纳-香槟分校<SEP>电机系"
+  },
+  "助理教授<SEP>李飞飞": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773736527,
+    "update_time": 1773736527,
+    "_id": "助理教授<SEP>李飞飞"
+  },
+  "李飞飞<SEP>计算机科学系": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773736527,
+    "update_time": 1773736527,
+    "_id": "李飞飞<SEP>计算机科学系"
+  },
+  "RT-DETR<SEP>YOLO": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737749,
+    "update_time": 1773737749,
+    "_id": "RT-DETR<SEP>YOLO"
+  },
+  "Baidu Inc<SEP>Yian Zhao": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737749,
+    "update_time": 1773737749,
+    "_id": "Baidu Inc<SEP>Yian Zhao"
+  },
+  "Beijing<SEP>China": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737749,
+    "update_time": 1773737749,
+    "_id": "Beijing<SEP>China"
+  },
+  "China<SEP>Shenzhen": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737749,
+    "update_time": 1773737749,
+    "_id": "China<SEP>Shenzhen"
+  },
+  "Real-Time Object Detection<SEP>YOLO": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737749,
+    "update_time": 1773737749,
+    "_id": "Real-Time Object Detection<SEP>YOLO"
+  },
+  "DETR<SEP>RT-DETR": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737749,
+    "update_time": 1773737749,
+    "_id": "DETR<SEP>RT-DETR"
+  },
+  "Peking University<SEP>Yian Zhao": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737749,
+    "update_time": 1773737749,
+    "_id": "Peking University<SEP>Yian Zhao"
+  },
+  "Baidu Inc<SEP>Wenyu Lv": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737749,
+    "update_time": 1773737749,
+    "_id": "Baidu Inc<SEP>Wenyu Lv"
+  },
+  "DINO<SEP>RT-DETR": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737749,
+    "update_time": 1773737749,
+    "_id": "DINO<SEP>RT-DETR"
+  },
+  "Baidu Inc<SEP>Beijing": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737750,
+    "update_time": 1773737750,
+    "_id": "Baidu Inc<SEP>Beijing"
+  },
+  "CNN<SEP>Real-Time Object Detection": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737750,
+    "update_time": 1773737750,
+    "_id": "CNN<SEP>Real-Time Object Detection"
+  },
+  "Jie Chen<SEP>Peking University": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737750,
+    "update_time": 1773737750,
+    "_id": "Jie Chen<SEP>Peking University"
+  },
+  "NMS<SEP>RT-DETR": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948",
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 2,
+    "create_time": 1773737750,
+    "update_time": 1773737750,
+    "_id": "NMS<SEP>RT-DETR"
+  },
+  "CNN<SEP>YOLO": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737750,
+    "update_time": 1773737750,
+    "_id": "CNN<SEP>YOLO"
+  },
+  "COCO val2017<SEP>YOLOv8": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737750,
+    "update_time": 1773737750,
+    "_id": "COCO val2017<SEP>YOLOv8"
+  },
+  "Peking University<SEP>Shenzhen": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737750,
+    "update_time": 1773737750,
+    "_id": "Peking University<SEP>Shenzhen"
+  },
+  "CNN<SEP>YOLOv1": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737750,
+    "update_time": 1773737750,
+    "_id": "CNN<SEP>YOLOv1"
+  },
+  "TensorRT<SEP>YOLOv8": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737751,
+    "update_time": 1773737751,
+    "_id": "TensorRT<SEP>YOLOv8"
+  },
+  "Hybrid Encoder<SEP>RT-DETR": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737751,
+    "update_time": 1773737751,
+    "_id": "Hybrid Encoder<SEP>RT-DETR"
+  },
+  "NMS<SEP>YOLO": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737751,
+    "update_time": 1773737751,
+    "_id": "NMS<SEP>YOLO"
+  },
+  "EfficientNMSPlugin<SEP>TensorRT": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b",
+      "chunk-6f8d2c7214c42b033614f977155bd023"
+    ],
+    "count": 2,
+    "create_time": 1773737751,
+    "update_time": 1773737751,
+    "_id": "EfficientNMSPlugin<SEP>TensorRT"
+  },
+  "NMS<SEP>YOLO Detectors": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737751,
+    "update_time": 1773737751,
+    "_id": "NMS<SEP>YOLO Detectors"
+  },
+  "RT-DETR<SEP>Uncertainty-Minimal Query Selection": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737751,
+    "update_time": 1773737751,
+    "_id": "RT-DETR<SEP>Uncertainty-Minimal Query Selection"
+  },
+  "End-to-end Speed Benchmark<SEP>YOLOv5": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737751,
+    "update_time": 1773737751,
+    "_id": "End-to-end Speed Benchmark<SEP>YOLOv5"
+  },
+  "EfficientNMS Kernel<SEP>EfficientNMSPlugin": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737751,
+    "update_time": 1773737751,
+    "_id": "EfficientNMS Kernel<SEP>EfficientNMSPlugin"
+  },
+  "Figure 2<SEP>NMS": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737752,
+    "update_time": 1773737752,
+    "_id": "Figure 2<SEP>NMS"
+  },
+  "End-to-end Speed Benchmark<SEP>YOLOv7": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737752,
+    "update_time": 1773737752,
+    "_id": "End-to-end Speed Benchmark<SEP>YOLOv7"
+  },
+  "COCO<SEP>RT-DETR": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737752,
+    "update_time": 1773737752,
+    "_id": "COCO<SEP>RT-DETR"
+  },
+  "EfficientNMS Kernel<SEP>T4 GPU": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737752,
+    "update_time": 1773737752,
+    "_id": "EfficientNMS Kernel<SEP>T4 GPU"
+  },
+  "NVIDIA<SEP>TensorRT": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b",
+      "chunk-6f8d2c7214c42b033614f977155bd023"
+    ],
+    "count": 2,
+    "create_time": 1773737752,
+    "update_time": 1773737752,
+    "_id": "NVIDIA<SEP>TensorRT"
+  },
+  "DETR<SEP>NMS": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737752,
+    "update_time": 1773737752,
+    "_id": "DETR<SEP>NMS"
+  },
+  "Objects365<SEP>RT-DETR": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948",
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 2,
+    "create_time": 1773737752,
+    "update_time": 1773737752,
+    "_id": "Objects365<SEP>RT-DETR"
+  },
+  "COCO Val2017<SEP>YOLOv8": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737752,
+    "update_time": 1773737752,
+    "_id": "COCO Val2017<SEP>YOLOv8"
+  },
+  "End-to-end Speed Benchmark<SEP>PP-YOLOE": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737752,
+    "update_time": 1773737752,
+    "_id": "End-to-end Speed Benchmark<SEP>PP-YOLOE"
+  },
+  "EfficientNMSPlugin<SEP>T4 GPU": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737752,
+    "update_time": 1773737752,
+    "_id": "EfficientNMSPlugin<SEP>T4 GPU"
+  },
+  "GitHub<SEP>TensorRT": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b",
+      "chunk-6f8d2c7214c42b033614f977155bd023"
+    ],
+    "count": 2,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "GitHub<SEP>TensorRT"
+  },
+  "Confidence Threshold<SEP>NMS": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27",
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 2,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "Confidence Threshold<SEP>NMS"
+  },
+  "DETR<SEP>Transformer": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948",
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 2,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "DETR<SEP>Transformer"
+  },
+  "End-to-end Speed Benchmark<SEP>YOLOv6": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "End-to-end Speed Benchmark<SEP>YOLOv6"
+  },
+  "RT-DETR<SEP>T4 GPU": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "RT-DETR<SEP>T4 GPU"
+  },
+  "EfficientNMSPlugin<SEP>RadixSort": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "EfficientNMSPlugin<SEP>RadixSort"
+  },
+  "TensorRT<SEP>efficientNMSPlugin": {
+    "chunk_ids": [
+      "chunk-6f8d2c7214c42b033614f977155bd023"
+    ],
+    "count": 1,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "TensorRT<SEP>efficientNMSPlugin"
+  },
+  "GitHub<SEP>NVIDIA": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "GitHub<SEP>NVIDIA"
+  },
+  "Carion et al.<SEP>DETR": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "Carion et al.<SEP>DETR"
+  },
+  "IoU Threshold<SEP>NMS": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27",
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 2,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "IoU Threshold<SEP>NMS"
+  },
+  "Confidence Threshold<SEP>Table 1": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "Confidence Threshold<SEP>Table 1"
+  },
+  "EfficientNMSFilter<SEP>EfficientNMSPlugin": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "EfficientNMSFilter<SEP>EfficientNMSPlugin"
+  },
+  "End-to-end Speed Benchmark<SEP>YOLOv8": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "End-to-end Speed Benchmark<SEP>YOLOv8"
+  },
+  "RT-DETR<SEP>Uncertainty-minimal Query Selection": {
+    "chunk_ids": [
+      "chunk-58459ff4307a5aa040657ceba41be948"
+    ],
+    "count": 1,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "RT-DETR<SEP>Uncertainty-minimal Query Selection"
+  },
+  "Release 8.6<SEP>TensorRT": {
+    "chunk_ids": [
+      "chunk-6f8d2c7214c42b033614f977155bd023"
+    ],
+    "count": 1,
+    "create_time": 1773737753,
+    "update_time": 1773737753,
+    "_id": "Release 8.6<SEP>TensorRT"
+  },
+  "DETR<SEP>Zhu et al.": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737754,
+    "update_time": 1773737754,
+    "_id": "DETR<SEP>Zhu et al."
+  },
+  "NMS<SEP>YOLOv5": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737754,
+    "update_time": 1773737754,
+    "_id": "NMS<SEP>YOLOv5"
+  },
+  "RT-DETR<SEP>YOLO Detectors": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737754,
+    "update_time": 1773737754,
+    "_id": "RT-DETR<SEP>YOLO Detectors"
+  },
+  "NMS<SEP>YOLOv8": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27",
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 2,
+    "create_time": 1773737754,
+    "update_time": 1773737754,
+    "_id": "NMS<SEP>YOLOv8"
+  },
+  "DINO-Deformable-DETR-R50<SEP>RT-DETR": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737754,
+    "update_time": 1773737754,
+    "_id": "DINO-Deformable-DETR-R50<SEP>RT-DETR"
+  },
+  "Carion Et Al.<SEP>DETR": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737754,
+    "update_time": 1773737754,
+    "_id": "Carion Et Al.<SEP>DETR"
+  },
+  "IoU Threshold<SEP>Table 1": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737755,
+    "update_time": 1773737755,
+    "_id": "IoU Threshold<SEP>Table 1"
+  },
+  "Average Precision<SEP>RT-DETR": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737755,
+    "update_time": 1773737755,
+    "_id": "Average Precision<SEP>RT-DETR"
+  },
+  "DINO-Deformable-DETR-R50<SEP>RT-DETR-R50": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737755,
+    "update_time": 1773737755,
+    "_id": "DINO-Deformable-DETR-R50<SEP>RT-DETR-R50"
+  },
+  "NMS<SEP>Table 1": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737755,
+    "update_time": 1773737755,
+    "_id": "NMS<SEP>Table 1"
+  },
+  "Execution Time<SEP>IoU Threshold": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737755,
+    "update_time": 1773737755,
+    "_id": "Execution Time<SEP>IoU Threshold"
+  },
+  "Frames Per Second<SEP>RT-DETR": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737755,
+    "update_time": 1773737755,
+    "_id": "Frames Per Second<SEP>RT-DETR"
+  },
+  "Average Precision<SEP>Table 1": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737756,
+    "update_time": 1773737756,
+    "_id": "Average Precision<SEP>Table 1"
+  },
+  "Confidence Threshold<SEP>Execution Time": {
+    "chunk_ids": [
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b"
+    ],
+    "count": 1,
+    "create_time": 1773737756,
+    "update_time": 1773737756,
+    "_id": "Confidence Threshold<SEP>Execution Time"
+  },
+  "Figure 1<SEP>RT-DETR": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737756,
+    "update_time": 1773737756,
+    "_id": "Figure 1<SEP>RT-DETR"
+  },
+  "Encoder<SEP>RT-DETR": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737756,
+    "update_time": 1773737756,
+    "_id": "Encoder<SEP>RT-DETR"
+  },
+  "Decoder<SEP>RT-DETR": {
+    "chunk_ids": [
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27"
+    ],
+    "count": 1,
+    "create_time": 1773737757,
+    "update_time": 1773737757,
+    "_id": "Decoder<SEP>RT-DETR"
+  },
+  "Historical Domain<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Historical Domain<SEP>Kongzi"
+  },
+  "Large Language Models<SEP>Reinforcement Learning from Human Feedback": {
+    "chunk_ids": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Large Language Models<SEP>Reinforcement Learning from Human Feedback"
+  },
+  "Graph of Relevant Information<SEP>Reward Function": {
+    "chunk_ids": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Graph of Relevant Information<SEP>Reward Function"
+  },
+  "DeepSeek-R1<SEP>Group Relative Policy Optimization": {
+    "chunk_ids": [
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "DeepSeek-R1<SEP>Group Relative Policy Optimization"
+  },
+  "Fact-Aware RL Framework<SEP>Reinforcement Learning": {
+    "chunk_ids": [
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Fact-Aware RL Framework<SEP>Reinforcement Learning"
+  },
+  "Chinese History<SEP>Large Pretrained Language Models": {
+    "chunk_ids": [
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Chinese History<SEP>Large Pretrained Language Models"
+  },
+  "FoodieQA Dataset<SEP>Li et al.": {
+    "chunk_ids": [
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "FoodieQA Dataset<SEP>Li et al."
+  },
+  "Fuxi<SEP>Zhao et al.": {
+    "chunk_ids": [
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Fuxi<SEP>Zhao et al."
+  },
+  "CTM Benchmark<SEP>Wang et al.": {
+    "chunk_ids": [
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "CTM Benchmark<SEP>Wang et al."
+  },
+  "Continued Pre-Training<SEP>Supervised Command Fine-Tuning": {
+    "chunk_ids": [
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Continued Pre-Training<SEP>Supervised Command Fine-Tuning"
+  },
+  "CoT Distillation<SEP>Wadhwa, Amir, and Wallace": {
+    "chunk_ids": [
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "CoT Distillation<SEP>Wadhwa, Amir, and Wallace"
+  },
+  "Chain-Of-Thought Data<SEP>SFT Method": {
+    "chunk_ids": [
+      "chunk-4a788995ccccdf35107e6945abee4409"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Chain-Of-Thought Data<SEP>SFT Method"
+  },
+  "Language Models<SEP>Reinforcement Learning Training": {
+    "chunk_ids": [
+      "chunk-4a788995ccccdf35107e6945abee4409"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Language Models<SEP>Reinforcement Learning Training"
+  },
+  "Historical Fact-Enhanced Reward Module (HFRM)<SEP>Knowledge Graph": {
+    "chunk_ids": [
+      "chunk-4a788995ccccdf35107e6945abee4409"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Historical Fact-Enhanced Reward Module (HFRM)<SEP>Knowledge Graph"
+  },
+  "CTM Benchmark<SEP>Timeline Ito Games": {
+    "chunk_ids": [
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "CTM Benchmark<SEP>Timeline Ito Games"
+  },
+  "Ground Truth Graph<SEP>Historical Fact-Enhanced Reward Module (HFRM)": {
+    "chunk_ids": [
+      "chunk-4a788995ccccdf35107e6945abee4409"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Ground Truth Graph<SEP>Historical Fact-Enhanced Reward Module (HFRM)"
+  },
+  "Content RL<SEP>Large Pretrained Language Models": {
+    "chunk_ids": [
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Content RL<SEP>Large Pretrained Language Models"
+  },
+  "Fact-Enhanced Reinforcement Learning Strategy<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Fact-Enhanced Reinforcement Learning Strategy<SEP>Kongzi"
+  },
+  "Chain-of-Thought<SEP>Large Language Models": {
+    "chunk_ids": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Chain-of-Thought<SEP>Large Language Models"
+  },
+  "DeepSeek-R1<SEP>o1": {
+    "chunk_ids": [
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "DeepSeek-R1<SEP>o1"
+  },
+  "Factuality Score<SEP>Reinforcement Learning": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Factuality Score<SEP>Reinforcement Learning"
+  },
+  "Chinese Historical And Cultural Annotated Text Corpus<SEP>Twenty-Four Histories": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Chinese Historical And Cultural Annotated Text Corpus<SEP>Twenty-Four Histories"
+  },
+  "Knowledge Graph<SEP>Language Models": {
+    "chunk_ids": [
+      "chunk-4a788995ccccdf35107e6945abee4409"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Knowledge Graph<SEP>Language Models"
+  },
+  "Classical Chinese<SEP>Large Language Model": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Classical Chinese<SEP>Large Language Model"
+  },
+  "Chain-of-Thought Data<SEP>Supervised Command Fine-Tuning": {
+    "chunk_ids": [
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Chain-of-Thought Data<SEP>Supervised Command Fine-Tuning"
+  },
+  "Continued Pre-training<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Continued Pre-training<SEP>Kongzi"
+  },
+  "Continued PreTraining<SEP>NVIDIA A6000 GPU": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740173,
+    "update_time": 1773740173,
+    "_id": "Continued PreTraining<SEP>NVIDIA A6000 GPU"
+  },
+  "NVIDIA GeForce RTX 3090 GPU<SEP>Supervised Fine-Tuning": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "NVIDIA GeForce RTX 3090 GPU<SEP>Supervised Fine-Tuning"
+  },
+  "Ground Truth Knowledge Graph<SEP>Knowledge Graph": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Ground Truth Knowledge Graph<SEP>Knowledge Graph"
+  },
+  "Generalized Reward Policy Optimization (GRPO)<SEP>Historical Fact-Enhanced Reward Module (HFRM)": {
+    "chunk_ids": [
+      "chunk-4a788995ccccdf35107e6945abee4409"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Generalized Reward Policy Optimization (GRPO)<SEP>Historical Fact-Enhanced Reward Module (HFRM)"
+  },
+  "Chinese Historical And Cultural Annotated Text Corpus<SEP>Factual Statement Data": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Chinese Historical And Cultural Annotated Text Corpus<SEP>Factual Statement Data"
+  },
+  "Large Language Models<SEP>Prompt Engineering": {
+    "chunk_ids": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Large Language Models<SEP>Prompt Engineering"
+  },
+  "Chain-of-Thought<SEP>Contextual Reasoning Text": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Chain-of-Thought<SEP>Contextual Reasoning Text"
+  },
+  "Kongzi-7B-RL<SEP>Kongzi-7B-SFT": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Kongzi-7B-RL<SEP>Kongzi-7B-SFT"
+  },
+  "Kongzi-0.5B-RL<SEP>Kongzi-0.5B-SFT": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Kongzi-0.5B-RL<SEP>Kongzi-0.5B-SFT"
+  },
+  "Instruction-following Fine-tuning<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Instruction-following Fine-tuning<SEP>Kongzi"
+  },
+  "Continued Pre-training<SEP>Historical Corpora": {
+    "chunk_ids": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Continued Pre-training<SEP>Historical Corpora"
+  },
+  "Ground Truth Knowledge Graph<SEP>Human Experts": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Ground Truth Knowledge Graph<SEP>Human Experts"
+  },
+  "Factuality-Oriented Reward Mechanism For Historical Entities<SEP>Historical Fact-Enhanced Reward Module (HFRM)": {
+    "chunk_ids": [
+      "chunk-4a788995ccccdf35107e6945abee4409"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Factuality-Oriented Reward Mechanism For Historical Entities<SEP>Historical Fact-Enhanced Reward Module (HFRM)"
+  },
+  "Generalized Reward Policy Optimization (GRPO)<SEP>KL Divergence": {
+    "chunk_ids": [
+      "chunk-4a788995ccccdf35107e6945abee4409"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Generalized Reward Policy Optimization (GRPO)<SEP>KL Divergence"
+  },
+  "GRPO<SEP>RL Training": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "GRPO<SEP>RL Training"
+  },
+  "DeepSeek-AI<SEP>Large Language Models": {
+    "chunk_ids": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "DeepSeek-AI<SEP>Large Language Models"
+  },
+  "Factual Reward<SEP>Reward Function": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Factual Reward<SEP>Reward Function"
+  },
+  "Chinese Historical And Cultural Annotated Text Corpus<SEP>Contextual Reasoning Text": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Chinese Historical And Cultural Annotated Text Corpus<SEP>Contextual Reasoning Text"
+  },
+  "Kongzi-0.5B-SFT<SEP>SFT Training": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Kongzi-0.5B-SFT<SEP>SFT Training"
+  },
+  "Ground Truth<SEP>Knowledge Graphs": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Ground Truth<SEP>Knowledge Graphs"
+  },
+  "Generalized Reward Policy Optimization (GRPO)<SEP>Policy Model": {
+    "chunk_ids": [
+      "chunk-4a788995ccccdf35107e6945abee4409"
+    ],
+    "count": 1,
+    "create_time": 1773740174,
+    "update_time": 1773740174,
+    "_id": "Generalized Reward Policy Optimization (GRPO)<SEP>Policy Model"
+  },
+  "Historical Domain<SEP>Large Language Models": {
+    "chunk_ids": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe"
+    ],
+    "count": 1,
+    "create_time": 1773740175,
+    "update_time": 1773740175,
+    "_id": "Historical Domain<SEP>Large Language Models"
+  },
+  "Format Reward<SEP>Reward Function": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740175,
+    "update_time": 1773740175,
+    "_id": "Format Reward<SEP>Reward Function"
+  },
+  "Kongzi-7B-SFT<SEP>SFT Training": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740175,
+    "update_time": 1773740175,
+    "_id": "Kongzi-7B-SFT<SEP>SFT Training"
+  },
+  "Knowledge Graphs<SEP>Model Output": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740175,
+    "update_time": 1773740175,
+    "_id": "Knowledge Graphs<SEP>Model Output"
+  },
+  "Kongzi-0.5B<SEP>Kongzi-0.5B (RL)": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740175,
+    "update_time": 1773740175,
+    "_id": "Kongzi-0.5B<SEP>Kongzi-0.5B (RL)"
+  },
+  "Chain-of-Thought<SEP>SFT Training": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740175,
+    "update_time": 1773740175,
+    "_id": "Chain-of-Thought<SEP>SFT Training"
+  },
+  "Kongzi-7B<SEP>Kongzi-7B (RL)": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740175,
+    "update_time": 1773740175,
+    "_id": "Kongzi-7B<SEP>Kongzi-7B (RL)"
+  },
+  "Kongzi<SEP>Large Language Models": {
+    "chunk_ids": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe"
+    ],
+    "count": 1,
+    "create_time": 1773740175,
+    "update_time": 1773740175,
+    "_id": "Kongzi<SEP>Large Language Models"
+  },
+  "Repetition Penalty Reward<SEP>Reward Function": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740175,
+    "update_time": 1773740175,
+    "_id": "Repetition Penalty Reward<SEP>Reward Function"
+  },
+  "Format Reward<SEP>Reward Formula": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740175,
+    "update_time": 1773740175,
+    "_id": "Format Reward<SEP>Reward Formula"
+  },
+  "Augmented Dataset<SEP>SFT Training": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "Augmented Dataset<SEP>SFT Training"
+  },
+  "Factual Reward<SEP>Knowledge Graphs": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "Factual Reward<SEP>Knowledge Graphs"
+  },
+  "Deepseek-r1<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "Deepseek-r1<SEP>Kongzi"
+  },
+  "Logical Coherence Reward<SEP>Reward Function": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "Logical Coherence Reward<SEP>Reward Function"
+  },
+  "Kongzi-0.5B<SEP>SFT": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "Kongzi-0.5B<SEP>SFT"
+  },
+  "Repetition Penalty Reward<SEP>Reward Formula": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "Repetition Penalty Reward<SEP>Reward Formula"
+  },
+  "CMMLU<SEP>Kongzi-7B": {
+    "chunk_ids": [
+      "chunk-d078638e859d238ad5eb6faf7a982c48"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "CMMLU<SEP>Kongzi-7B"
+  },
+  "Cosine Similarity<SEP>Factual Reward": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "Cosine Similarity<SEP>Factual Reward"
+  },
+  "Historical Accuracy<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "Historical Accuracy<SEP>Kongzi"
+  },
+  "General SFT Dataset<SEP>SFT Training": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "General SFT Dataset<SEP>SFT Training"
+  },
+  "RL Training<SEP>Reward Function": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "RL Training<SEP>Reward Function"
+  },
+  "Deepseek-R1<SEP>Kongzi-7B": {
+    "chunk_ids": [
+      "chunk-d078638e859d238ad5eb6faf7a982c48"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "Deepseek-R1<SEP>Kongzi-7B"
+  },
+  "Logical Coherence Reward<SEP>Reward Formula": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "Logical Coherence Reward<SEP>Reward Formula"
+  },
+  "Results Evaluation<SEP>Think Score": {
+    "chunk_ids": [
+      "chunk-d078638e859d238ad5eb6faf7a982c48"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "Results Evaluation<SEP>Think Score"
+  },
+  "Kongzi<SEP>Logical Reasoning": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740176,
+    "update_time": 1773740176,
+    "_id": "Kongzi<SEP>Logical Reasoning"
+  },
+  "Kongzi-0.5B-RL<SEP>RL Training": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "Kongzi-0.5B-RL<SEP>RL Training"
+  },
+  "Gemini-2.0-flash-lite-preview<SEP>Kongzi-7B": {
+    "chunk_ids": [
+      "chunk-d078638e859d238ad5eb6faf7a982c48"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "Gemini-2.0-flash-lite-preview<SEP>Kongzi-7B"
+  },
+  "DeepSeek-AI<SEP>Deepseek-R1": {
+    "chunk_ids": [
+      "chunk-d078638e859d238ad5eb6faf7a982c48"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "DeepSeek-AI<SEP>Deepseek-R1"
+  },
+  "DeepSeek-R1<SEP>Zhu, Z.": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "DeepSeek-R1<SEP>Zhu, Z."
+  },
+  "Factual Reward<SEP>Reward Formula": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "Factual Reward<SEP>Reward Formula"
+  },
+  "Answer Score<SEP>Results Evaluation": {
+    "chunk_ids": [
+      "chunk-d078638e859d238ad5eb6faf7a982c48"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "Answer Score<SEP>Results Evaluation"
+  },
+  "Kongzi-7B-RL<SEP>RL Training": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "Kongzi-7B-RL<SEP>RL Training"
+  },
+  "A Survey on LLM-as-a-Judge<SEP>Gu, J.": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "A Survey on LLM-as-a-Judge<SEP>Gu, J."
+  },
+  "DeepSeek-R1<SEP>Reinforcement Learning": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "DeepSeek-R1<SEP>Reinforcement Learning"
+  },
+  "Kongzi-7B<SEP>Qwen-Max": {
+    "chunk_ids": [
+      "chunk-d078638e859d238ad5eb6faf7a982c48"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "Kongzi-7B<SEP>Qwen-Max"
+  },
+  "A Survey on Hallucination in Large Language Models<SEP>Huang, L.": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "A Survey on Hallucination in Large Language Models<SEP>Huang, L."
+  },
+  "Historical Accuracy<SEP>Results Evaluation": {
+    "chunk_ids": [
+      "chunk-d078638e859d238ad5eb6faf7a982c48"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "Historical Accuracy<SEP>Results Evaluation"
+  },
+  "Kongzi-0.5B (RL)<SEP>RL Training": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "Kongzi-0.5B (RL)<SEP>RL Training"
+  },
+  "Kongzi-7B-RL<SEP>Table 1": {
+    "chunk_ids": [
+      "chunk-b01cc653818982672feeec4cd1d743e3"
+    ],
+    "count": 1,
+    "create_time": 1773740177,
+    "update_time": 1773740177,
+    "_id": "Kongzi-7B-RL<SEP>Table 1"
+  },
+  "Kim, S.<SEP>The CoT Collection": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "Kim, S.<SEP>The CoT Collection"
+  },
+  "A Survey on LLM-as-a-Judge<SEP>LLM-as-a-Judge": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "A Survey on LLM-as-a-Judge<SEP>LLM-as-a-Judge"
+  },
+  "DeepSeek-R1<SEP>Large Language Models": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "DeepSeek-R1<SEP>Large Language Models"
+  },
+  "A Survey on Hallucination in Large Language Models<SEP>Hallucination": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "A Survey on Hallucination in Large Language Models<SEP>Hallucination"
+  },
+  "FoodieQA<SEP>Li, W.": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "FoodieQA<SEP>Li, W."
+  },
+  "Problem Solving<SEP>Results Evaluation": {
+    "chunk_ids": [
+      "chunk-d078638e859d238ad5eb6faf7a982c48"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "Problem Solving<SEP>Results Evaluation"
+  },
+  "Kongzi-7B (RL)<SEP>RL Training": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "Kongzi-7B (RL)<SEP>RL Training"
+  },
+  "Nye, M.<SEP>Show Your Work": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "Nye, M.<SEP>Show Your Work"
+  },
+  "DeepSeek-R1<SEP>arXiv": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "DeepSeek-R1<SEP>arXiv"
+  },
+  "Chain-of-Thought Fine-Tuning<SEP>The CoT Collection": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "Chain-of-Thought Fine-Tuning<SEP>The CoT Collection"
+  },
+  "Chinese Food Culture<SEP>FoodieQA": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "Chinese Food Culture<SEP>FoodieQA"
+  },
+  "Achiam, J.<SEP>OpenAI": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "Achiam, J.<SEP>OpenAI"
+  },
+  "A Survey on Hallucination in Large Language Models<SEP>Large Language Models": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "A Survey on Hallucination in Large Language Models<SEP>Large Language Models"
+  },
+  "Logical Reasoning<SEP>Results Evaluation": {
+    "chunk_ids": [
+      "chunk-d078638e859d238ad5eb6faf7a982c48"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "Logical Reasoning<SEP>Results Evaluation"
+  },
+  "Kongzi<SEP>Problem Solving": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "Kongzi<SEP>Problem Solving"
+  },
+  "Scratchpads<SEP>Show Your Work": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "Scratchpads<SEP>Show Your Work"
+  },
+  "A Survey on LLM-as-a-Judge<SEP>arXiv": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740178,
+    "update_time": 1773740178,
+    "_id": "A Survey on LLM-as-a-Judge<SEP>arXiv"
+  },
+  "EMNLP 2023<SEP>The CoT Collection": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740179,
+    "update_time": 1773740179,
+    "_id": "EMNLP 2023<SEP>The CoT Collection"
+  },
+  "Kongzi<SEP>Qwen2.5": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740179,
+    "update_time": 1773740179,
+    "_id": "Kongzi<SEP>Qwen2.5"
+  },
+  "Kongzi-7B<SEP>Results Evaluation": {
+    "chunk_ids": [
+      "chunk-d078638e859d238ad5eb6faf7a982c48"
+    ],
+    "count": 1,
+    "create_time": 1773740179,
+    "update_time": 1773740179,
+    "_id": "Kongzi-7B<SEP>Results Evaluation"
+  },
+  "A Survey on Hallucination in Large Language Models<SEP>ACM Transactions on Information Systems": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740179,
+    "update_time": 1773740179,
+    "_id": "A Survey on Hallucination in Large Language Models<SEP>ACM Transactions on Information Systems"
+  },
+  "GPT-4 Technical Report<SEP>arXiv": {
+    "chunk_ids": [
+      "chunk-4e80e0a6495792bbf0f816477eb5ddd6"
+    ],
+    "count": 1,
+    "create_time": 1773740179,
+    "update_time": 1773740179,
+    "_id": "GPT-4 Technical Report<SEP>arXiv"
+  },
+  "Kongzi<SEP>Kongzi-0.5B-SFT": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740179,
+    "update_time": 1773740179,
+    "_id": "Kongzi<SEP>Kongzi-0.5B-SFT"
+  },
+  "Training Language Models To Follow Instructions With Human Feedback<SEP>arXiv": {
+    "chunk_ids": [
+      "chunk-4e80e0a6495792bbf0f816477eb5ddd6"
+    ],
+    "count": 1,
+    "create_time": 1773740179,
+    "update_time": 1773740179,
+    "_id": "Training Language Models To Follow Instructions With Human Feedback<SEP>arXiv"
+  },
+  "Kongzi<SEP>Kongzi-7B-SFT": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740180,
+    "update_time": 1773740180,
+    "_id": "Kongzi<SEP>Kongzi-7B-SFT"
+  },
+  "Reasoning With Large Language Models A Survey<SEP>arXiv": {
+    "chunk_ids": [
+      "chunk-4e80e0a6495792bbf0f816477eb5ddd6"
+    ],
+    "count": 1,
+    "create_time": 1773740180,
+    "update_time": 1773740180,
+    "_id": "Reasoning With Large Language Models A Survey<SEP>arXiv"
+  },
+  "J. Schulman<SEP>Training Language Models To Follow Instructions With Human Feedback": {
+    "chunk_ids": [
+      "chunk-4e80e0a6495792bbf0f816477eb5ddd6"
+    ],
+    "count": 1,
+    "create_time": 1773740180,
+    "update_time": 1773740180,
+    "_id": "J. Schulman<SEP>Training Language Models To Follow Instructions With Human Feedback"
+  },
+  "Kongzi<SEP>Kongzi-0.5B-RL": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740180,
+    "update_time": 1773740180,
+    "_id": "Kongzi<SEP>Kongzi-0.5B-RL"
+  },
+  "L. Ouyang<SEP>Training Language Models To Follow Instructions With Human Feedback": {
+    "chunk_ids": [
+      "chunk-4e80e0a6495792bbf0f816477eb5ddd6"
+    ],
+    "count": 1,
+    "create_time": 1773740180,
+    "update_time": 1773740180,
+    "_id": "L. Ouyang<SEP>Training Language Models To Follow Instructions With Human Feedback"
+  },
+  "GPT-4 Technical Report<SEP>J. Schulman": {
+    "chunk_ids": [
+      "chunk-4e80e0a6495792bbf0f816477eb5ddd6"
+    ],
+    "count": 1,
+    "create_time": 1773740180,
+    "update_time": 1773740180,
+    "_id": "GPT-4 Technical Report<SEP>J. Schulman"
+  },
+  "Qwen2.5 Technical Report<SEP>arXiv": {
+    "chunk_ids": [
+      "chunk-4e80e0a6495792bbf0f816477eb5ddd6"
+    ],
+    "count": 1,
+    "create_time": 1773740180,
+    "update_time": 1773740180,
+    "_id": "Qwen2.5 Technical Report<SEP>arXiv"
+  },
+  "A. Plaat<SEP>Reasoning With Large Language Models A Survey": {
+    "chunk_ids": [
+      "chunk-4e80e0a6495792bbf0f816477eb5ddd6"
+    ],
+    "count": 1,
+    "create_time": 1773740180,
+    "update_time": 1773740180,
+    "_id": "A. Plaat<SEP>Reasoning With Large Language Models A Survey"
+  },
+  "Kongzi<SEP>Kongzi-7B-RL": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740181,
+    "update_time": 1773740181,
+    "_id": "Kongzi<SEP>Kongzi-7B-RL"
+  },
+  "FoodieQA<SEP>arXiv": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740181,
+    "update_time": 1773740181,
+    "_id": "FoodieQA<SEP>arXiv"
+  },
+  "Qwen<SEP>Qwen2.5 Technical Report": {
+    "chunk_ids": [
+      "chunk-4e80e0a6495792bbf0f816477eb5ddd6"
+    ],
+    "count": 1,
+    "create_time": 1773740181,
+    "update_time": 1773740181,
+    "_id": "Qwen<SEP>Qwen2.5 Technical Report"
+  },
+  "GPT-4 Technical Report<SEP>L. Ouyang": {
+    "chunk_ids": [
+      "chunk-4e80e0a6495792bbf0f816477eb5ddd6"
+    ],
+    "count": 1,
+    "create_time": 1773740181,
+    "update_time": 1773740181,
+    "_id": "GPT-4 Technical Report<SEP>L. Ouyang"
+  },
+  "Show Your Work<SEP>arXiv": {
+    "chunk_ids": [
+      "chunk-277536c3251d245d4d86b467dd7d0070"
+    ],
+    "count": 1,
+    "create_time": 1773740181,
+    "update_time": 1773740181,
+    "_id": "Show Your Work<SEP>arXiv"
+  },
+  "GPT-4o<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740181,
+    "update_time": 1773740181,
+    "_id": "GPT-4o<SEP>Kongzi"
+  },
+  "A. Yang<SEP>Qwen2.5 Technical Report": {
+    "chunk_ids": [
+      "chunk-4e80e0a6495792bbf0f816477eb5ddd6"
+    ],
+    "count": 1,
+    "create_time": 1773740181,
+    "update_time": 1773740181,
+    "_id": "A. Yang<SEP>Qwen2.5 Technical Report"
+  },
+  "Gemini-2.5<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae"
+    ],
+    "count": 1,
+    "create_time": 1773740182,
+    "update_time": 1773740182,
+    "_id": "Gemini-2.5<SEP>Kongzi"
+  },
+  "GPT-4o<SEP>Kongzi-7B": {
+    "chunk_ids": [
+      "chunk-d078638e859d238ad5eb6faf7a982c48"
+    ],
+    "count": 1,
+    "create_time": 1773740182,
+    "update_time": 1773740182,
+    "_id": "GPT-4o<SEP>Kongzi-7B"
+  },
+  "Graph-Enhanced Reinforcement Learning<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740182,
+    "update_time": 1773740182,
+    "_id": "Graph-Enhanced Reinforcement Learning<SEP>Kongzi"
+  },
+  "CMMLU-Chinese-History<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740183,
+    "update_time": 1773740183,
+    "_id": "CMMLU-Chinese-History<SEP>Kongzi"
+  },
+  "Deepseek r1 distill 7B<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740183,
+    "update_time": 1773740183,
+    "_id": "Deepseek r1 distill 7B<SEP>Kongzi"
+  },
+  "Deepseek r1 distill 14B<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740184,
+    "update_time": 1773740184,
+    "_id": "Deepseek r1 distill 14B<SEP>Kongzi"
+  },
+  "Cold-Start Training<SEP>Kongzi": {
+    "chunk_ids": [
+      "chunk-58fb592c851a91e727075d45ae614007"
+    ],
+    "count": 1,
+    "create_time": 1773740184,
+    "update_time": 1773740184,
+    "_id": "Cold-Start Training<SEP>Kongzi"
+  }
+}

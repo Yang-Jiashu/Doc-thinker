@@ -1,0 +1,437 @@
+{
+  "美团": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "美团"
+  },
+  "乐购达超市(黄浦路店)": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "乐购达超市(黄浦路店)"
+  },
+  "黄浦路": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0",
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 2,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "黄浦路"
+  },
+  "HD Network Camera": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "HD Network Camera"
+  },
+  "Completed Order": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Completed Order"
+  },
+  "Customer": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Customer"
+  },
+  "Black Gold Membership": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Black Gold Membership"
+  },
+  "Growth Points": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0",
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 2,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Growth Points"
+  },
+  "安心闪购": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "安心闪购"
+  },
+  "Packaging Fee": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Packaging Fee"
+  },
+  "Delivery Fee": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Delivery Fee"
+  },
+  "Total Payment": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Total Payment"
+  },
+  "Meituan": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0",
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 2,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Meituan"
+  },
+  "Legou Da Supermarket": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Legou Da Supermarket"
+  },
+  "Huangpu Road": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Huangpu Road"
+  },
+  "Order": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Order"
+  },
+  "User": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "User"
+  },
+  "Black Gold Member": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Black Gold Member"
+  },
+  "Anxin Flash Purchase": {
+    "chunk_ids": [
+      "chunk-65404b026cc70376992a9790603d80b0"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Anxin Flash Purchase"
+  },
+  "Product Title": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Product Title"
+  },
+  "Quantity Field": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Quantity Field"
+  },
+  "Product": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Product"
+  },
+  "Membership Level": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Membership Level"
+  },
+  "Benefits": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Benefits"
+  },
+  "Store Location": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Store Location"
+  },
+  "Promotional Logic": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Promotional Logic"
+  },
+  "免配送费": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "免配送费"
+  },
+  "Orders": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Orders"
+  },
+  "Black Gold Members": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Black Gold Members"
+  },
+  "Return Policy": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Return Policy"
+  },
+  "Supermarkets": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Supermarkets"
+  },
+  "Data Structure": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "Data Structure"
+  },
+  "RDF/TTL": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735390,
+    "update_time": 1773735390,
+    "_id": "RDF/TTL"
+  },
+  "JSON-LD": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735391,
+    "update_time": 1773735391,
+    "_id": "JSON-LD"
+  },
+  "Dynamic Attributes": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735392,
+    "update_time": 1773735392,
+    "_id": "Dynamic Attributes"
+  },
+  "Geolocation": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735392,
+    "update_time": 1773735392,
+    "_id": "Geolocation"
+  },
+  "Products": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735392,
+    "update_time": 1773735392,
+    "_id": "Products"
+  },
+  "7-Day Return Policy": {
+    "chunk_ids": [
+      "chunk-f35258ded14762bcc1ee0aec8fef8106"
+    ],
+    "count": 1,
+    "create_time": 1773735392,
+    "update_time": 1773735392,
+    "_id": "7-Day Return Policy"
+  },
+  "李飞飞": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735661,
+    "update_time": 1773735661,
+    "_id": "李飞飞"
+  },
+  "普林斯顿大学": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735661,
+    "update_time": 1773735661,
+    "_id": "普林斯顿大学"
+  },
+  "西藏": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735661,
+    "update_time": 1773735661,
+    "_id": "西藏"
+  },
+  "藏药": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735661,
+    "update_time": 1773735661,
+    "_id": "藏药"
+  },
+  "加州理工学院": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735661,
+    "update_time": 1773735661,
+    "_id": "加州理工学院"
+  },
+  "博士学位": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735661,
+    "update_time": 1773735661,
+    "_id": "博士学位"
+  },
+  "伊利诺伊大学厄巴纳-香槟分校": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735661,
+    "update_time": 1773735661,
+    "_id": "伊利诺伊大学厄巴纳-香槟分校"
+  },
+  "助理教授": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735661,
+    "update_time": 1773735661,
+    "_id": "助理教授"
+  },
+  "电机系": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735661,
+    "update_time": 1773735661,
+    "_id": "电机系"
+  },
+  "计算机科学系": {
+    "chunk_ids": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "count": 1,
+    "create_time": 1773735661,
+    "update_time": 1773735661,
+    "_id": "计算机科学系"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "name": "global",
+  "type": "global",
+  "entries": {
+    "fd89e76d-e15c-436b-a579-043009df1b1d": {
+      "id": "fd89e76d-e15c-436b-a579-043009df1b1d",
+      "content": "Analysis failed",
+      "type": "memory",
+      "metadata": {
+        "source_type": "image",
+        "session_id": "#00048",
+        "summary": "Analysis failed",
+        "reasoning": "Error: Expecting ',' delimiter: line 49 column 88 (char 2104)",
+        "key_points": [],
+        "concepts": [],
+        "hypotheses": [],
+        "action_items": []
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T16:16:38.244852",
+      "updated_at": "2026-03-17T16:16:38.244852"
+    },
+    "94ec7cad-b0ca-4b86-9ea9-75bc7d2ea35d": {
+      "id": "94ec7cad-b0ca-4b86-9ea9-75bc7d2ea35d",
+      "content": "该片段记录了李飞飞 1999 年至 2009 年的早期学术与职业轨迹，展现了一条从顶尖本科到博士，再到多校教职的精英发展路径，中间穿插独特的跨文化研究经历。",
+      "type": "memory",
+      "metadata": {
+        "source_type": "file",
+        "session_id": "#00048",
+        "summary": "该片段记录了李飞飞 1999 年至 2009 年的早期学术与职业轨迹，展现了一条从顶尖本科到博士，再到多校教职的精英发展路径，中间穿插独特的跨文化研究经历。",
+        "reasoning": "时间线显示其在核心专业（计算机/电机）建立前曾进行非相关领域（藏药）探索，暗示其思维广度；教职从 UIUC 回流普林斯顿，表明学术影响力快速上升；数据截止 2009 年，缺失后续关键成就（如 ImageNet）。",
+        "key_points": [
+          "1999 年普林斯顿大学本科毕业",
+          "1999-2000 年赴西藏研究藏药",
+          "2005 年获加州理工学院博士学位",
+          "2005-2006 年任 UIUC 电机系助理教授",
+          "2007-2009 年任普林斯顿计算机系助理教授"
+        ],
+        "concepts": [
+          "学术生涯阶梯",
+          "跨学科探索",
+          "精英教育网络",
+          "早期职业流动"
+        ],
+        "hypotheses": [
+          "藏药研究可能发生在博士期间或毕业后的间隔年，旨在获取跨文化视角而非单纯的专业深造",
+          "重返普林斯顿大学任教体现了精英教育网络中的校友回流与认可机制",
+          "早期在多所顶尖高校的职业流动是为了积累不同学术环境的资源与影响力",
+          "独特的跨文化研究经历可能为其后来倡导以人为本的人工智能研究奠定了思想基础"
+        ],
+        "action_items": [
+          "补充 2009 年后斯坦福任教及 ImageNet 相关数据",
+          "分析藏药研究经历对其认知科学研究的潜在影响",
+          "构建完整学术成果引用时间轴"
+        ]
+      },
+      "relations": [],
+      "entity_links": [
+        "e1b27846-3579-4a7c-adf5-700f8a49727c",
+        "d385cef3-e5d4-4398-8da4-373d0325e7a0",
+        "b94ff25b-8709-4e6b-be29-c97aa05b9cdf",
+        "ff725e2f-96d4-4475-9145-ae236177a312",
+        "6cfa0c50-b6e0-42ec-a3aa-4511eb6e06aa",
+        "2c2dee8d-177b-4380-bd2f-0681d5a4d6e2",
+        "5e06e334-e4dc-4557-93a8-2d3c410e8b61"
+      ],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T16:21:08.941550",
+      "updated_at": "2026-03-17T16:21:08.954931"
+    }
+  },
+  "metadata": {},
+  "created_at": "2026-03-17T16:12:38.784157",
+  "updated_at": "2026-03-17T16:21:08.941550"
+}

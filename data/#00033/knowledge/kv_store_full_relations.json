@@ -1,0 +1,242 @@
+{
+  "doc-5d118688b1718af99aac6bd62bcc7f55": {
+    "relation_pairs": [
+      [
+        "Black Gold Membership",
+        "Customer"
+      ],
+      [
+        "Completed Order",
+        "乐购达超市(黄浦路店)"
+      ],
+      [
+        "Black Gold Members",
+        "Growth Points"
+      ],
+      [
+        "Data Structure",
+        "JSON-LD"
+      ],
+      [
+        "Completed Order",
+        "安心闪购"
+      ],
+      [
+        "Customer",
+        "Growth Points"
+      ],
+      [
+        "Black Gold Members",
+        "免配送费"
+      ],
+      [
+        "7-Day Return Policy",
+        "Products"
+      ],
+      [
+        "Completed Order",
+        "Customer"
+      ],
+      [
+        "Huangpu Road",
+        "Legou Da Supermarket"
+      ],
+      [
+        "Order",
+        "User"
+      ],
+      [
+        "Store Location",
+        "黄浦路"
+      ],
+      [
+        "Data Structure",
+        "RDF/TTL"
+      ],
+      [
+        "Growth Points",
+        "Membership Level"
+      ],
+      [
+        "Products",
+        "Supermarkets"
+      ],
+      [
+        "Meituan",
+        "Order"
+      ],
+      [
+        "Completed Order",
+        "Total Payment"
+      ],
+      [
+        "Orders",
+        "免配送费"
+      ],
+      [
+        "Meituan",
+        "Supermarkets"
+      ],
+      [
+        "Product",
+        "Supermarkets"
+      ],
+      [
+        "Growth Points",
+        "Orders"
+      ],
+      [
+        "Dynamic Attributes",
+        "Growth Points"
+      ],
+      [
+        "Legou Da Supermarket",
+        "Order"
+      ],
+      [
+        "Benefits",
+        "Membership Level"
+      ],
+      [
+        "乐购达超市(黄浦路店)",
+        "黄浦路"
+      ],
+      [
+        "Growth Points",
+        "User"
+      ],
+      [
+        "Completed Order",
+        "HD Network Camera"
+      ],
+      [
+        "Product",
+        "Product Title"
+      ],
+      [
+        "Promotional Logic",
+        "免配送费"
+      ],
+      [
+        "Benefits",
+        "Dynamic Attributes"
+      ],
+      [
+        "Anxin Flash Purchase",
+        "Order"
+      ],
+      [
+        "Meituan",
+        "Products"
+      ],
+      [
+        "Anxin Flash Purchase",
+        "Black Gold Member"
+      ],
+      [
+        "Black Gold Members",
+        "Membership Level"
+      ],
+      [
+        "Product Title",
+        "Quantity Field"
+      ],
+      [
+        "Delivery Fee",
+        "Total Payment"
+      ],
+      [
+        "HD Network Camera",
+        "Order"
+      ],
+      [
+        "Black Gold Members",
+        "Orders"
+      ],
+      [
+        "Packaging Fee",
+        "Total Payment"
+      ],
+      [
+        "Black Gold Member",
+        "User"
+      ],
+      [
+        "Completed Order",
+        "美团"
+      ],
+      [
+        "Geolocation",
+        "Store Location"
+      ],
+      [
+        "Product",
+        "Return Policy"
+      ],
+      [
+        "Dynamic Attributes",
+        "Membership Level"
+      ],
+      [
+        "Product",
+        "Quantity Field"
+      ]
+    ],
+    "count": 45,
+    "create_time": 1773735398,
+    "update_time": 1773735398,
+    "_id": "doc-5d118688b1718af99aac6bd62bcc7f55"
+  },
+  "doc-ccab72c6530160d3335b16207b953310": {
+    "relation_pairs": [
+      [
+        "加州理工学院",
+        "李飞飞"
+      ],
+      [
+        "李飞飞",
+        "电机系"
+      ],
+      [
+        "普林斯顿大学",
+        "计算机科学系"
+      ],
+      [
+        "李飞飞",
+        "藏药"
+      ],
+      [
+        "博士学位",
+        "李飞飞"
+      ],
+      [
+        "普林斯顿大学",
+        "李飞飞"
+      ],
+      [
+        "伊利诺伊大学厄巴纳-香槟分校",
+        "李飞飞"
+      ],
+      [
+        "李飞飞",
+        "计算机科学系"
+      ],
+      [
+        "李飞飞",
+        "西藏"
+      ],
+      [
+        "伊利诺伊大学厄巴纳-香槟分校",
+        "电机系"
+      ],
+      [
+        "助理教授",
+        "李飞飞"
+      ]
+    ],
+    "count": 11,
+    "create_time": 1773735668,
+    "update_time": 1773735668,
+    "_id": "doc-ccab72c6530160d3335b16207b953310"
+  }
+}

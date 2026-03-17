@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import os
 import tempfile
 import textwrap
@@ -8,20 +9,33 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi.responses import StreamingResponse
 
 from docthinker.kg_expansion import ExpandedNodeManager, extract_entities_from_text
-
-
 from ..memory import get_session_memory_engine
 from ..schemas import MultiDocumentQueryRequest, QueryRequest
-from ..state import state, get_tri_graph_manager
+from ..state import state
 
+_log = logging.getLogger("docthinker.query")
 
 router = APIRouter()
 
 FAST_QA_TIMEOUT_SECONDS = 30
 SESSION_QUERY_TIMEOUT_SECONDS = 180
 FALLBACK_LLM_TIMEOUT_SECONDS = 60
+
+# ── Warm cache: background enrichment results for the *next* query ──
+_warm_cache: Dict[str, dict] = {}
+
+
+def _pop_warm_context(session_id: str) -> dict:
+    """Pop and return pre-computed enrichment context, or empty dict."""
+    return _warm_cache.pop(session_id, {})
+
+
+def _set_warm_context(session_id: str, ctx: dict) -> None:
+    """Cache enrichment context for next query in this session."""
+    _warm_cache[session_id] = ctx
 
 
 def _looks_like_file_question(question: str) -> bool:
@@ -408,6 +422,50 @@ def _get_expanded_node_manager(session_id: Optional[str]) -> Optional[ExpandedNo
         return manager
 
 
+async def _store_episodic_memory(
+    question: str, answer: str, session_id: Optional[str], timestamp: Optional[float] = None,
+) -> None:
+    """Store a Q&A turn as an episodic memory observation."""
+    if not session_id:
+        return
+    engine = get_session_memory_engine(session_id)
+    if engine is None:
+        return
+    summary = f"Q: {question[:200]}\nA: {answer[:400]}"
+    concepts = extract_entities_from_text(f"{question} {answer}", max_entities=8)
+    await engine.add_observation(
+        summary=summary,
+        concepts=concepts,
+        source_type="chat",
+        session_id=session_id,
+        timestamp=timestamp or time.time(),
+    )
+    engine.save()
+
+
+def _build_memory_context(analogies: List[Any]) -> str:
+    """Build a short context string from episodic memory analogies."""
+    if not analogies:
+        return ""
+    lines: List[str] = []
+    for ep, score, _ in analogies[:5]:
+        summary = getattr(ep, "summary", "") or ""
+        if summary:
+            lines.append(f"- [{score:.2f}] {summary[:200]}")
+    if not lines:
+        return ""
+    return "## 情景记忆联想\n" + "\n".join(lines)
+
+
+def _build_memory_summaries(analogies: List[Any]) -> List[str]:
+    """Extract summary strings from episodic analogies."""
+    return [
+        getattr(ep, "summary", "") or ""
+        for ep, _, _ in (analogies or [])[:5]
+        if getattr(ep, "summary", "")
+    ]
+
+
 def _merge_retrieval_instruction(*instructions: Optional[str]) -> str:
     parts = []
     for ins in instructions:
@@ -505,28 +563,116 @@ async def _promote_expanded_nodes_in_background(
         return
 
 
-<<<<<<< Updated upstream
-=======
-from fastapi.responses import StreamingResponse
-import json
+# ── Unified background enrichment ──────────────────────────────────
+# Runs AFTER the answer is delivered.  Does all heavy work and warms
+# the cache so the *next* query can use pre-computed context instantly.
 
-
-async def _run_seal_evolution_background(
+async def _background_post_query_enrichment(
     session_id: str,
     question: str,
     answer: str,
+    *,
+    enable_thinking: bool = False,
+    enable_expanded_matching: bool = False,
+    expanded_top_k: int = 3,
+    expanded_min_score: float = 0.2,
+    retrieval_instruction: str = "",
+    matched_expanded: Optional[List[Dict[str, Any]]] = None,
 ) -> None:
-    """Background task: run SEAL self-iterative evolution after a deep-mode query."""
-    tri_mgr = get_tri_graph_manager(session_id)
-    if tri_mgr is None:
-        return
+    """All post-query intelligence — runs in background, never blocks the user."""
+    _t0 = time.time()
+
+    # 1. Store episodic memory
     try:
-        await tri_mgr.post_query_evolution(
-            question=question,
-            answer=answer,
-        )
+        await _store_episodic_memory(question, answer, session_id, time.time())
     except Exception as exc:
-        _log.warning("[seal:bg] evolution failed for session %s: %s", session_id, exc)
+        _log.warning("[bg_enrich] episodic memory failed: %s", exc)
+
+    # 2. Chat-turn ingest (feed Q&A back into KG)
+    if _is_chat_turn_ingest_enabled():
+        try:
+            await _ingest_chat_turn(question, answer, session_id, time.time())
+        except Exception as exc:
+            _log.warning("[bg_enrich] chat turn ingest failed: %s", exc)
+
+    # 3. Promote expanded nodes that were matched in the *current* query
+    if matched_expanded:
+        try:
+            await _promote_expanded_nodes_in_background(
+                session_id, question, answer, matched_expanded,
+            )
+        except Exception as exc:
+            _log.warning("[bg_enrich] expanded node promotion failed: %s", exc)
+
+    # 4. Pre-warm context for the NEXT query
+    warm: dict = {}
+
+    if enable_thinking:
+        # 4a. Retrieve analogies from episodic memory
+        memory_engine = get_session_memory_engine(session_id)
+        analogies: list = []
+        memory_terms: List[str] = []
+        if memory_engine:
+            try:
+                analogies = await memory_engine.retrieve_analogies(
+                    question, top_k=5, then_spread=True, spread_top_k=3,
+                )
+                for ep, _, _ in analogies[:5]:
+                    memory_terms.extend(list(getattr(ep, "concepts", None) or [])[:6])
+                    memory_terms.extend(list(getattr(ep, "entity_ids", None) or [])[:6])
+
+                # 4b. Co-activation recording
+                ep_ids = [ep.episode_id for ep, _, _ in analogies]
+                kg_ids = getattr(state, "kg_entity_ids", set())
+                ent_ids = [e for ep, _, _ in analogies for e in (getattr(ep, "entity_ids", None) or [])]
+                ent_ids = [e for e in dict.fromkeys(ent_ids) if e and e in kg_ids]
+                if ep_ids or ent_ids:
+                    try:
+                        memory_engine.record_co_activation(ep_ids, ent_ids)
+                        memory_engine.save()
+                    except Exception:
+                        pass
+            except Exception as exc:
+                _log.warning("[bg_enrich] memory retrieval failed: %s", exc)
+
+        warm["memory_context"] = _build_memory_context(analogies)
+        warm["memory_summaries"] = _build_memory_summaries(analogies)
+        warm["analogies_count"] = len(analogies)
+        warm["memory_terms"] = memory_terms
+
+    if enable_expanded_matching:
+        expanded_manager = _get_expanded_node_manager(session_id)
+        exp_matches: list = []
+        exp_instruction = ""
+        if expanded_manager:
+            try:
+                exp_matches = expanded_manager.match_nodes(
+                    query=question,
+                    top_k=max(1, expanded_top_k),
+                    memory_terms=warm.get("memory_terms", []),
+                    min_score=max(0.0, expanded_min_score),
+                )
+                if exp_matches:
+                    expanded_manager.mark_hits([m.get("entity", "") for m in exp_matches])
+                    exp_instruction = expanded_manager.build_forced_instruction(
+                        exp_matches, limit=min(2, max(1, expanded_top_k)),
+                    )
+            except Exception as exc:
+                _log.warning("[bg_enrich] expanded matching failed: %s", exc)
+        warm["expanded_matches"] = exp_matches
+        warm["expanded_instruction"] = exp_instruction
+
+    warm["timestamp"] = time.time()
+    _set_warm_context(session_id, warm)
+
+    _log.info(
+        "[bg_enrich] session %s done in %.2fs | memory=%d expanded=%d",
+        session_id,
+        time.time() - _t0,
+        warm.get("analogies_count", 0),
+        len(warm.get("expanded_matches", [])),
+    )
+
 
 @router.post("/query/stream")
 async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks):
@@ -590,94 +736,36 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         expanded_matches = []
         expanded_instruction = ""
         merged_instruction = str(request.retrieval_instruction or "").strip()
-        expanded_manager = None
         memory_summaries = []
-        analogies = []
         answer_mode = "rag"
 
-        # Phase 1: Thinking (Deep mode only)
+        # Phase 1: Fast prep — use warm cache from previous turn's
+        # background enrichment; do lightweight token matching only.
+        warm = _pop_warm_context(request.session_id)
+        warm_hit = bool(warm)
+
         if request.enable_thinking and not is_identity_query:
             answer_mode = "session_thinking"
 
-            _t_mem = time.time()
-            yield yield_status("正在检索历史对话记忆...")
-            memory_terms = []
-            memory_engine = get_session_memory_engine(request.session_id)
-            if memory_engine:
-                try:
-                    analogies = await memory_engine.retrieve_analogies(
-                        request.question, top_k=5, then_spread=True, spread_top_k=3
-                    )
-                    for ep, _, _ in analogies[:5]:
-                        memory_terms.extend(list(ep.concepts or [])[:6])
-                        memory_terms.extend(list(ep.entity_ids or [])[:6])
+            if warm:
+                memory_context = warm.get("memory_context", "")
+                memory_summaries = warm.get("memory_summaries", [])
+                expanded_matches = warm.get("expanded_matches", [])
+                expanded_instruction = warm.get("expanded_instruction", "")
+                if memory_context:
+                    merged_instruction = _merge_retrieval_instruction(merged_instruction, memory_context)
+                if expanded_instruction:
+                    merged_instruction = _merge_retrieval_instruction(merged_instruction, expanded_instruction)
+                _log.info(
+                    "[T+%ss] phase1 warm-cache hit | memory_summaries=%d expanded=%d",
+                    _elapsed(), len(memory_summaries), len(expanded_matches),
+                )
 
-                    _log.info(f"[T+{_elapsed()}s] memory retrieval done: {len(analogies)} analogies ({round(time.time()-_t_mem,2)}s)")
+        if not is_identity_query:
+            yield yield_status("正在检索知识...")
 
-                    if analogies:
-                        yield yield_status(f"发现 {len(analogies)} 条关联记忆，正在进行图谱扩散激活...")
-
-                    ep_ids = [ep.episode_id for ep, _, _ in analogies]
-                    kg_ids = getattr(state, "kg_entity_ids", set())
-                    ent_ids = [e for ep, _, _ in analogies for e in (ep.entity_ids or [])]
-                    ent_ids = [e for e in dict.fromkeys(ent_ids) if e and e in kg_ids]
-                    if ep_ids or ent_ids:
-                        try:
-                            memory_engine.record_co_activation(ep_ids, ent_ids)
-                            memory_engine.save()
-                        except Exception:
-                            pass
-                except Exception:
-                    pass
-
-            memory_context = _build_memory_context(analogies)
-            memory_summaries = _build_memory_summaries(analogies)
-
-            if request.enable_expanded_matching:
-                _t_exp = time.time()
-                yield yield_status("正在匹配图谱扩展节点...")
-                expanded_manager = _get_expanded_node_manager(request.session_id)
-                if expanded_manager:
-                    refined = expanded_manager.match_nodes(
-                        query=request.question,
-                        top_k=max(1, request.expanded_top_k),
-                        memory_terms=memory_terms,
-                        min_score=max(0.0, request.expanded_min_score),
-                    )
-                    if refined:
-                        expanded_matches = refined
-                        expanded_manager.mark_hits([m.get("entity", "") for m in expanded_matches])
-                        expanded_instruction = expanded_manager.build_forced_instruction(
-                            expanded_matches, limit=min(2, max(1, request.expanded_top_k))
-                        )
-                        merged_instruction = _merge_retrieval_instruction(request.retrieval_instruction, expanded_instruction)
-                _log.info(f"[T+{_elapsed()}s] expanded matching done: {len(expanded_matches)} matches ({round(time.time()-_t_exp,2)}s)")
-
-            # C1-C4: Tri-Graph causal reasoning (deep mode)
-            causal_context = ""
-            tri_mgr = get_tri_graph_manager(request.session_id)
-            if tri_mgr is not None:
-                _t_tri = time.time()
-                yield yield_status("正在检索因果推理链...")
-                try:
-                    episodic_concepts = list(memory_terms)[:20]
-                    tri_result = await tri_mgr.deep_mode_query_context(
-                        question=request.question,
-                        episodic_concepts=episodic_concepts,
-                    )
-                    causal_context = tri_result.get("causal_context", "")
-                    if causal_context:
-                        yield yield_status(f"发现因果推理链，正在融合多图谱证据...")
-                    _log.info(f"[T+{_elapsed()}s] tri-graph context done: causal={bool(causal_context)} activated={tri_result.get('flow_activated',0)} ({round(time.time()-_t_tri,2)}s)")
-                except Exception as exc:
-                    _log.warning(f"[T+{_elapsed()}s] tri-graph context failed: {exc}")
-
-            merged_instruction = _merge_retrieval_instruction(merged_instruction, memory_context, causal_context)
-            yield yield_status("知识检索完毕，正在综合生成回答...")
-
-        elif not is_identity_query:
-            yield yield_status("正在检索图谱知识...")
-            if request.enable_expanded_matching:
+            # Token-based expanded matching is pure CPU (~10ms), always run
+            if request.enable_expanded_matching and not expanded_matches:
                 expanded_manager = _get_expanded_node_manager(request.session_id)
                 if expanded_manager:
                     expanded_matches = expanded_manager.match_nodes(
@@ -688,18 +776,19 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
                     if expanded_matches:
                         expanded_manager.mark_hits([m.get("entity", "") for m in expanded_matches])
                         expanded_instruction = expanded_manager.build_forced_instruction(
-                            expanded_matches, limit=min(2, max(1, request.expanded_top_k))
+                            expanded_matches, limit=min(2, max(1, request.expanded_top_k)),
                         )
-                        merged_instruction = _merge_retrieval_instruction(request.retrieval_instruction, expanded_instruction)
+                        merged_instruction = _merge_retrieval_instruction(merged_instruction, expanded_instruction)
 
-        _log.info(f"[T+{_elapsed()}s] phase1 (thinking/prep) done")
+        _log.info("[T+%ss] phase1 done (warm=%s)", _elapsed(), warm_hit)
 
         thinking_process = _format_thinking_process(
             {
-                "memory_hits": len(analogies),
+                "memory_hits": len(memory_summaries),
                 "mode": request.mode,
                 "expanded_hits": len(expanded_matches),
                 "memory_context_injected": bool(memory_summaries),
+                "warm_cache": warm_hit,
             },
             {
                 "memory_mode": effective_memory_mode,
@@ -710,9 +799,9 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         yield yield_meta({
             "thinking_process": thinking_process,
             "answer_mode": answer_mode,
-            "expanded_matches": expanded_matches[: min(2, len(expanded_matches))],
+            "expanded_matches": expanded_matches[:min(2, len(expanded_matches))],
             "memory_summaries": memory_summaries,
-            "mode": request.mode
+            "mode": request.mode,
         })
 
         # Build conversation history for LLM context
@@ -789,56 +878,36 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
 
         yield yield_meta({"sources": sources})
         _log.info(f"[T+{_elapsed()}s] query_stream TOTAL")
-        
-        # Save chat history
+
+        # Save chat history (lightweight, keep synchronous)
         try:
             state.session_manager.add_message(request.session_id, "assistant", full_answer)
         except Exception as exc:
             _log.warning("[query_stream] add_message(assistant) failed: %s", exc)
 
-        chat_turn_ts = time.time()
-
+        # All heavy post-query work runs in background: episodic memory,
+        # co-activation, chat-turn ingest, expansion promotion, and
+        # warm-cache preparation for the next query.
         if full_answer and not is_identity_query:
-            try:
-                await _store_episodic_memory(
-                    request.question, full_answer, request.session_id, chat_turn_ts
-                )
-            except Exception as exc:
-                _log.warning("[query_stream] store_episodic_memory failed: %s", exc)
-
-        if _is_chat_turn_ingest_enabled():
             background_tasks.add_task(
-                _ingest_chat_turn,
-                request.question,
-                full_answer,
-                request.session_id,
-                chat_turn_ts,
-            )
-        if expanded_matches:
-            background_tasks.add_task(
-                _promote_expanded_nodes_in_background,
+                _background_post_query_enrichment,
                 request.session_id,
                 request.question,
                 full_answer,
-                expanded_matches,
-            )
-
-        # C5: SEAL evolution (background, deep mode only)
-        if request.enable_thinking and full_answer and tri_mgr is not None:
-            background_tasks.add_task(
-                _run_seal_evolution_background,
-                request.session_id,
-                request.question,
-                full_answer,
+                enable_thinking=request.enable_thinking,
+                enable_expanded_matching=request.enable_expanded_matching,
+                expanded_top_k=request.expanded_top_k,
+                expanded_min_score=request.expanded_min_score,
+                retrieval_instruction=str(request.retrieval_instruction or ""),
+                matched_expanded=expanded_matches if expanded_matches else None,
             )
 
     return StreamingResponse(generate(), media_type="text/event-stream")
 
 
->>>>>>> Stashed changes
+
 @router.post("/query")
 async def query(request: QueryRequest, background_tasks: BackgroundTasks):
-    print(f"DEBUG: Received query: {request.question}, session_id: {request.session_id}")
     if not state.rag_instance or not state.session_manager:
         raise HTTPException(status_code=500, detail="Service not initialized")
     if not request.session_id:
@@ -885,9 +954,25 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
     expanded_matches: List[Dict[str, Any]] = []
     expanded_instruction = ""
     merged_instruction = str(request.retrieval_instruction or "").strip()
-    expanded_manager: Optional[ExpandedNodeManager] = None
+    memory_summaries: List[str] = []
 
-    if request.enable_expanded_matching and not is_identity_query:
+    # Phase 1: Fast prep — warm cache + lightweight token matching
+    warm = _pop_warm_context(request.session_id)
+    warm_hit = bool(warm)
+
+    if request.enable_thinking and not is_identity_query:
+        answer_mode = "session_thinking"
+        if warm:
+            memory_context = warm.get("memory_context", "")
+            memory_summaries = warm.get("memory_summaries", [])
+            expanded_matches = warm.get("expanded_matches", [])
+            expanded_instruction = warm.get("expanded_instruction", "")
+            if memory_context:
+                merged_instruction = _merge_retrieval_instruction(merged_instruction, memory_context)
+            if expanded_instruction:
+                merged_instruction = _merge_retrieval_instruction(merged_instruction, expanded_instruction)
+
+    if request.enable_expanded_matching and not is_identity_query and not expanded_matches:
         expanded_manager = _get_expanded_node_manager(request.session_id)
         if expanded_manager:
             expanded_matches = expanded_manager.match_nodes(
@@ -901,8 +986,9 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
                     expanded_matches,
                     limit=min(2, max(1, request.expanded_top_k)),
                 )
-                merged_instruction = _merge_retrieval_instruction(request.retrieval_instruction, expanded_instruction)
+                merged_instruction = _merge_retrieval_instruction(merged_instruction, expanded_instruction)
 
+    # Phase 2: Generation
     try:
         if is_identity_query:
             system_prompt = (
@@ -928,70 +1014,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
                     [{"content": f"document: {fast_meta.get('file', '')}", "confidence": 0.6}] if fast_meta else []
                 )
 
-        if not answer and request.enable_thinking:
-            analogies: List[Tuple[Any, float, Optional[str]]] = []
-            memory_terms: List[str] = []
-            memory_engine = get_session_memory_engine(request.session_id)
-            if memory_engine:
-                try:
-                    analogies = await memory_engine.retrieve_analogies(
-                        request.question,
-                        top_k=5,
-                        then_spread=True,
-                        spread_top_k=3,
-                    )
-                    for ep, _, _ in analogies[:5]:
-                        memory_terms.extend(list(ep.concepts or [])[:6])
-                        memory_terms.extend(list(ep.entity_ids or [])[:6])
-                    ep_ids = [ep.episode_id for ep, _, _ in analogies]
-                    kg_ids = getattr(state, "kg_entity_ids", set())
-                    ent_ids: List[str] = []
-                    for ep, _, _ in analogies:
-                        ent_ids.extend(ep.entity_ids or [])
-                    ent_ids = [e for e in dict.fromkeys(ent_ids) if e and e in kg_ids]
-                    if ep_ids or ent_ids:
-                        try:
-                            memory_engine.record_co_activation(ep_ids, ent_ids)
-                            memory_engine.save()
-                        except Exception:
-                            pass
-                except Exception:
-                    pass
-
-            if request.enable_expanded_matching and expanded_manager:
-                refined = expanded_manager.match_nodes(
-                    query=request.question,
-                    top_k=max(1, request.expanded_top_k),
-                    memory_terms=memory_terms,
-                    min_score=max(0.0, request.expanded_min_score),
-                )
-                if refined:
-                    expanded_matches = refined
-                    expanded_manager.mark_hits([m.get("entity", "") for m in expanded_matches])
-                    expanded_instruction = expanded_manager.build_forced_instruction(
-                        expanded_matches,
-                        limit=min(2, max(1, request.expanded_top_k)),
-                    )
-                    merged_instruction = _merge_retrieval_instruction(request.retrieval_instruction, expanded_instruction)
-
-<<<<<<< Updated upstream
-=======
-            # C1-C4: Tri-Graph causal reasoning (deep mode, non-streaming)
-            causal_context_ns = ""
-            tri_mgr_ns = get_tri_graph_manager(request.session_id)
-            if tri_mgr_ns is not None:
-                try:
-                    tri_result_ns = await tri_mgr_ns.deep_mode_query_context(
-                        question=request.question,
-                        episodic_concepts=list(memory_terms)[:20],
-                    )
-                    causal_context_ns = tri_result_ns.get("causal_context", "")
-                except Exception as exc:
-                    _log.warning("[query] tri-graph context failed: %s", exc)
-
-            merged_instruction = _merge_retrieval_instruction(merged_instruction, memory_context, causal_context_ns)
-
->>>>>>> Stashed changes
+        if not answer:
             try:
                 answer = await asyncio.wait_for(
                     session_rag.aquery(
@@ -1010,37 +1033,22 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             except Exception:
                 answer = ""
 
-            answer_mode = "session_thinking"
-            thinking_process = _format_thinking_process(
-                {
-                    "memory_hits": len(analogies),
-                    "mode": request.mode,
-                    "expanded_hits": len(expanded_matches),
-                },
-                {
-                    "memory_mode": effective_memory_mode,
-                    "retrieval_instruction": merged_instruction,
-                },
-            )
+            if request.enable_thinking:
+                thinking_process = _format_thinking_process(
+                    {
+                        "memory_hits": len(memory_summaries),
+                        "mode": request.mode,
+                        "expanded_hits": len(expanded_matches),
+                        "warm_cache": warm_hit,
+                    },
+                    {
+                        "memory_mode": effective_memory_mode,
+                        "retrieval_instruction": merged_instruction,
+                    },
+                )
+
             if hasattr(session_rag, "get_last_query_evidence"):
                 sources = _build_sources_from_details({}, session_rag.get_last_query_evidence())
-
-        elif not answer:
-            try:
-                answer = await asyncio.wait_for(
-                    session_rag.aquery(
-                        query=request.question,
-                        mode=request.mode,
-                        enable_rerank=request.enable_rerank,
-                        enable_image_asset_activation=request.enable_image_asset_activation,
-                        image_activation_threshold=request.image_activation_threshold,
-                        image_activation_top_k=request.image_activation_top_k,
-                        user_prompt=merged_instruction or None,
-                    ),
-                    timeout=SESSION_QUERY_TIMEOUT_SECONDS,
-                )
-            except asyncio.TimeoutError:
-                answer = ""
 
         if not answer:
             answer = "抱歉，我暂时没有检索到足够信息。"
@@ -1070,34 +1078,20 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
         except Exception:
             pass
 
-        chat_turn_ts = time.time()
-        if _is_chat_turn_ingest_enabled():
+        # All heavy post-query work in background
+        if answer and not is_identity_query:
             background_tasks.add_task(
-                _ingest_chat_turn,
-                request.question,
-                answer,
-                request.session_id,
-                chat_turn_ts,
-            )
-        if expanded_matches:
-            background_tasks.add_task(
-                _promote_expanded_nodes_in_background,
+                _background_post_query_enrichment,
                 request.session_id,
                 request.question,
                 answer,
-                expanded_matches,
+                enable_thinking=request.enable_thinking,
+                enable_expanded_matching=request.enable_expanded_matching,
+                expanded_top_k=request.expanded_top_k,
+                expanded_min_score=request.expanded_min_score,
+                retrieval_instruction=str(request.retrieval_instruction or ""),
+                matched_expanded=expanded_matches if expanded_matches else None,
             )
-
-        # C5: SEAL evolution (background, deep mode only)
-        if request.enable_thinking and answer and not is_identity_query:
-            tri_mgr_q = get_tri_graph_manager(request.session_id)
-            if tri_mgr_q is not None:
-                background_tasks.add_task(
-                    _run_seal_evolution_background,
-                    request.session_id,
-                    request.question,
-                    answer,
-                )
 
         if not sources and hasattr(session_rag, "get_last_query_evidence"):
             evidence = session_rag.get_last_query_evidence()
@@ -1112,7 +1106,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             "thinking_process": thinking_process,
             "sources": sources,
             "answer_mode": answer_mode,
-            "expanded_matches": expanded_matches[: min(2, len(expanded_matches))],
+            "expanded_matches": expanded_matches[:min(2, len(expanded_matches))],
             "retrieval_instruction_applied": bool(merged_instruction),
         }
     except Exception as e:

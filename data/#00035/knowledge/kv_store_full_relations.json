@@ -1,0 +1,1576 @@
+{
+  "doc-ccab72c6530160d3335b16207b953310": {
+    "relation_pairs": [
+      [
+        "加州理工学院",
+        "李飞飞"
+      ],
+      [
+        "普林斯顿大学",
+        "李飞飞"
+      ],
+      [
+        "博士学位",
+        "李飞飞"
+      ],
+      [
+        "李飞飞",
+        "藏药"
+      ],
+      [
+        "李飞飞",
+        "电机系"
+      ],
+      [
+        "伊利诺伊大学厄巴纳-香槟分校",
+        "李飞飞"
+      ],
+      [
+        "助理教授",
+        "李飞飞"
+      ],
+      [
+        "伊利诺伊大学厄巴纳-香槟分校",
+        "电机系"
+      ],
+      [
+        "李飞飞",
+        "西藏"
+      ],
+      [
+        "李飞飞",
+        "计算机科学系"
+      ],
+      [
+        "普林斯顿大学",
+        "计算机科学系"
+      ],
+      [
+        "加州理工学院",
+        "博士学位"
+      ]
+    ],
+    "count": 12,
+    "create_time": 1773736528,
+    "update_time": 1773736528,
+    "_id": "doc-ccab72c6530160d3335b16207b953310"
+  },
+  "doc-009765d41c1b3104a26ed74d2c4f1d65": {
+    "relation_pairs": [
+      [
+        "RT-DETR Paper Page 1 (image)",
+        "RT-DETR-R50"
+      ],
+      [
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)",
+        "Speed Comparison"
+      ],
+      [
+        "Conditional DETR",
+        "Section 2.2"
+      ],
+      [
+        "108 FPS",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "RT-DETR",
+        "T4 GPU"
+      ],
+      [
+        "Figure 1",
+        "Introduction"
+      ],
+      [
+        "RT-DETR",
+        "RT-DETR-R50"
+      ],
+      [
+        "DETRs Beat YOLOs on Real-time Object Detection",
+        "LaTeX"
+      ],
+      [
+        "DETRs Beat YOLOs on Real-time Object Detection",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "RT-DETR Paper Page 1 (image)",
+        "Real-time Object Detectors"
+      ],
+      [
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)",
+        "Section 3.1"
+      ],
+      [
+        "DETRs Beat YOLOs on Real-time Object Detection",
+        "Table 1"
+      ],
+      [
+        "Confidence Threshold",
+        "Table 1"
+      ],
+      [
+        "Footnotes",
+        "Image Content Analysis"
+      ],
+      [
+        "NMS Execution Time",
+        "Table 1"
+      ],
+      [
+        "DETRs Beat YOLOs on Real-time Object Detection",
+        "Page 2"
+      ],
+      [
+        "Average Precision",
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)"
+      ],
+      [
+        "Analyzer System",
+        "knowledge_vision_pages_page_3 (image)"
+      ],
+      [
+        "Figure 1",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "IoU Threshold",
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)"
+      ],
+      [
+        "RT-DETR Paper Page 1 (image)",
+        "T4 GPU"
+      ],
+      [
+        "Conditional DETR",
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)"
+      ],
+      [
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)",
+        "YOLOv5"
+      ],
+      [
+        "Page 3 Image File",
+        "Visual Analysis"
+      ],
+      [
+        "108 FPS",
+        "RT-DETR"
+      ],
+      [
+        "Analyzer System",
+        "Page 3 Image File"
+      ],
+      [
+        "COCO",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "Encoder",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)",
+        "Table 1"
+      ],
+      [
+        "DETRs Beat YOLOs on Real-time Object Detection",
+        "Figure 2"
+      ],
+      [
+        "LaTeX",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "Figure 2",
+        "Non-Maximum Suppression"
+      ],
+      [
+        "Flexible Speed Tuning",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)",
+        "YOLOv8"
+      ],
+      [
+        "Non-Maximum Suppression",
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)"
+      ],
+      [
+        "RT-DETR Paper Page 1 (image)",
+        "Uncertainty-minimal Query Selection"
+      ],
+      [
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)",
+        "Section 3.2"
+      ],
+      [
+        "NMS",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "53.1% AP",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "Non-Maximum Suppression",
+        "Section 3.1"
+      ],
+      [
+        "RT-DETR Paper Page 1 (image)",
+        "Related Work"
+      ],
+      [
+        "Average Precision",
+        "Table 1"
+      ],
+      [
+        "DINO",
+        "Section 2.2"
+      ],
+      [
+        "DETR",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "Real-time Object Detectors",
+        "YOLOv1"
+      ],
+      [
+        "DETRs Beat YOLOs on Real-time Object Detection",
+        "Section 3"
+      ],
+      [
+        "Introduction",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "Captions",
+        "knowledge_vision_pages_page_3 (image)"
+      ],
+      [
+        "IoU Threshold",
+        "Table 1"
+      ],
+      [
+        "Section 3.2",
+        "Speed Comparison"
+      ],
+      [
+        "RT-DETR",
+        "Uncertainty-minimal Query Selection"
+      ],
+      [
+        "CNN-based Architectures",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "Image Content Analysis",
+        "Visual Analysis"
+      ],
+      [
+        "COCO",
+        "RT-DETR"
+      ],
+      [
+        "Encoder",
+        "RT-DETR"
+      ],
+      [
+        "Page 3 Image File",
+        "knowledge_vision_pages_page_3 (image)"
+      ],
+      [
+        "Non-Maximum Suppression",
+        "YOLOv5"
+      ],
+      [
+        "Deformable-DETR",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "RT-DETR",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "RT-DETR Paper Page 1 (image)",
+        "Subsection 2.1"
+      ],
+      [
+        "Flexible Speed Tuning",
+        "RT-DETR"
+      ],
+      [
+        "108 FPS",
+        "RT-DETR-R50"
+      ],
+      [
+        "CNN-based Architectures",
+        "Subsection 2.1"
+      ],
+      [
+        "DETR",
+        "Subsection 2.2"
+      ],
+      [
+        "NMS",
+        "RT-DETR"
+      ],
+      [
+        "53.1% AP",
+        "RT-DETR"
+      ],
+      [
+        "Non-Maximum Suppression",
+        "YOLOv8"
+      ],
+      [
+        "DINO",
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)"
+      ],
+      [
+        "Captions",
+        "Image Content Analysis"
+      ],
+      [
+        "Visual Analysis",
+        "knowledge_vision_pages_page_3 (image)"
+      ],
+      [
+        "Deformable-DETR",
+        "End-to-end Object Detectors"
+      ],
+      [
+        "Page 2",
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)"
+      ],
+      [
+        "Deformable-DETR",
+        "Subsection 2.2"
+      ],
+      [
+        "DETRs Beat YOLOs on Real-time Object Detection",
+        "Section 2.2"
+      ],
+      [
+        "Footnotes",
+        "knowledge_vision_pages_page_3 (image)"
+      ],
+      [
+        "GitHub",
+        "knowledge_vision_pages_page_3 (image)"
+      ],
+      [
+        "Section 3",
+        "Section 3.1"
+      ],
+      [
+        "End-to-end Object Detectors",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "RT-DETR Paper Page 1 (image)",
+        "YOLOv1"
+      ],
+      [
+        "Local Path",
+        "knowledge_vision_pages_page_3 (image)"
+      ],
+      [
+        "RT-DETR",
+        "YOLOs"
+      ],
+      [
+        "GitHub",
+        "Page 3 Image File"
+      ],
+      [
+        "Figure 2",
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)"
+      ],
+      [
+        "DETRs Beat YOLOs on Real-time Object Detection",
+        "Related Work"
+      ],
+      [
+        "Image Content Analysis",
+        "knowledge_vision_pages_page_3 (image)"
+      ],
+      [
+        "Local Path",
+        "Page 3 Image File"
+      ],
+      [
+        "DINO",
+        "RT-DETR Paper Page 1 (image)"
+      ],
+      [
+        "Knowledge Documentation System",
+        "knowledge_vision_pages_page_3 (image)"
+      ],
+      [
+        "DETR",
+        "End-to-end Object Detectors"
+      ],
+      [
+        "Knowledge Documentation System",
+        "Page 3 Image File"
+      ],
+      [
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)",
+        "Section 2.2"
+      ],
+      [
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)",
+        "Section 3"
+      ],
+      [
+        "RT-DETR Paper Page 1 (image)",
+        "Subsection 2.2"
+      ],
+      [
+        "DETRs Beat YOLOs on Real-time Object Detection",
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)"
+      ],
+      [
+        "Confidence Threshold",
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)"
+      ],
+      [
+        "53.1% AP",
+        "RT-DETR-R50"
+      ],
+      [
+        "RT-DETR Paper Page 1 (image)",
+        "YOLOs"
+      ],
+      [
+        "Analyzer System",
+        "Visual Analysis"
+      ],
+      [
+        "Subsection 2.1",
+        "YOLOv1"
+      ],
+      [
+        "DINO",
+        "End-to-end Object Detectors"
+      ],
+      [
+        "DETRs Beat YOLOs on Real-time Object Detection",
+        "Introduction"
+      ],
+      [
+        "NMS Execution Time",
+        "RT-DETR Paper Page 2 - NMS Analysis and Speed Benchmark (image)"
+      ],
+      [
+        "DETRs Beat YOLOs on Real-time Object Detection",
+        "Section 3.1"
+      ],
+      [
+        "Section 3",
+        "Section 3.2"
+      ],
+      [
+        "DINO",
+        "Subsection 2.2"
+      ]
+    ],
+    "count": 105,
+    "update_time": 1773738015,
+    "_id": "doc-009765d41c1b3104a26ed74d2c4f1d65"
+  },
+  "doc-2e4bcd2653b550df61d289d0234df167": {
+    "relation_pairs": [
+      [
+        "Academic Bibliography Page on Large Language Models (image)",
+        "DeepSeek-R1: Incentivizing Reasoning Capability In LLMs Via Reinforcement Learning"
+      ],
+      [
+        "CMMLU-Chinese-History",
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)"
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Page 6"
+      ],
+      [
+        "A Survey On Hallucination In Large Language Models",
+        "Bibliography Section"
+      ],
+      [
+        "Page 6",
+        "Technical Document"
+      ],
+      [
+        "Gemini-2.0-flash-lite-preview",
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)"
+      ],
+      [
+        "Academic Document",
+        "Bibliography Section"
+      ],
+      [
+        "Bibliography Section",
+        "Reinforcement Learning"
+      ],
+      [
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)",
+        "Logical Reasoning"
+      ],
+      [
+        "HFRM Architecture and GRPO Objective Function Diagram (image)",
+        "Historical Fact-enhanced Reward Module"
+      ],
+      [
+        "Figure 2",
+        "Technical Document"
+      ],
+      [
+        "Chunking",
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)"
+      ],
+      [
+        "Generation",
+        "HFRM Architecture and GRPO Objective Function Diagram (image)"
+      ],
+      [
+        "Ancient Chinese History Texts",
+        "Kongzi"
+      ],
+      [
+        "5 Ws of Fact-Checking",
+        "Kongzi"
+      ],
+      [
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)",
+        "NVIDIA GPUs"
+      ],
+      [
+        "Chunking",
+        "Generate"
+      ],
+      [
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)",
+        "Technical Document"
+      ],
+      [
+        "Kongzi Model",
+        "Kongzi-7B"
+      ],
+      [
+        "Conclusion",
+        "Technical Research Paper"
+      ],
+      [
+        "Generalized Reward Policy Optimization",
+        "Historical Fact-enhanced Reward Module"
+      ],
+      [
+        "Academic Bibliography Page on Large Language Models (image)",
+        "GPT-4 Technical Report"
+      ],
+      [
+        "HFRM Architecture and GRPO Objective Function Diagram (image)",
+        "Hallucinations"
+      ],
+      [
+        "Chain-of-Thought",
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)"
+      ],
+      [
+        "Academic Research Paper",
+        "FoodieQA"
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Repetition Penalty Reward"
+      ],
+      [
+        "CoT Data (Chain-of-Thought)",
+        "SFT (Supervised Fine-Tuning)"
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Reinforcement Learning"
+      ],
+      [
+        "Factual Data",
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)"
+      ],
+      [
+        "Logical Reasoning",
+        "Results Evaluation"
+      ],
+      [
+        "Bibliography Section",
+        "arXiv"
+      ],
+      [
+        "Data Cleaning",
+        "Factual Data"
+      ],
+      [
+        "Generate",
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)"
+      ],
+      [
+        "Academic Research Paper",
+        "DeepSeek-AI"
+      ],
+      [
+        "Artificial Intelligence",
+        "Bibliography Section"
+      ],
+      [
+        "HFRM Architecture and GRPO Objective Function Diagram (image)",
+        "Policy Model"
+      ],
+      [
+        "Kongzi_Historical_LLM_Methodology_Page (image)",
+        "Plaat et al."
+      ],
+      [
+        "Hallucinations",
+        "Historical Fact-enhanced Reward Module"
+      ],
+      [
+        "CMMLU-Chinese-History",
+        "Table 2: Results On CMMLU-Chinese-History"
+      ],
+      [
+        "Chinese Historical Texts",
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)"
+      ],
+      [
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)",
+        "Mathematical Equations"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Machine Learning"
+      ],
+      [
+        "Academic Research Paper",
+        "Kongzi_Historical_LLM_Methodology_Page (image)"
+      ],
+      [
+        "Data Cleaning",
+        "Original Corpus"
+      ],
+      [
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)",
+        "Kongzi-0.5B"
+      ],
+      [
+        "Academic Bibliography Page on Large Language Models (image)",
+        "Artificial Intelligence"
+      ],
+      [
+        "In Three Kingdoms",
+        "Official History"
+      ],
+      [
+        "Historical Accuracy",
+        "Table 1"
+      ],
+      [
+        "Romance of the Three Kingdoms",
+        "Xing Daorong"
+      ],
+      [
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)",
+        "Technical Research Paper"
+      ],
+      [
+        "CMMLU-Chinese-History",
+        "Kongzi"
+      ],
+      [
+        "FoodieQA",
+        "Kongzi_Historical_LLM_Methodology_Page (image)"
+      ],
+      [
+        "CoT Data (Chain-of-Thought)",
+        "Generate"
+      ],
+      [
+        "A Survey On Hallucination In Large Language Models",
+        "Academic Bibliography Page on Large Language Models (image)"
+      ],
+      [
+        "Results Evaluation",
+        "Technical Research Paper"
+      ],
+      [
+        "Answer Score",
+        "Results Evaluation"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Zhao"
+      ],
+      [
+        "Base Model Training",
+        "Chinese Historical Texts"
+      ],
+      [
+        "CPT (Continue Pre-Training)",
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)"
+      ],
+      [
+        "Natural Language Processing",
+        "Qwen2.5 Technical Report"
+      ],
+      [
+        "Historical Accuracy",
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)"
+      ],
+      [
+        "References",
+        "Technical Research Paper"
+      ],
+      [
+        "Kongzi",
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)"
+      ],
+      [
+        "Content RL (Reinforcement Learning)",
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)"
+      ],
+      [
+        "Chain-of-Thought",
+        "Supervised Fine-Tuning"
+      ],
+      [
+        "GPT-4o",
+        "Table 1"
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Problem Solving"
+      ],
+      [
+        "Academic Research Paper",
+        "Kongzi"
+      ],
+      [
+        "Problem Solving",
+        "Results Evaluation"
+      ],
+      [
+        "Embedding",
+        "HFRM Architecture and GRPO Objective Function Diagram (image)"
+      ],
+      [
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)",
+        "Original Corpus"
+      ],
+      [
+        "Qwen-Max",
+        "Table 1"
+      ],
+      [
+        "Fact-Aware RL",
+        "Kongzi_Historical_LLM_Methodology_Page (image)"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Ammar"
+      ],
+      [
+        "Generation",
+        "Reward Model"
+      ],
+      [
+        "DeepSeek-R1: Incentivizing Reasoning Capability In LLMs Via Reinforcement Learning",
+        "Large Language Models"
+      ],
+      [
+        "ArXiv",
+        "Bibliography Section"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Yu"
+      ],
+      [
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)",
+        "Technical Document"
+      ],
+      [
+        "GPT-4o",
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)"
+      ],
+      [
+        "Figure 1",
+        "Xing Daorong"
+      ],
+      [
+        "Kongzi_Historical_LLM_Methodology_Page (image)",
+        "Wang et al."
+      ],
+      [
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)",
+        "Qwen-Max"
+      ],
+      [
+        "Kongzi Model",
+        "Table 1"
+      ],
+      [
+        "GRPO",
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)"
+      ],
+      [
+        "Bibliography Section",
+        "Yu"
+      ],
+      [
+        "Academic Bibliography Page on Large Language Models (image)",
+        "Qwen2.5 Technical Report"
+      ],
+      [
+        "Answer Score",
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)"
+      ],
+      [
+        "Entity-Relation Graphs",
+        "Kongzi Paper Page 1 with Figure 1 (image)"
+      ],
+      [
+        "Academic Bibliography Page on Large Language Models (image)",
+        "Bibliography Section"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "arXiv"
+      ],
+      [
+        "Academic Research Paper",
+        "Plaat et al."
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Kongzi-7B"
+      ],
+      [
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)",
+        "Think Score"
+      ],
+      [
+        "Historical Accuracy",
+        "Results Evaluation"
+      ],
+      [
+        "GPT-4o",
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)"
+      ],
+      [
+        "Figure 2",
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)"
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Logical Reasoning"
+      ],
+      [
+        "Ancient Chinese History Texts",
+        "Factual Statements"
+      ],
+      [
+        "Results Evaluation",
+        "Think Score"
+      ],
+      [
+        "Kongzi",
+        "Reinforcement Learning"
+      ],
+      [
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)",
+        "Qwen"
+      ],
+      [
+        "Continued Pre-Training",
+        "Kongzi_Historical_LLM_Methodology_Page (image)"
+      ],
+      [
+        "Kongzi Model",
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)"
+      ],
+      [
+        "Chain Of Thought",
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)"
+      ],
+      [
+        "Gemini-2.5",
+        "Table 1"
+      ],
+      [
+        "Bibliography Section",
+        "Large Language Models"
+      ],
+      [
+        "Bibliography Section",
+        "EMNLP"
+      ],
+      [
+        "Historical Fact-enhanced Reward Module",
+        "Reinforcement Learning"
+      ],
+      [
+        "Ancient Chinese History Texts",
+        "Contextual Reasoning Texts"
+      ],
+      [
+        "Entity-Relation Graphs",
+        "Kongzi"
+      ],
+      [
+        "CoT Data Generation",
+        "Kongzi_Historical_LLM_Methodology_Page (image)"
+      ],
+      [
+        "NVIDIA GPUs",
+        "RTX 3090"
+      ],
+      [
+        "CoT Data (Chain-of-Thought)",
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Zhong"
+      ],
+      [
+        "Repetition Penalty Reward",
+        "Reward Function"
+      ],
+      [
+        "Gemini-2.5",
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)"
+      ],
+      [
+        "Continued Pre-Training",
+        "Kongzi"
+      ],
+      [
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)",
+        "Results Evaluation"
+      ],
+      [
+        "Fact-Enhanced Reinforcement Learning",
+        "Kongzi"
+      ],
+      [
+        "In Three Kingdoms",
+        "Kongzi Paper Page 1 with Figure 1 (image)"
+      ],
+      [
+        "Bibliography Section",
+        "Zhong"
+      ],
+      [
+        "Deepseek r1",
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)"
+      ],
+      [
+        "Table 2: Results On CMMLU-Chinese-History",
+        "Technical Research Paper"
+      ],
+      [
+        "Historical Accuracy",
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)"
+      ],
+      [
+        "Historical Fact-enhanced Reward Module",
+        "Long-form Text Generation"
+      ],
+      [
+        "Data Cleaning",
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)"
+      ],
+      [
+        "Embedding",
+        "Knowledge Graphs"
+      ],
+      [
+        "Academic Research Paper",
+        "Wang et al."
+      ],
+      [
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)",
+        "Reinforcement Learning"
+      ],
+      [
+        "Conclusion",
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)"
+      ],
+      [
+        "Kongzi Model",
+        "Supervised Fine-Tuning"
+      ],
+      [
+        "Academic Bibliography Page on Large Language Models (image)",
+        "ArXiv"
+      ],
+      [
+        "CoT Data Generation",
+        "Kongzi"
+      ],
+      [
+        "Kongzi",
+        "Small-Parameter LLM"
+      ],
+      [
+        "Figure 1",
+        "Kongzi Paper Page 1 with Figure 1 (image)"
+      ],
+      [
+        "Knowledge Graphs",
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)"
+      ],
+      [
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)",
+        "Kongzi-7B"
+      ],
+      [
+        "Kongzi Paper Page 1 with Figure 1 (image)",
+        "Large Language Model"
+      ],
+      [
+        "HFRM Architecture and GRPO Objective Function Diagram (image)",
+        "Long-form Text Generation"
+      ],
+      [
+        "Bibliography Section",
+        "DeepSeek-R1: Incentivizing Reasoning Capability In LLMs Via Reinforcement Learning"
+      ],
+      [
+        "Data Augmentation",
+        "Factual Data"
+      ],
+      [
+        "Historical Fact-enhanced Reward Module",
+        "Reward Model"
+      ],
+      [
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)",
+        "SFT (Supervised Fine-Tuning)"
+      ],
+      [
+        "Kongzi",
+        "Kongzi_Historical_LLM_Methodology_Page (image)"
+      ],
+      [
+        "DeepSeek-AI",
+        "Kongzi_Historical_LLM_Methodology_Page (image)"
+      ],
+      [
+        "Kongzi",
+        "Kongzi Paper Page 1 with Figure 1 (image)"
+      ],
+      [
+        "Format Reward",
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)"
+      ],
+      [
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)",
+        "RTX 3090"
+      ],
+      [
+        "Figure 4",
+        "Technical Document"
+      ],
+      [
+        "Kongzi Paper Page 1 with Figure 1 (image)",
+        "Official History"
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Table 1"
+      ],
+      [
+        "GPT-4o",
+        "Kongzi-0.5B"
+      ],
+      [
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)",
+        "References"
+      ],
+      [
+        "Bibliography Section",
+        "GPT-4 Technical Report"
+      ],
+      [
+        "A6000",
+        "NVIDIA GPUs"
+      ],
+      [
+        "Cao Cao",
+        "Kongzi Paper Page 1 with Figure 1 (image)"
+      ],
+      [
+        "Kongzi",
+        "Table 2: Results On CMMLU-Chinese-History"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Large Language Models"
+      ],
+      [
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)",
+        "QwQ-32B-preview"
+      ],
+      [
+        "Deepseek r1",
+        "Table 2: Results On CMMLU-Chinese-History"
+      ],
+      [
+        "Ammar",
+        "Bibliography Section"
+      ],
+      [
+        "Fact-Aware RL",
+        "Kongzi"
+      ],
+      [
+        "Factual Statements",
+        "Kongzi_Historical_LLM_Methodology_Page (image)"
+      ],
+      [
+        "Table 1",
+        "Think Score"
+      ],
+      [
+        "Logical Reasoning",
+        "Table 1"
+      ],
+      [
+        "Chunking",
+        "Inference Text"
+      ],
+      [
+        "Policy Model",
+        "Reference Model"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Artificial Intelligence"
+      ],
+      [
+        "Deepseek-r1-distill",
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)"
+      ],
+      [
+        "Cao Cao",
+        "Xing Daorong"
+      ],
+      [
+        "Inference Text",
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)"
+      ],
+      [
+        "CPT (Continue Pre-Training)",
+        "Data Augmentation"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Bogunovic"
+      ],
+      [
+        "Data Augmentation",
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)"
+      ],
+      [
+        "Policy Model",
+        "Reward Model"
+      ],
+      [
+        "Kongzi Model",
+        "Kongzi-0.5B"
+      ],
+      [
+        "Generalized Reward Policy Optimization",
+        "HFRM Architecture and GRPO Objective Function Diagram (image)"
+      ],
+      [
+        "Base Model Training",
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)"
+      ],
+      [
+        "Information Extraction",
+        "Knowledge Graphs"
+      ],
+      [
+        "Cosine Similarity",
+        "HFRM Architecture and GRPO Objective Function Diagram (image)"
+      ],
+      [
+        "Cosine Similarity",
+        "Embedding"
+      ],
+      [
+        "Bibliography Section",
+        "Bogunovic"
+      ],
+      [
+        "Figure 4",
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)"
+      ],
+      [
+        "HFRM Architecture and GRPO Objective Function Diagram (image)",
+        "Reinforcement Learning"
+      ],
+      [
+        "CTM",
+        "Kongzi_Historical_LLM_Methodology_Page (image)"
+      ],
+      [
+        "Answer Score",
+        "Table 1"
+      ],
+      [
+        "Deepseek-r1 Ratio",
+        "Table 1"
+      ],
+      [
+        "A6000",
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)"
+      ],
+      [
+        "Ground Truth",
+        "HFRM Architecture and GRPO Objective Function Diagram (image)"
+      ],
+      [
+        "Mathematical Equations",
+        "Technical Document"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Academic Document Page"
+      ],
+      [
+        "Page 6",
+        "Table 1"
+      ],
+      [
+        "Figure 2",
+        "Machine Learning Pipeline"
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Reward Function"
+      ],
+      [
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)",
+        "Table 2: Results On CMMLU-Chinese-History"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Yang"
+      ],
+      [
+        "GRPO",
+        "Reinforcement Learning"
+      ],
+      [
+        "Bibliography Section",
+        "Wadhwa"
+      ],
+      [
+        "Problem Solving",
+        "Table 1"
+      ],
+      [
+        "Fact-Enhanced Reinforcement Learning",
+        "Kongzi Paper Page 1 with Figure 1 (image)"
+      ],
+      [
+        "Answer Score",
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)"
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Qwen-Max"
+      ],
+      [
+        "Academic Research Paper",
+        "CTM"
+      ],
+      [
+        "Chain Of Thought",
+        "Table 2: Results On CMMLU-Chinese-History"
+      ],
+      [
+        "Deepseek-r1 Ratio",
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)"
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Supervised Fine-Tuning"
+      ],
+      [
+        "Bibliography Section",
+        "Yang"
+      ],
+      [
+        "A Survey On Hallucination In Large Language Models",
+        "Large Language Models"
+      ],
+      [
+        "Academic Bibliography Page on Large Language Models (image)",
+        "Natural Language Processing"
+      ],
+      [
+        "Academic Document",
+        "Page 8"
+      ],
+      [
+        "Deepseek-r1",
+        "Figure 4"
+      ],
+      [
+        "Kongzi Model",
+        "Reinforcement Learning"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Page 9 Image"
+      ],
+      [
+        "Data Cleaning",
+        "Inference Text"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Bibliography Section"
+      ],
+      [
+        "Deepseek-r1",
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Wang"
+      ],
+      [
+        "HFRM Architecture and GRPO Objective Function Diagram (image)",
+        "Reference Model"
+      ],
+      [
+        "Figure 1",
+        "Kongzi Paper"
+      ],
+      [
+        "Base Model Training",
+        "NVIDIA GPUs"
+      ],
+      [
+        "Academic Bibliography Page on Large Language Models (image)",
+        "Page 8"
+      ],
+      [
+        "Academic Bibliography Page on Large Language Models (image)",
+        "Large Language Models"
+      ],
+      [
+        "Academic Bibliography Page on Large Language Models (image)",
+        "EMNLP"
+      ],
+      [
+        "Image",
+        "Page 8"
+      ],
+      [
+        "Bibliography Section",
+        "Qwen2.5 Technical Report"
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Technical Document"
+      ],
+      [
+        "HFRM Architecture and GRPO Objective Function Diagram (image)",
+        "Reward Model"
+      ],
+      [
+        "Artificial Intelligence",
+        "GPT-4 Technical Report"
+      ],
+      [
+        "Knowledge Graphs",
+        "Reward Function"
+      ],
+      [
+        "Bibliography Section",
+        "Wang"
+      ],
+      [
+        "CPT (Continue Pre-Training)",
+        "SFT (Supervised Fine-Tuning)"
+      ],
+      [
+        "Academic Document Page",
+        "Page 9 Image"
+      ],
+      [
+        "Kongzi Paper Page 1 with Figure 1 (image)",
+        "Romance of the Three Kingdoms"
+      ],
+      [
+        "HFRM Architecture and GRPO Objective Function Diagram (image)",
+        "Information Extraction"
+      ],
+      [
+        "Kongzi",
+        "Kongzi Paper"
+      ],
+      [
+        "Academic Document Page",
+        "Bibliography Section"
+      ],
+      [
+        "HFRM Architecture and GRPO Objective Function Diagram (image)",
+        "Knowledge Graphs"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Schulman"
+      ],
+      [
+        "Battle of Changban",
+        "Kongzi Paper Page 1 with Figure 1 (image)"
+      ],
+      [
+        "Content RL (Reinforcement Learning)",
+        "SFT (Supervised Fine-Tuning)"
+      ],
+      [
+        "Kongzi Model Performance Evaluation and Conclusion Page (image)",
+        "Problem Solving"
+      ],
+      [
+        "Kongzi",
+        "Large Language Model"
+      ],
+      [
+        "Reinforcement Learning",
+        "Reward Function"
+      ],
+      [
+        "Kongzi_Historical_LLM_Methodology_Page (image)",
+        "Small-Parameter LLM"
+      ],
+      [
+        "Historical Fact-enhanced Reward Module",
+        "Research Paper"
+      ],
+      [
+        "Format Reward",
+        "Reward Function"
+      ],
+      [
+        "Machine Learning Pipeline",
+        "Machine Learning Pipeline Overview and Training Strategy Page (image)"
+      ],
+      [
+        "Academic Bibliography Page on Large Language Models (image)",
+        "Image"
+      ],
+      [
+        "Bibliography Section",
+        "Machine Learning"
+      ],
+      [
+        "Contextual Reasoning Texts",
+        "Kongzi_Historical_LLM_Methodology_Page (image)"
+      ],
+      [
+        "Battle of Changban",
+        "Figure 1"
+      ],
+      [
+        "Kongzi Paper",
+        "Kongzi Paper Page 1 with Figure 1 (image)"
+      ],
+      [
+        "Continued PreTraining",
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)"
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Think Score"
+      ],
+      [
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)",
+        "O3-mini"
+      ],
+      [
+        "Bibliography Section",
+        "Schulman"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Wadhwa"
+      ],
+      [
+        "Base Model Training",
+        "Kongzi-0.5B"
+      ],
+      [
+        "Figure 4",
+        "Kongzi-0.5B"
+      ],
+      [
+        "Qwen",
+        "Table 2: Results On CMMLU-Chinese-History"
+      ],
+      [
+        "Ground Truth",
+        "Reward Model"
+      ],
+      [
+        "HFRM Architecture and GRPO Objective Function Diagram (image)",
+        "Research Paper"
+      ],
+      [
+        "Ancient Chinese History Texts",
+        "Kongzi_Historical_LLM_Methodology_Page (image)"
+      ],
+      [
+        "Kongzi Model Performance Metrics and RL Framework Documentation (image)",
+        "Kongzi-0.5B"
+      ],
+      [
+        "Academic Bibliography Page on Large Language Models (image)",
+        "Academic Document"
+      ],
+      [
+        "Kongzi Paper Page 1 with Figure 1 (image)",
+        "Xing Daorong"
+      ],
+      [
+        "5 Ws of Fact-Checking",
+        "Kongzi Paper Page 1 with Figure 1 (image)"
+      ],
+      [
+        "Academic Bibliography Page on AI and LLMs (image)",
+        "Reinforcement Learning"
+      ],
+      [
+        "Bibliography Section",
+        "Zhao"
+      ],
+      [
+        "Kongzi Model Performance Chart and Experimental Methodology Page (image)",
+        "Supervised Fine-Tuning"
+      ]
+    ],
+    "count": 271,
+    "update_time": 1773740368,
+    "_id": "doc-2e4bcd2653b550df61d289d0234df167"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "doc-ccab72c6530160d3335b16207b953310": {
+    "status": "processed",
+    "chunks_count": 1,
+    "chunks_list": [
+      "chunk-ccab72c6530160d3335b16207b953310"
+    ],
+    "content_summary": "李飞飞于1999年从普林斯顿大学本科毕业后赴西藏研究一年藏药；2000年进入加州理工学院；2005年获得加州理工学院博士学位；2005年至2006年担任伊利诺伊大学厄巴纳-香槟分校电机系助理教授；2007年至2009年担任普林斯顿大学计算机科学系助理教授；",
+    "content_length": 128,
+    "created_at": "2026-03-17T08:31:38.846461+00:00",
+    "updated_at": "2026-03-17T08:35:28.519790+00:00",
+    "file_path": "李飞飞.txt",
+    "track_id": "insert_20260317_163138_07aa4ba4",
+    "metadata": {
+      "processing_start_time": 1773736298,
+      "processing_end_time": 1773736528
+    }
+  },
+  "doc-009765d41c1b3104a26ed74d2c4f1d65": {
+    "status": "processed",
+    "chunks_count": 7,
+    "chunks_list": [
+      "chunk-58459ff4307a5aa040657ceba41be948",
+      "chunk-cf30e7371cd8c7ca86d01ccde3c99b27",
+      "chunk-cf0447c8449e48c02de19b9101a7eb5b",
+      "chunk-6f8d2c7214c42b033614f977155bd023",
+      "chunk-4e9e2c6c4fdb29309e868b2570de1575",
+      "chunk-5f1730cd434432b577c6ebd8443bdc2f",
+      "chunk-bd28aa27be2f18b8904be9e646aae317"
+    ],
+    "content_summary": "[page_idx:0] DETRs Beat YOLOs on Real-time Object Detection\n\nYian Zhao ${ }^{1,2 \\dagger}$ Wenyu Lv $^{1 \\ddagger \\ddagger}$ Shangliang Xu ${ }^{1}$ Jinman Wei ${ }^{1}$ Guanzhong Wang ${ }^{1}$ Qingqing Dang ${ }^{1} \\quad$ Yi Liu ${ }^{1} \\quad$ Ji...",
+    "content_length": 14288,
+    "created_at": "2026-03-17T08:51:45.212971+00:00",
+    "updated_at": "2026-03-17T17:00:15+00:00",
+    "file_path": "23rfewdq.pdf",
+    "track_id": "insert_20260317_165145_2bd69c6f",
+    "metadata": {
+      "processing_start_time": 1773737505,
+      "processing_end_time": 1773737757
+    },
+    "multimodal_processed": true
+  },
+  "doc-2e4bcd2653b550df61d289d0234df167": {
+    "status": "processed",
+    "chunks_count": 19,
+    "chunks_list": [
+      "chunk-76ebf3732853905acbb2dbf4cc78bebe",
+      "chunk-eebdeb9b1a91b037a4f1dae963659f2f",
+      "chunk-4a788995ccccdf35107e6945abee4409",
+      "chunk-84b971479f7ecbfa4dd0ac6ed3233fae",
+      "chunk-b01cc653818982672feeec4cd1d743e3",
+      "chunk-58fb592c851a91e727075d45ae614007",
+      "chunk-d078638e859d238ad5eb6faf7a982c48",
+      "chunk-277536c3251d245d4d86b467dd7d0070",
+      "chunk-4e80e0a6495792bbf0f816477eb5ddd6",
+      "chunk-db14538022773ecefcfeaa2ed31d36ad",
+      "chunk-94f9d8d2787b0a25fb70dd046d2d4d9c",
+      "chunk-3422b4a40b3460c1d6373eb28c969bfc",
+      "chunk-6e2e34ba6d8c314ebbcac375f0cdddb3",
+      "chunk-0b3eed9e14ebcd71d26f8def5455cc57",
+      "chunk-6e630076ef2df97668feb03cabe4e2fc",
+      "chunk-73d927553a48f3efc08f223d626070d0",
+      "chunk-dc033750199f8c7105725aa466d5fb7a",
+      "chunk-bc7abdd4fe5086ee405183c79ba25201",
+      "chunk-39a47cbb95bd0b6829e2c7d96fe0c0a3"
+    ],
+    "content_summary": "[page_idx:0] Kongzi: A Historical Large Language Model with Fact Enhancement\n\nAnonymous submission\n\nAbstract\n\nLarge Language Models (LLMs) have achieved significant progress in natural language understanding and complex reasoning tasks. However, inac...",
+    "content_length": 39216,
+    "created_at": "2026-03-17T09:33:45.631081+00:00",
+    "updated_at": "2026-03-17T17:39:28+00:00",
+    "file_path": "3091_Kongzi_A_Historical_Large (5).pdf",
+    "track_id": "insert_20260317_173345_a12af42d",
+    "metadata": {
+      "processing_start_time": 1773740025,
+      "processing_end_time": 1773740185
+    },
+    "multimodal_processed": true
+  }
+}

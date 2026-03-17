@@ -1,0 +1,327 @@
+{
+  "name": "global",
+  "type": "global",
+  "entries": {
+    "8df80ae1-c5f7-43dc-8d07-7cda328ebfa2": {
+      "id": "8df80ae1-c5f7-43dc-8d07-7cda328ebfa2",
+      "content": "李飞飞于1999年从普林斯顿大学本科毕业后赴西藏研究一年藏药；2000年进入加州理工学院；2005年获得加州理工学院博士学位；2005年至2006年担任伊利诺伊大学厄巴纳-香槟分校电机系助理教授；2007年至2009年担任普林斯顿大学计算机科学系助理教授；",
+      "type": "memory",
+      "metadata": {
+        "source_type": "file",
+        "session_id": "#00049",
+        "summary": null,
+        "reasoning": null,
+        "key_points": [],
+        "concepts": [],
+        "hypotheses": [],
+        "action_items": []
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T16:35:28.550475",
+      "updated_at": "2026-03-17T16:35:28.550475"
+    },
+    "28a6adc6-354d-4f6c-9a50-93a7ed6b9634": {
+      "id": "28a6adc6-354d-4f6c-9a50-93a7ed6b9634",
+      "content": "请分析上传的文件",
+      "type": "question",
+      "metadata": {
+        "query_mode": "mix",
+        "vlm_enhanced": true,
+        "timestamp": "2026-03-17 16:38:51.889908"
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T16:38:51.889908",
+      "updated_at": "2026-03-17T16:38:51.889908"
+    },
+    "754446aa-f7c0-44f1-af03-e9dd7e7f6200": {
+      "id": "754446aa-f7c0-44f1-af03-e9dd7e7f6200",
+      "content": "根据提供的上下文信息，上传的文件主要记录了学者李飞飞的学术生涯与教育背景时间线。文件内容详细梳理了她从本科毕业到早期教职经历的关键节点，涵盖了教育进修、特殊研究经历以及高校任职情况。这份文档清晰地展示了她在不同阶段的学术轨迹和身份转变。\n\n在教育背景方面，李飞飞于 1999 年从普林斯顿大学本科毕业。毕业后，她并未直接进入研究生院，而是前往西藏进行了一年的藏药研究。随后于 2000 年进入加州理工学院深造，并在 2005 年获得了博士学位。这一段经历体现了她在正式攻读博士学位前独特的研究兴趣和实践经历。\n\n在职业生涯早期，李飞飞担任了多个助理教授职位。2005 年至 2006 年期间，她在伊利诺伊大学厄巴纳 - 香槟分校电机系任职。此后，她回到普林斯顿大学，于 2007 年至 2009 年间在计算机科学系担任助理教授。这些信息共同构成了该文件的核心内容，反映了她在电气工程与计算机科学领域的早期学术贡献。\n\n### References\n\n- [1] 李飞飞.txt",
+      "type": "answer",
+      "metadata": {
+        "question_id": "28a6adc6-354d-4f6c-9a50-93a7ed6b9634",
+        "timestamp": "2026-03-17 16:38:51.890904"
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T16:38:51.890904",
+      "updated_at": "2026-03-17T16:38:51.890904"
+    },
+    "40961769-8683-4bbf-b0d7-cf86b284ef78": {
+      "id": "40961769-8683-4bbf-b0d7-cf86b284ef78",
+      "content": "请分析上传的文件",
+      "type": "question",
+      "metadata": {
+        "query_mode": "mix",
+        "vlm_enhanced": true,
+        "timestamp": "2026-03-17 16:56:46.146512"
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T16:56:46.146512",
+      "updated_at": "2026-03-17T16:56:46.146512"
+    },
+    "6c91108c-56a7-4aaf-bd86-08f7a165d844": {
+      "id": "6c91108c-56a7-4aaf-bd86-08f7a165d844",
+      "content": "根据提供的上下文信息，上传的文件主要记录了学者李飞飞的学术生涯与教育背景时间线。文件内容详细梳理了她从本科毕业到早期教职经历的关键节点，涵盖了教育进修、特殊研究经历以及高校任职情况。这份文档清晰地展示了她在不同阶段的学术轨迹和身份转变。\n\n在教育背景方面，李飞飞于 1999 年从普林斯顿大学本科毕业。毕业后，她并未直接进入研究生院，而是前往西藏进行了一年的藏药研究。随后于 2000 年进入加州理工学院深造，并在 2005 年获得了博士学位。这一段经历体现了她在正式攻读博士学位前独特的研究兴趣和实践经历。\n\n在职业生涯早期，李飞飞担任了多个助理教授职位。2005 年至 2006 年期间，她在伊利诺伊大学厄巴纳 - 香槟分校电机系任职。此后，她回到普林斯顿大学，于 2007 年至 2009 年间在计算机科学系担任助理教授。这些信息共同构成了该文件的核心内容，反映了她在电气工程与计算机科学领域的早期学术贡献。\n\n### References\n\n- [1] 李飞飞.txt",
+      "type": "answer",
+      "metadata": {
+        "question_id": "40961769-8683-4bbf-b0d7-cf86b284ef78",
+        "timestamp": "2026-03-17 16:56:46.148191"
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T16:56:46.148191",
+      "updated_at": "2026-03-17T16:56:46.148191"
+    },
+    "b1c6e1f6-64ab-4898-8dcf-05877294fb50": {
+      "id": "b1c6e1f6-64ab-4898-8dcf-05877294fb50",
+      "content": "\nImage Content Analysis:\nImage Path: C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_1.png\nCaptions: None\nFootnotes: None\n\nVisual Analysis: The image displays page 1 of a research paper titled 'DETRs Beat YOLOs on Real-time Object Detection', formatted in a standard two-column academic layout with black text on a white background. The page content begins mid-sentence with the phrase 'computational redundancy and further improve accuracy,' continuing from the Introduction section on the previous page. The upper portion of the page completes the Introduction, discussing the redesign of the encoder for RT-DETR, the uncertainty-minimal query selection, and flexible speed tuning. Specific performance metrics appear in the text, stating RT-DETR-R50 achieves 53.1% AP on COCO and 108 FPS on T4 GPU, with a reference to Figure 1 located nearby in the text flow. \n\nBelow the Introduction conclusion, a paragraph outlines the main contributions summarized as points (i), (ii), and (iii), detailing the proposal of RT-DETR, the analysis of NMS impact, and support for flexible speed tuning. The lower half of the page introduces Section 2, 'Related Work,' with bolded section headers. Subsection 2.1, 'Real-time Object Detectors,' discusses YOLOv1 and CNN-based architectures. Subsection 2.2, 'End-to-end Object Detectors,' covers DETR, Deformable-DETR, DINO, and other variants. Citations appear as bracketed numbers throughout the text (e.g., [45], [42], [31]). The text at the bottom of the right column cuts off mid-word at 'Optimizing query initial-', indicating continuation onto page 2. The visual style utilizes standard LaTeX formatting with serif fonts for body text and bold sans-serif or serif fonts for headers. No actual figures or tables are visually embedded on this specific page segment, though Figure 1 is referenced in the text.",
+      "type": "chunk",
+      "metadata": {
+        "chunk_id": "chunk-4e9e2c6c4fdb29309e868b2570de1575",
+        "doc_id": "doc-009765d41c1b3104a26ed74d2c4f1d65",
+        "file_path": "23rfewdq.pdf",
+        "is_multimodal": true
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T16:59:57.847972",
+      "updated_at": "2026-03-17T16:59:57.847972"
+    },
+    "3f474e8e-6b0b-4608-bd0b-981eacd0b785": {
+      "id": "3f474e8e-6b0b-4608-bd0b-981eacd0b785",
+      "content": "\nImage Content Analysis:\nImage Path: C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_2.png\nCaptions: None\nFootnotes: None\n\nVisual Analysis: The image displays page two of the research paper 'DETRs Beat YOLOs on Real-time Object Detection'. The layout follows a standard two-column academic format with black text on a white background. The top section concludes Section 2.2 'End-to-end Object Detectors', discussing query initialization methods like Conditional DETR and DINO. Below the text sits Figure 2, captioned 'The number of boxes at different confidence thresholds', depicted as a bar graph illustrating NMS sensitivity to hyperparameters. The main body introduces Section 3 'End-to-end Speed of Detectors', specifically subsection 3.1 'Analysis of NMS'. Section 3.1 details the impact of Non-Maximum Suppression (NMS) hyperparameters on YOLOv5 and YOLOv8. A central element is Table 1, titled 'The effect of IoU threshold and confidence threshold on accuracy and NMS execution time'. Table 1 presents data comparing IoU thresholds (0.5, 0.6, 0.8) and Confidence thresholds (0.001, 0.01, 0.05) against Average Precision (AP) and NMS execution time in milliseconds. The bottom section begins subsection 3.2 'End-to-end Speed Benchmark', outlining the methodology for fair speed comparison. The visual style is formal and technical, consistent with computer vision conference proceedings.",
+      "type": "chunk",
+      "metadata": {
+        "chunk_id": "chunk-5f1730cd434432b577c6ebd8443bdc2f",
+        "doc_id": "doc-009765d41c1b3104a26ed74d2c4f1d65",
+        "file_path": "23rfewdq.pdf",
+        "is_multimodal": true
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T16:59:57.849975",
+      "updated_at": "2026-03-17T16:59:57.849975"
+    },
+    "00880979-c56b-488b-8550-b791315c0f54": {
+      "id": "00880979-c56b-488b-8550-b791315c0f54",
+      "content": "\nImage Content Analysis:\nImage Path: C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_3.png\nCaptions: None\nFootnotes: None\n\nVisual Analysis: Unable to analyze this image. The image file is located at a local path (C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_3.png) that cannot be accessed by this system. No visual content, objects, text, colors, lighting, or compositional elements can be described without actual image access. The image appears to be part of a knowledge documentation system based on the file path structure, potentially page 3 of a vision-related document collection.",
+      "type": "chunk",
+      "metadata": {
+        "chunk_id": "chunk-bd28aa27be2f18b8904be9e646aae317",
+        "doc_id": "doc-009765d41c1b3104a26ed74d2c4f1d65",
+        "file_path": "23rfewdq.pdf",
+        "is_multimodal": true
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T16:59:57.851971",
+      "updated_at": "2026-03-17T16:59:57.851971"
+    },
+    "c74a903f-099b-42eb-8c98-8bc23697a1fd": {
+      "id": "c74a903f-099b-42eb-8c98-8bc23697a1fd",
+      "content": "\nImage Content Analysis:\nImage Path: C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_1.png\nCaptions: None\nFootnotes: None\n\nVisual Analysis: The image displays the first page of an academic paper titled 'Kongzi: A Historical Large Language Model with Fact Enhancement,' marked as an 'Anonymous submission.' The layout is a standard two-column format on a white background with black serif text. \n\nOn the left column, the 'Abstract' and 'Introduction' sections are visible. The Abstract outlines the proposal of 'Kongzi,' a large language model designed to address factual inaccuracies in historical reasoning by integrating historical corpora and a fact-enhanced reinforcement learning strategy. The Introduction elaborates on the limitations of existing models regarding hallucinations in historical contexts and details the methodology: collecting domain-specific corpora, performing continued pre-training, instruction-following fine-tuning, and introducing a novel reward function based on entity-relation graphs.\n\nOn the right side, there is a prominent diagram labeled 'Figure 1: Comparative analysis of different LLM's responses to misleading historical fact-checking queries.' This figure visually demonstrates the problem Kongzi aims to solve. It contains three stacked rectangular panels showing different AI model responses to a query about the Battle of Changban and the character Xing Daorong. \n- The top panel shows a response containing a factual error (hallucination) regarding Xing Daorong's role, accompanied by a small icon of a person.\n- The middle panel shows a response correctly identifying Xing Daorong as a fictional character from 'Romance of the Three Kingdoms,' marked with a blue checkmark icon.\n- The bottom panel highlights specific factual discrepancies in a table format, comparing 'Official History' vs. 'In Three Kingdoms,' with red 'X' marks indicating errors in the model's output regarding events like 'Cao Cao beheaded Xing Daorong.'\n\nTo the right of these text panels is a schematic diagram illustrating the '5 Ws' of fact-checking (Who, What, Where, When, Why) arranged in a star shape around a central node labeled 'Event/Fact.' Red arrows point from the text to this diagram, and a caption below reads, 'Misleading prompts may affect an LLM's perception of facts.' The visual style is clean and academic, utilizing red and blue accents in the figure to distinguish between correct and incorrect information.",
+      "type": "chunk",
+      "metadata": {
+        "chunk_id": "chunk-94f9d8d2787b0a25fb70dd046d2d4d9c",
+        "doc_id": "doc-2e4bcd2653b550df61d289d0234df167",
+        "file_path": "3091_Kongzi_A_Historical_Large (5).pdf",
+        "is_multimodal": true
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T17:38:43.093149",
+      "updated_at": "2026-03-17T17:38:43.093149"
+    },
+    "8e9ef05c-1364-4a13-ab16-e260cb170766": {
+      "id": "8e9ef05c-1364-4a13-ab16-e260cb170766",
+      "content": "\nImage Content Analysis:\nImage Path: C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_2.png\nCaptions: None\nFootnotes: None\n\nVisual Analysis: The image displays a single page from an academic research paper titled 'Kongzi: A Historical Large Language Model with Fact Enhancement.' The layout is a standard two-column format typical of conference proceedings, set against a white background with black serif typography. \n\nThe left column begins with a summary of contributions, listing three bullet points: 'Continued Pre-training,' 'CoT Data Generation,' and 'Fact-Aware RL.' Below this is the 'Related Work' section, subdivided into 'Reasoning in Large Language Models' (discussing prompt engineering, Chain-of-Thought fine-tuning, and Reinforcement Learning) and 'Chinese History in Large Language Models' (referencing datasets like FoodieQA and benchmarks like CTM). The text cites various authors such as Plaat et al., DeepSeek-AI, and Wang et al.\n\nThe right column continues the discussion on Chinese history LLMs before transitioning to the 'Method' section. This section outlines the pipeline: data collection, incremental pre-training, cold-start instruction fine-tuning, and fact-enhanced reinforcement learning. Under the subsection 'Data acquisition and processing,' the text details the selection of ancient Chinese history texts (0.2 billion tokens) and describes a classification workflow where historical corpora are separated into 'factual statements' and 'contextual reasoning texts' using a small-parameter LLM-assisted process. The text explains that sentences are segmented based on punctuation and assigned unique identifiers to maintain semantic coherence.",
+      "type": "chunk",
+      "metadata": {
+        "chunk_id": "chunk-3422b4a40b3460c1d6373eb28c969bfc",
+        "doc_id": "doc-2e4bcd2653b550df61d289d0234df167",
+        "file_path": "3091_Kongzi_A_Historical_Large (5).pdf",
+        "is_multimodal": true
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T17:38:43.096151",
+      "updated_at": "2026-03-17T17:38:43.096151"
+    },
+    "f4aed719-8a5a-47f5-8ee7-1e87fd98889c": {
+      "id": "f4aed719-8a5a-47f5-8ee7-1e87fd98889c",
+      "content": "\nImage Content Analysis:\nImage Path: C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_3.png\nCaptions: None\nFootnotes: None\n\nVisual Analysis: The image displays a page from a technical document, likely a research paper, detailing a machine learning pipeline. The top half features 'Figure 2: Overview of our pipeline,' a flowchart diagram. The process begins on the left with an 'Original Corpus' icon feeding into a 'Data Cleaning' module (light blue). This splits into 'Factual Data' and 'Inference Text' (yellow boxes). Factual data goes through 'Data Augmentation' to a 'CPT' (Continue Pre-Training) node (orange oval with fire icon). Inference text undergoes 'Chunking' and 'Generate' steps to create 'CoT Data' (Chain-of-Thought), which feeds into the first 'SFT' (Supervised Fine-Tuning) node. The output of CPT and CoT Data are concatenated (circle with plus sign) before entering the SFT stage. There are two sequential SFT nodes, followed by a final 'Content RL' (Reinforcement Learning) node (green box). A legend below defines symbols for Operation Flow, Concatenation, Training, SFT Process, CPT Process, and Functional Module. Below the figure is a caption explaining the data processing and training stages. The bottom half contains text sections titled '(2) Generation of Primary SFT Data', '(3) Generation of Secondary SFT Data', 'Initial training strategy for the model', and 'Reinforcement Learning Training'. It includes mathematical equations labeled (1) and (2) defining variables X and M(r), along with a bulleted list defining terms like G, o_i, r_ratio, epsilon, and A_hat_i,t.",
+      "type": "chunk",
+      "metadata": {
+        "chunk_id": "chunk-6e2e34ba6d8c314ebbcac375f0cdddb3",
+        "doc_id": "doc-2e4bcd2653b550df61d289d0234df167",
+        "file_path": "3091_Kongzi_A_Historical_Large (5).pdf",
+        "is_multimodal": true
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T17:38:43.098483",
+      "updated_at": "2026-03-17T17:38:43.098483"
+    },
+    "f5b9efdd-8e71-4576-8140-5b458013f7a3": {
+      "id": "f5b9efdd-8e71-4576-8140-5b458013f7a3",
+      "content": "\nImage Content Analysis:\nImage Path: C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_4.png\nCaptions: None\nFootnotes: None\n\nVisual Analysis: The image displays a technical diagram and accompanying text from a research paper, detailing the 'Historical Fact-enhanced Reward Module (HFRM)'. The top section features a flowchart illustrating a reinforcement learning process. It begins with an input 'q' feeding into a yellow 'Policy Model' box marked with a fire icon. This model generates a sequence of outputs ($o_1$ to $o_G$). These outputs are processed by two blue boxes: a 'Reference Model' and a 'Reward Model', both marked with snowflake icons. The Reward Model produces reward values ($r_1$ to $r_G$), which undergo 'Group Computation' to yield final actions or scores ($A_1$ to $A_G$). Below this main flow is a detailed sub-diagram enclosed in a red dashed rectangle, explaining the internal mechanism of the Reward Model. This sub-process shows parallel paths for 'Ground Truth' and 'Generation'. Both paths involve 'Information Extraction' (represented by vertical lists of squares), conversion into knowledge graphs (nodes connected by lines), and 'Embedding' (blue vertical bars with snowflakes). The embeddings from both paths are compared using 'Cosine Similarity' to determine semantic alignment. The bottom half of the image contains dense academic text defining variables like $G$, $o_i$, and $\\varepsilon_{KL}$, presenting the objective function for Generalized Reward Policy Optimization (GRPO), and explaining how the HFRM uses factuality scores to mitigate hallucinations in long-form text generation.",
+      "type": "chunk",
+      "metadata": {
+        "chunk_id": "chunk-0b3eed9e14ebcd71d26f8def5455cc57",
+        "doc_id": "doc-2e4bcd2653b550df61d289d0234df167",
+        "file_path": "3091_Kongzi_A_Historical_Large (5).pdf",
+        "is_multimodal": true
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T17:38:43.101210",
+      "updated_at": "2026-03-17T17:38:43.101210"
+    },
+    "4bc7491e-33cf-4ad8-8724-7d8c0a51af04": {
+      "id": "4bc7491e-33cf-4ad8-8724-7d8c0a51af04",
+      "content": "\nImage Content Analysis:\nImage Path: C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_5.png\nCaptions: None\nFootnotes: None\n\nVisual Analysis: The image displays page 5 of a technical document, featuring a bar chart at the top and two columns of text below. The chart, titled 'Figure 4: Comparison of Kongzi’s scores with other models under different judges,' presents performance data for eight AI models across three evaluation categories: GPT-4o, Gemini-2.0-flash-lite-preview, and Qwen-Max. Each category contains a group of vertical bars representing model scores, color-coded according to a legend on the right: orange for Kongzi-0.5B, light yellow for Kongzi-7B, and various shades of blue for Deepseek-r1-distill variants (7B, 14B, 32B), Deepseek-r1, O3-mini, and QwQ-32B-preview. Numerical values are displayed atop each bar. Below the chart, the caption explains that the score is a weighted sum of response process (0.8), thought process (0.1), and outperformance ratio against Deepseek-r1 sample (0.1). The lower half contains structured sections: 'Experiments' with subsections 'Datasets and Evaluation Protocols' and 'Data Processing & Generating' in the left column; and 'Base Model Training', 'Continued PreTraining', and 'Supervised Fine-Tuning' in the right column. Text details dataset construction from 200 million tokens of Chinese historical texts, categorization into factual statements and contextual reasoning, preprocessing via LLM-generated QA pairs, and training procedures using NVIDIA GPUs (A6000 and RTX 3090) over specified durations. All text is black on white background, formatted in standard academic style with bold headings and numbered lists.",
+      "type": "chunk",
+      "metadata": {
+        "chunk_id": "chunk-6e630076ef2df97668feb03cabe4e2fc",
+        "doc_id": "doc-2e4bcd2653b550df61d289d0234df167",
+        "file_path": "3091_Kongzi_A_Historical_Large (5).pdf",
+        "is_multimodal": true
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T17:38:43.103482",
+      "updated_at": "2026-03-17T17:38:43.103482"
+    },
+    "bcea063f-ec9c-49fe-b763-3ca91cf23f40": {
+      "id": "bcea063f-ec9c-49fe-b763-3ca91cf23f40",
+      "content": "\nImage Content Analysis:\nImage Path: C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_6.png\nCaptions: None\nFootnotes: None\n\nVisual Analysis: The image displays page 6 of a technical document, featuring a structured layout with black text on a white background. The top half is dominated by 'Table 1', titled 'Improvement of Kongzi model performance in various metrics by RL training.' This table compares the performance of 'Kongzi-0.5B' and 'Kongzi-7B' models against three base models: 'GPT-4o', 'Gemini-2.5', and 'Qwen-Max'. The columns list specific metrics: 'Think Score', 'Answer Score', 'Historical Accuracy', 'Logical Reasoning', 'Problem Solving', and '>Deepseek-r1 Ratio'. Rows are divided into 'SFT' (Supervised Fine-Tuning) and 'RL' (Reinforcement Learning) variants. Bold text highlights the superior scores of the RL-trained models, with parenthetical values indicating the percentage improvement over the SFT versions. Below the table, the text is organized into two columns detailing the methodology. The left column describes the training stages, including 'block-level random mixing' and fine-tuning on 'Chain-of-Thought (CoT)' examples. It introduces the 'Reinforcement Learning Training' section, specifying the use of the 'GRPO' framework and a reward function based on cosine similarity between knowledge graphs, represented by the formula ER = cos(f(G_model), f(G_gold)). The right column defines G_model and G_gold, then lists specific reward components: 'Format Reward' (checking for markers like <|begin_of_thought|>) and 'Repetition Penalty Reward' (penalizing repeated n-grams using the formula RP = RR x MPV). Finally, it presents the 'Integration of Reward Functions' with a weighted aggregation formula: R_final = w1*R_cos + w2*R_log + w3*R_fmt + w4*R_rep.",
+      "type": "chunk",
+      "metadata": {
+        "chunk_id": "chunk-73d927553a48f3efc08f223d626070d0",
+        "doc_id": "doc-2e4bcd2653b550df61d289d0234df167",
+        "file_path": "3091_Kongzi_A_Historical_Large (5).pdf",
+        "is_multimodal": true
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T17:38:43.106848",
+      "updated_at": "2026-03-17T17:38:43.106848"
+    },
+    "581a8254-4b04-4ceb-833c-3e5d5f8af752": {
+      "id": "581a8254-4b04-4ceb-833c-3e5d5f8af752",
+      "content": "\nImage Content Analysis:\nImage Path: C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_7.png\nCaptions: None\nFootnotes: None\n\nVisual Analysis: The image displays page 7 of a technical research paper, formatted in a standard two-column academic layout with black text on a white background. The left column is dominated by 'Table 2: Results on CMMLU-Chinese-History,' which is subdivided into three sections: 'Base Model Table,' 'Mixed Reasoning Model Table,' and 'Reasoning Model Table.' These tables compare the performance (accuracy percentages) of various Large Language Models (LLMs), including Qwen, Deepseek r1, and Kongzi variants, across categories like 'Dense Model' and 'Reasoning.' Specific metrics such as 'w/o' (without enhancement prompts), 'Cot' (Chain of Thought), and 'Thinking' are listed. Below the table, a caption explains that bold scores indicate the best results and defines abbreviations. Further down the left column is the 'Results Evaluation' section, detailing the evaluation methodology using manual expert scoring and LLM scoring based on five criteria: Think Score, Answer Score, Historical Accuracy, Logical Reasoning, and Problem Solving. The right column contains the continuation of the results discussion, followed by the 'Conclusion' section, which summarizes the proposal of the 'Kongzi' language model for the historical domain and its effectiveness via reinforcement learning. The page concludes with a 'References' section listing numerous citations in alphabetical order.",
+      "type": "chunk",
+      "metadata": {
+        "chunk_id": "chunk-dc033750199f8c7105725aa466d5fb7a",
+        "doc_id": "doc-2e4bcd2653b550df61d289d0234df167",
+        "file_path": "3091_Kongzi_A_Historical_Large (5).pdf",
+        "is_multimodal": true
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T17:38:43.108491",
+      "updated_at": "2026-03-17T17:38:43.108491"
+    },
+    "44008e46-9d56-4e07-ab95-c849eb009bad": {
+      "id": "44008e46-9d56-4e07-ab95-c849eb009bad",
+      "content": "\nImage Content Analysis:\nImage Path: C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_8.png\nCaptions: None\nFootnotes: None\n\nVisual Analysis: The image displays a high-resolution scan of page 8 from an academic document, specifically the bibliography or references section. The layout consists of two columns of dense text on a white background with black serif typography. The content comprises a comprehensive list of citations related to Large Language Models (LLMs), artificial intelligence, and natural language processing. Each entry follows a standard academic citation format, listing authors, publication year, title, and source (e.g., arXiv preprint numbers, conference proceedings like EMNLP, or journals). Notable entries include 'DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning' (2025), 'A Survey on Hallucination in Large Language Models' (2025), 'GPT-4 Technical Report' (2024), and 'Qwen2.5 Technical Report' (2025). The text is justified, creating clean vertical edges for both columns.",
+      "type": "chunk",
+      "metadata": {
+        "chunk_id": "chunk-bc7abdd4fe5086ee405183c79ba25201",
+        "doc_id": "doc-2e4bcd2653b550df61d289d0234df167",
+        "file_path": "3091_Kongzi_A_Historical_Large (5).pdf",
+        "is_multimodal": true
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T17:38:43.111498",
+      "updated_at": "2026-03-17T17:38:43.111498"
+    },
+    "271c0f30-a68f-4745-9d8b-3a410b8a172a": {
+      "id": "271c0f30-a68f-4745-9d8b-3a410b8a172a",
+      "content": "\nImage Content Analysis:\nImage Path: C:\\Users\\lqx94\\Documents\\GitHub\\doc\\data\\#00035\\knowledge\\vision_pages\\page_9.png\nCaptions: None\nFootnotes: None\n\nVisual Analysis: The image displays a page from an academic document, specifically a bibliography or references section. The layout consists of a single column of text aligned to the left margin on a plain white background. The text is rendered in a black serif font, typical of formal academic publishing. There are ten distinct bibliographic entries listed vertically. Each entry follows a standard citation format including author names, publication year, title, and source (conference name or arXiv identifier). The content focuses on topics related to Artificial Intelligence, Machine Learning, Reinforcement Learning (RLHF), and Large Language Models (LLMs). Specific citations include works by Ammar & Bogunovic (2024), Schulman et al. (2017), Wadhwa et al. (2024), Wang et al. (2023, 2025), Yang et al. (2025), Yu et al. (2023), Zhao et al. (2025), and Zhong et al. (2025). The visual style is minimalistic and functional, designed for information retrieval.",
+      "type": "chunk",
+      "metadata": {
+        "chunk_id": "chunk-39a47cbb95bd0b6829e2c7d96fe0c0a3",
+        "doc_id": "doc-2e4bcd2653b550df61d289d0234df167",
+        "file_path": "3091_Kongzi_A_Historical_Large (5).pdf",
+        "is_multimodal": true
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T17:38:43.113500",
+      "updated_at": "2026-03-17T17:38:43.113500"
+    },
+    "5d76568e-2dca-448a-96cc-a7385c96acea": {
+      "id": "5d76568e-2dca-448a-96cc-a7385c96acea",
+      "content": "讲了什么",
+      "type": "question",
+      "metadata": {
+        "query_mode": "mix",
+        "vlm_enhanced": true,
+        "timestamp": "2026-03-17 17:40:01.203812"
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T17:40:01.203812",
+      "updated_at": "2026-03-17T17:40:01.203812"
+    },
+    "3a8af298-369a-4f59-9eef-86f9a9301c8f": {
+      "id": "3a8af298-369a-4f59-9eef-86f9a9301c8f",
+      "content": "基于提供的上下文和文档内容，主要包含了两篇不同领域的学术论文摘要及详细信息：一篇关于计算机视觉中的实时目标检测模型，另一篇关于针对历史领域的大型语言模型。\n\n### 1. RT-DETR：实时端到端目标检测模型\n第一篇论文（参考文档 [2]）提出了一种名为 **RT-DETR** (Real-Time DEtection TRansformer) 的模型，这是首个实时的端到端目标检测器。\n\n*   **研究背景与问题**：现有的实时检测器（如 YOLO 系列）虽然速度快，但依赖非极大值抑制（NMS）后处理，这会影响速度和精度。而基于 Transformer 的端到端检测器（如 DETR）虽然消除了 NMS，但计算成本高，难以满足实时性要求。\n*   **核心贡献**：\n    *   **混合编码器 (Hybrid Encoder)**：设计了一种高效的混合编码器，通过解耦尺度内交互和跨尺度融合，快速处理多尺度特征，显著提升了推理速度。\n    *   **不确定性最小化查询选择 (Uncertainty-Minimal Query Selection)**：提出了一种新的查询选择方法，为解码器提供高质量的初始查询，从而提高了检测精度。\n    *   **灵活的速度调节**：支持通过调整解码器层数来适应不同场景的速度需求，无需重新训练。\n*   **性能表现**：RT-DETR 在 COCO 数据集上取得了优异的成果。其中 RT-DETR-R50 版本在 T4 GPU 上达到了 **108 FPS** 的推理速度，同时实现了 **53.1% AP** 的精度，在速度和精度上均超越了先进的 YOLO 检测器。此外，它在精度上比 DINO-R50 高出 2.2%，速度快约 21 倍。\n\n### 2. Kongzi：具备事实增强能力的历史大语言模型\n第二篇论文（参考文档 [1]）介绍了一个名为 **Kongzi** 的大型语言模型，专门设计用于历史领域的理解和复杂推理。\n\n*   **研究背景与问题**：通用大语言模型在处理历史任务时，常因长链推理或误导性提示而产生“幻觉”（事实性错误），限制了其在高密度信息的历史领域的应用。\n*   **核心方法**：\n    *   **持续预训练 (Continued Pre-training)**：收集并清洗了约 2 亿 token 的高质量中国历史文本语料库，对基座模型进行领域适应性预训练。\n    *   **思维链数据生成 (CoT Data Generation)**：将数据分类为事实陈述和推理任务，生成高质量的思维链（CoT）数据，通过两阶段监督微调（SFT）增强模型的推理能力。\n    *   **事实感知强化学习 (Fact-Aware RL)**：提出了一种新颖的奖励函数，通过构建知识图谱并计算其与真实图谱的语义相似度作为奖励信号，确保模型生成的内容与历史事实保持一致，有效减少幻觉。\n*   **实验结果**：在多个历史基准测试（如 CMMLU-Chinese-History）中，Kongzi 模型（尤其是 7B 参数版本经过 RL 训练后）在历史准确性、逻辑推理和问题解决能力上均表现出色，甚至超越了一些参数量更大或专门的推理模型（如 DeepSeek-R1 的部分版本）。\n\n### 3. 其他人物背景信息\n上下文中还包含了一段关于著名科学家 **李飞飞** 的个人履历信息（参考文档 [3]）：\n*   她于 1999 年从普林斯顿大学本科毕业，随后赴西藏研究藏药一年。\n*   2000 年进入加州理工学院，并于 2005 年获得博士学位。\n*   曾在伊利诺伊大学厄巴纳 - 香槟分校电机系（2005-2006）和普林斯顿大学计算机科学系（2007-2009）担任助理教授。\n\n### References\n\n- [1] 3091_Kongzi_A_Historical_Large (5).pdf\n- [2] 23rfewdq.pdf\n- [3] 李飞飞.txt",
+      "type": "answer",
+      "metadata": {
+        "question_id": "5d76568e-2dca-448a-96cc-a7385c96acea",
+        "timestamp": "2026-03-17 17:40:01.207161"
+      },
+      "relations": [],
+      "entity_links": [],
+      "confidence_score": 1.0,
+      "source": "manual",
+      "created_at": "2026-03-17T17:40:01.207161",
+      "updated_at": "2026-03-17T17:40:01.207161"
+    }
+  },
+  "metadata": {},
+  "created_at": "2026-03-17T16:31:31.050065",
+  "updated_at": "2026-03-17T17:40:01.207161"
+}
