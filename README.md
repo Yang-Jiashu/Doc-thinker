@@ -257,6 +257,17 @@ If you find DocThinker useful in your research, please cite:
 
 PRs and issues welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+### Contributors
+
+<table>
+<tr>
+<td align="center"><a href="https://github.com/Yang-Jiashu"><img src="https://github.com/Yang-Jiashu.png" width="80" style="border-radius:50%" /><br /><sub><b>Yang Jiashu</b></sub></a><br />💻 Author</td>
+<td align="center"><a href="https://github.com/lqx943576099"><img src="https://github.com/lqx943576099.png" width="80" style="border-radius:50%" /><br /><sub><b>wangye</b></sub></a><br />💻 Contributor</td>
+<td align="center"><a href="https://www.cursor.com/"><img src="https://www.cursor.com/favicon.ico" width="80" style="border-radius:50%" /><br /><sub><b>Cursor</b></sub></a><br />🤖 AI IDE</td>
+<td align="center"><a href="https://www.anthropic.com/"><img src="https://www.anthropic.com/favicon.ico" width="80" style="border-radius:50%" /><br /><sub><b>Claude</b></sub></a><br />🧠 AI Assistant</td>
+</tr>
+</table>
+
 ## 📜 License
 
 [MIT](LICENSE)

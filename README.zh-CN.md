@@ -257,6 +257,17 @@ python run_ui.py
 
 欢迎 PR 和 Issue！详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
+### 贡献者
+
+<table>
+<tr>
+<td align="center"><a href="https://github.com/Yang-Jiashu"><img src="https://github.com/Yang-Jiashu.png" width="80" style="border-radius:50%" /><br /><sub><b>Yang Jiashu</b></sub></a><br />💻 作者</td>
+<td align="center"><a href="https://github.com/lqx943576099"><img src="https://github.com/lqx943576099.png" width="80" style="border-radius:50%" /><br /><sub><b>wangye</b></sub></a><br />💻 贡献者</td>
+<td align="center"><a href="https://www.cursor.com/"><img src="https://www.cursor.com/favicon.ico" width="80" style="border-radius:50%" /><br /><sub><b>Cursor</b></sub></a><br />🤖 AI IDE</td>
+<td align="center"><a href="https://www.anthropic.com/"><img src="https://www.anthropic.com/favicon.ico" width="80" style="border-radius:50%" /><br /><sub><b>Claude</b></sub></a><br />🧠 AI 助手</td>
+</tr>
+</table>
+
 ## 📜 协议
 
 [MIT](LICENSE)
