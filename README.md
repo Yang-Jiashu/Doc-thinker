@@ -190,20 +190,6 @@ Open `http://localhost:5000` — upload a PDF, ask questions, and explore the ev
 | `vlm` | Cloud VLM (Qwen-VL) | Image-heavy documents |
 | `mineru` | MinerU layout engine | Long documents with complex tables |
 
-## 🕸️ KG Visualization
-
-Interactive D3.js force-directed graph with:
-
-- **Color-coded nodes** — original entities vs. expanded candidates vs. promoted nodes
-- **Discovered edges** — latent relationships rendered as dashed red lines, distinct from extracted edges
-- **Expand / filter controls** — drill into clusters, filter by entity type, search by keyword
-- **Node details** — hover for full description, edge labels, expansion metadata
-
-<div align="center">
-<img src="docs/assets/usecase_kg.gif" alt="KG Visualization Demo" width="720" />
-<p><sub><b>Figure 4.</b> Interactive KG exploration — color-coded nodes, expanded candidates, and discovered edges in real time.</sub></p>
-</div>
-
 <details>
 <summary><b>📡 API Reference</b></summary>
 

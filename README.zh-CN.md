@@ -190,20 +190,6 @@ python run_ui.py
 | `vlm` | 云端 VLM（Qwen-VL） | 图片密集文档 |
 | `mineru` | MinerU 布局引擎 | 含复杂表格的长文档 |
 
-## 🕸️ KG 可视化
-
-基于 D3.js 力导向图的交互式可视化：
-
-- **颜色编码节点** — 原始实体 / 扩展候选 / 已晋升节点
-- **发现边** — 潜在关系以红色虚线渲染，与抽取边明确区分
-- **扩展与过滤** — 按聚类钻取、按实体类型过滤、关键词搜索
-- **节点详情** — 悬停查看完整描述、边标签、扩展元数据
-
-<div align="center">
-<img src="docs/assets/usecase_kg.gif" alt="KG 可视化演示" width="720" />
-<p><sub><b>图 4.</b> 交互式 KG 探索 — 颜色编码节点、扩展候选及发现边的实时展示。</sub></p>
-</div>
-
 <details>
 <summary><b>📡 API 参考</b></summary>
 
