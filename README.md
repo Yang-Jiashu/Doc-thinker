@@ -25,11 +25,11 @@
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-[Quick Start](#quick-start) · [Key Contributions](#key-contributions) · [Pipeline](#overview) · [API Reference](#api-reference)
+[Quick Start](#-quick-start) · [Key Contributions](#-key-contributions) · [Pipeline](#-overview) · [Use Cases](#-use-cases) · [API Reference](#api-reference)
 
 </div>
 
-## Overview
+## 📖 Overview
 
 **DocThinker** is a document-grounded RAG system that constructs a living, self-evolving knowledge graph from uploaded documents. Unlike conventional retrieve-and-generate pipelines, DocThinker treats the knowledge graph as a **dynamic cognitive substrate** — it grows through ingestion, restructures itself through usage-driven feedback, and reasons over structured triples via SPARQL-style chain-of-thought decomposition. Built on [LightRAG](https://github.com/HKUDS/LightRAG) with integrated [OpenClaw / Letta](https://github.com/letta-ai/letta) tiered memory.
 
@@ -41,7 +41,7 @@
 <p><b>Figure 1.</b> DocThinker end-to-end pipeline — five-layer architecture spanning input perception, query cognition,<br/>dynamic memory core (KG self-expansion, Claw tiered memory, episodic memory), hybrid retrieval & reasoning, and output feedback loop.</p>
 </div>
 
-### Highlights
+### ✨ Highlights
 
 - **Self-evolving knowledge graph** — LLM-expanded candidate nodes are validated against real user queries; only those adopted in answers survive and get promoted to the formal KG
 - **Tiered episodic memory (Claw)** — An OpenClaw-inspired three-layer memory hierarchy (hot / warm / cold) that mirrors human short-term, working, and long-term memory, enabling unbounded conversation length
@@ -52,9 +52,9 @@
 
 ---
 
-## Key Contributions
+## 🧬 Key Contributions
 
-### 1. Two-Path KG Self-Expansion
+### 1. 🔀 Two-Path KG Self-Expansion
 
 Expansion operates in two complementary passes:
 
@@ -65,7 +65,7 @@ Expansion operates in two complementary passes:
 
 All candidates pass through **LLM self-validation** (factuality, non-redundancy, edge validity, specificity scoring) and **semantic deduplication** before admission.
 
-### 2. Expanded Node Lifecycle
+### 2. 🔄 Expanded Node Lifecycle
 
 <div align="center">
 <img src="docs/assets/lifecycle.png" alt="Expanded Node Lifecycle" width="680" />
@@ -74,7 +74,7 @@ All candidates pass through **LLM self-validation** (factuality, non-redundancy,
 
 The graph **earns** its knowledge — only query-validated expansions persist.
 
-### 3. SPARQL Chain-of-Thought (CoT) Reasoning
+### 3. 🧠 SPARQL Chain-of-Thought (CoT) Reasoning
 
 <div align="center">
 <img src="docs/assets/sparql_cot.png" alt="SPARQL CoT Reasoning" width="680" />
@@ -83,7 +83,7 @@ The graph **earns** its knowledge — only query-validated expansions persist.
 
 Complex queries are internally decomposed into **SPARQL-like triple-pattern chains** before answer generation. The LLM binds variables against KG context via shared-variable chaining, constructs a variable binding table, then synthesizes the final answer. This replaces unstructured "find relevant info" with **systematic graph traversal reasoning**.
 
-### 4. Tiered Episodic Memory (Claw)
+### 4. 🗃️ Tiered Episodic Memory (Claw)
 
 Inspired by the [OpenClaw / MemGPT / Letta](https://github.com/letta-ai/letta) architecture, Claw implements a **three-layer memory hierarchy**:
 
@@ -95,7 +95,7 @@ Inspired by the [OpenClaw / MemGPT / Letta](https://github.com/letta-ai/letta) a
 
 After each Q&A turn, older conversations are automatically archived to the cold layer, and the warm layer is periodically re-compressed by the LLM — enabling **unbounded conversation length** without context window overflow.
 
-### 5. Background Edge Discovery & Validation
+### 5. 🔍 Background Edge Discovery & Validation
 
 After entity extraction, many cross-chunk relationships are missed. DocThinker runs a **background edge discovery pipeline**:
 
@@ -104,7 +104,7 @@ After entity extraction, many cross-chunk relationships are missed. DocThinker r
 3. **Deduplication & validation** — Discovered edges are checked against existing edges and validated for plausibility.
 4. **Visual distinction** — Discovered edges are persisted with `is_discovered=1` and rendered distinctly (e.g., dashed red) in the KG visualization.
 
-### 6. Episodic Memory with Spreading Activation
+### 6. 🌊 Episodic Memory with Spreading Activation
 
 The `neuro_memory` module implements a brain-inspired episodic memory system:
 
@@ -115,7 +115,7 @@ The `neuro_memory` module implements a brain-inspired episodic memory system:
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
 git clone https://github.com/Yang-Jiashu/doc-thinker.git && cd doc-thinker
@@ -138,7 +138,7 @@ Open `http://localhost:5000` — upload a PDF, ask questions, and explore the ev
 
 ---
 
-## Use Cases
+## 💡 Use Cases
 
 <table>
 <tr>
@@ -161,7 +161,7 @@ Open `http://localhost:5000` — upload a PDF, ask questions, and explore the ev
 
 ---
 
-## Query Modes
+## ⚡ Query Modes
 
 | Mode | Strategy | Latency | Depth |
 |------|----------|---------|-------|
@@ -182,7 +182,7 @@ Open `http://localhost:5000` — upload a PDF, ask questions, and explore the ev
 
 </details>
 
-## PDF Processing
+## 📄 PDF Processing
 
 | Mode | Engine | Best for |
 |------|--------|----------|
@@ -190,7 +190,7 @@ Open `http://localhost:5000` — upload a PDF, ask questions, and explore the ev
 | `vlm` | Cloud VLM (Qwen-VL) | Image-heavy documents |
 | `mineru` | MinerU layout engine | Long documents with complex tables |
 
-## KG Visualization
+## 🕸️ KG Visualization
 
 Interactive D3.js force-directed graph with:
 
@@ -240,7 +240,7 @@ Interactive D3.js force-directed graph with:
 
 ---
 
-## Citation
+## 📝 Citation
 
 If you find DocThinker useful in your research, please cite:
 
@@ -253,10 +253,10 @@ If you find DocThinker useful in your research, please cite:
 }
 ```
 
-## Contributing
+## 🤝 Contributing
 
 PRs and issues welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## License
+## 📜 License
 
 [MIT](LICENSE)
