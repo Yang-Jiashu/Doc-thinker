@@ -93,7 +93,8 @@ token_stats.jsonl
 *.pdf
 moban.md
 
-# AI
+# AI / IDE agent configs
 .claude/
 .cursor/
+.codex/
 CLAUDE.md
