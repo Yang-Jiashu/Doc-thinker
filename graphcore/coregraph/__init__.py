@@ -1,0 +1,5 @@
+from .coregraph import GraphCore as GraphCore, QueryParam as QueryParam
+
+__version__ = "1.4.9.9"
+__author__ = "Zirui Guo"
+__url__ = "https://github.com/HKUDS/GraphCore"

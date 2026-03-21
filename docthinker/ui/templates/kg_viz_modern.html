@@ -1,0 +1,742 @@
+{% extends "base_modern.html" %}
+
+{% block title %}知识图谱 - NeuroAgent{% endblock %}
+
+{% block extra_css %}
+<style>
+    .node circle { cursor: pointer; transition: all 0.2s; }
+    .node:hover circle { filter: brightness(1.15); stroke-width: 2.5; }
+    .link { stroke: #cbd5e1; stroke-opacity: 0.6; cursor: pointer; }
+    .link:hover { stroke: #3b82f6; stroke-opacity: 1; stroke-width: 2.5; }
+    .node-label { font-size: 10px; fill: #fff; pointer-events: none; text-anchor: middle; dominant-baseline: central; font-weight: 500; }
+    .level-3 { fill: #ec4899; }
+    .level-2 { fill: #3b82f6; }
+    .level-1 { fill: #10b981; }
+    .level-expanded { fill: #fbbf24; }
+    .level-image { fill: #8b5cf6; }
+    .dimmed { opacity: 0.08 !important; }
+    .highlighted circle { stroke: #f59e0b; stroke-width: 3; }
+    .detail-section { border-left: 3px solid #e2e8f0; padding-left: 12px; margin-bottom: 12px; }
+    .detail-section.edge-detail { border-left-color: #3b82f6; }
+    .detail-section.node-detail { border-left-color: #10b981; }
+    .relation-list-item { padding: 6px 8px; border-radius: 6px; background: #f8fafc; margin-bottom: 4px; font-size: 13px; }
+    .relation-list-item:hover { background: #eff6ff; }
+    .img-thumb { max-width: 100%; max-height: 160px; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; object-fit: contain; background: #f8fafc; }
+    .img-thumb:hover { transform: scale(1.03); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    .lightbox { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; cursor: zoom-out; }
+    .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); object-fit: contain; }
+    .lightbox-close { position: absolute; top: 16px; right: 24px; color: #fff; font-size: 28px; cursor: pointer; background: rgba(0,0,0,0.4); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+    .lightbox-close:hover { background: rgba(255,255,255,0.2); }
+</style>
+{% endblock %}
+
+{% block content %}
+<script>window.KG_API_PREFIX = '{{ (api_config.api_prefix if api_config else none)|default("/api/v1") }}';</script>
+<header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
+    <div>
+        <h2 class="text-lg font-semibold text-slate-800">知识图谱</h2>
+        <p class="text-sm text-slate-500">可视化展示知识关联与层次结构
+            <span id="data-source-hint" class="text-amber-600 font-medium"></span>
+        </p>
+    </div>
+    <div class="flex flex-wrap gap-2 items-center">
+        <select id="kg-session-selector" class="input-field px-2 sm:px-3 py-2 rounded-lg text-sm min-w-[140px] sm:min-w-[260px]" onchange="handleKgSessionSwitch(this.value)"></select>
+
+        <button id="expand-btn" onclick="expandGraph()" class="px-3 sm:px-4 py-2 rounded-lg text-sm font-medium bg-amber-400 hover:bg-amber-500 text-slate-800" title="LLM 知识扩展">扩展</button>
+        <button onclick="resetHighlight()" class="btn-secondary px-3 sm:px-4 py-2 rounded-lg text-sm hidden sm:inline-flex" title="取消聚焦">取消聚焦</button>
+        <button onclick="resetZoom()" class="btn-secondary px-3 sm:px-4 py-2 rounded-lg text-sm hidden sm:inline-flex">重置</button>
+        <button onclick="refreshGraph()" class="btn-primary px-3 sm:px-4 py-2 rounded-lg text-sm">刷新</button>
+    </div>
+</header>
+
+<div class="flex-1 flex overflow-hidden">
+    <div class="flex-1 relative bg-slate-50">
+        <div id="graph-container" class="absolute inset-0"></div>
+        
+        <div class="absolute top-4 left-4 space-y-3">
+            <div class="card p-3">
+                <input type="text" id="search-input" placeholder="搜索节点（模糊匹配）..." 
+                    class="input-field px-3 py-2 rounded-lg text-sm w-48"
+                    oninput="searchNodes(this.value)">
+            </div>
+            
+            <div class="card p-3">
+                <p class="text-xs font-semibold text-slate-500 mb-2">层级筛选</p>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" checked onchange="toggleLevel(3)" class="rounded">
+                        <span class="w-2 h-2 rounded-full bg-pink-500"></span>
+                        <span class="text-slate-600">Domain</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" checked onchange="toggleLevel(2)" class="rounded">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                        <span class="text-slate-600">Concept</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" checked onchange="toggleLevel(1)" class="rounded">
+                        <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                        <span class="text-slate-600">Instance</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm cursor-pointer mt-2 pt-2 border-t border-slate-200">
+                        <input type="checkbox" checked onchange="toggleExpanded()" class="rounded" id="chk-expanded">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#FFD700"></span>
+                        <span class="text-slate-600">扩展节点</span>
+                    </label>
+                </div>
+            </div>
+            <div class="card p-3">
+                <p class="text-xs font-semibold text-slate-500 mb-2">调试</p>
+                <button onclick="checkExpandedNodes()" class="px-3 py-1.5 rounded text-xs bg-slate-100 hover:bg-slate-200 text-slate-600">检查扩展节点 (API)</button>
+                <p id="debug-result" class="text-xs text-slate-500 mt-2 break-all"></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detail Panel -->
+    <div id="detail-panel" class="hidden w-96 bg-white border-l border-slate-200 overflow-y-auto">
+        <div class="p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="detail-title" class="font-semibold text-slate-800 text-base">详情</h3>
+                <button onclick="closePanel()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div id="detail-node-section">
+                <div id="detail-name-full" class="mb-3 p-3 bg-slate-50 rounded-lg">
+                    <div class="text-xs text-slate-400 mb-1">节点全称</div>
+                    <div id="detail-name-text" class="text-sm font-semibold text-slate-800 break-all">-</div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="p-3 bg-slate-50 rounded-lg">
+                        <div class="text-xs text-slate-400 mb-1">类型</div>
+                        <span id="detail-type" class="text-sm font-medium">-</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-lg">
+                        <div class="text-xs text-slate-400 mb-1">连接数</div>
+                        <span id="detail-connections" class="text-sm font-medium text-blue-600">-</span>
+                    </div>
+                </div>
+                <div id="detail-description" class="mb-3 p-3 bg-blue-50 rounded-lg" style="display:none;">
+                    <div class="text-xs text-blue-400 mb-1">描述</div>
+                    <div id="detail-desc-text" class="text-sm text-slate-700 whitespace-pre-wrap"></div>
+                </div>
+                <div id="detail-neighbors" class="mb-3" style="display:none;">
+                    <div class="text-xs text-slate-400 mb-2">关联节点</div>
+                    <div id="detail-neighbors-list" class="space-y-1 max-h-48 overflow-y-auto"></div>
+                </div>
+            </div>
+            <div id="detail-edge-section" style="display:none;">
+                <div class="mb-3 p-3 bg-slate-50 rounded-lg">
+                    <div class="text-xs text-slate-400 mb-1">关系类型</div>
+                    <div id="detail-edge-label" class="text-sm font-semibold text-slate-800">-</div>
+                </div>
+                <div class="mb-3 p-3 bg-slate-50 rounded-lg">
+                    <div class="text-xs text-slate-400 mb-1">连接方向</div>
+                    <div id="detail-edge-direction" class="text-sm text-slate-700">-</div>
+                </div>
+                <div id="detail-edge-desc" class="mb-3 p-3 bg-blue-50 rounded-lg" style="display:none;">
+                    <div class="text-xs text-blue-400 mb-1">描述</div>
+                    <div id="detail-edge-desc-text" class="text-sm text-slate-700 whitespace-pre-wrap"></div>
+                </div>
+                <div id="detail-edge-tag" class="mb-3 p-3 bg-red-50 rounded-lg" style="display:none;">
+                    <span class="text-xs text-red-500 font-medium"></span>
+                </div>
+            </div>
+            <button id="detail-focus-btn" onclick="focusNode()" class="btn-primary w-full mt-4 py-2 rounded-lg text-sm">聚焦节点</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+let svg, g, simulation, node, link;
+let currentTransform = d3.zoomIdentity;
+let graphData = { nodes: [], links: [] };
+let selectedNode = null;
+let visibleLevels = { 1: true, 2: true, 3: true, expanded: true };
+let currentSessionId = '';
+let focusedNodeId = null;
+let currentGraphView = 'semantic';
+
+window.onload = initGraph;
+
+function getKgApiPrefix() {
+    return (window.KG_API_PREFIX || '/api/v1').replace(/\/$/, '');
+}
+function getStoredSessionId() { try { return localStorage.getItem('current_session_id') || ''; } catch (_) { return ''; } }
+function setStoredSessionId(sid) { try { if (sid) localStorage.setItem('current_session_id', String(sid)); } catch (_) {} }
+
+async function fetchSessions() {
+    try {
+        const resp = await fetch(getKgApiPrefix() + '/sessions');
+        const data = await resp.json();
+        if (resp.ok && Array.isArray(data.sessions)) return data.sessions;
+    } catch (e) { console.warn('Fetch sessions failed:', e); }
+    return [];
+}
+
+function renderSessionSelector(sessions, selectedId) {
+    const selector = document.getElementById('kg-session-selector');
+    if (!selector) return;
+    selector.innerHTML = '';
+    sessions.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = String(s.id);
+        opt.textContent = `${s.id} | ${s.title || '新对话'}`;
+        selector.appendChild(opt);
+    });
+    if (sessions.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = '暂无会话';
+        selector.appendChild(opt);
+    }
+    selector.value = (selectedId && sessions.find(s => String(s.id) === String(selectedId)))
+        ? String(selectedId) : (sessions.length ? String(sessions[0].id) : '');
+}
+
+async function ensureKgSessionReady() {
+    const sessions = await fetchSessions();
+    if (!sessions.length) { currentSessionId = ''; renderSessionSelector([], ''); return; }
+    let tid = getStoredSessionId();
+    if (!tid || !sessions.find(s => String(s.id) === String(tid))) tid = String(sessions[0].id);
+    currentSessionId = String(tid);
+    setStoredSessionId(currentSessionId);
+    renderSessionSelector(sessions, currentSessionId);
+}
+
+async function handleKgSessionSwitch(sid) {
+    sid = sid ? String(sid) : '';
+    if (!sid || sid === currentSessionId) return;
+    currentSessionId = sid;
+    setStoredSessionId(currentSessionId);
+    focusedNodeId = null;
+    await loadRealData();
+}
+
+async function initGraph() {
+    const container = document.getElementById('graph-container');
+    const w = container.clientWidth, h = container.clientHeight;
+    svg = d3.select('#graph-container').append('svg').attr('width', w).attr('height', h);
+    const zoom = d3.zoom().scaleExtent([0.05, 6]).on('zoom', e => { currentTransform = e.transform; g.attr('transform', e.transform); });
+    svg.call(zoom);
+    svg.on('click', function(e) { if (e.target === this || e.target.tagName === 'svg') resetHighlight(); });
+    g = svg.append('g');
+    await ensureKgSessionReady();
+    await loadRealData();
+    window.addEventListener('resize', () => { svg.attr('width', container.clientWidth).attr('height', container.clientHeight); });
+}
+
+function switchGraphView(viewType) {
+    currentGraphView = viewType;
+    loadRealData();
+}
+
+async function loadRealData() {
+    if (!currentSessionId) {
+        document.getElementById('data-source-hint').textContent = ' | 请先创建或选择会话';
+        graphData = { nodes: [], links: [] };
+        renderGraph();
+        return;
+    }
+    try {
+        let url;
+        if (currentGraphView === 'causal') {
+            url = getKgApiPrefix() + '/knowledge-graph/causal-data?session_id=' + encodeURIComponent(currentSessionId);
+        } else {
+            url = getKgApiPrefix() + '/knowledge-graph/data?session_id=' + encodeURIComponent(currentSessionId);
+        }
+        const resp = await fetch(url);
+        const text = await resp.text();
+        let data;
+        try { data = JSON.parse(text); } catch (pe) { throw new Error('JSON parse failed: ' + pe.message); }
+
+        const meta = data.metadata || {};
+        if (!resp.ok || meta.error || meta.hint) {
+            document.getElementById('data-source-hint').textContent = ` | 会话 ${currentSessionId} | ` + (meta.hint || meta.error || ('HTTP ' + resp.status));
+            graphData = { nodes: [], links: [] }; renderGraph(); return;
+        }
+
+        const expandedCount = (data.nodes || []).filter(n => n.is_expanded).length;
+        const totalNodes = meta.total_nodes ?? (data.nodes?.length || 0);
+        const viewLabels = { semantic: '语义KG', causal: '因果DAG' };
+        let hint = ` | ${viewLabels[currentGraphView] || '语义KG'} | 会话 ${currentSessionId} | ${totalNodes} 节点`;
+        if (meta.nodes_returned && meta.nodes_returned !== totalNodes) hint += ` (显示${meta.nodes_returned})`;
+        if (currentGraphView === 'semantic') hint += `, ${expandedCount} 扩展`;
+        document.getElementById('data-source-hint').textContent = hint;
+
+        if (data.nodes && data.nodes.length > 0) {
+            const levelMap = { 'field': 3, 'domain': 3, 'concept': 2, 'method': 2, 'artifact': 1, 'data': 1, 'person': 1, 'event': 1, 'location': 1, 'organization': 1, 'content': 1, 'naturalobject': 1, 'image': 2, 'image_asset': 2, 'figure': 2, 'diagram': 2 };
+            graphData = {
+                nodes: data.nodes.map(n => ({
+                    id: n.id,
+                    name: n.label || n.id,
+                    level: levelMap[n.type] || 2,
+                    type: n.type,
+                    description: n.description || '',
+                    source_id: n.source_id || '',
+                    file_path: n.file_path || '',
+                    degree: n.degree || 0,
+                    connections: [],
+                    is_expanded: !!n.is_expanded,
+                    is_image_node: !!n.is_image_node,
+                    has_image: !!n.has_image,
+                    image_file: n.image_file || '',
+                    color: n.color
+                })),
+                links: (data.edges || []).map(e => ({
+                    source: e.source,
+                    target: e.target,
+                    label: e.label || '',
+                    description: e.description || '',
+                    is_discovered: !!e.is_discovered,
+                    color: e.color || null,
+                    width: e.width || 1
+                }))
+            };
+            const nodeIds = new Set(graphData.nodes.map(n => n.id));
+            graphData.nodes.forEach(n => {
+                n.connections = graphData.links
+                    .filter(l => l.source === n.id || l.target === n.id)
+                    .map(l => l.source === n.id ? l.target : l.source)
+                    .filter(id => nodeIds.has(id));
+            });
+            renderGraph();
+            return;
+        }
+        document.getElementById('data-source-hint').textContent = ` | 会话 ${currentSessionId} | 暂无节点`;
+        graphData = { nodes: [], links: [] }; renderGraph();
+    } catch (e) {
+        console.warn('Failed to load real data:', e);
+        document.getElementById('data-source-hint').textContent = ` | 加载失败: ` + (e.message || e);
+        graphData = { nodes: [], links: [] }; renderGraph();
+    }
+}
+
+function nodeRadius(d) {
+    const degree = (d.connections ? d.connections.length : 0);
+    // Base 14, scales with degree (weight); level adds a small bonus
+    return Math.min(14 + Math.sqrt(degree) * 5 + d.level * 2, 50);
+}
+
+function truncName(name, maxLen) {
+    if (!name) return '';
+    return name.length <= maxLen ? name : name.slice(0, maxLen - 1) + '…';
+}
+
+function renderGraph() {
+    g.selectAll('*').remove();
+    focusedNodeId = null;
+
+    const MAX_RENDER_NODES = 150;
+    const isExpanded = n => !!(n.is_expanded || n.is_expanded === 1 || n.is_expanded === '1' || n.color === '#FFD700');
+    let visibleNodes = graphData.nodes.filter(n => {
+        if (isExpanded(n)) return !!visibleLevels.expanded;
+        return !!visibleLevels[n.level];
+    });
+    if (visibleNodes.length > MAX_RENDER_NODES) {
+        visibleNodes.sort((a, b) => (b.connections?.length || 0) - (a.connections?.length || 0));
+        visibleNodes = visibleNodes.slice(0, MAX_RENDER_NODES);
+    }
+    const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
+    const visibleLinks = graphData.links.filter(l =>
+        visibleNodeIds.has(typeof l.source === 'object' ? l.source.id : l.source) &&
+        visibleNodeIds.has(typeof l.target === 'object' ? l.target.id : l.target)
+    );
+
+    const container = document.getElementById('graph-container');
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    const pad = 60;
+
+    const panelW = 400;
+    const effectiveW = width - panelW;
+    const nodeCount = visibleNodes.length;
+    const chargeStrength = nodeCount > 100 ? -200 : -350;
+    const linkDist = nodeCount > 100 ? 80 : 120;
+
+    simulation = d3.forceSimulation(visibleNodes)
+        .force('link', d3.forceLink(visibleLinks).id(d => d.id).distance(linkDist))
+        .force('charge', d3.forceManyBody().strength(chargeStrength).distanceMax(300))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collide', d3.forceCollide().radius(d => nodeRadius(d) + 4).iterations(1))
+        .force('x', d3.forceX(width / 2).strength(0.06))
+        .force('y', d3.forceY(height / 2).strength(0.06))
+        .alphaDecay(0.03)
+        .velocityDecay(0.4);
+
+    // --- Edges (lines + labels, clickable) ---
+    const linkGroup = g.append('g').attr('class', 'links');
+    link = linkGroup.selectAll('.link').data(visibleLinks)
+        .enter().append('line').attr('class', 'link')
+        .attr('stroke', d => d.is_discovered ? '#ef4444' : null)
+        .attr('stroke-width', d => d.is_discovered ? 2 : 1)
+        .attr('stroke-dasharray', d => d.is_discovered ? '6,3' : null)
+        .on('click', (e, d) => selectEdge(d));
+
+    // --- Nodes (circle + label INSIDE) ---
+    node = g.append('g').selectAll('g').data(visibleNodes)
+        .enter().append('g').attr('class', 'node')
+        .call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
+        .on('click', (e, d) => { e.stopPropagation(); selectNode(d); });
+
+    node.append('circle')
+        .attr('r', d => nodeRadius(d))
+        .attr('class', d => {
+            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
+            if (isE) return 'level-expanded';
+            if (d.is_image_node) return 'level-image';
+            return `level-${d.level}`;
+        })
+        .attr('fill', d => {
+            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
+            if (isE) return '#FFD700';
+            return null;
+        })
+        .attr('stroke', d => {
+            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
+            return isE ? '#B8860B' : (d.is_image_node ? '#6d28d9' : '#fff');
+        })
+        .attr('stroke-width', d => {
+            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
+            return isE ? 2 : (d.is_image_node ? 2 : 1.5);
+        });
+
+    // Label inside the circle — always truncate to 4 chars max
+    node.append('text').attr('class', 'node-label')
+        .attr('dy', '0.35em')
+        .text(d => truncName(d.name, 4))
+        .style('fill', d => {
+            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
+            return isE ? '#7c2d12' : '#fff';
+        });
+
+    // Constrain nodes within viewport bounds on each tick
+    simulation.on('tick', () => {
+        visibleNodes.forEach(d => {
+            const r = nodeRadius(d);
+            d.x = Math.max(pad + r, Math.min(width - pad - r, d.x));
+            d.y = Math.max(pad + r, Math.min(height - pad - r, d.y));
+        });
+        link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+        node.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+}
+
+/* ───────── BFS hop-level calculation ───────── */
+function computeHopLevels(startId, maxHops) {
+    const levels = {};
+    levels[startId] = 0;
+    let frontier = [startId];
+    for (let hop = 1; hop <= maxHops; hop++) {
+        const nextFrontier = [];
+        for (const nid of frontier) {
+            const nd = graphData.nodes.find(n => n.id === nid);
+            if (!nd) continue;
+            for (const cid of (nd.connections || [])) {
+                if (!(cid in levels)) {
+                    levels[cid] = hop;
+                    nextFrontier.push(cid);
+                }
+            }
+        }
+        frontier = nextFrontier;
+        if (!frontier.length) break;
+    }
+    return levels;
+}
+
+/* ───────── Node click: focus + hop levels ───────── */
+function selectNode(d) {
+    selectedNode = d;
+    document.getElementById('detail-panel').classList.remove('hidden');
+    document.getElementById('detail-node-section').style.display = '';
+    document.getElementById('detail-edge-section').style.display = 'none';
+    document.getElementById('detail-focus-btn').style.display = '';
+    document.getElementById('detail-title').textContent = '节点详情';
+
+    document.getElementById('detail-name-text').textContent = d.name || d.id;
+
+    const isExp = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1' || d.color === '#FFD700');
+    const typeLabels = { 'field': '领域', 'domain': '领域', 'concept': '概念', 'method': '方法',
+        'artifact': '实例', 'data': '数据', 'person': '人物', 'event': '事件',
+        'location': '地点', 'organization': '组织', 'content': '内容',
+        'naturalobject': '自然实体', 'image': '图片', 'unknown': '未知' };
+    let typeText = typeLabels[d.type] || d.type || '未知';
+    if (isExp) typeText += ' (LLM 扩展)';
+    document.getElementById('detail-type').textContent = typeText;
+
+    const connCount = d.connections ? d.connections.length : 0;
+    document.getElementById('detail-connections').textContent = connCount;
+
+    const descEl = document.getElementById('detail-description');
+    const descText = document.getElementById('detail-desc-text');
+    if (d.description) {
+        descText.textContent = d.description;
+        descEl.style.display = '';
+    } else {
+        descEl.style.display = 'none';
+    }
+
+    let sourceEl = document.getElementById('detail-source');
+    if (!sourceEl) {
+        sourceEl = document.createElement('div');
+        sourceEl.id = 'detail-source';
+        sourceEl.className = 'mb-3 p-3 bg-green-50 rounded-lg';
+        descEl.parentNode.insertBefore(sourceEl, descEl.nextSibling);
+    }
+    const srcFile = d.file_path || d.source_id || '';
+    if (srcFile && srcFile !== 'llm_expansion') {
+        sourceEl.innerHTML = `<div class="text-xs text-green-400 mb-1">来源文件</div><div class="text-sm text-slate-700">${srcFile}</div>`;
+        sourceEl.style.display = '';
+    } else if (isExp) {
+        sourceEl.innerHTML = `<div class="text-xs text-amber-400 mb-1">来源</div><div class="text-sm text-slate-700">LLM 知识扩展生成</div>`;
+        sourceEl.style.display = '';
+    } else {
+        sourceEl.style.display = 'none';
+    }
+
+    const neighborsDiv = document.getElementById('detail-neighbors');
+    const neighborsList = document.getElementById('detail-neighbors-list');
+    if (connCount > 0) {
+        neighborsList.innerHTML = '';
+        const connEdges = graphData.links.filter(l => {
+            const sid = typeof l.source === 'object' ? l.source.id : l.source;
+            const tid = typeof l.target === 'object' ? l.target.id : l.target;
+            return sid === d.id || tid === d.id;
+        });
+        connEdges.slice(0, 20).forEach(l => {
+            const sid = typeof l.source === 'object' ? l.source.id : l.source;
+            const tid = typeof l.target === 'object' ? l.target.id : l.target;
+            const otherName = sid === d.id ? tid : sid;
+            const arrow = sid === d.id ? '→' : '←';
+            const item = document.createElement('div');
+            item.className = 'relation-list-item cursor-pointer flex items-center gap-1';
+            item.innerHTML = `<span class="text-slate-400 text-xs">${arrow}</span>` +
+                `<span class="text-blue-600 text-xs font-medium truncate" title="${otherName}">${otherName}</span>` +
+                (l.label ? `<span class="ml-auto text-slate-400 text-xs truncate max-w-[120px]" title="${l.label}">${l.label}</span>` : '');
+            item.onclick = () => {
+                const targetNode = graphData.nodes.find(n => n.id === otherName);
+                if (targetNode) selectNode(targetNode);
+            };
+            neighborsList.appendChild(item);
+        });
+        if (connEdges.length > 20) {
+            const more = document.createElement('div');
+            more.className = 'text-xs text-slate-400 text-center py-1';
+            more.textContent = `还有 ${connEdges.length - 20} 个关联...`;
+            neighborsList.appendChild(more);
+        }
+        neighborsDiv.style.display = '';
+    } else {
+        neighborsDiv.style.display = 'none';
+    }
+
+    const connSet = new Set(d.connections || []);
+    connSet.add(d.id);
+    focusedNodeId = d.id;
+
+    if (node) {
+        node.attr('opacity', n => connSet.has(n.id) ? 1 : 0.08);
+    }
+    if (link) {
+        link.attr('stroke', l => {
+            const sid = typeof l.source === 'object' ? l.source.id : l.source;
+            const tid = typeof l.target === 'object' ? l.target.id : l.target;
+            if (sid === d.id || tid === d.id) return '#3b82f6';
+            return l.is_discovered ? '#ef4444' : null;
+        }).attr('stroke-width', l => {
+            const sid = typeof l.source === 'object' ? l.source.id : l.source;
+            const tid = typeof l.target === 'object' ? l.target.id : l.target;
+            if (sid === d.id || tid === d.id) return 2.5;
+            return l.is_discovered ? 2 : 1;
+        }).attr('stroke-opacity', l => {
+            const sid = typeof l.source === 'object' ? l.source.id : l.source;
+            const tid = typeof l.target === 'object' ? l.target.id : l.target;
+            return (sid === d.id || tid === d.id) ? 1 : 0.06;
+        });
+    }
+}
+
+function selectEdge(d) {
+    const srcName = typeof d.source === 'object' ? (d.source.name || d.source.id) : d.source;
+    const tgtName = typeof d.target === 'object' ? (d.target.name || d.target.id) : d.target;
+
+    document.getElementById('detail-panel').classList.remove('hidden');
+    document.getElementById('detail-node-section').style.display = 'none';
+    document.getElementById('detail-edge-section').style.display = '';
+    document.getElementById('detail-focus-btn').style.display = 'none';
+    document.getElementById('detail-title').textContent = '关系详情';
+
+    document.getElementById('detail-edge-label').textContent = d.label || 'related';
+    document.getElementById('detail-edge-direction').textContent = `${srcName}  →  ${tgtName}`;
+
+    const edgeDescEl = document.getElementById('detail-edge-desc');
+    const edgeDescText = document.getElementById('detail-edge-desc-text');
+    if (d.description) {
+        edgeDescText.textContent = d.description;
+        edgeDescEl.style.display = '';
+    } else {
+        edgeDescEl.style.display = 'none';
+    }
+
+    const tagEl = document.getElementById('detail-edge-tag');
+    if (d.is_discovered) {
+        tagEl.querySelector('span').textContent = '由后台智能发现的潜在关系';
+        tagEl.style.display = '';
+    } else {
+        tagEl.style.display = 'none';
+    }
+
+    if (link) {
+        const defaultStroke = l => l.is_discovered ? '#ef4444' : null;
+        link.attr('stroke', l => (l === d) ? '#f59e0b' : defaultStroke(l))
+            .attr('stroke-width', l => (l === d) ? 3 : (l.is_discovered ? 2 : 1));
+    }
+}
+
+function resetHighlight() {
+    if (link) {
+        link.attr('stroke', l => l.is_discovered ? '#ef4444' : null)
+            .attr('stroke-width', l => l.is_discovered ? 2 : 1)
+            .attr('stroke-opacity', 0.6);
+    }
+    if (node) {
+        node.attr('opacity', 1);
+    }
+    focusedNodeId = null;
+    closePanel();
+}
+
+function closePanel() {
+    document.getElementById('detail-panel').classList.add('hidden');
+}
+
+function openLightbox(imgUrl) {
+    const existing = document.querySelector('.lightbox');
+    if (existing) existing.remove();
+    const overlay = document.createElement('div');
+    overlay.className = 'lightbox';
+    overlay.innerHTML = `<span class="lightbox-close">&times;</span><img src="${imgUrl}" alt="图片">`;
+    overlay.addEventListener('click', () => overlay.remove());
+    document.body.appendChild(overlay);
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        const lb = document.querySelector('.lightbox');
+        if (lb) lb.remove();
+    }
+});
+
+function focusNode() {
+    if (!selectedNode) return;
+    const container = document.getElementById('graph-container');
+    svg.transition().duration(750).call(
+        d3.zoom().transform,
+        d3.zoomIdentity.translate(container.clientWidth / 2, container.clientHeight / 2).scale(1.5)
+            .translate(-selectedNode.x, -selectedNode.y)
+    );
+}
+
+function toggleLevel(level) { visibleLevels[level] = !visibleLevels[level]; renderGraph(); }
+function toggleExpanded() { visibleLevels.expanded = !visibleLevels.expanded; renderGraph(); }
+
+/* ───────── Fuzzy search (soft match) ───────── */
+function fuzzyScore(query, target) {
+    if (!query || !target) return 0;
+    const q = query.toLowerCase(), t = target.toLowerCase();
+    if (t.includes(q)) return 1.0;
+    if (t.startsWith(q[0])) {
+        let matched = 0;
+        let ti = 0;
+        for (let qi = 0; qi < q.length && ti < t.length; qi++) {
+            while (ti < t.length) {
+                if (t[ti] === q[qi]) { matched++; ti++; break; }
+                ti++;
+            }
+        }
+        return matched / q.length;
+    }
+    let matched = 0;
+    for (const ch of q) { if (t.includes(ch)) matched++; }
+    return matched / q.length * 0.5;
+}
+
+function searchNodes(query) {
+    if (!query) {
+        node.attr('opacity', 1);
+        return;
+    }
+    const q = query.toLowerCase();
+    node.attr('opacity', d => d.name.toLowerCase().includes(q) ? 1 : 0.15);
+}
+
+function resetZoom() {
+    svg.transition().duration(750).call(d3.zoom().transform, d3.zoomIdentity);
+}
+
+function refreshGraph() {
+    loadRealData();
+    showToast('知识图谱已刷新', 'success');
+}
+
+async function checkExpandedNodes() {
+    const el = document.getElementById('debug-result');
+    if (!currentSessionId) { el.textContent = '请先选择会话'; return; }
+    el.textContent = '检查中...';
+    try {
+        const url = getKgApiPrefix() + '/knowledge-graph/debug-expanded?session_id=' + encodeURIComponent(currentSessionId);
+        const resp = await fetch(url);
+        const data = await resp.json().catch(() => ({}));
+        if (data.expanded_count !== undefined) {
+            el.textContent = `总节点: ${data.total_nodes || 0}, 扩展: ${data.expanded_count}`;
+        } else {
+            el.textContent = data.detail || data.error || ('HTTP ' + resp.status) || '请求失败';
+        }
+    } catch (e) { el.textContent = '错误: ' + e.message; }
+}
+
+async function expandGraph() {
+    const btn = document.getElementById('expand-btn');
+    if (btn.disabled) return;
+    if (!currentSessionId) { showToast('请先选择会话', 'warning'); return; }
+    btn.disabled = true;
+    btn.textContent = '扩展中...';
+    try {
+        const resp = await fetch(getKgApiPrefix() + '/knowledge-graph/expand', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: currentSessionId, apply: true })
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (data.success) {
+            const nodes = data.added_nodes || 0;
+            const edges = data.added_edges || 0;
+            const clusters = data.cluster_count || 0;
+            const validated = data.validated_count || 0;
+            showToast(`扩展完成：+${nodes} 节点, +${edges} 边 (聚类=${clusters}, 校验通过=${validated})`, 'success');
+            loadRealData();
+        } else {
+            showToast('扩展失败: ' + (data.detail || data.error || '未知错误'), 'error');
+        }
+    } catch (err) { showToast('扩展请求失败: ' + err.message, 'error'); }
+    btn.disabled = false;
+    btn.textContent = '扩展';
+}
+
+function dragstarted(e, d) {
+    if (!e.active) simulation.alphaTarget(0.15).restart();
+    d.fx = d.x; d.fy = d.y;
+}
+function dragged(e, d) {
+    d.fx = e.x; d.fy = e.y;
+}
+function dragended(e, d) {
+    if (!e.active) simulation.alphaTarget(0);
+    d.fx = null; d.fy = null;
+}
+</script>
+{% endblock %}
