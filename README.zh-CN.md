@@ -29,9 +29,22 @@
 
 </div>
 
+## 👥 贡献者
+
+<table>
+<tr>
+<td align="center"><a href="https://github.com/Yang-Jiashu"><img src="https://github.com/Yang-Jiashu.png" width="80" style="border-radius:50%" /><br /><sub><b>Yang Jiashu</b></sub></a><br />💻 作者</td>
+<td align="center"><a href="https://github.com/lqx943576099"><img src="https://github.com/lqx943576099.png" width="80" style="border-radius:50%" /><br /><sub><b>wangye</b></sub></a><br />💻 贡献者</td>
+<td align="center"><a href="https://www.cursor.com/"><img src="https://www.cursor.com/favicon.ico" width="80" style="border-radius:50%" /><br /><sub><b>Cursor</b></sub></a><br />🤖 AI IDE</td>
+<td align="center"><a href="https://www.anthropic.com/"><img src="https://www.anthropic.com/favicon.ico" width="80" style="border-radius:50%" /><br /><sub><b>Claude</b></sub></a><br />🧠 AI 助手</td>
+</tr>
+</table>
+
+---
+
 ## 📖 项目简介
 
-**DocThinker** 是一个文档驱动的 RAG 系统，能从上传文档中构建活的、自进化的知识图谱。与传统的"检索-生成"管线不同，DocThinker 将知识图谱视为**动态认知基底** — 它通过文档摄取而生长，通过使用反馈而重构，并通过 SPARQL 风格的链式思维（CoT）在结构化三元组上进行推理。基于 [LightRAG](https://github.com/HKUDS/LightRAG) 构建，集成 [OpenClaw / Letta](https://github.com/letta-ai/letta) 分层记忆。
+**DocThinker** 是一个文档驱动的 RAG 系统，能从上传文档中构建活的、自进化的知识图谱。与传统的"检索-生成"管线不同，DocThinker 将知识图谱视为**动态认知基底** — 它通过文档摄取而生长，通过使用反馈而重构，并通过 SPARQL 风格的链式思维（CoT）在结构化三元组上进行推理。集成 [OpenClaw / Letta](https://github.com/letta-ai/letta) 分层记忆。
 
 <!-- TODO: 替换为演示视频 -->
 <!-- https://github.com/user-attachments/assets/YOUR_VIDEO_ID -->
@@ -242,17 +255,6 @@ python run_ui.py
 ## 🤝 贡献
 
 欢迎 PR 和 Issue！详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
-### 贡献者
-
-<table>
-<tr>
-<td align="center"><a href="https://github.com/Yang-Jiashu"><img src="https://github.com/Yang-Jiashu.png" width="80" style="border-radius:50%" /><br /><sub><b>Yang Jiashu</b></sub></a><br />💻 作者</td>
-<td align="center"><a href="https://github.com/lqx943576099"><img src="https://github.com/lqx943576099.png" width="80" style="border-radius:50%" /><br /><sub><b>wangye</b></sub></a><br />💻 贡献者</td>
-<td align="center"><a href="https://www.cursor.com/"><img src="https://www.cursor.com/favicon.ico" width="80" style="border-radius:50%" /><br /><sub><b>Cursor</b></sub></a><br />🤖 AI IDE</td>
-<td align="center"><a href="https://www.anthropic.com/"><img src="https://www.anthropic.com/favicon.ico" width="80" style="border-radius:50%" /><br /><sub><b>Claude</b></sub></a><br />🧠 AI 助手</td>
-</tr>
-</table>
 
 ## 📜 协议
 
