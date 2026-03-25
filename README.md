@@ -4,9 +4,9 @@
 
 # DocThinker
 
-**Self-Evolving Knowledge Graphs with Tiered Memory and Structured Reasoning**
+**Self-Evolving Knowledge Graphs · Tiered Memory · Structured Reasoning**
 
-*Build a living knowledge graph from documents — it grows, restructures, and reasons on its own.*
+*Language captures the results of cognition, while cognition itself encompasses perception, experience, and reasoning.*
 
 [![Paper](https://img.shields.io/badge/arXiv-2603.05551-b31b1b.svg)](https://arxiv.org/abs/2603.05551)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -31,24 +31,30 @@
 
 ## 📖 Overview
 
-**DocThinker** is a document-grounded RAG system that constructs a living, self-evolving knowledge graph from uploaded documents. Unlike conventional retrieve-and-generate pipelines, DocThinker treats the knowledge graph as a **dynamic cognitive substrate** — it grows through ingestion, restructures itself through usage-driven feedback, and reasons over structured triples via SPARQL-style chain-of-thought decomposition. Built on [LightRAG](https://github.com/HKUDS/LightRAG) with integrated [OpenClaw / Letta](https://github.com/letta-ai/letta) tiered memory.
+**DocThinker** is a document-driven RAG system that constructs self-evolving knowledge graphs from uploaded documents. Unlike conventional retrieve-then-respond pipelines, DocThinker treats knowledge as a **dynamic graph**:
+
+- **Growth** — Goes beyond explicit knowledge in ingested documents, autonomously reasoning and extending implicit associations and related knowledge not directly stated;
+- **Evolution** — Splits retrieval, extraction, and answering into three collaborative Agents, using reinforcement learning to drive strategy iteration and co-optimization;
+- **Reasoning** — Leverages SPARQL-style Chain-of-Thought (CoT) for multi-hop variable binding reasoning over structured triples;
+- **Memory** — Integrates [OpenClaw / Letta](https://github.com/letta-ai/letta) tiered memory architecture (hot / warm / cold), enabling unbounded conversation length.
 
 <!-- TODO: Replace with demo video -->
 <!-- https://github.com/user-attachments/assets/YOUR_VIDEO_ID -->
 
 <div align="center">
 <img src="docs/assets/pipeline.png" alt="DocThinker Pipeline" width="820" />
-<p><b>Figure 1.</b> DocThinker end-to-end pipeline — five-layer architecture spanning input perception, query cognition,<br/>dynamic memory core (KG self-expansion, Claw tiered memory, episodic memory), hybrid retrieval & reasoning, and output feedback loop.</p>
+<p><b>Figure 1.</b> DocThinker end-to-end pipeline — from document input to knowledge graph construction, tiered memory management, hybrid retrieval & reasoning, and output with feedback back to the graph.</p>
 </div>
 
 ### ✨ Highlights
 
-- **Self-evolving knowledge graph** — LLM-expanded candidate nodes are validated against real user queries; only those adopted in answers survive and get promoted to the formal KG
-- **Tiered episodic memory (Claw)** — An OpenClaw-inspired three-layer memory hierarchy (hot / warm / cold) that mirrors human short-term, working, and long-term memory, enabling unbounded conversation length
-- **SPARQL Chain-of-Thought reasoning** — Complex queries are decomposed into triple-pattern chains with variable binding against KG context, replacing "find relevant info" with systematic graph traversal
-- **Autonomous edge discovery** — A background pipeline scans entity windows to surface latent relationships the original extraction missed, then validates edge plausibility
-- **Two-path KG self-expansion** — HDBSCAN clustering + top-N multi-angle cognitive expansion, with LLM self-validation and semantic deduplication
-- **Interactive KG visualization** — D3.js force-directed graph with color-coded nodes (original / expanded / promoted), discovered edges (dashed red), and real-time exploration
+- **Two-path KG self-expansion** — Path A: HDBSCAN clusters entity embeddings and expands by cluster themes; Path B: takes the top-50 highest-degree original nodes and expands across 6 dimensions (hierarchy, causation, analogy, contrast, temporal, application), all candidates validated by LLM (score < 0.6 rejected) and semantically deduplicated
+- **Self-evolving knowledge graph** — Expanded nodes enter the graph as candidates; after being adopted in user query answers, they gradually promote to formal nodes (use_count ≥ 2, score ≥ 1.2), while unadopted nodes decay; meanwhile, background sliding-window scanning automatically infers 6 types of latent edges to complete the graph
+- **Multi-Agent co-evolution** — Splits retrieval, extraction, and answering into three collaborative Agents, driven by reinforcement learning through reward signals (answer quality, retrieval hit rate) for end-to-end co-optimization
+- **Tiered conversation memory (Claw)** — OpenClaw / Letta-inspired three-layer memory architecture: hot layer (recent 6 turns), warm layer (LLM-compressed MEMORY.md), cold layer (historical conversation vector index with Top-k similarity retrieval), enabling unbounded conversation length
+- **SPARQL Chain-of-Thought reasoning** — Guides LLM via prompts to decompose complex queries into SPARQL-style triple-pattern chains (`?variable, relation, ?variable/entity`), progressively binding variables and reasoning within KG context
+
+
 
 ---
 
@@ -60,30 +66,40 @@ Expansion operates in two complementary passes:
 
 | Path | Strategy | Grounding |
 |------|----------|-----------|
-| **A — Cluster-based** | HDBSCAN clusters entity embeddings; each cluster receives an LLM summary; expansion generates entities grounded in cluster themes | Density structure |
-| **B — Top-N multi-angle** | Top-50 highest-degree nodes are expanded across 6 cognitive dimensions (hierarchy, causation, analogy, contrast, temporal, application) | Graph topology |
+| **A — Cluster-based** | HDBSCAN clusters entity embeddings → LLM generates cluster summaries → expands new entities grounded in cluster themes | Density structure |
+| **B — Top-N multi-angle** | Top-50 highest-degree nodes expanded across 6 cognitive dimensions (hierarchy, causation, analogy, contrast, temporal, application) | Graph topology |
 
 All candidates pass through **LLM self-validation** (factuality, non-redundancy, edge validity, specificity scoring) and **semantic deduplication** before admission.
 
-### 2. 🔄 Expanded Node Lifecycle
+### 2. 🔄 Self-Evolving Knowledge Graph
+
+Expanded nodes enter the graph as **candidates**, gradually promoting through user query adoption (`candidate → active → promoted`). Upon reaching thresholds (use_count ≥ 2, score ≥ 1.2), they are formally merged into the graph; unadopted nodes decay at a step of 0.05.
+
+Meanwhile, a background **edge discovery pipeline** completes the graph structure:
+
+1. **Windowed scanning** — Entities are grouped into overlapping windows (size 30, overlap 10).
+2. **LLM relationship inference** — Each window is analyzed for 6 relationship types: hierarchical, causal, contrastive, temporal, application, and collaborative.
+3. **Deduplication & validation** — Discovered edges are checked against existing edges for plausibility.
+4. **Visual distinction** — Discovered edges are persisted with `is_discovered=1` and rendered as dashed red lines in the KG visualization.
+
+### 3. 🤖 Multi-Agent Co-Evolution
 
 <div align="center">
-<img src="docs/assets/lifecycle.png" alt="Expanded Node Lifecycle" width="680" />
-<p><sub><b>Figure 2.</b> Expanded node lifecycle — candidates are validated by real user queries; only adopted nodes survive promotion to the formal KG.</sub></p>
+<img src="docs/assets/multi_agent_evolution.png" alt="Multi-Agent Co-Evolution Architecture" width="820" />
+<p><sub><b>Figure 2.</b> DocThinker multi-Agent co-evolution architecture — Retrieval, Extraction, and Answering Agents collaborate around the self-evolving knowledge graph and tiered memory, continuously optimizing through reinforcement learning feedback loops.</sub></p>
 </div>
 
-The graph **earns** its knowledge — only query-validated expansions persist.
+DocThinker splits the traditional RAG monolithic pipeline into three specialized Agents:
 
-### 3. 🧠 SPARQL Chain-of-Thought (CoT) Reasoning
+| Agent | Responsibility | Optimization Target |
+|-------|---------------|-------------------|
+| **Retrieval Agent** | Receives queries, retrieves relevant entities and document fragments from KG and vector store | Retrieval hit rate ↑ |
+| **Extraction Agent** | Extracts entities and relations from retrieved results, constructs structured knowledge and writes to the graph | Extraction coverage ↑ |
+| **Answering Agent** | Generates final answers based on SPARQL CoT reasoning, triggers node promotion/decay feedback | Answer quality ↑ |
 
-<div align="center">
-<img src="docs/assets/sparql_cot.png" alt="SPARQL CoT Reasoning" width="680" />
-<p><sub><b>Figure 3.</b> SPARQL Chain-of-Thought reasoning pipeline — queries are decomposed into triple-pattern chains with variable binding against KG context.</sub></p>
-</div>
+The three Agents are modeled as a **Sequential Markov Decision Process (Sequential MDP)**, where each Agent's output serves as the next Agent's state input. Reinforcement learning aligns **local rewards** (each Agent's own metrics) with **global rewards** (end-to-end answer quality) through ranking consistency, driving joint strategy iteration and avoiding local optima at the expense of overall performance.
 
-Complex queries are internally decomposed into **SPARQL-like triple-pattern chains** before answer generation. The LLM binds variables against KG context via shared-variable chaining, constructs a variable binding table, then synthesizes the final answer. This replaces unstructured "find relevant info" with **systematic graph traversal reasoning**.
-
-### 4. 🗃️ Tiered Episodic Memory (Claw)
+### 4. 🗃️ Tiered Conversation Memory (Claw)
 
 Inspired by the [OpenClaw / MemGPT / Letta](https://github.com/letta-ai/letta) architecture, Claw implements a **three-layer memory hierarchy**:
 
@@ -95,14 +111,14 @@ Inspired by the [OpenClaw / MemGPT / Letta](https://github.com/letta-ai/letta) a
 
 After each Q&A turn, older conversations are automatically archived to the cold layer, and the warm layer is periodically re-compressed by the LLM — enabling **unbounded conversation length** without context window overflow.
 
-### 5. 🔍 Background Edge Discovery & Validation
+### 5. 🧠 SPARQL Chain-of-Thought (CoT) Reasoning
 
-After entity extraction, many cross-chunk relationships are missed. DocThinker runs a **background edge discovery pipeline**:
+<div align="center">
+<img src="docs/assets/sparql_cot.png" alt="SPARQL CoT Reasoning" width="680" />
+<p><sub><b>Figure 3.</b> SPARQL Chain-of-Thought reasoning pipeline — queries are decomposed into triple-pattern chains with variable binding against KG context.</sub></p>
+</div>
 
-1. **Windowed scanning** — Entities are grouped into overlapping windows (size 30, overlap 10).
-2. **LLM relationship inference** — Each window is analyzed for 6 relationship types: hierarchical, causal, contrastive, temporal, application, and collaborative.
-3. **Deduplication & validation** — Discovered edges are checked against existing edges and validated for plausibility.
-4. **Visual distinction** — Discovered edges are persisted with `is_discovered=1` and rendered distinctly (e.g., dashed red) in the KG visualization.
+Complex queries are internally decomposed into **SPARQL-style triple-pattern chains** before answer generation. The LLM binds variables against KG context via shared-variable chaining, constructs a variable binding table, then synthesizes the final answer. This replaces unstructured "find relevant info" with **systematic graph traversal reasoning**.
 
 ### 6. 🌊 Episodic Memory with Spreading Activation
 
@@ -112,29 +128,6 @@ The `neuro_memory` module implements a brain-inspired episodic memory system:
 - **Spreading activation** — Retrieval propagates activation from seed nodes along typed edges with edge-type-specific decay, simulating human associative recall.
 - **Analogical retrieval** — Past episodes are scored by content similarity (0.6), structural similarity (0.25), and salience (0.15) for experience transfer.
 - **Consolidation** — Periodic consolidation strengthens frequently co-activated edges and infers cross-episode relations.
-
----
-
-## 🚀 Quick Start
-
-```bash
-git clone https://github.com/Yang-Jiashu/doc-thinker.git && cd doc-thinker
-conda create -n docthinker python=3.11 -y && conda activate docthinker
-pip install -r requirements.txt && pip install -e .
-cp env.example .env   # ← fill in API keys (OpenAI / DashScope / SiliconFlow)
-```
-
-**Launch:**
-
-```bash
-# Terminal 1 — Backend (FastAPI)
-python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000
-
-# Terminal 2 — Frontend (Flask UI)
-python run_ui.py
-```
-
-Open `http://localhost:5000` — upload a PDF, ask questions, and explore the evolving knowledge graph.
 
 ---
 
@@ -158,6 +151,29 @@ Open `http://localhost:5000` — upload a PDF, ask questions, and explore the ev
 </td>
 </tr>
 </table>
+
+---
+
+## 🚀 Quick Start
+
+```bash
+git clone https://github.com/Yang-Jiashu/doc-thinker.git && cd doc-thinker
+conda create -n docthinker python=3.11 -y && conda activate docthinker
+pip install -r requirements.txt && pip install -e .
+cp env.example .env   # ← fill in API keys (OpenAI / DashScope / SiliconFlow)
+```
+
+**Launch:**
+
+```bash
+# Terminal 1 — Backend (FastAPI)
+python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000
+
+# Terminal 2 — Frontend (Flask UI)
+python run_ui.py
+```
+
+Open `http://localhost:5000` — upload a PDF, ask questions, and explore the evolving knowledge graph.
 
 ---
 
