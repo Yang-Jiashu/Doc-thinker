@@ -73,14 +73,9 @@ All candidates pass through **LLM self-validation** (factuality, non-redundancy,
 
 ### 2. 🔄 Self-Evolving Knowledge Graph
 
-Expanded nodes enter the graph as **candidates**, gradually promoting through user query adoption (`candidate → active → promoted`). Upon reaching thresholds (use_count ≥ 2, score ≥ 1.2), they are formally merged into the graph; unadopted nodes decay at a step of 0.05.
+Newly expanded nodes do not immediately become authoritative knowledge — they enter the graph as `candidates`. Only when users repeatedly adopt a node in actual conversations do its usage count and score accumulate; once thresholds are met, the node is promoted to a formal part of the graph. Nodes that remain unused gradually decay and are phased out.
 
-Meanwhile, a background **edge discovery pipeline** completes the graph structure:
-
-1. **Windowed scanning** — Entities are grouped into overlapping windows (size 30, overlap 10).
-2. **LLM relationship inference** — Each window is analyzed for 6 relationship types: hierarchical, causal, contrastive, temporal, application, and collaborative.
-3. **Deduplication & validation** — Discovered edges are checked against existing edges for plausibility.
-4. **Visual distinction** — Discovered edges are persisted with `is_discovered=1` and rendered as dashed red lines in the KG visualization.
+Additionally, single-pass extraction inevitably misses implicit cross-paragraph relationships. The system runs a background sliding-window scan over existing entities, having the LLM infer missing edges across six categories — hierarchical, causal, contrastive, temporal, application, and collaborative. After deduplication and validation, discovered edges are written to the graph and rendered as dashed red lines to distinguish them from original edges.
 
 ### 3. 🤖 Multi-Agent Co-Evolution
 
@@ -119,15 +114,6 @@ After each Q&A turn, older conversations are automatically archived to the cold 
 </div>
 
 Complex queries are internally decomposed into **SPARQL-style triple-pattern chains** before answer generation. The LLM binds variables against KG context via shared-variable chaining, constructs a variable binding table, then synthesizes the final answer. This replaces unstructured "find relevant info" with **systematic graph traversal reasoning**.
-
-### 6. 🌊 Episodic Memory with Spreading Activation
-
-The `neuro_memory` module implements a brain-inspired episodic memory system:
-
-- **Episode store** — Every Q&A interaction is stored as a structured episode with entities, triples, and embeddings.
-- **Spreading activation** — Retrieval propagates activation from seed nodes along typed edges with edge-type-specific decay, simulating human associative recall.
-- **Analogical retrieval** — Past episodes are scored by content similarity (0.6), structural similarity (0.25), and salience (0.15) for experience transfer.
-- **Consolidation** — Periodic consolidation strengthens frequently co-activated edges and infers cross-episode relations.
 
 ---
 
