@@ -42,11 +42,12 @@
   - [1. Web UI & Server](#1-web-ui--server)
   - [2. Python API Usage](#2-python-api-usage)
 - [🧬 Key Contributions (Pipeline)](#-key-contributions)
-  - [1. Two-Path KG Self-Expansion](#1--two-path-kg-self-expansion)
-  - [2. Self-Evolving Knowledge Graph](#2--self-evolving-knowledge-graph)
-  - [3. Multi-Agent Co-Evolution](#3--multi-agent-co-evolution)
-  - [4. Tiered Conversation Memory (Claw)](#4--tiered-conversation-memory-claw)
-  - [5. SPARQL Chain-of-Thought Reasoning](#5--sparql-chain-of-thought-cot-reasoning)
+  - [1. Test-Time Scaling & Agentic Memory](#1--test-time-scaling--agentic-memory)
+  - [2. Two-Path KG Self-Expansion](#2--two-path-kg-self-expansion)
+  - [3. Self-Evolving Knowledge Graph](#3--self-evolving-knowledge-graph)
+  - [4. Multi-Agent Co-Evolution](#4--multi-agent-co-evolution)
+  - [5. Tiered Conversation Memory (Claw)](#5--tiered-conversation-memory-claw)
+  - [6. SPARQL Chain-of-Thought Reasoning](#6--sparql-chain-of-thought-cot-reasoning)
 - [💡 Use Cases](#-use-cases)
 - [⚡ Query Modes & PDF Processing](#-query-modes)
 - [📡 API Reference](#-api-reference)
@@ -110,7 +111,10 @@ async def main():
     # 3. Ingest Document (Parsing & Knowledge Graph Construction)
     await dt.process_document_complete("your_document.pdf")
     
-    # 4. Query with SPARQL CoT Reasoning
+    # 4. Trigger Test-Time Scaling (Self-Study Loop) to enhance KG density
+    await dt.run_self_study_loop(max_rounds=5)
+    
+    # 5. Query with SPARQL CoT Reasoning
     response = await dt.aquery("What is the core idea of the document?", mode="deep")
     print(response)
 
@@ -128,15 +132,18 @@ DocThinker splits the monolithic pipeline into autonomous agents and introduces 
 <p><b>Figure 1.</b> DocThinker end-to-end pipeline — from document input to knowledge graph construction, tiered memory management, hybrid retrieval & reasoning, and output with feedback back to the graph.</p>
 </div>
 
-### 1. 🔀 Two-Path KG Self-Expansion
+### 1. 🧠 Test-Time Scaling & Agentic Memory
+Between document ingestion and user querying, DocThinker runs a **background self-study loop** (Test-Time Scaling on KG). The LLM autonomously analyzes existing subgraphs, generates questions, retrieves answers, performs continuous deductive reasoning, and writes back new knowledge and methodological experiences (`entity_type="experience"`). This significantly increases graph density and reasoning capability *without* requiring additional user prompts.
+
+### 2. 🔀 Two-Path KG Self-Expansion
 Expansion operates in two complementary passes:
 * **Path A (Cluster-based):** HDBSCAN clusters entity embeddings → LLM generates cluster summaries → expands new entities grounded in cluster themes.
 * **Path B (Top-N multi-angle):** Top-50 highest-degree nodes expanded across 6 cognitive dimensions (hierarchy, causation, analogy, contrast, temporal, application).
 
-### 2. 🔄 Self-Evolving Knowledge Graph
+### 3. 🔄 Self-Evolving Knowledge Graph
 Newly expanded nodes do not immediately become authoritative knowledge — they enter the graph as `candidates`. Only when users repeatedly adopt a node in actual conversations do its usage count and score accumulate; once thresholds are met, the node is promoted to a formal part of the graph.
 
-### 3. 🤖 Multi-Agent Co-Evolution
+### 4. 🤖 Multi-Agent Co-Evolution
 DocThinker splits the traditional RAG monolithic pipeline into three specialized Agents:
 * **Retrieval Agent:** Maximizes retrieval hit rate.
 * **Extraction Agent:** Maximizes extraction coverage.
@@ -147,10 +154,10 @@ DocThinker splits the traditional RAG monolithic pipeline into three specialized
 <p><sub><b>Figure 2.</b> DocThinker multi-Agent co-evolution architecture.</sub></p>
 </div>
 
-### 4. 🗃️ Tiered Conversation Memory (Claw)
+### 5. 🗃️ Tiered Conversation Memory (Claw)
 Inspired by the [OpenClaw / Letta](https://github.com/letta-ai/letta) architecture, Claw implements a **three-layer memory hierarchy** (Hot, Warm, Cold) for unbounded conversation length.
 
-### 5. 🧠 SPARQL Chain-of-Thought (CoT) Reasoning
+### 6. 🧠 SPARQL Chain-of-Thought (CoT) Reasoning
 Complex queries are internally decomposed into **SPARQL-style triple-pattern chains** before answer generation. The LLM binds variables against KG context via shared-variable chaining.
 
 <div align="center">

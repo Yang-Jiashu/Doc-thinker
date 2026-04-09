@@ -42,11 +42,12 @@
   - [1. Web UI & 服务端](#1-web-ui--服务端)
   - [2. Python API 极简调用](#2-python-api-极简调用)
 - [🧬 核心贡献 (Key Contributions)](#-核心贡献)
-  - [1. 双路径图谱自扩张](#1--双路径-kg-自扩展)
-  - [2. 自进化知识图谱](#2--自进化知识图谱)
-  - [3. 多 Agent 协同进化](#3--多-agent-协同进化)
-  - [4. 分层对话记忆 (Claw)](#4--分层对话记忆claw)
-  - [5. SPARQL 链式思维推理](#5--sparql-链式思维推理)
+  - [1. Test-Time Scaling 与智能体记忆](#1--test-time-scaling-与智能体记忆)
+  - [2. 双路径图谱自扩张](#2--双路径-kg-自扩展)
+  - [3. 自进化知识图谱](#3--自进化知识图谱)
+  - [4. 多 Agent 协同进化](#4--多-agent-协同进化)
+  - [5. 分层对话记忆 (Claw)](#5--分层对话记忆claw)
+  - [6. SPARQL 链式思维推理](#6--sparql-链式思维推理)
 - [💡 使用场景 (Use Cases)](#-使用场景)
 - [⚡ 查询模式与文档处理](#-查询模式)
 - [📡 API 参考](#-api-参考)
@@ -110,7 +111,10 @@ async def main():
     # 3. 摄入文档 (解析 + 构建知识图谱)
     await dt.process_document_complete("your_document.pdf")
     
-    # 4. 深度图谱推理查询
+    # 4. 触发 Test-Time Scaling (KG 后台自习循环)，增强图谱密度与经验记忆
+    await dt.run_self_study_loop(max_rounds=5)
+    
+    # 5. 深度图谱推理查询
     response = await dt.aquery("这篇文档的核心思想是什么？", mode="deep")
     print(response)
 
@@ -128,15 +132,18 @@ DocThinker 将庞大的管线拆分为自主的智能体，并引入了图谱认
 <p><b>图 1.</b> DocThinker 端到端管线 — 从文档输入到知识图谱构建、分层记忆管理、混合检索推理，最终输出并反馈回图谱。</p>
 </div>
 
-### 1. 🔀 双路径 KG 自扩展
+### 1. 🧠 Test-Time Scaling 与智能体记忆
+在文档写入和用户查询之间，系统会插入**后台自习循环 (Test-Time Scaling on KG)**：LLM 会对已有 KG 自主进行“出题 → 检索答题 → 归纳演绎”，并将产生的新知识和方法论经验（`entity_type="experience"`）作为智能体记忆写回图谱中。这通过不断的演绎推理，在不增加用户等待时间的情况下，大幅提升了知识图谱的信息密度和系统的推理能力。
+
+### 2. 🔀 双路径 KG 自扩展
 扩展以两条互补路径执行：
 * **A — 聚类驱动：** HDBSCAN 聚类实体 embedding → LLM 生成聚类摘要 → 基于摘要主题扩展新实体。
 * **B — Top-N 多角度：** 取连接度最高的 50 个节点，从 6 个认知维度（层级、因果、类比、对立、时序、应用）扩展。
 
-### 2. 🔄 自进化知识图谱
+### 3. 🔄 自进化知识图谱
 扩展的新节点不会直接成为正式知识——它们先以 `candidate` 身份进入图谱。只有当用户在实际对话中反复用到某个节点时，该节点的使用计数和评分才会累积，满足条件后晋升为正式节点。
 
-### 3. 🤖 多 Agent 协同进化
+### 4. 🤖 多 Agent 协同进化
 DocThinker 将传统 RAG 的单一管线拆分为三个专职 Agent：
 * **Retrieval Agent:** 负责最大化检索命中率。
 * **Extraction Agent:** 负责最大化信息抽取覆盖率。
@@ -147,10 +154,10 @@ DocThinker 将传统 RAG 的单一管线拆分为三个专职 Agent：
 <p><sub><b>图 2.</b> DocThinker 多 Agent 协同进化架构。</sub></p>
 </div>
 
-### 4. 🗃️ 分层对话记忆 (Claw)
+### 5. 🗃️ 分层对话记忆 (Claw)
 受 [OpenClaw / Letta](https://github.com/letta-ai/letta) 启发，Claw 实现了**三层记忆层级**（热、温、冷），实现无界对话长度。
 
-### 5. 🧠 SPARQL 链式思维推理
+### 6. 🧠 SPARQL 链式思维推理
 复杂查询在回答前被内部分解为 **SPARQL 风格的三元组模式链**。LLM 通过共享变量链在 KG 上下文中绑定变量。
 
 <div align="center">
