@@ -19,103 +19,143 @@
 [![Flask](https://img.shields.io/badge/Flask-UI-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![NetworkX](https://img.shields.io/badge/NetworkX-KG-4C72B0)](https://networkx.org/)
 [![FAISS](https://img.shields.io/badge/FAISS-Vector-3B5998?logo=meta&logoColor=white)](https://github.com/facebookresearch/faiss)
-[![D3.js](https://img.shields.io/badge/D3.js-Visualization-F9A03C?logo=d3dotjs&logoColor=white)](https://d3js.org/)
-[![HDBSCAN](https://img.shields.io/badge/HDBSCAN-Clustering-27AE60)](https://hdbscan.readthedocs.io/)
-[![SpaCy](https://img.shields.io/badge/SpaCy-NER-09A3D5?logo=spacy&logoColor=white)](https://spacy.io/)
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-[快速开始](#-快速开始) · [核心贡献](#-核心贡献) · [系统管线](#-项目简介) · [使用场景](#-使用场景) · [API 参考](#api-参考)
-
 </div>
 
-## 📖 项目简介
+<br>
 
-**DocThinker** 是一个文档驱动的 RAG 系统，从上传文档中构建自进化的知识图谱。与传统"检索-LLM 回复"路线不同，DocThinker 将知识视为**动态的图谱**，实现类脑记忆：
+**DocThinker** 是一个文档驱动的 RAG 系统，从上传文档中构建自进化的知识图谱。与传统"检索-LLM 回复"路线不同，DocThinker 将知识视为**动态的图谱**。
 
-- **生长** — 不局限于摄入文档中的显式知识，能自主推理并延伸出文档未直接表述的隐含关联以及相关知识；
-- **进化** — 将检索、抽取、回答拆分为三个协作 Agent，通过强化学习驱动各 Agent 的策略迭代与协同优化；
-- **推理** — 借助 SPARQL 风格的链式思维（CoT），在结构化三元组上进行多跳变量绑定推理；
-- **记忆** — 集成 [OpenClaw / Letta](https://github.com/letta-ai/letta) 分层记忆架构（热/温/冷），实现无限对话长度。
+### 🎬 探索教程!!
 
 <!-- TODO: 替换为演示视频 -->
-<!-- https://github.com/user-attachments/assets/YOUR_VIDEO_ID -->
+> [▶️ **在 YouTube 观看教程**](#) | [🚀 **在 HuggingFace Space 体验**](#) | [📝 **Colab 教程**](#)
+
+---
+
+## 📑 目录 (Index)
+
+- [🚀 快速安装 (Quick Install)](#-快速安装)
+- [🔥 快速开始 (Quick Start)](#-快速开始)
+  - [1. Web UI & 服务端](#1-web-ui--服务端)
+  - [2. Python API 极简调用](#2-python-api-极简调用)
+- [🧬 核心贡献 (Key Contributions)](#-核心贡献)
+  - [1. 双路径图谱自扩张](#1--双路径-kg-自扩展)
+  - [2. 自进化知识图谱](#2--自进化知识图谱)
+  - [3. 多 Agent 协同进化](#3--多-agent-协同进化)
+  - [4. 分层对话记忆 (Claw)](#4--分层对话记忆claw)
+  - [5. SPARQL 链式思维推理](#5--sparql-链式思维推理)
+- [💡 使用场景 (Use Cases)](#-使用场景)
+- [⚡ 查询模式与文档处理](#-查询模式)
+- [📡 API 参考](#-api-参考)
+- [❓ 常见问题 (FaQ)](#-faq)
+
+---
+
+## 🚀 快速安装
+
+推荐使用 Python 3.10 或更高版本。
+
+```bash
+# 1. 克隆代码仓库
+git clone https://github.com/Yang-Jiashu/doc-thinker.git
+cd doc-thinker
+
+# 2. 创建虚拟环境
+conda create -n docthinker python=3.11 -y
+conda activate docthinker
+
+# 3. 安装依赖
+pip install -r requirements.txt
+pip install -e .
+```
+
+---
+
+## 🔥 快速开始
+
+### 1. Web UI & 服务端
+
+最直观的体验方式是使用 Web 控制台：
+
+```bash
+# 1. 配置文件（填入大模型 API Keys）
+cp env.example .env
+
+# 2. 启动后端 API（FastAPI）
+python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000
+
+# 3. 启动前端 UI（Flask）
+python run_ui.py
+```
+> 打开 `http://localhost:5000` — 上传 PDF，提出问题，探索不断生长的知识图谱。
+
+### 2. Python API 极简调用
+
+你也可以用极简的 Python API 快速集成 DocThinker：
+
+```python
+import asyncio
+from docthinker import DocThinker, DocThinkerConfig
+
+async def main():
+    # 1. 初始化配置
+    config = DocThinkerConfig(working_dir="./my_knowledge_base")
+    
+    # 2. 实例化 (需要预先配置 LLM 和 Embedding 模型)
+    dt = DocThinker(config=config, ...) 
+    
+    # 3. 摄入文档 (解析 + 构建知识图谱)
+    await dt.process_document_complete("your_document.pdf")
+    
+    # 4. 深度图谱推理查询
+    response = await dt.aquery("这篇文档的核心思想是什么？", mode="deep")
+    print(response)
+
+asyncio.run(main())
+```
+
+---
+
+## 🧬 核心贡献
+
+DocThinker 将庞大的管线拆分为自主的智能体，并引入了图谱认知推理。
 
 <div align="center">
 <img src="docs/assets/pipeline.png" alt="DocThinker Pipeline" width="820" />
 <p><b>图 1.</b> DocThinker 端到端管线 — 从文档输入到知识图谱构建、分层记忆管理、混合检索推理，最终输出并反馈回图谱。</p>
 </div>
 
-### ✨ 核心亮点
-
-- **双路径 KG 自扩展** — 路径 A：HDBSCAN 聚类实体 embedding 并按聚类主题扩展；路径 B：取度数最高的 50 个原始节点，从层级、因果、类比、对立、时序、应用六个维度扩展，所有候选经 LLM 验证（score < 0.6 拒绝）和语义去重
-- **自进化知识图谱** — 扩展节点以候选状态入图，经用户查询采纳后逐步晋升为正式节点（use_count ≥ 2, score ≥ 1.2），未采纳则衰减；同时后台以滑动窗口扫描实体，自动推断层级、因果、对比等六类潜在边并补全图谱
-- **多 Agent 协同进化** — 将检索、抽取、回答拆分为三个协作 Agent，以强化学习驱动各 Agent 的迭代，通过奖励信号（回答质量、检索命中率）实现端到端的协同优化
-- **分层对话记忆（Claw）** — 受 OpenClaw / Letta 启发的三层记忆架构：热层（最近 6 轮对话）、温层（LLM 压缩的 MEMORY.md）、冷层（历史对话向量索引，按相似度 Top-k 检索），实现无限对话长度
-- **SPARQL 链式思维推理** — 通过提示词引导 LLM 将复杂查询分解为 SPARQL 风格的三元组模式链（`?变量, 关系, ?变量/实体`），在 KG 上下文中逐步绑定变量并推理
-
-
-
----
-
-## 🧬 核心贡献
-
 ### 1. 🔀 双路径 KG 自扩展
-
 扩展以两条互补路径执行：
-
-| 路径 | 策略 | 锚定基础 |
-|------|------|---------|
-| **A — 聚类驱动** | HDBSCAN 聚类实体 embedding → LLM 生成聚类摘要 → 基于摘要主题扩展新实体 | 密度结构 |
-| **B — Top-N 多角度** | 取连接度最高的 50 个节点，从 6 个认知维度（层级、因果、类比、对立、时序、应用）扩展 | 图拓扑 |
-
-所有候选经过 **LLM 自验证**（事实性、非冗余性、边有效性、具体性评分）和**语义去重**后方可入图。
+* **A — 聚类驱动：** HDBSCAN 聚类实体 embedding → LLM 生成聚类摘要 → 基于摘要主题扩展新实体。
+* **B — Top-N 多角度：** 取连接度最高的 50 个节点，从 6 个认知维度（层级、因果、类比、对立、时序、应用）扩展。
 
 ### 2. 🔄 自进化知识图谱
-
-扩展的新节点不会直接成为正式知识——它们先以 `candidate` 身份进入图谱。只有当用户在实际对话中反复用到某个节点时，该节点的使用计数和评分才会累积，满足条件后晋升为正式节点；长期无人问津的节点则逐渐衰减淘汰。
-
-此外，单次抽取难免遗漏跨段落的隐含关系。系统在后台用滑动窗口遍历已有实体，让 LLM 从层级、因果、对比、时序、应用、协作六个角度补充缺失的边，经去重校验后写入图谱，在可视化中以虚线与原始边区分。
+扩展的新节点不会直接成为正式知识——它们先以 `candidate` 身份进入图谱。只有当用户在实际对话中反复用到某个节点时，该节点的使用计数和评分才会累积，满足条件后晋升为正式节点。
 
 ### 3. 🤖 多 Agent 协同进化
+DocThinker 将传统 RAG 的单一管线拆分为三个专职 Agent：
+* **Retrieval Agent:** 负责最大化检索命中率。
+* **Extraction Agent:** 负责最大化信息抽取覆盖率。
+* **Answering Agent:** 负责生成最终回答并触发节点反馈。
 
 <div align="center">
 <img src="docs/assets/multi_agent_evolution.png" alt="多 Agent 协同进化架构" width="820" />
-<p><sub><b>图 2.</b> DocThinker 多 Agent 协同进化架构 — 检索、抽取、回答三个 Agent 围绕自进化知识图谱与分层记忆协作，通过强化学习反馈闭环持续优化。</sub></p>
+<p><sub><b>图 2.</b> DocThinker 多 Agent 协同进化架构。</sub></p>
 </div>
 
-DocThinker 将传统 RAG 的单一管线拆分为三个专职 Agent：
+### 4. 🗃️ 分层对话记忆 (Claw)
+受 [OpenClaw / Letta](https://github.com/letta-ai/letta) 启发，Claw 实现了**三层记忆层级**（热、温、冷），实现无界对话长度。
 
-| Agent | 职责 | 优化目标 |
-|-------|------|---------|
-| **Retrieval Agent** | 接收查询，从知识图谱与向量存储中检索相关实体和文档片段 | 检索命中率 ↑ |
-| **Extraction Agent** | 从检索结果中抽取实体、关系，构建结构化知识并写入图谱 | 抽取覆盖率 ↑ |
-| **Answering Agent** | 基于 SPARQL CoT 推理生成最终回答，并触发节点晋升/衰减反馈 | 回答质量 ↑ |
-
-三个 Agent 以**序贯马尔可夫决策过程（Sequential MDP）**建模，前一个 Agent 的输出即为下一个 Agent 的状态输入。强化学习通过**局部奖励**（各 Agent 自身指标）与**全局奖励**（端到端回答质量）的排名一致性对齐，驱动各 Agent 策略的联合迭代，避免局部最优而整体退化。
-
-### 4. 🗃️ 分层对话记忆（Claw）
-
-受 [OpenClaw / MemGPT / Letta](https://github.com/letta-ai/letta) 架构启发，Claw 实现了**三层记忆层级**：
-
-| 层级 | 温度 | 机制 | 注入方式 |
-|------|------|------|---------|
-| **热层** — 工作记忆 | 即时 | 最近 *N* 轮对话 | 始终注入 |
-| **温层** — 核心记忆 | 会话级 | LLM 压缩的 `MEMORY.md`（用户偏好、事实、指令） | 始终注入 |
-| **冷层** — 语义档案 | 长期 | 旧对话分块、嵌入、向量索引 | 按查询 Top-*k* 检索 |
-
-每轮问答后，旧对话自动归档至冷层，温层由 LLM 定期重新压缩 — 实现**无限对话长度**而不溢出上下文窗口。
-
-### 5. 🧠 SPARQL 链式思维（CoT）推理
+### 5. 🧠 SPARQL 链式思维推理
+复杂查询在回答前被内部分解为 **SPARQL 风格的三元组模式链**。LLM 通过共享变量链在 KG 上下文中绑定变量。
 
 <div align="center">
 <img src="docs/assets/sparql_cot.png" alt="SPARQL CoT 推理" width="680" />
-<p><sub><b>图 3.</b> SPARQL 链式思维推理管线 — 查询被分解为三元组模式链，在 KG 上下文中进行变量绑定。</sub></p>
 </div>
-
-复杂查询在回答前被内部分解为 **SPARQL 风格的三元组模式链**。LLM 通过共享变量链在 KG 上下文中绑定变量，构建变量绑定表，然后合成最终回答。这将非结构化的"查找相关信息"替换为**系统性图遍历推理**。
-
-
 
 ---
 
@@ -139,29 +179,6 @@ DocThinker 将传统 RAG 的单一管线拆分为三个专职 Agent：
 </td>
 </tr>
 </table>
-
----
-
-## 🚀 快速开始
-
-```bash
-git clone https://github.com/Yang-Jiashu/doc-thinker.git && cd doc-thinker
-conda create -n docthinker python=3.11 -y && conda activate docthinker
-pip install -r requirements.txt && pip install -e .
-cp env.example .env   # ← 填入 API Key（OpenAI / DashScope / SiliconFlow）
-```
-
-**启动：**
-
-```bash
-# 终端 1 — 后端（FastAPI）
-python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000
-
-# 终端 2 — 前端（Flask UI）
-python run_ui.py
-```
-
-打开 `http://localhost:5000` — 上传 PDF，提问，探索自进化的知识图谱。
 
 ---
 
