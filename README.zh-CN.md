@@ -259,9 +259,9 @@ DocThinker 将传统 RAG 的单一管线拆分为三个专职 Agent：
 如果 DocThinker 对您的研究有帮助，请引用：
 
 ```bibtex
-@article{docthinker2026,
-  title={DocThinker: Self-Evolving Knowledge Graphs with Tiered Memory and Structured Reasoning for Document Understanding},
-  author={Yang, Jiashu},
+@article{yang2026autothinkrag,
+  title={AutothinkRAG: Complexity-Aware Control of Retrieval-Augmented Reasoning for Image-Text Interaction},
+  author={Yang, Jiashu and Zhang, Chi and Wuerkaixi, Abudukelimu and Cheng, Xuxin and Liu, Cao and Zeng, Ke and Jia, Xu and Cai, Xunliang},
   journal={arXiv preprint arXiv:2603.05551},
   year={2026}
 }

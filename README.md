@@ -239,9 +239,9 @@ Complex queries are internally decomposed into **SPARQL-style triple-pattern cha
 If you find DocThinker useful in your research, please cite:
 
 ```bibtex
-@article{docthinker2026,
-  title={DocThinker: Self-Evolving Knowledge Graphs with Tiered Memory and Structured Reasoning for Document Understanding},
-  author={Yang, Jiashu},
+@article{yang2026autothinkrag,
+  title={AutothinkRAG: Complexity-Aware Control of Retrieval-Augmented Reasoning for Image-Text Interaction},
+  author={Yang, Jiashu and Zhang, Chi and Wuerkaixi, Abudukelimu and Cheng, Xuxin and Liu, Cao and Zeng, Ke and Jia, Xu and Cai, Xunliang},
   journal={arXiv preprint arXiv:2603.05551},
   year={2026}
 }
