@@ -13,6 +13,7 @@ from .protocols import (
     EpisodicMemoryBackend,
     ExpandedKnowledgeBackend,
     GraphPromotionBackend,
+    MemoryPolicy,
 )
 
 __all__ = [
@@ -25,4 +26,5 @@ __all__ = [
     "EpisodicMemoryBackend",
     "ExpandedKnowledgeBackend",
     "GraphPromotionBackend",
+    "MemoryPolicy",
 ]

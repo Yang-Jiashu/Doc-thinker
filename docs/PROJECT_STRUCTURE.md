@@ -16,6 +16,8 @@
 - `graphcore/`：图检索底层能力
 - `neuro_memory/`：类脑记忆模块
 - `docs/`：维护文档
+  - `MEMORY_PLUGIN_GUIDE.md`：第三方 agent / 插件作者接入 memory core 的指南
+- `packages/docthinker-memory/`：轻量 agentic memory facade 分发入口，面向插件作者和第三方 agent 框架
 - `tests/`：新主线测试
 - `run_ui.py`：UI 启动入口
 
@@ -24,7 +26,7 @@
 - `docthinker/server/app.py`：后端应用入口与生命周期初始化
 - `docthinker/memory_core/`：Agentic Memory 统一门面，对外提供 recall / after-response consolidation
   - `core.py`：`AgentMemoryCore` 与 `RecallBundle` / `MemoryTrace`
-  - `protocols.py`：可插件化 backend contracts（conversation、episodic、expanded KG、graph promotion、chat-turn ingest）
+  - `protocols.py`：可插件化 backend contracts（conversation、episodic、expanded KG、graph promotion、chat-turn ingest）与 `MemoryPolicy`
   - `adapters.py`：将现有 Claw、Neuro Memory、ExpandedNodeManager、GraphCore 接入 protocols
 - `docthinker/server/routers/`：API 路由
   - `query.py`：查询与回答

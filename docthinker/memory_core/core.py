@@ -23,7 +23,7 @@ from .adapters import (
     GraphCorePromotionBackend,
     NeuroEpisodicBackend,
 )
-from .protocols import AgentMemoryBackends
+from .protocols import AgentMemoryBackends, MemoryPolicy
 
 _log = logging.getLogger("docthinker.memory_core")
 
@@ -73,6 +73,24 @@ class MemoryTrace:
             lines.append("memory_context: injected")
         return "\n".join(lines)
 
+    def to_schema(self, *, consolidation: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        conversation_hits = sum(
+            1 for event in self.events if event.get("type") == "memory_context"
+        )
+        return {
+            "memory_mode": self.memory_mode,
+            "recall": {
+                "memory_sources": self.memory_hits,
+                "conversation_hits": conversation_hits,
+                "episodic_hits": self.episodic_hits,
+                "expanded_hits": self.expanded_hits,
+                "context_injected": self.memory_context_injected,
+                "retrieval_instruction_applied": self.retrieval_instruction_applied,
+            },
+            "events": list(self.events),
+            "consolidation": dict(consolidation or {}),
+        }
+
 
 @dataclass
 class RecallBundle:
@@ -92,6 +110,7 @@ class AgentMemoryCore:
         self,
         *,
         backends: Optional[AgentMemoryBackends] = None,
+        policy: Optional[MemoryPolicy] = None,
         get_claw_manager: Optional[Callable[[Optional[str]], Optional[Any]]] = None,
         get_expanded_node_manager: Optional[Callable[[Optional[str]], Optional[Any]]] = None,
         get_session_rag: Optional[Callable[[Optional[str]], Awaitable[Any]]] = None,
@@ -101,6 +120,7 @@ class AgentMemoryCore:
         ] = None,
         chat_turn_ingest_enabled: Optional[Callable[[], bool]] = None,
     ) -> None:
+        self.policy = policy or MemoryPolicy()
         self.backends = backends or self._build_legacy_backends(
             get_claw_manager=get_claw_manager,
             get_expanded_node_manager=get_expanded_node_manager,
@@ -190,8 +210,8 @@ class AgentMemoryCore:
         mode: str = "",
         enable_thinking: bool = False,
         enable_expanded_matching: bool = True,
-        expanded_top_k: int = 2,
-        expanded_min_score: float = 0.2,
+        expanded_top_k: Optional[int] = None,
+        expanded_min_score: Optional[float] = None,
         skip_memory: bool = False,
     ) -> RecallBundle:
         """Prepare memory context and KG hypothesis matches for one query."""
@@ -213,7 +233,7 @@ class AgentMemoryCore:
             )
 
         if enable_thinking:
-            if self.backends.conversation:
+            if self.backends.conversation and self.policy.layer_enabled("conversation"):
                 try:
                     claw_context = await self.backends.conversation.build_context(session_id, query)
                     if claw_context:
@@ -231,12 +251,12 @@ class AgentMemoryCore:
                 except Exception as exc:
                     _log.warning("[recall] claw context failed: %s", exc)
 
-            if self.backends.episodic:
+            if self.backends.episodic and self.policy.layer_enabled("episodic"):
                 try:
                     episodic_matches = await self.backends.episodic.retrieve(
                         session_id,
                         query,
-                        top_k=5,
+                        top_k=self.policy.episodic_top_k,
                     )
                     if episodic_matches:
                         episodic_instruction = self._format_episodic_instruction(
@@ -260,19 +280,32 @@ class AgentMemoryCore:
                 except Exception as exc:
                     _log.warning("[recall] episodic recall failed: %s", exc)
 
-        if enable_expanded_matching and self.backends.expanded:
+        if enable_expanded_matching and self.backends.expanded and self.policy.layer_enabled("expanded"):
             try:
+                effective_expanded_top_k = (
+                    expanded_top_k
+                    if expanded_top_k is not None
+                    else self.policy.expanded_top_k
+                )
+                effective_expanded_min_score = (
+                    expanded_min_score
+                    if expanded_min_score is not None
+                    else self.policy.expanded_min_score
+                )
                 expanded_matches = self.backends.expanded.match(
                     session_id,
                     query,
-                    top_k=expanded_top_k,
-                    min_score=expanded_min_score,
+                    top_k=effective_expanded_top_k,
+                    min_score=effective_expanded_min_score,
                 )
                 if expanded_matches:
                     expanded_instruction = self.backends.expanded.build_instruction(
                         session_id,
                         expanded_matches,
-                        limit=min(2, max(1, int(expanded_top_k))),
+                        limit=min(
+                            self.policy.expanded_instruction_limit,
+                            max(1, int(effective_expanded_top_k)),
+                        ),
                     )
                     merged_instruction = self._merge_instructions(
                         merged_instruction,
@@ -319,7 +352,7 @@ class AgentMemoryCore:
             "expanded_promoted": [],
         }
 
-        if self.backends.conversation:
+        if self.backends.conversation and self.policy.layer_enabled("conversation"):
             try:
                 result["claw_updated"] = await self.backends.conversation.consolidate(
                     session_id,
@@ -331,10 +364,10 @@ class AgentMemoryCore:
 
         concepts = _extract_entities_from_text(
             f"{question}\n{answer}",
-            max_entities=12,
+            max_entities=self.policy.answer_entity_limit,
         )
 
-        if self.backends.episodic:
+        if self.backends.episodic and self.policy.layer_enabled("episodic"):
             try:
                 episode_id = await self.backends.episodic.write(
                     session_id,
@@ -349,7 +382,7 @@ class AgentMemoryCore:
             except Exception as exc:
                 _log.warning("[after_response] episode add failed: %s", exc)
 
-        if self.backends.chat_turn:
+        if self.backends.chat_turn and self.policy.layer_enabled("chat_turn"):
             try:
                 result["chat_turn_ingested"] = await self.backends.chat_turn.ingest(
                     session_id,
@@ -360,7 +393,7 @@ class AgentMemoryCore:
             except Exception as exc:
                 _log.warning("[after_response] chat turn ingest failed: %s", exc)
 
-        if matched_expanded and self.backends.expanded:
+        if matched_expanded and self.backends.expanded and self.policy.layer_enabled("expanded"):
             try:
                 promoted_names = self.backends.expanded.record_usage(
                     session_id,
@@ -368,7 +401,7 @@ class AgentMemoryCore:
                     matched_expanded,
                     attached_entities=concepts,
                 )
-                if promoted_names and self.backends.graph:
+                if promoted_names and self.backends.graph and self.policy.layer_enabled("graph"):
                     promoted_names = await self.backends.graph.promote(
                         session_id,
                         promoted_names,
@@ -380,4 +413,15 @@ class AgentMemoryCore:
                 _log.warning("[after_response] expanded promotion failed: %s", exc)
 
         result["elapsed_seconds"] = round(time.time() - t0, 3)
+        result["memory_trace"] = {
+            "memory_mode": "session",
+            "consolidation": {
+                "conversation_updated": bool(result["claw_updated"]),
+                "episode_added": bool(result["episode_added"]),
+                "chat_turn_ingested": bool(result["chat_turn_ingested"]),
+                "expanded_promoted": list(result["expanded_promoted"]),
+                "elapsed_seconds": result["elapsed_seconds"],
+                "enabled_layers": sorted(self.policy.enabled_layer_set()),
+            },
+        }
         return result

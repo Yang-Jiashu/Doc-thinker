@@ -17,6 +17,7 @@ __all__ = [
     "VLMClient",
     "AgentMemoryCore",
     "AgentMemoryBackends",
+    "MemoryPolicy",
     "RecallBundle",
     "MemoryTrace",
 ]
@@ -40,7 +41,13 @@ def __getattr__(name):
         from . import auto_thinking
 
         return getattr(auto_thinking, name)
-    if name in {"AgentMemoryCore", "AgentMemoryBackends", "RecallBundle", "MemoryTrace"}:
+    if name in {
+        "AgentMemoryCore",
+        "AgentMemoryBackends",
+        "MemoryPolicy",
+        "RecallBundle",
+        "MemoryTrace",
+    }:
         from . import memory_core
 
         return getattr(memory_core, name)

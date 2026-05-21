@@ -1,5 +1,5 @@
 import unittest
-from docthinker.memory_core import AgentMemoryBackends, AgentMemoryCore
+from docthinker.memory_core import AgentMemoryBackends, AgentMemoryCore, MemoryPolicy
 
 
 class _FakeClawManager:
@@ -75,8 +75,10 @@ class _ProtocolConversationBackend:
 class _ProtocolEpisodicBackend:
     def __init__(self):
         self.written = False
+        self.last_top_k = None
 
     async def retrieve(self, session_id, query, *, top_k):
+        self.last_top_k = top_k
         return [{
             "episode_id": "proto-ep",
             "summary": "Protocol backend recalled a reusable agent habit.",
@@ -92,8 +94,12 @@ class _ProtocolEpisodicBackend:
 class _ProtocolExpandedBackend:
     def __init__(self):
         self.recorded = False
+        self.last_top_k = None
+        self.last_min_score = None
 
     def match(self, session_id, query, *, top_k, min_score):
+        self.last_top_k = top_k
+        self.last_min_score = min_score
         return [{"entity": "Protocol Memory", "score": 0.8, "root_ids": ["Agent Memory"]}]
 
     def build_instruction(self, session_id, matches, *, limit):
@@ -229,6 +235,49 @@ class AgentMemoryCoreUnitTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(episodic.written)
         self.assertTrue(expanded.recorded)
         self.assertEqual(["Protocol Memory"], graph.promoted)
+
+    async def test_memory_policy_controls_layers_and_recall_breadth(self):
+        conversation = _ProtocolConversationBackend()
+        episodic = _ProtocolEpisodicBackend()
+        expanded = _ProtocolExpandedBackend()
+        graph = _ProtocolGraphBackend()
+        core = AgentMemoryCore(
+            backends=AgentMemoryBackends(
+                conversation=conversation,
+                episodic=episodic,
+                expanded=expanded,
+                graph=graph,
+            ),
+            policy=MemoryPolicy(
+                episodic_top_k=1,
+                expanded_top_k=4,
+                expanded_min_score=0.55,
+                enabled_layers=("episodic", "expanded"),
+            ),
+        )
+
+        bundle = await core.recall(
+            session_id="policy-session",
+            query="policy driven memory",
+            enable_thinking=True,
+            enable_expanded_matching=True,
+        )
+
+        self.assertNotIn("protocol memory policy-session", bundle.retrieval_instruction)
+        self.assertIn("Protocol backend recalled", bundle.retrieval_instruction)
+        self.assertEqual(1, episodic.last_top_k)
+        self.assertEqual(4, expanded.last_top_k)
+        self.assertEqual(0.55, expanded.last_min_score)
+
+        result = await core.after_response(
+            session_id="policy-session",
+            question="q",
+            answer="Protocol Memory should be remembered.",
+            matched_expanded=bundle.expanded_matches,
+        )
+        self.assertFalse(result["claw_updated"])
+        self.assertEqual([], graph.promoted)
+        self.assertEqual(["episodic", "expanded"], result["memory_trace"]["consolidation"]["enabled_layers"])
 
 
 if __name__ == "__main__":

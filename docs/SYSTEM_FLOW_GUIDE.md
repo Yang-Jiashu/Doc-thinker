@@ -24,6 +24,7 @@ UI 侧页面通过 `docthinker/ui/app.py` 代理调用后端 `api/v1`。
    - Conversation backend 注入对话工作记忆、核心摘要和语义归档片段（当前 adapter：Claw）
    - Episodic backend 检索相似情节与类比 episode，形成 episodic analogy context（当前 adapter：Neuro Memory）
    - Expanded KG backend 执行 query-time match，并生成强制检索指令（当前 adapter：ExpandedNodeManager）
+   - `MemoryPolicy` 控制启用层、召回宽度、expanded node 匹配阈值和回答实体抽取上限
    - 输出统一 `RecallBundle` 与 `MemoryTrace`
 3. `DocThinker/GraphCore` 根据原始问题 + memory instruction 执行检索生成
 4. 返回答案、sources、memory trace、expanded matches
@@ -54,6 +55,7 @@ UI 侧页面通过 `docthinker/ui/app.py` 代理调用后端 `api/v1`。
 - 记忆门面：`docthinker/memory_core/core.py`
 - 记忆协议：`docthinker/memory_core/protocols.py`
 - 现有系统适配：`docthinker/memory_core/adapters.py`
+- 轻量分发入口：`packages/docthinker-memory/`
 - 查询：`docthinker/server/routers/query.py`
 - 图谱：`docthinker/server/routers/graph.py`
 - 对话记忆：`claw/memory_manager.py`

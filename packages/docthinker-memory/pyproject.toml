@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docthinker-memory"
+version = "0.1.0"
+description = "Lightweight agentic memory facade from DocThinker"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [
+    { name = "DocThinker Contributors" }
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "docthinker>=1.2.8",
+]
+
+[project.urls]
+Homepage = "https://github.com/Yang-Jiashu/Doc-thinker"
+Repository = "https://github.com/Yang-Jiashu/Doc-thinker"
+Issues = "https://github.com/Yang-Jiashu/Doc-thinker/issues"
+
+[tool.setuptools.packages.find]
+include = ["docthinker_memory*"]

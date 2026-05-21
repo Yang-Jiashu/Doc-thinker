@@ -120,10 +120,10 @@ asyncio.run(main())
 
 ### 3. Memory Layer API
 
-The memory layer can be embedded without using the full web app. Third-party projects can implement the backend protocols and plug them into `AgentMemoryCore`.
+The memory layer can be embedded without using the full web app. Third-party projects can implement the backend protocols and plug them into `AgentMemoryCore`. For framework and plugin authors, the same API is also exposed through the lightweight `docthinker-memory` package skeleton under `packages/docthinker-memory`.
 
 ```python
-from docthinker.memory_core import AgentMemoryBackends, AgentMemoryCore
+from docthinker.memory_core import AgentMemoryBackends, AgentMemoryCore, MemoryPolicy
 
 memory = AgentMemoryCore(
     backends=AgentMemoryBackends(
@@ -131,7 +131,12 @@ memory = AgentMemoryCore(
         episodic=my_episode_store,
         expanded=my_candidate_graph,
         graph=my_semantic_graph,
-    )
+    ),
+    policy=MemoryPolicy(
+        episodic_top_k=3,
+        expanded_top_k=2,
+        enabled_layers=("conversation", "episodic", "expanded", "graph"),
+    ),
 )
 
 recall = await memory.recall(
@@ -150,6 +155,14 @@ await memory.after_response(
 )
 ```
 
+The package examples show how to build a memory plugin around an in-process store:
+
+```bash
+python packages/docthinker-memory/examples/custom_backend.py
+```
+
+See [`docs/MEMORY_PLUGIN_GUIDE.md`](docs/MEMORY_PLUGIN_GUIDE.md) for the backend contract checklist.
+
 ---
 
 ## 🧬 Key Contributions
@@ -162,7 +175,7 @@ DocThinker organizes retrieval and memory as an agent-facing framework instead o
 </div>
 
 ### 1. 🧠 Agentic Memory Core
-`docthinker.memory_core.AgentMemoryCore` is the stable facade for agent memory work. It exposes explicit backend protocols for conversation memory, episodic memory, expanded KG hypotheses, graph promotion, and optional chat-turn ingestion. Before generation, `recall()` merges:
+`docthinker.memory_core.AgentMemoryCore` is the stable facade for agent memory work. It exposes explicit backend protocols for conversation memory, episodic memory, expanded KG hypotheses, graph promotion, and optional chat-turn ingestion. `MemoryPolicy` controls which layers are active and how broad each recall step may be. Before generation, `recall()` merges:
 
 * Claw working/core/archive conversation memory.
 * Neuro Memory episodic analogy matches.

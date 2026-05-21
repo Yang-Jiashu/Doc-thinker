@@ -7,7 +7,7 @@ GraphCore, Claw, or Neuro Memory implementations.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Protocol, Sequence
 
 
@@ -123,3 +123,33 @@ class AgentMemoryBackends:
     expanded: Optional[ExpandedKnowledgeBackend] = None
     graph: Optional[GraphPromotionBackend] = None
     chat_turn: Optional[ChatTurnBackend] = None
+
+
+@dataclass(frozen=True)
+class MemoryPolicy:
+    """Tunable policy for recall breadth and consolidation behavior.
+
+    A policy lets host applications choose which memory layers are active and
+    how much context each layer may contribute without changing backend code.
+    """
+
+    episodic_top_k: int = 5
+    expanded_top_k: int = 2
+    expanded_min_score: float = 0.2
+    expanded_instruction_limit: int = 2
+    answer_entity_limit: int = 12
+    enabled_layers: Sequence[str] = field(
+        default_factory=lambda: (
+            "conversation",
+            "episodic",
+            "expanded",
+            "graph",
+            "chat_turn",
+        )
+    )
+
+    def layer_enabled(self, layer: str) -> bool:
+        return layer in self.enabled_layer_set()
+
+    def enabled_layer_set(self) -> set[str]:
+        return {str(item) for item in self.enabled_layers}
