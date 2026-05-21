@@ -4,7 +4,7 @@
 
 # DocThinker
 
-**Self-Evolving Knowledge Graphs · Tiered Memory · Structured Reasoning**
+**Agentic Memory Framework · Self-Evolving Knowledge Graphs · Document Reasoning**
 
 *Language captures the results of cognition, while cognition itself encompasses perception, experience, and reasoning.*
 
@@ -26,12 +26,9 @@
 
 <br>
 
-**DocThinker** is a document-driven RAG system that constructs self-evolving knowledge graphs from uploaded documents. Unlike conventional retrieve-then-respond pipelines, DocThinker treats knowledge as a **dynamic graph**.
+**DocThinker** is an agentic memory framework for document understanding. It turns documents, chat turns, retrieval traces, and graph expansions into a multi-layer memory system that can recall, reason, and consolidate knowledge over time.
 
-### 🎬 Explore our Tutorial!!
-
-<!-- TODO: Replace with demo video -->
-> [▶️ **Watch the YouTube Tutorial**](#) | [🚀 **Use DocThinker in HuggingFace Space**](#) | [📝 **Try Colab Tutorial**](#)
+Unlike a conventional retrieve-then-respond RAG pipeline, DocThinker treats knowledge as an evolving memory substrate: session-scoped knowledge graphs provide semantic memory, Claw provides tiered conversation memory, Neuro Memory provides episodic analogies, and KG expansion tracks hypotheses that can be promoted through use.
 
 ---
 
@@ -41,13 +38,13 @@
 - [🔥 Quick Start](#-quick-start)
   - [1. Web UI & Server](#1-web-ui--server)
   - [2. Python API Usage](#2-python-api-usage)
-- [🧬 Key Contributions (Pipeline)](#-key-contributions)
-  - [1. Test-Time Scaling & Agentic Memory](#1--test-time-scaling--agentic-memory)
-  - [2. Two-Path KG Self-Expansion](#2--two-path-kg-self-expansion)
-  - [3. Self-Evolving Knowledge Graph](#3--self-evolving-knowledge-graph)
-  - [4. Multi-Agent Co-Evolution](#4--multi-agent-co-evolution)
-  - [5. Tiered Conversation Memory (Claw)](#5--tiered-conversation-memory-claw)
-  - [6. SPARQL Chain-of-Thought Reasoning](#6--sparql-chain-of-thought-cot-reasoning)
+- [🧬 Key Contributions](#-key-contributions)
+  - [1. Agentic Memory Core](#1--agentic-memory-core)
+  - [2. Session-Scoped Knowledge Graphs](#2--session-scoped-knowledge-graphs)
+  - [3. Self-Evolving KG Expansion](#3--self-evolving-kg-expansion)
+  - [4. Tiered Conversation Memory (Claw)](#4--tiered-conversation-memory-claw)
+  - [5. Episodic Analogy Memory](#5--episodic-analogy-memory)
+  - [6. Multimodal Retrieval Signals](#6--multimodal-retrieval-signals)
 - [💡 Use Cases](#-use-cases)
 - [⚡ Query Modes & PDF Processing](#-query-modes)
 - [📡 API Reference](#-api-reference)
@@ -111,11 +108,8 @@ async def main():
     # 3. Ingest Document (Parsing & Knowledge Graph Construction)
     await dt.process_document_complete("your_document.pdf")
     
-    # 4. Trigger Test-Time Scaling (Self-Study Loop) to enhance KG density
-    await dt.run_self_study_loop(max_rounds=5)
-    
-    # 5. Query with SPARQL CoT Reasoning
-    response = await dt.aquery("What is the core idea of the document?", mode="deep")
+    # 4. Query the session knowledge graph
+    response = await dt.aquery("What is the core idea of the document?", mode="mix")
     print(response)
 
 asyncio.run(main())
@@ -125,44 +119,49 @@ asyncio.run(main())
 
 ## 🧬 Key Contributions
 
-DocThinker splits the monolithic pipeline into autonomous agents and introduces graph-based cognitive reasoning.
+DocThinker organizes retrieval and memory as an agent-facing framework instead of scattering memory logic across API handlers.
 
 <div align="center">
 <img src="docs/assets/pipeline.png" alt="DocThinker Pipeline" width="820" />
 <p><b>Figure 1.</b> DocThinker end-to-end pipeline — from document input to knowledge graph construction, tiered memory management, hybrid retrieval & reasoning, and output with feedback back to the graph.</p>
 </div>
 
-### 1. 🧠 Test-Time Scaling & Agentic Memory
-Between document ingestion and user querying, DocThinker runs a **background self-study loop** (Test-Time Scaling on KG). The LLM autonomously analyzes existing subgraphs, generates questions, retrieves answers, performs continuous deductive reasoning, and writes back new knowledge and methodological experiences (`entity_type="experience"`). This significantly increases graph density and reasoning capability *without* requiring additional user prompts.
+### 1. 🧠 Agentic Memory Core
+`docthinker.memory_core.AgentMemoryCore` is the stable facade for agent memory work. Before generation, `recall()` merges:
 
-### 2. 🔀 Two-Path KG Self-Expansion
+* Claw working/core/archive conversation memory.
+* Neuro Memory episodic analogy matches.
+* KG expanded-node matches and forced retrieval instructions.
+
+After generation, `after_response()` consolidates the turn back into memory layers, writes chat episodes, optionally feeds the Q&A back into the graph, and promotes useful expanded nodes.
+
+### 2. 🧩 Session-Scoped Knowledge Graphs
+Each session owns its own GraphCore-backed knowledge graph and document state. Uploaded files are parsed, inserted, and queried within that session, which keeps user context isolated while still allowing the graph to grow over time.
+
+### 3. 🔀 Self-Evolving KG Expansion
 Expansion operates in two complementary passes:
 * **Path A (Cluster-based):** HDBSCAN clusters entity embeddings → LLM generates cluster summaries → expands new entities grounded in cluster themes.
 * **Path B (Top-N multi-angle):** Top-50 highest-degree nodes expanded across 6 cognitive dimensions (hierarchy, causation, analogy, contrast, temporal, application).
 
-### 3. 🔄 Self-Evolving Knowledge Graph
-Newly expanded nodes do not immediately become authoritative knowledge — they enter the graph as `candidates`. Only when users repeatedly adopt a node in actual conversations do its usage count and score accumulate; once thresholds are met, the node is promoted to a formal part of the graph.
-
-### 4. 🤖 Multi-Agent Co-Evolution
-DocThinker splits the traditional RAG monolithic pipeline into three specialized Agents:
-* **Retrieval Agent:** Maximizes retrieval hit rate.
-* **Extraction Agent:** Maximizes extraction coverage.
-* **Answering Agent:** Generates final answers and triggers node promotion/decay feedback.
+Newly expanded nodes do not immediately become authoritative knowledge. They enter as candidates, are matched during query time, and only become formal graph nodes after repeated useful adoption in assistant responses.
 
 <div align="center">
-<img src="docs/assets/multi_agent_evolution.png" alt="Multi-Agent Co-Evolution Architecture" width="820" />
-<p><sub><b>Figure 2.</b> DocThinker multi-Agent co-evolution architecture.</sub></p>
+<img src="docs/assets/multi_agent_evolution.png" alt="Memory and graph feedback architecture" width="820" />
+<p><sub><b>Figure 2.</b> Memory and graph feedback loop.</sub></p>
 </div>
 
-### 5. 🗃️ Tiered Conversation Memory (Claw)
-Inspired by the [OpenClaw / Letta](https://github.com/letta-ai/letta) architecture, Claw implements a **three-layer memory hierarchy** (Hot, Warm, Cold) for unbounded conversation length.
+### 4. 🗃️ Tiered Conversation Memory (Claw)
+Claw implements a three-layer memory hierarchy for long-running conversations: hot working memory, warm core summaries, and cold semantic archives.
 
-### 6. 🧠 SPARQL Chain-of-Thought (CoT) Reasoning
-Complex queries are internally decomposed into **SPARQL-style triple-pattern chains** before answer generation. The LLM binds variables against KG context via shared-variable chaining.
+### 5. 🧠 Episodic Analogy Memory
+Neuro Memory stores chat/document experiences as episodes and retrieves similar past situations as analogy context. These matches are surfaced through `episodic_matches` and injected as guidance rather than treated as direct factual sources.
 
 <div align="center">
-<img src="docs/assets/sparql_cot.png" alt="SPARQL CoT Reasoning" width="680" />
+<img src="docs/assets/sparql_cot.png" alt="Structured reasoning" width="680" />
 </div>
+
+### 6. 🖼️ Multimodal Retrieval Signals
+DocThinker tracks image assets extracted from documents and can activate relevant visual evidence during deep UI queries.
 
 ---
 
@@ -179,7 +178,7 @@ Complex queries are internally decomposed into **SPARQL-style triple-pattern cha
 </td>
 <td width="50%" valign="top">
 
-> *"Deep-mode conversation with SPARQL CoT reasoning and tiered memory"*
+> *"Deep-mode conversation with episodic memory, expanded KG matching, and tiered memory"*
 
 <img src="docs/assets/usecase_chat.gif" width="100%"/>
 
@@ -191,11 +190,11 @@ Complex queries are internally decomposed into **SPARQL-style triple-pattern cha
 
 ## ⚡ Query Modes
 
-| Mode | Strategy | Latency | Depth |
-|------|----------|---------|-------|
-| **Fast** | Vector similarity | ~1 s | Shallow |
-| **Standard** | Hybrid KG + vector + reranking | ~3 s | Medium |
-| **Deep** | SPARQL CoT + spreading activation + episodic memory + expansion matching + post-query feedback | ~8 s | Full |
+| Mode | UI mapping | Strategy | Depth |
+|------|------------|----------|-------|
+| **Quick** | `naive` | Lightweight vector-style retrieval, rerank disabled | Shallow |
+| **Standard** | `local` | Session KG retrieval with reranking | Medium |
+| **Deep** | `mix` | KG + vector retrieval, Claw memory, episodic analogies, expanded-node matching, image activation, post-query consolidation | Full |
 
 ---
 
@@ -216,19 +215,20 @@ Complex queries are internally decomposed into **SPARQL-style triple-pattern cha
 
 | Category | Endpoint | Method | Description |
 |----------|----------|--------|-------------|
-| Sessions | `/sessions` | GET / POST | List / create sessions |
-| | `/sessions/{id}/history` | GET | Chat history |
-| | `/sessions/{id}/files` | GET | Ingested files |
-| Ingest | `/ingest` | POST | Upload PDF / TXT |
-| | `/ingest/stream` | POST | Stream raw text |
-| Query | `/query/stream` | POST | SSE streaming query |
-| | `/query` | POST | Non-streaming query |
-| KG | `/knowledge-graph/data` | GET | Nodes + edges for visualization |
-| | `/knowledge-graph/expand` | POST | Trigger 2-path expansion |
-| | `/knowledge-graph/stats` | GET | KG statistics |
-| Memory | `/memory/stats` | GET | Episode + Claw memory stats |
-| | `/memory/consolidate` | POST | Run episodic consolidation |
-| Settings | `/settings` | GET / POST | Runtime config |
+| Sessions | `/api/v1/sessions` | GET / POST | List / create sessions |
+| | `/api/v1/sessions/{id}/history` | GET | Chat history |
+| | `/api/v1/sessions/{id}/files` | GET | Ingested files |
+| Ingest | `/api/v1/ingest` | POST | Upload PDF / TXT |
+| | `/api/v1/ingest/stream` | POST | Stream raw text |
+| Query | `/api/v1/query/stream` | POST | SSE streaming query |
+| | `/api/v1/query` | POST | Non-streaming query |
+| | `/api/v1/query/text` | POST | Alias for non-streaming query |
+| KG | `/api/v1/knowledge-graph/data` | GET | Nodes + edges for visualization |
+| | `/api/v1/knowledge-graph/expand` | POST | Trigger KG expansion |
+| | `/api/v1/knowledge-graph/stats` | GET | KG statistics |
+| | `/api/v1/knowledge-graph/expanded-nodes` | GET | Expanded-node lifecycle state |
+| Memory | `/api/v1/memory/stats` | GET | Episode + Claw memory stats |
+| Settings | `/api/v1/settings` | GET / POST | Runtime config |
 
 </details>
 
