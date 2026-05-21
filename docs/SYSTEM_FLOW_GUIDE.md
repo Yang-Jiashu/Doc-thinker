@@ -10,28 +10,36 @@ UI 侧页面通过 `docthinker/ui/app.py` 代理调用后端 `api/v1`。
 ## 2. 后端初始化流程（`docthinker/server/app.py`）
 
 1. 加载 providers/settings
-2. 初始化 `DocThinker` 与 GraphCore
-3. 初始化 `MemoryEngine`（`neuro_memory`）
+2. 初始化 `DocThinker` 与 GraphCore，作为语义记忆 / KG recall backend
+3. 初始化 `MemoryEngine`（`neuro_memory`），用于情节记忆、类比检索、扩散激活
 4. 初始化 `IngestionService`
-5. 初始化 `HybridRAGOrchestrator` + `HyperGraphRAG`
-6. 注册所有 `/api/v1/*` 路由
+5. 初始化 Claw 三层对话记忆（working/core/archive）
+6. 初始化 `HybridRAGOrchestrator` + `HyperGraphRAG`（实验性复杂查询路径）
+7. 注册所有 `/api/v1/*` 路由
 
 ## 3. 查询流程
 
 1. 前端调用 `/api/v1/query` 或 `/api/v1/query/text`
-2. 查询路由进入编排器（复杂度分类、分解、检索、聚合）
-3. 同步使用 `neuro_memory` 做：
-   - observation 写入
-   - analogy 检索
-   - co-activation 记录
-4. 返回最终答案与相关上下文
+2. 查询路由调用 `AgentMemoryCore.recall()`：
+   - Claw 注入对话工作记忆、核心摘要和语义归档片段
+   - Neuro Memory 检索相似情节与类比 episode，形成 episodic analogy context
+   - KG 扩展节点执行 query-time match，并生成强制检索指令
+   - 输出统一 `RecallBundle` 与 `MemoryTrace`
+3. `DocThinker/GraphCore` 根据原始问题 + memory instruction 执行检索生成
+4. 返回答案、sources、memory trace、expanded matches
+5. 后台调用 `AgentMemoryCore.after_response()`：
+   - 更新 Claw 记忆层
+   - 将本轮问答写入 Neuro Memory episode store，供后续类比召回
+   - 可选将对话 turn 写回 KG
+   - 根据回答使用情况推进 expanded node candidate -> active -> promoted
 
 ## 4. 入库流程
 
 1. 前端上传文件到 UI 代理
 2. UI 代理转发到 `/api/v1/ingest`
-3. `IngestionService` 处理并写入 GraphCore
-4. 会话/全局存储按配置同步
+3. `IngestionService` 处理并写入 session-scoped GraphCore
+4. 本地 KG/KB/snapshot 更新
+5. 后台触发密度聚类、潜在边发现、KG self-study
 
 ## 5. KG 扩展流程
 
@@ -39,10 +47,13 @@ UI 侧页面通过 `docthinker/ui/app.py` 代理调用后端 `api/v1`。
 2. `docthinker/kg_expansion/expander.py` 基于现有图谱摘要生成候选节点
 3. 执行去重与筛选
 4. 将扩展节点写入图存储，并打标 `is_expanded=1`
+5. `ExpandedNodeManager` 记录 candidate 生命周期；后续 query 使用和回答采纳会推动晋升
 
 ## 6. 关键文件映射
 
+- 记忆门面：`docthinker/memory_core/core.py`
 - 查询：`docthinker/server/routers/query.py`
 - 图谱：`docthinker/server/routers/graph.py`
-- 记忆：`neuro_memory/engine.py`
+- 对话记忆：`claw/memory_manager.py`
+- 情节记忆：`neuro_memory/engine.py`
 - 扩展：`docthinker/kg_expansion/expander.py`

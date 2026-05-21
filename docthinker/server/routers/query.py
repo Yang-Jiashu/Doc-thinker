@@ -11,8 +11,9 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import StreamingResponse
 
-from docthinker.kg_expansion import ExpandedNodeManager, extract_entities_from_text
-from ..memory import get_session_claw_manager
+from docthinker.kg_expansion import ExpandedNodeManager
+from docthinker.memory_core import AgentMemoryCore
+from ..memory import get_session_claw_manager, get_session_memory_engine
 from ..schemas import MultiDocumentQueryRequest, QueryRequest
 from ..state import state
 
@@ -70,21 +71,27 @@ def _get_pending_session_files(session_id: Optional[str]) -> List[Dict[str, Any]
     return pending
 
 
-def _format_thinking_process(details: Dict[str, Any], meta: Dict[str, Any]) -> str:
-    lines: List[str] = []
-    if meta.get("memory_mode"):
-        lines.append(f"memory_mode: {meta['memory_mode']}")
-    if meta.get("retrieval_instruction"):
-        lines.append("retrieval_instruction: provided")
-    if details.get("memory_hits") is not None:
-        lines.append(f"memory_hits: {details['memory_hits']}")
-    if details.get("expanded_hits") is not None:
-        lines.append(f"expanded_hits: {details['expanded_hits']}")
-    if details.get("mode"):
-        lines.append(f"mode: {details['mode']}")
-    if details.get("memory_context_injected"):
-        lines.append("memory_context: injected")
-    return "\n".join(lines)
+def _get_recent_conversation_history(
+    session_id: Optional[str],
+    *,
+    limit: int = 6,
+) -> List[Dict[str, str]]:
+    if not session_id or not state.session_manager:
+        return []
+    try:
+        raw_history = state.session_manager.get_history(session_id)
+    except Exception:
+        return []
+
+    conversation_history: List[Dict[str, str]] = []
+    for msg in raw_history[-max(1, int(limit)):]:
+        if not isinstance(msg, dict):
+            continue
+        conversation_history.append({
+            "role": str(msg.get("role") or "user"),
+            "content": str(msg.get("content") or ""),
+        })
+    return conversation_history
 
 
 def _build_sources_from_details(details: Any, evidence: Any = None) -> List[Dict[str, Any]]:
@@ -411,101 +418,15 @@ def _get_expanded_node_manager(session_id: Optional[str]) -> Optional[ExpandedNo
         return manager
 
 
-def _merge_retrieval_instruction(*instructions: Optional[str]) -> str:
-    parts = []
-    for ins in instructions:
-        text = str(ins or "").strip()
-        if text:
-            parts.append(text)
-    return "\n\n".join(parts).strip()
-
-
-async def _promote_expanded_nodes_in_background(
-    session_id: Optional[str],
-    question: str,
-    answer: str,
-    matched_nodes: List[Dict[str, Any]],
-):
-    if not session_id or not matched_nodes:
-        return
-
-    manager = _get_expanded_node_manager(session_id)
-    if manager is None:
-        return
-
-    entities = extract_entities_from_text(answer, max_entities=12)
-    usage = manager.record_response_usage(answer=answer, matches=matched_nodes, attached_entities=entities)
-    promoted_names = usage.get("promoted") or []
-    if not promoted_names:
-        return
-
-    try:
-        session_rag = await _get_session_rag_or_raise(session_id)
-        G = session_rag.graphcore.chunk_entity_relation_graph
-        changed = False
-
-        for name in promoted_names:
-            record = manager.get(name)
-            if not record:
-                continue
-            roots = [str(x).strip() for x in (record.get("root_ids") or []) if str(x).strip()]
-
-            await G.upsert_node(
-                name,
-                {
-                    "entity_id": name,
-                    "entity_type": "concept",
-                    "description": record.get("reason") or name,
-                    "source_id": "promoted_expansion",
-                    "is_expanded": "0",
-                },
-            )
-            changed = True
-
-            for ent in entities[:8]:
-                if not ent or ent == name:
-                    continue
-                await G.upsert_node(
-                    ent,
-                    {
-                        "entity_id": ent,
-                        "entity_type": "concept",
-                        "description": f"Extracted from answer for expansion node {name}",
-                        "source_id": "answer_entity",
-                    },
-                )
-                await G.upsert_edge(
-                    name,
-                    ent,
-                    {
-                        "keywords": "co_mentioned",
-                        "description": f"Assistant answer associated {name} with {ent}",
-                        "source_id": "answer_entity",
-                    },
-                )
-                changed = True
-
-            for root in roots[:6]:
-                if not root or root == name:
-                    continue
-                await G.upsert_edge(
-                    name,
-                    root,
-                    {
-                        "keywords": "expanded_from_root",
-                        "description": f"Promoted expansion node linked to root node {root}",
-                        "source_id": "llm_expansion",
-                    },
-                )
-                changed = True
-
-        if changed and hasattr(G, "index_done_callback"):
-            try:
-                await G.index_done_callback(force_save=True)
-            except TypeError:
-                await G.index_done_callback()
-    except Exception:
-        return
+def _get_agent_memory_core() -> AgentMemoryCore:
+    return AgentMemoryCore(
+        get_claw_manager=get_session_claw_manager,
+        get_expanded_node_manager=_get_expanded_node_manager,
+        get_session_rag=_get_session_rag_or_raise,
+        get_memory_engine=get_session_memory_engine,
+        ingest_chat_turn=_ingest_chat_turn,
+        chat_turn_ingest_enabled=_is_chat_turn_ingest_enabled,
+    )
 
 
 # ── Unified background enrichment ──────────────────────────────────
@@ -526,35 +447,18 @@ async def _background_post_query_enrichment(
 ) -> None:
     """All post-query intelligence — runs in background, never blocks the user."""
     _t0 = time.time()
-
-    # 1. Update claw tiered memory (MEMORY.md + semantic archive)
-    claw_mgr = get_session_claw_manager(session_id)
-    if claw_mgr:
-        try:
-            await claw_mgr.post_query_update(question, answer, session_id, time.time())
-        except Exception as exc:
-            _log.warning("[bg_enrich] claw memory update failed: %s", exc)
-
-    # 2. Chat-turn ingest (feed Q&A back into KG)
-    if _is_chat_turn_ingest_enabled():
-        try:
-            await _ingest_chat_turn(question, answer, session_id, time.time())
-        except Exception as exc:
-            _log.warning("[bg_enrich] chat turn ingest failed: %s", exc)
-
-    # 3. Promote expanded nodes that were matched in the *current* query
-    if matched_expanded:
-        try:
-            await _promote_expanded_nodes_in_background(
-                session_id, question, answer, matched_expanded,
-            )
-        except Exception as exc:
-            _log.warning("[bg_enrich] expanded node promotion failed: %s", exc)
-
+    memory_core = _get_agent_memory_core()
+    result = await memory_core.after_response(
+        session_id=session_id,
+        question=question,
+        answer=answer,
+        matched_expanded=matched_expanded,
+    )
     _log.info(
-        "[bg_enrich] session %s done in %.2fs",
+        "[bg_enrich] session %s done in %.2fs: %s",
         session_id,
         time.time() - _t0,
+        result,
     )
 
 
@@ -617,85 +521,42 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
                 yield yield_chunk(ans)
                 return
 
-        expanded_matches = []
-        expanded_instruction = ""
-        merged_instruction = str(request.retrieval_instruction or "").strip()
-        memory_summaries: list = []
         answer_mode = "rag"
-
-        # Phase 1: Build memory context from claw tiered memory
         if request.enable_thinking and not is_identity_query:
             answer_mode = "session_thinking"
-
-            claw_mgr = get_session_claw_manager(request.session_id)
-            if claw_mgr:
-                try:
-                    claw_context = await claw_mgr.build_memory_context(
-                        request.question, enable_archive=True,
-                    )
-                    if claw_context:
-                        merged_instruction = _merge_retrieval_instruction(
-                            merged_instruction, claw_context,
-                        )
-                        memory_summaries = [{"source": "claw", "injected": True}]
-                    _log.info("[T+%ss] claw memory context injected (%d chars)",
-                              _elapsed(), len(claw_context or ""))
-                except Exception as exc:
-                    _log.warning("[T+%ss] claw memory context failed: %s", _elapsed(), exc)
-
         if not is_identity_query:
             yield yield_status("正在检索知识...")
 
-            # Token-based expanded matching is pure CPU (~10ms), always run
-            if request.enable_expanded_matching and not expanded_matches:
-                expanded_manager = _get_expanded_node_manager(request.session_id)
-                if expanded_manager:
-                    expanded_matches = expanded_manager.match_nodes(
-                        query=request.question,
-                        top_k=max(1, request.expanded_top_k),
-                        min_score=max(0.0, request.expanded_min_score),
-                    )
-                    if expanded_matches:
-                        expanded_manager.mark_hits([m.get("entity", "") for m in expanded_matches])
-                        expanded_instruction = expanded_manager.build_forced_instruction(
-                            expanded_matches, limit=min(2, max(1, request.expanded_top_k)),
-                        )
-                        merged_instruction = _merge_retrieval_instruction(merged_instruction, expanded_instruction)
+        recall_bundle = await _get_agent_memory_core().recall(
+            session_id=request.session_id,
+            query=request.question,
+            base_instruction=str(request.retrieval_instruction or ""),
+            mode=request.mode,
+            enable_thinking=request.enable_thinking,
+            enable_expanded_matching=request.enable_expanded_matching,
+            expanded_top_k=request.expanded_top_k,
+            expanded_min_score=request.expanded_min_score,
+            skip_memory=is_identity_query,
+        )
+        expanded_matches = recall_bundle.expanded_matches
+        episodic_matches = recall_bundle.episodic_matches
+        merged_instruction = recall_bundle.retrieval_instruction
+        memory_summaries = recall_bundle.memory_summaries
 
         _log.info("[T+%ss] phase1 done", _elapsed())
-
-        thinking_process = _format_thinking_process(
-            {
-                "memory_hits": len(memory_summaries),
-                "mode": request.mode,
-                "expanded_hits": len(expanded_matches),
-                "memory_context_injected": bool(memory_summaries),
-            },
-            {
-                "memory_mode": effective_memory_mode,
-                "retrieval_instruction": merged_instruction,
-            },
-        )
+        thinking_process = recall_bundle.trace.format_for_response(request.mode)
 
         yield yield_meta({
             "thinking_process": thinking_process,
             "answer_mode": answer_mode,
             "expanded_matches": expanded_matches[:min(2, len(expanded_matches))],
+            "episodic_matches": episodic_matches[:min(3, len(episodic_matches))],
             "memory_summaries": memory_summaries,
             "mode": request.mode,
         })
 
         # Build conversation history for LLM context
-        conversation_history: List[Dict[str, str]] = []
-        try:
-            raw_history = state.session_manager.get_history(request.session_id)
-            for msg in raw_history[-6:]:
-                conversation_history.append({
-                    "role": msg.get("role", "user"),
-                    "content": msg.get("content", ""),
-                })
-        except Exception:
-            pass
+        conversation_history = _get_recent_conversation_history(request.session_id)
 
         # Phase 2: Generation (keyword extraction + retrieval + LLM)
         full_answer = ""
@@ -848,45 +709,25 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
     thinking_process: Optional[str] = None
     answer_mode = "rag"
 
-    expanded_matches: List[Dict[str, Any]] = []
-    expanded_instruction = ""
-    merged_instruction = str(request.retrieval_instruction or "").strip()
-    memory_summaries: list = []
-
-    # Phase 1: Build memory context from claw tiered memory
+    conversation_history = _get_recent_conversation_history(request.session_id)
     if request.enable_thinking and not is_identity_query:
         answer_mode = "session_thinking"
 
-        claw_mgr = get_session_claw_manager(request.session_id)
-        if claw_mgr:
-            try:
-                import asyncio as _aio
-                claw_context = await claw_mgr.build_memory_context(
-                    request.question, enable_archive=True,
-                )
-                if claw_context:
-                    merged_instruction = _merge_retrieval_instruction(
-                        merged_instruction, claw_context,
-                    )
-                    memory_summaries = [{"source": "claw", "injected": True}]
-            except Exception:
-                pass
-
-    if request.enable_expanded_matching and not is_identity_query and not expanded_matches:
-        expanded_manager = _get_expanded_node_manager(request.session_id)
-        if expanded_manager:
-            expanded_matches = expanded_manager.match_nodes(
-                query=request.question,
-                top_k=max(1, request.expanded_top_k),
-                min_score=max(0.0, request.expanded_min_score),
-            )
-            if expanded_matches:
-                expanded_manager.mark_hits([m.get("entity", "") for m in expanded_matches])
-                expanded_instruction = expanded_manager.build_forced_instruction(
-                    expanded_matches,
-                    limit=min(2, max(1, request.expanded_top_k)),
-                )
-                merged_instruction = _merge_retrieval_instruction(merged_instruction, expanded_instruction)
+    recall_bundle = await _get_agent_memory_core().recall(
+        session_id=request.session_id,
+        query=request.question,
+        base_instruction=str(request.retrieval_instruction or ""),
+        mode=request.mode,
+        enable_thinking=request.enable_thinking,
+        enable_expanded_matching=request.enable_expanded_matching,
+        expanded_top_k=request.expanded_top_k,
+        expanded_min_score=request.expanded_min_score,
+        skip_memory=is_identity_query,
+    )
+    expanded_matches = recall_bundle.expanded_matches
+    episodic_matches = recall_bundle.episodic_matches
+    merged_instruction = recall_bundle.retrieval_instruction
+    memory_summaries = recall_bundle.memory_summaries
 
     # Phase 2: Generation
     try:
@@ -935,18 +776,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
                 answer = ""
 
             if request.enable_thinking:
-                thinking_process = _format_thinking_process(
-                    {
-                        "memory_hits": len(memory_summaries),
-                        "mode": request.mode,
-                        "expanded_hits": len(expanded_matches),
-                        "memory_context_injected": bool(memory_summaries),
-                    },
-                    {
-                        "memory_mode": effective_memory_mode,
-                        "retrieval_instruction": merged_instruction,
-                    },
-                )
+                thinking_process = recall_bundle.trace.format_for_response(request.mode)
 
             if hasattr(session_rag, "get_last_query_evidence"):
                 sources = _build_sources_from_details({}, session_rag.get_last_query_evidence())
@@ -1008,6 +838,8 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             "sources": sources,
             "answer_mode": answer_mode,
             "expanded_matches": expanded_matches[:min(2, len(expanded_matches))],
+            "episodic_matches": episodic_matches[:min(3, len(episodic_matches))],
+            "memory_trace": recall_bundle.trace.events,
             "retrieval_instruction_applied": bool(merged_instruction),
             "memory_summaries": memory_summaries,
         }
