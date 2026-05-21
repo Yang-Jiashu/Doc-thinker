@@ -15,11 +15,13 @@ The package currently re-exports the memory core shipped in `docthinker`:
 
 ## Install
 
+Once the package is published:
+
 ```bash
 pip install docthinker-memory
 ```
 
-For local development from this repository:
+For local development from this repository today:
 
 ```bash
 pip install -e .

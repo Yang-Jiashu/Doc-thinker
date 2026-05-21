@@ -10,9 +10,9 @@
 
 [![Paper](https://img.shields.io/badge/arXiv-2603.05551-b31b1b.svg)](https://arxiv.org/pdf/2603.05551)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Demo](https://img.shields.io/badge/Demo-Live-orange)](http://localhost:5000)
-[![LightRAG](https://img.shields.io/badge/LightRAG-Based-8B5CF6)](https://github.com/HKUDS/LightRAG)
-[![OpenClaw](https://img.shields.io/badge/OpenClaw-Integration-E74C3C)](https://github.com/letta-ai/letta)
+[![Demo](https://img.shields.io/badge/Demo-Local_UI-orange)](http://localhost:5000)
+[![GraphCore](https://img.shields.io/badge/GraphCore-KG-8B5CF6)](#2--会话级知识图谱)
+[![Claw](https://img.shields.io/badge/Claw-Tiered_Memory-E74C3C)](#4--分层对话记忆-claw)
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -51,7 +51,6 @@
 - [💡 使用场景 (Use Cases)](#-使用场景)
 - [⚡ 查询模式与文档处理](#-查询模式)
 - [📡 API 参考](#-api-参考)
-- [❓ 常见问题 (FaQ)](#-faq)
 
 ---
 
@@ -105,8 +104,13 @@ async def main():
     # 1. 初始化配置
     config = DocThinkerConfig(working_dir="./my_knowledge_base")
     
-    # 2. 实例化 (需要预先配置 LLM 和 Embedding 模型)
-    dt = DocThinker(config=config, ...) 
+    # 2. 实例化（传入模型函数，或提供预初始化的 GraphCore）
+    dt = DocThinker(
+        config=config,
+        llm_model_func=my_llm_func,
+        embedding_func=my_embedding_func,
+        vision_model_func=my_vision_func,
+    )
     
     # 3. 摄入文档 (解析 + 构建知识图谱)
     await dt.process_document_complete("your_document.pdf")
@@ -139,9 +143,11 @@ memory = AgentMemoryCore(
     ),
 )
 
+query = "回答前 agent 应该记住什么？"
+
 recall = await memory.recall(
     session_id="research-session",
-    query="回答前 agent 应该记住什么？",
+    query=query,
     enable_thinking=True,
 )
 
@@ -261,8 +267,8 @@ DocThinker 会记录文档解析出的图片资产，并在 deep UI 查询中激
 
 | 模式 | 引擎 | 适用场景 |
 |------|------|---------|
-| `auto`（默认） | VLM（短文档）/ MinerU（长文档） | 通用 |
-| `vlm` | 云端 VLM（Qwen-VL） | 图片密集文档 |
+| `vlm`（仓库配置默认） | 云端 VLM（Qwen-VL） | 图片密集文档 |
+| `auto` | VLM（短文档）/ MinerU（长文档） | 通用 |
 | `mineru` | MinerU 布局引擎 | 含复杂表格的长文档 |
 
 <details>

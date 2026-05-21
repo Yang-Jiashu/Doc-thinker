@@ -10,9 +10,9 @@
 
 [![Paper](https://img.shields.io/badge/arXiv-2603.05551-b31b1b.svg)](https://arxiv.org/pdf/2603.05551)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Demo](https://img.shields.io/badge/Demo-Live-orange)](http://localhost:5000)
-[![LightRAG](https://img.shields.io/badge/LightRAG-Based-8B5CF6)](https://github.com/HKUDS/LightRAG)
-[![OpenClaw](https://img.shields.io/badge/OpenClaw-Integration-E74C3C)](https://github.com/letta-ai/letta)
+[![Demo](https://img.shields.io/badge/Demo-Local_UI-orange)](http://localhost:5000)
+[![GraphCore](https://img.shields.io/badge/GraphCore-KG-8B5CF6)](#2--session-scoped-knowledge-graphs)
+[![Claw](https://img.shields.io/badge/Claw-Tiered_Memory-E74C3C)](#4--tiered-conversation-memory-claw)
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -51,7 +51,6 @@ Unlike a conventional retrieve-then-respond RAG pipeline, DocThinker treats know
 - [💡 Use Cases](#-use-cases)
 - [⚡ Query Modes & PDF Processing](#-query-modes)
 - [📡 API Reference](#-api-reference)
-- [❓ FaQ](#-faq)
 
 ---
 
@@ -105,8 +104,13 @@ async def main():
     # 1. Configuration
     config = DocThinkerConfig(working_dir="./my_knowledge_base")
     
-    # 2. Initialize (Requires LLM and Embedding models setup)
-    dt = DocThinker(config=config, ...) 
+    # 2. Initialize (pass model functions, or provide a pre-initialized GraphCore)
+    dt = DocThinker(
+        config=config,
+        llm_model_func=my_llm_func,
+        embedding_func=my_embedding_func,
+        vision_model_func=my_vision_func,
+    )
     
     # 3. Ingest Document (Parsing & Knowledge Graph Construction)
     await dt.process_document_complete("your_document.pdf")
@@ -139,9 +143,11 @@ memory = AgentMemoryCore(
     ),
 )
 
+query = "What should the agent remember before answering?"
+
 recall = await memory.recall(
     session_id="research-session",
-    query="What should the agent remember before answering?",
+    query=query,
     enable_thinking=True,
 )
 
@@ -250,8 +256,8 @@ DocThinker tracks image assets extracted from documents and can activate relevan
 
 | Mode | Engine | Best for |
 |------|--------|----------|
-| `auto` (default) | VLM (short) / MinerU (long) | General use |
-| `vlm` | Cloud VLM (Qwen-VL) | Image-heavy documents |
+| `vlm` (repo config default) | Cloud VLM (Qwen-VL) | Image-heavy documents |
+| `auto` | VLM (short) / MinerU (long) | General use |
 | `mineru` | MinerU layout engine | Long documents with complex tables |
 
 ---
