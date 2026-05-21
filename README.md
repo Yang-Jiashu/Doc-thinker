@@ -176,8 +176,8 @@ See [`docs/MEMORY_PLUGIN_GUIDE.md`](docs/MEMORY_PLUGIN_GUIDE.md) for the backend
 DocThinker organizes retrieval and memory as an agent-facing framework instead of scattering memory logic across API handlers.
 
 <div align="center">
-<img src="docs/assets/pipeline.png" alt="DocThinker Pipeline" width="820" />
-<p><b>Figure 1.</b> DocThinker end-to-end pipeline — from document input to knowledge graph construction, tiered memory management, hybrid retrieval & reasoning, and output with feedback back to the graph.</p>
+<img src="docs/assets/agentic_memory_architecture.png" alt="DocThinker agentic memory framework architecture" width="920" />
+<p><b>Figure 1.</b> DocThinker agentic memory architecture — session runtime, `AgentMemoryCore`, pluggable backend protocols, current adapters, retrieval/generation, and after-response consolidation.</p>
 </div>
 
 ### 1. 🧠 Agentic Memory Core
@@ -199,20 +199,11 @@ Expansion operates in two complementary passes:
 
 Newly expanded nodes do not immediately become authoritative knowledge. They enter as candidates, are matched during query time, and only become formal graph nodes after repeated useful adoption in assistant responses.
 
-<div align="center">
-<img src="docs/assets/multi_agent_evolution.png" alt="Memory and graph feedback architecture" width="820" />
-<p><sub><b>Figure 2.</b> Memory and graph feedback loop.</sub></p>
-</div>
-
 ### 4. 🗃️ Tiered Conversation Memory (Claw)
 Claw implements a three-layer memory hierarchy for long-running conversations: hot working memory, warm core summaries, and cold semantic archives.
 
 ### 5. 🧠 Episodic Analogy Memory
 Neuro Memory stores chat/document experiences as episodes and retrieves similar past situations as analogy context. These matches are surfaced through `episodic_matches` and injected as guidance rather than treated as direct factual sources.
-
-<div align="center">
-<img src="docs/assets/sparql_cot.png" alt="Structured reasoning" width="680" />
-</div>
 
 ### 6. 🖼️ Multimodal Retrieval Signals
 DocThinker tracks image assets extracted from documents and can activate relevant visual evidence during deep UI queries.
