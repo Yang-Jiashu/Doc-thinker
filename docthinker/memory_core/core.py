@@ -16,6 +16,15 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence
 
+from .adapters import (
+    ChatTurnIngestBackend,
+    ClawConversationBackend,
+    ExpandedNodeBackend,
+    GraphCorePromotionBackend,
+    NeuroEpisodicBackend,
+)
+from .protocols import AgentMemoryBackends
+
 _log = logging.getLogger("docthinker.memory_core")
 
 
@@ -82,21 +91,68 @@ class AgentMemoryCore:
     def __init__(
         self,
         *,
-        get_claw_manager: Callable[[Optional[str]], Optional[Any]],
-        get_expanded_node_manager: Callable[[Optional[str]], Optional[Any]],
-        get_session_rag: Callable[[Optional[str]], Awaitable[Any]],
+        backends: Optional[AgentMemoryBackends] = None,
+        get_claw_manager: Optional[Callable[[Optional[str]], Optional[Any]]] = None,
+        get_expanded_node_manager: Optional[Callable[[Optional[str]], Optional[Any]]] = None,
+        get_session_rag: Optional[Callable[[Optional[str]], Awaitable[Any]]] = None,
         get_memory_engine: Optional[Callable[[Optional[str]], Optional[Any]]] = None,
         ingest_chat_turn: Optional[
             Callable[[str, str, Optional[str], Optional[float]], Awaitable[None]]
         ] = None,
         chat_turn_ingest_enabled: Optional[Callable[[], bool]] = None,
     ) -> None:
-        self.get_claw_manager = get_claw_manager
-        self.get_memory_engine = get_memory_engine or (lambda _sid: None)
-        self.get_expanded_node_manager = get_expanded_node_manager
-        self.get_session_rag = get_session_rag
-        self.ingest_chat_turn = ingest_chat_turn
-        self.chat_turn_ingest_enabled = chat_turn_ingest_enabled or (lambda: False)
+        self.backends = backends or self._build_legacy_backends(
+            get_claw_manager=get_claw_manager,
+            get_expanded_node_manager=get_expanded_node_manager,
+            get_session_rag=get_session_rag,
+            get_memory_engine=get_memory_engine,
+            ingest_chat_turn=ingest_chat_turn,
+            chat_turn_ingest_enabled=chat_turn_ingest_enabled,
+        )
+
+    @staticmethod
+    def _build_legacy_backends(
+        *,
+        get_claw_manager: Optional[Callable[[Optional[str]], Optional[Any]]],
+        get_expanded_node_manager: Optional[Callable[[Optional[str]], Optional[Any]]],
+        get_session_rag: Optional[Callable[[Optional[str]], Awaitable[Any]]],
+        get_memory_engine: Optional[Callable[[Optional[str]], Optional[Any]]],
+        ingest_chat_turn: Optional[
+            Callable[[str, str, Optional[str], Optional[float]], Awaitable[None]]
+        ],
+        chat_turn_ingest_enabled: Optional[Callable[[], bool]],
+    ) -> AgentMemoryBackends:
+        expanded = (
+            ExpandedNodeBackend(get_expanded_node_manager)
+            if get_expanded_node_manager
+            else None
+        )
+        return AgentMemoryBackends(
+            conversation=(
+                ClawConversationBackend(get_claw_manager)
+                if get_claw_manager
+                else None
+            ),
+            episodic=(
+                NeuroEpisodicBackend(get_memory_engine)
+                if get_memory_engine
+                else None
+            ),
+            expanded=expanded,
+            graph=(
+                GraphCorePromotionBackend(get_session_rag)
+                if get_session_rag
+                else None
+            ),
+            chat_turn=(
+                ChatTurnIngestBackend(
+                    ingest_chat_turn,
+                    chat_turn_ingest_enabled or (lambda: False),
+                )
+                if ingest_chat_turn
+                else None
+            ),
+        )
 
     @staticmethod
     def _merge_instructions(*instructions: Optional[str]) -> str:
@@ -124,25 +180,6 @@ class AgentMemoryCore:
             if reason:
                 lines.append(f"  关联原因: {reason[:160]}")
         return "\n".join(lines)
-
-    @staticmethod
-    def _serialize_episode_match(raw: Any) -> Optional[Dict[str, Any]]:
-        try:
-            episode, score, reason = raw
-        except Exception:
-            return None
-        summary = str(getattr(episode, "summary", "") or "").strip()
-        if not summary:
-            return None
-        return {
-            "episode_id": str(getattr(episode, "episode_id", "") or ""),
-            "summary": summary,
-            "score": round(float(score or 0.0), 4),
-            "reason": str(reason or ""),
-            "source_type": str(getattr(episode, "source_type", "") or ""),
-            "concepts": list(getattr(episode, "concepts", []) or [])[:8],
-            "entity_ids": list(getattr(episode, "entity_ids", []) or [])[:8],
-        }
 
     async def recall(
         self,
@@ -176,13 +213,9 @@ class AgentMemoryCore:
             )
 
         if enable_thinking:
-            claw_mgr = self.get_claw_manager(session_id)
-            if claw_mgr:
+            if self.backends.conversation:
                 try:
-                    claw_context = await claw_mgr.build_memory_context(
-                        query,
-                        enable_archive=True,
-                    )
+                    claw_context = await self.backends.conversation.build_context(session_id, query)
                     if claw_context:
                         merged_instruction = self._merge_instructions(
                             merged_instruction,
@@ -198,19 +231,13 @@ class AgentMemoryCore:
                 except Exception as exc:
                     _log.warning("[recall] claw context failed: %s", exc)
 
-            memory_engine = self.get_memory_engine(session_id)
-            if memory_engine:
+            if self.backends.episodic:
                 try:
-                    raw_matches = await memory_engine.retrieve_analogies(
+                    episodic_matches = await self.backends.episodic.retrieve(
+                        session_id,
                         query,
                         top_k=5,
-                        then_spread=True,
-                        spread_top_k=3,
                     )
-                    for raw in raw_matches:
-                        match = self._serialize_episode_match(raw)
-                        if match:
-                            episodic_matches.append(match)
                     if episodic_matches:
                         episodic_instruction = self._format_episodic_instruction(
                             episodic_matches,
@@ -233,20 +260,17 @@ class AgentMemoryCore:
                 except Exception as exc:
                     _log.warning("[recall] episodic recall failed: %s", exc)
 
-        if enable_expanded_matching:
-            expanded_manager = self.get_expanded_node_manager(session_id)
-            if expanded_manager:
-                expanded_matches = expanded_manager.match_nodes(
-                    query=query,
-                    top_k=max(1, int(expanded_top_k)),
-                    min_score=max(0.0, float(expanded_min_score)),
+        if enable_expanded_matching and self.backends.expanded:
+            try:
+                expanded_matches = self.backends.expanded.match(
+                    session_id,
+                    query,
+                    top_k=expanded_top_k,
+                    min_score=expanded_min_score,
                 )
                 if expanded_matches:
-                    expanded_manager.mark_hits([
-                        str(match.get("entity") or "")
-                        for match in expanded_matches
-                    ])
-                    expanded_instruction = expanded_manager.build_forced_instruction(
+                    expanded_instruction = self.backends.expanded.build_instruction(
+                        session_id,
                         expanded_matches,
                         limit=min(2, max(1, int(expanded_top_k))),
                     )
@@ -258,6 +282,8 @@ class AgentMemoryCore:
                         "type": "expanded_match",
                         "count": len(expanded_matches),
                     })
+            except Exception as exc:
+                _log.warning("[recall] expanded matching failed: %s", exc)
 
         trace.memory_hits = len(memory_summaries)
         trace.episodic_hits = len(episodic_matches)
@@ -293,152 +319,65 @@ class AgentMemoryCore:
             "expanded_promoted": [],
         }
 
-        claw_mgr = self.get_claw_manager(session_id)
-        if claw_mgr:
+        if self.backends.conversation:
             try:
-                await claw_mgr.post_query_update(question, answer, session_id, time.time())
-                result["claw_updated"] = True
+                result["claw_updated"] = await self.backends.conversation.consolidate(
+                    session_id,
+                    question,
+                    answer,
+                )
             except Exception as exc:
                 _log.warning("[after_response] claw update failed: %s", exc)
 
-        memory_engine = self.get_memory_engine(session_id)
-        if memory_engine:
+        concepts = _extract_entities_from_text(
+            f"{question}\n{answer}",
+            max_entities=12,
+        )
+
+        if self.backends.episodic:
             try:
-                concepts = _extract_entities_from_text(
-                    f"{question}\n{answer}",
-                    max_entities=12,
-                )
-                episode = await memory_engine.add_observation(
-                    summary=f"User asked: {question}\nAssistant answered: {answer[:500]}",
-                    key_points=[question, answer[:300]],
+                episode_id = await self.backends.episodic.write(
+                    session_id,
+                    question,
+                    answer,
                     concepts=concepts,
-                    entity_ids=concepts,
-                    source_type="chat",
-                    session_id=session_id,
                     timestamp=time.time(),
                 )
-                if episode is not None:
+                if episode_id is not None:
                     result["episode_added"] = True
-                    result["episode_id"] = getattr(episode, "episode_id", "")
+                    result["episode_id"] = episode_id
             except Exception as exc:
                 _log.warning("[after_response] episode add failed: %s", exc)
 
-        if self.ingest_chat_turn and self.chat_turn_ingest_enabled():
+        if self.backends.chat_turn:
             try:
-                await self.ingest_chat_turn(question, answer, session_id, time.time())
-                result["chat_turn_ingested"] = True
+                result["chat_turn_ingested"] = await self.backends.chat_turn.ingest(
+                    session_id,
+                    question,
+                    answer,
+                    timestamp=time.time(),
+                )
             except Exception as exc:
                 _log.warning("[after_response] chat turn ingest failed: %s", exc)
 
-        if matched_expanded:
+        if matched_expanded and self.backends.expanded:
             try:
-                promoted = await self._promote_expanded_nodes(
-                    session_id=session_id,
-                    answer=answer,
-                    matched_nodes=matched_expanded,
+                promoted_names = self.backends.expanded.record_usage(
+                    session_id,
+                    answer,
+                    matched_expanded,
+                    attached_entities=concepts,
                 )
-                result["expanded_promoted"] = promoted
+                if promoted_names and self.backends.graph:
+                    promoted_names = await self.backends.graph.promote(
+                        session_id,
+                        promoted_names,
+                        answer_entities=concepts,
+                        expanded_backend=self.backends.expanded,
+                    )
+                result["expanded_promoted"] = promoted_names
             except Exception as exc:
                 _log.warning("[after_response] expanded promotion failed: %s", exc)
 
         result["elapsed_seconds"] = round(time.time() - t0, 3)
         return result
-
-    async def _promote_expanded_nodes(
-        self,
-        *,
-        session_id: str,
-        answer: str,
-        matched_nodes: Sequence[Dict[str, Any]],
-    ) -> List[str]:
-        manager = self.get_expanded_node_manager(session_id)
-        if manager is None:
-            return []
-
-        entities = _extract_entities_from_text(answer, max_entities=12)
-        usage = manager.record_response_usage(
-            answer=answer,
-            matches=matched_nodes,
-            attached_entities=entities,
-        )
-        promoted_names = [
-            str(name).strip()
-            for name in (usage.get("promoted") or [])
-            if str(name).strip()
-        ]
-        if not promoted_names:
-            return []
-
-        session_rag = await self.get_session_rag(session_id)
-        graphcore = getattr(session_rag, "graphcore", None)
-        if graphcore is None:
-            return []
-        graph = graphcore.chunk_entity_relation_graph
-        changed = False
-
-        for name in promoted_names:
-            record = manager.get(name)
-            if not record:
-                continue
-            roots = [
-                str(root).strip()
-                for root in (record.get("root_ids") or [])
-                if str(root).strip()
-            ]
-
-            await graph.upsert_node(
-                name,
-                {
-                    "entity_id": name,
-                    "entity_type": "concept",
-                    "description": record.get("reason") or record.get("description") or name,
-                    "source_id": "promoted_expansion",
-                    "is_expanded": "0",
-                },
-            )
-            changed = True
-
-            for ent in entities[:8]:
-                if not ent or ent == name:
-                    continue
-                await graph.upsert_node(
-                    ent,
-                    {
-                        "entity_id": ent,
-                        "entity_type": "concept",
-                        "description": f"Extracted from answer for expansion node {name}",
-                        "source_id": "answer_entity",
-                    },
-                )
-                await graph.upsert_edge(
-                    name,
-                    ent,
-                    {
-                        "keywords": "co_mentioned",
-                        "description": f"Assistant answer associated {name} with {ent}",
-                        "source_id": "answer_entity",
-                    },
-                )
-                changed = True
-
-            for root in roots[:6]:
-                if not root or root == name:
-                    continue
-                await graph.upsert_edge(
-                    name,
-                    root,
-                    {
-                        "keywords": "expanded_from_root",
-                        "description": f"Promoted expansion node linked to root node {root}",
-                        "source_id": "llm_expansion",
-                    },
-                )
-                changed = True
-
-        if changed and hasattr(graph, "index_done_callback"):
-            try:
-                await graph.index_done_callback(force_save=True)
-            except TypeError:
-                await graph.index_done_callback()
-
-        return promoted_names

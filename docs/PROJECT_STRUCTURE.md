@@ -23,6 +23,9 @@
 
 - `docthinker/server/app.py`：后端应用入口与生命周期初始化
 - `docthinker/memory_core/`：Agentic Memory 统一门面，对外提供 recall / after-response consolidation
+  - `core.py`：`AgentMemoryCore` 与 `RecallBundle` / `MemoryTrace`
+  - `protocols.py`：可插件化 backend contracts（conversation、episodic、expanded KG、graph promotion、chat-turn ingest）
+  - `adapters.py`：将现有 Claw、Neuro Memory、ExpandedNodeManager、GraphCore 接入 protocols
 - `docthinker/server/routers/`：API 路由
   - `query.py`：查询与回答
   - `ingest.py`：文档/文本入库

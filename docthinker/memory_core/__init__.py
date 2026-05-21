@@ -6,5 +6,23 @@ forcing a large rewrite of the existing RAG stack.
 """
 
 from .core import AgentMemoryCore, RecallBundle, MemoryTrace
+from .protocols import (
+    AgentMemoryBackends,
+    ChatTurnBackend,
+    ConversationMemoryBackend,
+    EpisodicMemoryBackend,
+    ExpandedKnowledgeBackend,
+    GraphPromotionBackend,
+)
 
-__all__ = ["AgentMemoryCore", "RecallBundle", "MemoryTrace"]
+__all__ = [
+    "AgentMemoryCore",
+    "RecallBundle",
+    "MemoryTrace",
+    "AgentMemoryBackends",
+    "ChatTurnBackend",
+    "ConversationMemoryBackend",
+    "EpisodicMemoryBackend",
+    "ExpandedKnowledgeBackend",
+    "GraphPromotionBackend",
+]

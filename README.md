@@ -28,6 +28,8 @@
 
 **DocThinker** is an agentic memory framework for document understanding. It turns documents, chat turns, retrieval traces, and graph expansions into a multi-layer memory system that can recall, reason, and consolidate knowledge over time.
 
+The name has two meanings: **Doc** as in documents, and **Doc** as in doctor-level depth. DocThinker is built for document-grounded memory with research-grade reasoning.
+
 Unlike a conventional retrieve-then-respond RAG pipeline, DocThinker treats knowledge as an evolving memory substrate: session-scoped knowledge graphs provide semantic memory, Claw provides tiered conversation memory, Neuro Memory provides episodic analogies, and KG expansion tracks hypotheses that can be promoted through use.
 
 ---
@@ -38,6 +40,7 @@ Unlike a conventional retrieve-then-respond RAG pipeline, DocThinker treats know
 - [🔥 Quick Start](#-quick-start)
   - [1. Web UI & Server](#1-web-ui--server)
   - [2. Python API Usage](#2-python-api-usage)
+  - [3. Memory Layer API](#3-memory-layer-api)
 - [🧬 Key Contributions](#-key-contributions)
   - [1. Agentic Memory Core](#1--agentic-memory-core)
   - [2. Session-Scoped Knowledge Graphs](#2--session-scoped-knowledge-graphs)
@@ -115,6 +118,38 @@ async def main():
 asyncio.run(main())
 ```
 
+### 3. Memory Layer API
+
+The memory layer can be embedded without using the full web app. Third-party projects can implement the backend protocols and plug them into `AgentMemoryCore`.
+
+```python
+from docthinker.memory_core import AgentMemoryBackends, AgentMemoryCore
+
+memory = AgentMemoryCore(
+    backends=AgentMemoryBackends(
+        conversation=my_conversation_memory,
+        episodic=my_episode_store,
+        expanded=my_candidate_graph,
+        graph=my_semantic_graph,
+    )
+)
+
+recall = await memory.recall(
+    session_id="research-session",
+    query="What should the agent remember before answering?",
+    enable_thinking=True,
+)
+
+answer = await my_agent.run(query, context=recall.retrieval_instruction)
+
+await memory.after_response(
+    session_id="research-session",
+    question=query,
+    answer=answer,
+    matched_expanded=recall.expanded_matches,
+)
+```
+
 ---
 
 ## 🧬 Key Contributions
@@ -127,7 +162,7 @@ DocThinker organizes retrieval and memory as an agent-facing framework instead o
 </div>
 
 ### 1. 🧠 Agentic Memory Core
-`docthinker.memory_core.AgentMemoryCore` is the stable facade for agent memory work. Before generation, `recall()` merges:
+`docthinker.memory_core.AgentMemoryCore` is the stable facade for agent memory work. It exposes explicit backend protocols for conversation memory, episodic memory, expanded KG hypotheses, graph promotion, and optional chat-turn ingestion. Before generation, `recall()` merges:
 
 * Claw working/core/archive conversation memory.
 * Neuro Memory episodic analogy matches.

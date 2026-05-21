@@ -20,18 +20,18 @@ UI 侧页面通过 `docthinker/ui/app.py` 代理调用后端 `api/v1`。
 ## 3. 查询流程
 
 1. 前端调用 `/api/v1/query` 或 `/api/v1/query/text`
-2. 查询路由调用 `AgentMemoryCore.recall()`：
-   - Claw 注入对话工作记忆、核心摘要和语义归档片段
-   - Neuro Memory 检索相似情节与类比 episode，形成 episodic analogy context
-   - KG 扩展节点执行 query-time match，并生成强制检索指令
+2. 查询路由调用 `AgentMemoryCore.recall()`；内部通过 `memory_core.protocols` 定义的 backend contracts 组装记忆：
+   - Conversation backend 注入对话工作记忆、核心摘要和语义归档片段（当前 adapter：Claw）
+   - Episodic backend 检索相似情节与类比 episode，形成 episodic analogy context（当前 adapter：Neuro Memory）
+   - Expanded KG backend 执行 query-time match，并生成强制检索指令（当前 adapter：ExpandedNodeManager）
    - 输出统一 `RecallBundle` 与 `MemoryTrace`
 3. `DocThinker/GraphCore` 根据原始问题 + memory instruction 执行检索生成
 4. 返回答案、sources、memory trace、expanded matches
 5. 后台调用 `AgentMemoryCore.after_response()`：
-   - 更新 Claw 记忆层
-   - 将本轮问答写入 Neuro Memory episode store，供后续类比召回
+   - 通过 conversation backend 更新对话记忆层
+   - 通过 episodic backend 将本轮问答写入 episode store，供后续类比召回
    - 可选将对话 turn 写回 KG
-   - 根据回答使用情况推进 expanded node candidate -> active -> promoted
+   - 根据回答使用情况推进 expanded node candidate -> active -> promoted，并通过 graph promotion backend 写入正式图谱
 
 ## 4. 入库流程
 
@@ -52,6 +52,8 @@ UI 侧页面通过 `docthinker/ui/app.py` 代理调用后端 `api/v1`。
 ## 6. 关键文件映射
 
 - 记忆门面：`docthinker/memory_core/core.py`
+- 记忆协议：`docthinker/memory_core/protocols.py`
+- 现有系统适配：`docthinker/memory_core/adapters.py`
 - 查询：`docthinker/server/routers/query.py`
 - 图谱：`docthinker/server/routers/graph.py`
 - 对话记忆：`claw/memory_manager.py`

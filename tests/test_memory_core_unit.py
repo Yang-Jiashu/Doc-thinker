@@ -1,5 +1,5 @@
 import unittest
-from docthinker.memory_core import AgentMemoryCore
+from docthinker.memory_core import AgentMemoryBackends, AgentMemoryCore
 
 
 class _FakeClawManager:
@@ -58,6 +58,62 @@ class _FakeMemoryEngine:
     async def add_observation(self, **kwargs):
         self.added = True
         return _FakeEpisode()
+
+
+class _ProtocolConversationBackend:
+    def __init__(self):
+        self.consolidated = False
+
+    async def build_context(self, session_id, query):
+        return f"protocol memory {session_id}: {query}"
+
+    async def consolidate(self, session_id, question, answer):
+        self.consolidated = True
+        return True
+
+
+class _ProtocolEpisodicBackend:
+    def __init__(self):
+        self.written = False
+
+    async def retrieve(self, session_id, query, *, top_k):
+        return [{
+            "episode_id": "proto-ep",
+            "summary": "Protocol backend recalled a reusable agent habit.",
+            "score": 0.7,
+            "reason": "same memory contract",
+        }]
+
+    async def write(self, session_id, question, answer, *, concepts, timestamp):
+        self.written = True
+        return "proto-ep-new"
+
+
+class _ProtocolExpandedBackend:
+    def __init__(self):
+        self.recorded = False
+
+    def match(self, session_id, query, *, top_k, min_score):
+        return [{"entity": "Protocol Memory", "score": 0.8, "root_ids": ["Agent Memory"]}]
+
+    def build_instruction(self, session_id, matches, *, limit):
+        return "use protocol expanded memory"
+
+    def record_usage(self, session_id, answer, matches, *, attached_entities):
+        self.recorded = True
+        return ["Protocol Memory"]
+
+    def get_record(self, session_id, name):
+        return {"description": "A backend supplied by a plugin.", "root_ids": []}
+
+
+class _ProtocolGraphBackend:
+    def __init__(self):
+        self.promoted = []
+
+    async def promote(self, session_id, promoted_names, *, answer_entities, expanded_backend):
+        self.promoted = list(promoted_names)
+        return self.promoted
 
 
 class AgentMemoryCoreUnitTest(unittest.IsolatedAsyncioTestCase):
@@ -135,6 +191,44 @@ class AgentMemoryCoreUnitTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result["episode_added"])
         self.assertTrue(memory.added)
         self.assertTrue(expanded.usage_recorded)
+
+    async def test_accepts_protocol_backends_for_plugin_usage(self):
+        conversation = _ProtocolConversationBackend()
+        episodic = _ProtocolEpisodicBackend()
+        expanded = _ProtocolExpandedBackend()
+        graph = _ProtocolGraphBackend()
+        core = AgentMemoryCore(
+            backends=AgentMemoryBackends(
+                conversation=conversation,
+                episodic=episodic,
+                expanded=expanded,
+                graph=graph,
+            )
+        )
+
+        bundle = await core.recall(
+            session_id="plugin-session",
+            query="how can plugins provide memory?",
+            enable_thinking=True,
+            enable_expanded_matching=True,
+        )
+        self.assertIn("protocol memory plugin-session", bundle.retrieval_instruction)
+        self.assertIn("Protocol backend recalled", bundle.retrieval_instruction)
+        self.assertIn("use protocol expanded memory", bundle.retrieval_instruction)
+
+        result = await core.after_response(
+            session_id="plugin-session",
+            question="q",
+            answer="Protocol Memory should be promoted.",
+            matched_expanded=bundle.expanded_matches,
+        )
+        self.assertTrue(result["claw_updated"])
+        self.assertTrue(result["episode_added"])
+        self.assertEqual(["Protocol Memory"], result["expanded_promoted"])
+        self.assertTrue(conversation.consolidated)
+        self.assertTrue(episodic.written)
+        self.assertTrue(expanded.recorded)
+        self.assertEqual(["Protocol Memory"], graph.promoted)
 
 
 if __name__ == "__main__":
