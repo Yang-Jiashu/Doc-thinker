@@ -39,18 +39,20 @@
             background: #fbfaf7;
         }
 
-        /* 强制侧边栏 logo 尺寸 */
-        aside img.w-10.h-10.rounded-xl.object-contain.flex-shrink-0,
-        aside img[src*="logo.png"],
-        aside img[alt="DocThinker"],
-        #docthinker-logo {
-            width: 96px !important;
-            height: 96px !important;
-            min-width: 96px !important;
-            min-height: 96px !important;
-            max-width: 96px !important;
-            max-height: 96px !important;
-            flex-shrink: 0 !important;
+        :root {
+            --dt-ink: #292520;
+            --dt-muted: #766f66;
+            --dt-soft: #9b9287;
+            --dt-paper: #fbfaf7;
+            --dt-surface: #fffefa;
+            --dt-panel: #f7f3ea;
+            --dt-line: #ded8cc;
+            --dt-copper: #b85c38;
+            --dt-copper-dark: #8f4329;
+            --dt-sage: #54746b;
+            --dt-lake: #4b6f8f;
+            --dt-plum: #8a5f87;
+            --dt-ochre: #b7892d;
         }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -70,38 +72,144 @@
         }
 
         .btn-primary {
-            background: #292520;
-            color: #fffefa;
-            transition: all 0.2s;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 9px;
+            background: var(--dt-ink);
+            color: var(--dt-surface);
+            font-weight: 600;
+            transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+            box-shadow: 0 8px 20px rgba(41, 37, 32, 0.12);
         }
         .btn-primary:hover {
             background: #15120f;
+            transform: translateY(-1px);
         }
 
         .btn-secondary {
-            background: #fffefa;
-            border: 1px solid #ded8cc;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 9px;
+            background: var(--dt-surface);
+            border: 1px solid var(--dt-line);
             color: #5f584f;
-            transition: all 0.2s;
+            font-weight: 600;
+            transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
         }
         .btn-secondary:hover {
             border-color: #d7a28b;
-            color: #b85c38;
+            color: var(--dt-copper);
             background: #fbede6;
+            transform: translateY(-1px);
         }
 
+        .brand-lockup {
+            display: grid;
+            grid-template-columns: 64px minmax(0, 1fr);
+            align-items: center;
+            gap: 12px;
+            padding: 9px;
+            border: 1px solid var(--dt-line);
+            border-radius: 16px;
+            background: linear-gradient(180deg, #fffefa 0%, #f7f3ea 100%);
+            box-shadow: 0 10px 28px rgba(55, 46, 36, 0.08);
+        }
+        .brand-mark {
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            background: #fff7ed;
+            border: 1px solid #ecd7bd;
+        }
+        .brand-mark img {
+            width: 56px;
+            height: 56px;
+            max-width: 56px;
+            object-fit: contain;
+        }
+        .brand-wordmark {
+            min-width: 0;
+        }
+        .brand-wordmark h1 {
+            color: var(--dt-ink);
+            font-size: 18px;
+            line-height: 1.1;
+            font-weight: 760;
+        }
+        .brand-wordmark p {
+            color: var(--dt-soft);
+            font-size: 12px;
+            margin-top: 3px;
+        }
+        .nav-section-label {
+            color: var(--dt-soft);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin: 0 12px 8px;
+        }
         .sidebar-item {
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
+            min-height: 42px;
+            transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+            border: 1px solid transparent;
+            border-radius: 11px;
+            color: #4d463e;
+            font-weight: 600;
         }
         .sidebar-item:hover {
             background: #fbede6;
             color: #8f4329;
+            transform: translateX(2px);
         }
         .sidebar-item.active {
             background: #fbede6;
             color: #8f4329;
-            border-left-color: #b85c38;
+            border-color: #efcfc0;
+            box-shadow: inset 3px 0 0 var(--dt-copper);
+        }
+        .sidebar-item i {
+            width: 26px;
+            height: 26px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: currentColor;
+            background: rgba(255, 254, 250, 0.64);
+        }
+        .dt-header-button {
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 9px;
+            border: 1px solid var(--dt-line);
+            background: var(--dt-surface);
+            color: #5f584f;
+            padding: 0 12px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+        }
+        .dt-header-button:hover {
+            transform: translateY(-1px);
+            background: #fbede6;
+            color: var(--dt-copper-dark);
+            border-color: #d7a28b;
+        }
+        .dt-icon-button {
+            width: 36px;
+            padding: 0;
         }
 
         .input-field {
@@ -112,6 +220,12 @@
             outline: none;
             border-color: #b85c38;
             box-shadow: 0 0 0 3px rgba(184, 92, 56, 0.12);
+        }
+        select.input-field {
+            min-height: 36px;
+            background-color: var(--dt-surface);
+            color: var(--dt-ink);
+            border-radius: 10px;
         }
 
         .progress-container {
@@ -154,32 +268,34 @@
 <body class="text-[#292520] h-screen overflow-hidden">
     <div class="flex h-full">
         <aside class="w-64 bg-[#fffefa] border-r border-[#ded8cc] flex flex-col h-full">
-            <div class="p-5 border-b border-[#ece5d9]">
-                <div class="flex items-center gap-3">
-                    <img src="/logo.png" alt="DocThinker" id="docthinker-logo" class="w-10 h-10 rounded-xl object-contain flex-shrink-0" width="96" height="96" style="width:96px;height:96px;min-width:96px;min-height:96px;max-width:96px;max-height:96px;border-radius:14px;object-fit:contain;display:block;" />
-                    <div>
-                        <h1 class="font-bold text-lg text-[#292520]">DocThinker</h1>
-                        <p class="text-xs text-[#9b9287]">AI 知识助手</p>
+            <div class="p-4 border-b border-[#ece5d9]">
+                <div class="brand-lockup">
+                    <div class="brand-mark">
+                        <img src="/static/logo-mark.svg" alt="DocThinker" id="docthinker-logo" />
+                    </div>
+                    <div class="brand-wordmark">
+                        <h1>DocThinker</h1>
+                        <p>Document memory agent</p>
                     </div>
                 </div>
             </div>
 
             <nav class="flex-1 overflow-y-auto py-4 px-3">
                 <div class="space-y-1">
-                    <p class="px-3 text-xs font-semibold text-[#9b9287] uppercase mb-2">功能</p>
+                    <p class="nav-section-label">Workspace</p>
 
-                    <a href="/query" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {% if request.endpoint == 'query_page' %}active{% endif %}">
-                        <i class="fa-solid fa-comments w-5 text-center"></i>
+                    <a href="/query" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {% if request.endpoint == 'query_page' %}active{% endif %}">
+                        <i class="fa-solid fa-comments"></i>
                         智能对话
                     </a>
 
-                    <a href="/knowledge-graph" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {% if request.endpoint in ['knowledge_graph_page', 'kg_viz_page'] %}active{% endif %}">
-                        <i class="fa-solid fa-circle-nodes w-5 text-center"></i>
+                    <a href="/knowledge-graph" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {% if request.endpoint in ['knowledge_graph_page', 'kg_viz_page'] %}active{% endif %}">
+                        <i class="fa-solid fa-circle-nodes"></i>
                         知识图谱
                     </a>
 
-                    <a href="/config" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {% if request.endpoint == 'config_page' %}active{% endif %}">
-                        <i class="fa-solid fa-gear w-5 text-center"></i>
+                    <a href="/config" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {% if request.endpoint == 'config_page' %}active{% endif %}">
+                        <i class="fa-solid fa-gear"></i>
                         设置
                     </a>
                 </div>

@@ -22,17 +22,85 @@
         background-size: 28px 28px, 28px 28px, auto;
     }
     .mode-card {
-        transition: all 0.2s;
+        min-height: 66px;
+        transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
         border: 1px solid #ded8cc;
         background: #fffefa;
+        position: relative;
+        overflow: hidden;
     }
     .mode-card:hover {
         border-color: #d6a28d;
         background: #fbf2eb;
+        transform: translateY(-1px);
     }
     .mode-card.active {
         border-color: #b85c38;
         background: #fbede6;
+        box-shadow: inset 0 0 0 1px rgba(184, 92, 56, 0.12), 0 10px 24px rgba(184, 92, 56, 0.08);
+    }
+    .mode-card.active::before {
+        content: "";
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        top: 0;
+        height: 3px;
+        border-radius: 0 0 999px 999px;
+        background: #b85c38;
+    }
+    .mode-icon {
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9px;
+        background: #f7f3ea;
+        border: 1px solid #e7dfd1;
+    }
+    .composer-bar {
+        border: 1px solid #ded8cc;
+        border-radius: 16px;
+        background: #fffefa;
+        box-shadow: 0 12px 34px rgba(55, 46, 36, 0.08);
+    }
+    .composer-action {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease;
+    }
+    .composer-action:hover {
+        transform: translateY(-1px);
+    }
+    .assistant-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 11px;
+        background: linear-gradient(180deg, #fff7ed 0%, #f7f3ea 100%);
+        color: #292520;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border: 1px solid #ded8cc;
+        box-shadow: 0 8px 18px rgba(41, 37, 32, 0.12);
+    }
+    .assistant-avatar::before {
+        content: "D";
+        width: 18px;
+        height: 18px;
+        border-radius: 7px;
+        display: grid;
+        place-items: center;
+        background: #292520;
+        color: #fffefa;
+        font-size: 11px;
+        font-weight: 760;
     }
 
     .message-user {
@@ -46,21 +114,13 @@
     }
 
     .file-tag {
-        background: #dbeafe;
-        color: #1d4ed8;
-        padding: 2px 8px;
-        border-radius: 4px;
+        background: #fbede6;
+        color: #8f4329;
+        padding: 4px 9px;
+        border: 1px solid #efcfc0;
+        border-radius: 999px;
         font-size: 12px;
         margin-right: 4px;
-    }
-
-    aside img.w-10.h-10.rounded-xl.object-contain.flex-shrink-0 {
-        width: 96px !important;
-        height: 96px !important;
-        min-width: 96px !important;
-        min-height: 96px !important;
-        max-width: 96px !important;
-        max-height: 96px !important;
     }
 
     .processing-ring {
@@ -218,7 +278,7 @@
     </div>
     <div class="flex items-center gap-3">
         <select id="session-selector" class="input-field px-3 py-2 rounded-lg text-sm min-w-[200px]" onchange="handleSessionSwitch(this.value)"></select>
-        <button onclick="clearChat()" class="btn-secondary px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+        <button onclick="clearChat()" class="dt-header-button">
             <i class="fa-solid fa-plus"></i>
             新对话
         </button>
@@ -229,8 +289,7 @@
     <div class="flex-1 flex flex-col min-w-0">
         <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
             <div class="flex gap-3">
-                <div class="w-8 h-8 rounded-lg bg-[#292520] flex items-center justify-center text-[#fffefa] shrink-0">
-                    <i class="fa-solid fa-robot text-sm"></i>
+                <div class="assistant-avatar">
                 </div>
                 <div class="flex-1 max-w-2xl">
                     <div class="message-bot rounded-2xl rounded-tl-sm px-4 py-3">
@@ -250,21 +309,21 @@
             <div class="flex gap-3 mb-4">
                 <button onclick="setMode('quick')" id="mode-quick" class="mode-card flex-1 px-4 py-3 rounded-xl bg-[#fffefa] text-left">
                     <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-bolt text-[#b7892d]"></i>
+                        <span class="mode-icon"><i class="fa-solid fa-bolt text-[#b7892d]"></i></span>
                         <span class="font-medium text-sm text-[#292520]">快速</span>
                     </div>
                     <p class="text-xs text-[#766f66] mt-1">向量检索，极速响应</p>
                 </button>
                 <button onclick="setMode('standard')" id="mode-standard" class="mode-card active flex-1 px-4 py-3 rounded-xl bg-[#fffefa] text-left">
                     <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-scale-balanced text-[#4b6f8f]"></i>
+                        <span class="mode-icon"><i class="fa-solid fa-scale-balanced text-[#4b6f8f]"></i></span>
                         <span class="font-medium text-sm text-[#292520]">标准</span>
                     </div>
                     <p class="text-xs text-[#766f66] mt-1">知识图谱检索</p>
                 </button>
                 <button onclick="setMode('deep')" id="mode-deep" class="mode-card flex-1 px-4 py-3 rounded-xl bg-[#fffefa] text-left">
                     <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-brain text-[#8a5f87]"></i>
+                        <span class="mode-icon"><i class="fa-solid fa-brain text-[#8a5f87]"></i></span>
                         <span class="font-medium text-sm text-[#292520]">深度</span>
                     </div>
                     <p class="text-xs text-[#766f66] mt-1">KG + 向量 + 记忆 + 扩展</p>
@@ -274,11 +333,11 @@
             <div id="attached-files" class="hidden flex flex-wrap gap-2 mb-3"></div>
             <div id="processing-list" class="space-y-2 mb-3"></div>
 
-            <div class="relative">
+            <div class="relative composer-bar">
                 <textarea
                     id="message-input"
                     placeholder="输入你的问题..."
-                    class="input-field w-full px-4 py-3 pr-24 rounded-xl resize-none text-[#292520] bg-[#fffefa] border-[#ded8cc]"
+                    class="w-full px-4 py-3 pr-24 rounded-[15px] resize-none text-[#292520] bg-transparent placeholder:text-[#9b9287] focus:outline-none"
                     rows="2"
                     onkeydown="handleKeyDown(event)"
                 ></textarea>
@@ -286,11 +345,11 @@
                 <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(this)">
 
                 <div class="absolute right-2 bottom-2 flex items-center gap-1">
-                    <button onclick="document.getElementById('file-input').click()" class="w-9 h-9 flex items-center justify-center text-[#9b9287] hover:text-[#b85c38] hover:bg-[#fbede6] rounded-lg transition-colors" title="上传文件">
+                    <button onclick="document.getElementById('file-input').click()" class="composer-action text-[#9b9287] hover:text-[#b85c38] hover:bg-[#fbede6]" title="上传文件">
                         <i class="fa-solid fa-paperclip"></i>
                     </button>
 
-                    <button onclick="sendMessage()" class="w-9 h-9 bg-[#292520] hover:bg-[#15120f] text-[#fffefa] rounded-lg flex items-center justify-center transition-colors">
+                    <button onclick="sendMessage()" class="composer-action bg-[#292520] hover:bg-[#15120f] text-[#fffefa] shadow-sm" title="发送">
                         <i class="fa-solid fa-paper-plane text-sm"></i>
                     </button>
                 </div>
@@ -731,7 +790,7 @@ function addProcessingItem(fileId, filename) {
     item.className = 'bg-[#fffefa] rounded-lg p-3 border border-[#ded8cc]';
     item.innerHTML = `
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-[#fbede6] rounded-lg flex items-center justify-center">
+            <div class="mode-icon">
                 <i class="fa-solid fa-file text-[#b85c38] text-sm"></i>
             </div>
             <div class="flex-1 min-w-0">
@@ -956,8 +1015,7 @@ async function sendMessage() {
 
         const uid = 'dt_' + Date.now();
         msgDiv.innerHTML = `
-            <div class="w-8 h-8 rounded-lg bg-[#292520] flex items-center justify-center text-[#fffefa] shrink-0">
-                <i class="fa-solid fa-robot text-sm"></i>
+            <div class="assistant-avatar">
             </div>
             <div class="flex-1 max-w-2xl" id="${uid}_wrapper">
                 <div class="message-bot rounded-2xl rounded-tl-sm px-4 py-3 hidden" id="${uid}_answer">
@@ -1181,8 +1239,7 @@ function addMessage(content, role, isError = false, timestamp = null, meta = nul
     } else {
         const thinkingHtml = _buildThinkingCardHtml(meta);
         div.innerHTML = `
-            <div class="w-8 h-8 rounded-lg bg-[#292520] flex items-center justify-center text-[#fffefa] shrink-0">
-                <i class="fa-solid fa-robot text-sm"></i>
+            <div class="assistant-avatar">
             </div>
             <div class="flex-1 max-w-2xl">
                 ${thinkingHtml}

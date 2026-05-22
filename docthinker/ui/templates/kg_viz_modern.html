@@ -55,8 +55,8 @@
         position: absolute;
         top: 18px;
         left: 18px;
-        width: 250px;
-        border-radius: 14px;
+        width: 268px;
+        border-radius: 16px;
     }
     .kg-dashboard {
         width: 360px;
@@ -67,7 +67,7 @@
     }
     .kg-dashboard-card {
         border: 1px solid var(--dt-hairline);
-        border-radius: 8px;
+        border-radius: 10px;
         background: #fffefa;
         padding: 12px;
         box-shadow: 0 1px 2px rgba(55, 46, 36, 0.04);
@@ -96,20 +96,23 @@
         background: #faf7ef;
     }
     .kg-control-button {
-        height: 34px;
+        height: 36px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 8px;
+        gap: 8px;
+        border-radius: 9px;
         border: 1px solid var(--dt-hairline);
         background: #fffefa;
         color: #5f584f;
-        transition: all 0.16s ease;
+        font-weight: 600;
+        transition: transform 0.16s ease, color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
     }
     .kg-control-button:hover {
         color: var(--dt-copper);
         border-color: #d7a28b;
         background: #fbf2eb;
+        transform: translateY(-1px);
     }
     .kg-control-primary {
         color: white;
@@ -119,6 +122,25 @@
     .kg-control-primary:hover {
         color: white;
         background: #15120f;
+    }
+    .kg-tool-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #f7f3ea;
+        border: 1px solid #e7dfd1;
+        color: #766f66;
+    }
+    .kg-toggle-label {
+        min-height: 34px;
+        align-items: center;
+        padding: 6px 8px;
+        border-radius: 10px;
+        border: 1px solid #ebe4d8;
+        background: rgba(255, 254, 250, 0.7);
     }
     .kg-control-accent {
         color: #5f2e1f;
@@ -162,13 +184,13 @@
     <div class="flex flex-wrap gap-2 items-center">
         <select id="kg-session-selector" class="input-field px-2 sm:px-3 py-2 rounded-lg text-sm min-w-[140px] sm:min-w-[260px]" onchange="handleKgSessionSwitch(this.value)"></select>
 
-        <button id="expand-btn" onclick="expandGraph()" class="kg-control-button kg-control-accent px-3 sm:px-4 text-sm font-medium" title="LLM 知识扩展">
-            <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>扩展
+        <button id="expand-btn" onclick="expandGraph()" class="kg-control-button kg-control-accent px-3 sm:px-4 text-sm" title="LLM 知识扩展">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>扩展
         </button>
-        <button onclick="resetHighlight()" class="kg-control-button w-9 hidden sm:inline-flex" title="取消聚焦"><i class="fa-solid fa-eye"></i></button>
-        <button onclick="resetZoom()" class="kg-control-button w-9 hidden sm:inline-flex" title="重置视图"><i class="fa-solid fa-compress"></i></button>
+        <button onclick="resetHighlight()" class="kg-control-button w-9 hidden sm:inline-flex" title="取消聚焦"><i class="fa-solid fa-eye-slash"></i></button>
+        <button onclick="resetZoom()" class="kg-control-button w-9 hidden sm:inline-flex" title="重置视图"><i class="fa-solid fa-expand"></i></button>
         <button onclick="refreshGraph()" class="kg-control-button kg-control-primary px-3 sm:px-4 text-sm" title="刷新">
-            <i class="fa-solid fa-rotate mr-2"></i>刷新
+            <i class="fa-solid fa-rotate"></i>刷新
         </button>
     </div>
 </header>
@@ -179,30 +201,33 @@
         
         <div class="kg-toolbar kg-panel p-3 space-y-3">
             <div>
-                <input type="text" id="search-input" placeholder="搜索节点（模糊匹配）..." 
-                    class="input-field px-3 py-2 rounded-lg text-sm w-full bg-[#fffefa] border-[#ded8cc] text-[#292520] placeholder:text-[#9b9287]"
-                    oninput="searchNodes(this.value)">
+                <label class="relative block">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[#9b9287] text-xs"></i>
+                    <input type="text" id="search-input" placeholder="搜索节点..."
+                        class="input-field pl-9 pr-3 py-2 rounded-lg text-sm w-full bg-[#fffefa] border-[#ded8cc] text-[#292520] placeholder:text-[#9b9287]"
+                        oninput="searchNodes(this.value)">
+                </label>
             </div>
             
             <div>
                 <p class="kg-soft-label font-semibold uppercase mb-2">筛选</p>
                 <div class="grid grid-cols-2 gap-2">
-                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                    <label class="kg-toggle-label flex gap-2 text-sm cursor-pointer">
                         <input type="checkbox" checked onchange="toggleLevel(3)" class="rounded">
                         <span class="w-2 h-2 rounded-full" style="background:#8a5f87"></span>
                         <span class="text-[#5f584f]">Domain</span>
                     </label>
-                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                    <label class="kg-toggle-label flex gap-2 text-sm cursor-pointer">
                         <input type="checkbox" checked onchange="toggleLevel(2)" class="rounded">
                         <span class="w-2 h-2 rounded-full" style="background:#4b6f8f"></span>
                         <span class="text-[#5f584f]">Concept</span>
                     </label>
-                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                    <label class="kg-toggle-label flex gap-2 text-sm cursor-pointer">
                         <input type="checkbox" checked onchange="toggleLevel(1)" class="rounded">
                         <span class="w-2 h-2 rounded-full" style="background:#54746b"></span>
                         <span class="text-[#5f584f]">Instance</span>
                     </label>
-                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                    <label class="kg-toggle-label flex gap-2 text-sm cursor-pointer">
                         <input type="checkbox" checked onchange="toggleExpanded()" class="rounded" id="chk-expanded">
                         <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#d6aa3d"></span>
                         <span class="text-[#5f584f]">扩展节点</span>

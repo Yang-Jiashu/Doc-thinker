@@ -1,0 +1,12 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DocThinker mark">
+  <rect x="8" y="8" width="80" height="80" rx="24" fill="#FFF7ED"/>
+  <rect x="8.75" y="8.75" width="78.5" height="78.5" rx="23.25" stroke="#D8CFC1" stroke-width="1.5"/>
+  <path d="M25 31L48 22L71 31L48 40L25 31Z" fill="#292520"/>
+  <path d="M36 37.5V43.5C36 47 41.2 49.5 48 49.5C54.8 49.5 60 47 60 43.5V37.5" stroke="#292520" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M34 54C34 47.9249 38.9249 43 45 43H57.5C60.5376 43 63 45.4624 63 48.5V66C63 69.3137 60.3137 72 57 72H40C36.6863 72 34 69.3137 34 66V54Z" fill="#FFFEFA" stroke="#292520" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M52 43V53C52 55.2091 53.7909 57 56 57H63" stroke="#292520" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="44" cy="61" r="4.5" fill="#B85C38"/>
+  <circle cx="55" cy="61" r="4.5" fill="#54746B"/>
+  <path d="M48.5 61H50.5" stroke="#292520" stroke-width="3" stroke-linecap="round"/>
+  <path d="M31 74C36.5 79 59.5 79 65 74" stroke="#B85C38" stroke-width="3.5" stroke-linecap="round"/>
+</svg>

@@ -85,29 +85,6 @@ def _no_cache_html(response):
     if response.content_type and "text/html" in response.content_type:
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
         response.headers["Pragma"] = "no-cache"
-        try:
-            html = response.get_data(as_text=True)
-            if "</head>" in html and "ui-runtime-css" not in html:
-                inject = """
-<style id="ui-runtime-css">
-aside img.w-10.h-10.rounded-xl.object-contain.flex-shrink-0,
-aside img[src*="logo.png"],
-aside img[alt="DocThinker"] {
-    width: 96px !important;
-    height: 96px !important;
-    min-width: 96px !important;
-    min-height: 96px !important;
-    max-width: 96px !important;
-    max-height: 96px !important;
-    object-fit: contain !important;
-    border-radius: 14px !important;
-}
-</style>
-"""
-                html = html.replace("</head>", inject + "</head>")
-                response.set_data(html)
-        except Exception as _e:
-            pass
     return response
 
 # Logo: 从项目根目录直接提供，确保左上角能够正确显示
@@ -646,4 +623,3 @@ if __name__ == '__main__':
     print("  ========================================")
     print()
     app.run(host=config.ui_host, port=config.ui_port, debug=False, use_reloader=False)
-
