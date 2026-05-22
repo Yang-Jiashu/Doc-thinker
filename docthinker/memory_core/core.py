@@ -128,6 +128,7 @@ class InMemoryLongHorizonBackend:
 
     def __init__(self) -> None:
         self._items: Dict[str, List[Dict[str, Any]]] = {}
+        self._last_decision: Dict[str, Any] = {"action": "init"}
         self._lock = threading.RLock()
 
     @staticmethod
@@ -176,13 +177,79 @@ class InMemoryLongHorizonBackend:
     def _classify_insight(question: str, answer: str) -> str:
         q = str(question or "").lower()
         a = str(answer or "").lower()
+        text = f"{q}\n{a}"
+        if any(k in text for k in ("用户说", "user prefers", "prefer", "喜欢", "不要", "别", "风格")):
+            return "user_preference"
+        if any(k in text for k in ("反馈", "feedback", "规则", "rule", "准则")):
+            return "feedback_rule"
+        if any(k in text for k in ("reference", "引用", "资料", "论文", "文档来源")):
+            return "reference_pointer"
         if any(k in q for k in ("喜欢", "prefer", "不要", "别", "风格")):
-            return "preference"
+            return "user_preference"
         if any(k in q for k in ("修复", "实现", "改", "优化", "todo", "next", "roadmap")):
-            return "task_memory"
+            return "project_state"
         if any(k in a for k in ("because", "therefore", "因为", "所以", "推理")):
             return "reasoning_trace"
         return "insight"
+
+    @staticmethod
+    def _contains_secret(text: str) -> bool:
+        source = str(text or "")
+        secret_patterns = (
+            r"sk-[A-Za-z0-9_\-]{20,}",
+            r"gh[pousr]_[A-Za-z0-9_]{20,}",
+            r"AKIA[0-9A-Z]{16}",
+            r"(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*[^\s]{8,}",
+        )
+        return any(re.search(pattern, source) for pattern in secret_patterns)
+
+    @staticmethod
+    def _explicit_memory_request(question: str) -> bool:
+        q = str(question or "").lower()
+        return any(k in q for k in ("remember", "记住", "作为记忆", "保存到记忆", "长期记忆"))
+
+    def _write_decision(
+        self,
+        question: str,
+        answer: str,
+        concepts: Sequence[str],
+        *,
+        summary: str,
+    ) -> Dict[str, Any]:
+        text = f"{question}\n{answer}"
+        if self._contains_secret(text):
+            return {
+                "action": "skip",
+                "reason": "secret_guard",
+                "detail": "possible API key, token, password, or cloud credential",
+            }
+        if not summary or len(summary) < 24:
+            return {"action": "skip", "reason": "too_short"}
+        negative = ("抱歉", "不知道", "没有检索到", "无法回答", "i don't know", "sorry")
+        if any(marker in summary.lower() for marker in negative):
+            return {"action": "skip", "reason": "low_information_answer"}
+
+        explicit = self._explicit_memory_request(question)
+        ephemeral_markers = (
+            "临时", "temporary", "just this once", "这次", "本次",
+            "debug log", "stack trace", "报错日志", "日志",
+            "git diff", "git status", "commit hash", "文件路径",
+            "line ", "第几行", "/tmp/", "node_modules",
+        )
+        durable_markers = (
+            "长期", "架构", "原则", "偏好", "preference", "rule", "规则",
+            "roadmap", "设计", "可控", "memory", "记忆", "reasoning", "推理",
+        )
+        lowered = text.lower()
+        if not explicit and any(marker in lowered for marker in ephemeral_markers):
+            return {"action": "skip", "reason": "ephemeral_or_verification_needed"}
+        if explicit or any(marker in lowered for marker in durable_markers) or concepts:
+            return {"action": "store", "reason": "durable_signal"}
+        return {"action": "skip", "reason": "no_durable_signal"}
+
+    def last_write_decision(self) -> Dict[str, Any]:
+        with self._lock:
+            return dict(self._last_decision)
 
     def build_recall_plan(
         self,
@@ -289,9 +356,9 @@ class InMemoryLongHorizonBackend:
             kind = str(item.get("kind") or "insight")
             if not summary:
                 continue
-            if kind == "preference":
+            if kind in {"preference", "user_preference", "feedback_rule"}:
                 preferences.append(summary)
-            elif kind == "task_memory":
+            elif kind in {"task_memory", "project_state"}:
                 tasks.append(summary)
             else:
                 reasoning.append(summary)
@@ -322,10 +389,14 @@ class InMemoryLongHorizonBackend:
         matched_expanded: Optional[Sequence[Dict[str, Any]]] = None,
     ) -> Optional[Dict[str, Any]]:
         summary = self._clean_summary(answer)
-        if not summary or len(summary) < 24:
-            return None
-        negative = ("抱歉", "不知道", "没有检索到", "无法回答", "i don't know", "sorry")
-        if any(marker in summary.lower() for marker in negative):
+        decision = self._write_decision(question, answer, concepts, summary=summary)
+        with self._lock:
+            self._last_decision = {
+                **decision,
+                "scope": str(scope or "session"),
+                "question": str(question or "")[:120],
+            }
+        if decision.get("action") != "store":
             return None
 
         scope_name = str(scope or "session")
@@ -349,10 +420,18 @@ class InMemoryLongHorizonBackend:
                     item["last_seen_at"] = timestamp
                     item["use_count"] = int(item.get("use_count") or 0) + 1
                     item["confidence"] = min(0.95, float(item.get("confidence") or 0.55) + 0.05)
+                    item["audit"] = {"last_decision": decision.get("reason"), "source": "after_response"}
+                    self._last_decision = {
+                        **decision,
+                        "action": "update",
+                        "memory_id": item.get("id"),
+                        "kind": item.get("kind"),
+                        "scope": item.get("scope"),
+                    }
                     return dict(item)
 
             item = {
-                "id": f"lh-{len(bucket) + 1}",
+                "id": f"lh-{scope_name}-{int(timestamp * 1000)}-{len(bucket) + 1}",
                 "scope": scope_name,
                 "kind": self._classify_insight(question, answer),
                 "question": str(question or "")[:260],
@@ -363,11 +442,104 @@ class InMemoryLongHorizonBackend:
                 "created_at": timestamp,
                 "last_seen_at": timestamp,
                 "use_count": 1,
+                "audit": {
+                    "last_decision": decision.get("reason"),
+                    "source": "after_response",
+                    "schema": "docthinker.long_horizon.v1",
+                },
             }
             bucket.append(item)
             if len(bucket) > 200:
                 del bucket[: len(bucket) - 200]
+            self._last_decision = {
+                **decision,
+                "action": "store",
+                "memory_id": item.get("id"),
+                "kind": item.get("kind"),
+                "scope": item.get("scope"),
+            }
             return dict(item)
+
+    def list_insights(
+        self,
+        session_id: Optional[str] = None,
+        *,
+        scope: Optional[str] = None,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        with self._lock:
+            if scope:
+                keys = [self._scope_key(session_id, scope)]
+            elif session_id:
+                keys = [
+                    self._scope_key(session_id, "session"),
+                    self._scope_key(session_id, "project"),
+                    self._scope_key(session_id, "user"),
+                ]
+            else:
+                keys = list(self._items.keys())
+            items = [dict(item) for key in keys for item in self._items.get(key, [])]
+        items.sort(key=lambda item: float(item.get("last_seen_at") or 0), reverse=True)
+        return items[: max(0, int(limit))]
+
+    def delete_insight(self, memory_id: str, session_id: Optional[str] = None) -> bool:
+        target = str(memory_id or "").strip()
+        if not target:
+            return False
+        with self._lock:
+            keys = (
+                [
+                    self._scope_key(session_id, "session"),
+                    self._scope_key(session_id, "project"),
+                    self._scope_key(session_id, "user"),
+                ]
+                if session_id
+                else list(self._items.keys())
+            )
+            for key in keys:
+                bucket = self._items.get(key, [])
+                kept = [item for item in bucket if str(item.get("id")) != target]
+                if len(kept) != len(bucket):
+                    self._items[key] = kept
+                    self._last_decision = {
+                        "action": "delete",
+                        "reason": "user_controlled_memory_management",
+                        "memory_id": target,
+                    }
+                    return True
+        return False
+
+    def export_markdown(self, session_id: Optional[str] = None) -> str:
+        items = self.list_insights(session_id=session_id, limit=500)
+        lines = [
+            "# DocThinker MEMORY.md",
+            "",
+            "This is an auditable index of DocThinker long-horizon memory. It is generated from agentic memory records, not used as the only source of truth.",
+            "",
+            "## What Not To Save",
+            "",
+            "- Secrets, API keys, passwords, or credentials.",
+            "- One-off debug traces, transient file paths, git history, and already documented code facts.",
+            "- User content explicitly marked as not memory.",
+            "",
+        ]
+        if not items:
+            lines.extend(["## Memories", "", "_No long-horizon memories yet._", ""])
+            return "\n".join(lines)
+        grouped: Dict[str, List[Dict[str, Any]]] = {}
+        for item in items:
+            grouped.setdefault(str(item.get("kind") or "insight"), []).append(item)
+        for kind in sorted(grouped):
+            lines.extend([f"## {kind}", ""])
+            for item in grouped[kind]:
+                scope = str(item.get("scope") or "session")
+                confidence = float(item.get("confidence") or 0.0)
+                summary = str(item.get("summary") or "").strip()
+                concepts = ", ".join(str(c) for c in (item.get("concepts") or [])[:5])
+                suffix = f" Concepts: {concepts}." if concepts else ""
+                lines.append(f"- `{item.get('id')}` [{scope}, confidence {confidence:.2f}] {summary}{suffix}")
+            lines.append("")
+        return "\n".join(lines)
 
     def stats(self, session_id: Optional[str] = None) -> Dict[str, Any]:
         with self._lock:
@@ -388,6 +560,7 @@ class InMemoryLongHorizonBackend:
             "count": len(items),
             "by_kind": by_kind,
             "recent": recent,
+            "last_write_decision": self.last_write_decision(),
         }
 
 
@@ -746,6 +919,7 @@ class AgentMemoryCore:
             "expanded_promoted": [],
             "long_horizon_insight_added": False,
             "long_horizon_insight": None,
+            "long_horizon_write_decision": {},
         }
 
         if not writes_allowed:
@@ -860,6 +1034,8 @@ class AgentMemoryCore:
                 if insight:
                     result["long_horizon_insight_added"] = True
                     result["long_horizon_insight"] = insight
+                if hasattr(self.backends.long_horizon, "last_write_decision"):
+                    result["long_horizon_write_decision"] = self.backends.long_horizon.last_write_decision()
             except Exception as exc:
                 _log.warning("[after_response] long-horizon consolidation failed: %s", exc)
 
@@ -879,6 +1055,7 @@ class AgentMemoryCore:
                 "expanded_promoted": list(result["expanded_promoted"]),
                 "long_horizon_insight_added": bool(result["long_horizon_insight_added"]),
                 "long_horizon_insight": result["long_horizon_insight"],
+                "long_horizon_write_decision": result["long_horizon_write_decision"],
                 "elapsed_seconds": result["elapsed_seconds"],
                 "enabled_layers": sorted(self.policy.enabled_layer_set()),
             },

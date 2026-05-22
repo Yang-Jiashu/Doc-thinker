@@ -302,7 +302,7 @@ class AgentMemoryCoreUnitTest(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertTrue(result["long_horizon_insight_added"])
-        self.assertEqual("task_memory", result["long_horizon_insight"]["kind"])
+        self.assertEqual("project_state", result["long_horizon_insight"]["kind"])
 
         bundle = await core.recall(
             session_id="long-session",
@@ -319,6 +319,52 @@ class AgentMemoryCoreUnitTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("memory_reasoning", bundle.memory_reasoning["mode"])
         self.assertIn("continue_project_state", bundle.memory_reasoning["conclusions"])
         self.assertEqual(1, long_horizon.stats("long-session")["count"])
+
+    async def test_long_horizon_memory_is_auditable_and_deletable(self):
+        long_horizon = InMemoryLongHorizonBackend()
+        stored = long_horizon.consolidate(
+            "audit-session",
+            "记住 DocThinker 的 memory 管理规则",
+            "DocThinker should keep auditable long-horizon memory with explicit user control and memory-side reasoning.",
+            concepts=["DocThinker", "memory"],
+            scope="session",
+            timestamp=1.0,
+        )
+
+        self.assertIsNotNone(stored)
+        items = long_horizon.list_insights("audit-session")
+        self.assertEqual(1, len(items))
+        exported = long_horizon.export_markdown("audit-session")
+        self.assertIn("# DocThinker MEMORY.md", exported)
+        self.assertIn("What Not To Save", exported)
+        self.assertIn("auditable long-horizon memory", exported)
+        self.assertTrue(long_horizon.delete_insight(stored["id"], "audit-session"))
+        self.assertEqual(0, long_horizon.stats("audit-session")["count"])
+
+    async def test_long_horizon_memory_skips_secrets_and_ephemeral_logs(self):
+        long_horizon = InMemoryLongHorizonBackend()
+        secret = long_horizon.consolidate(
+            "guard-session",
+            "保存这个 token",
+            "The API key is sk-test123456789012345678901234567890 and should never be retained.",
+            concepts=["token"],
+            scope="session",
+            timestamp=1.0,
+        )
+        self.assertIsNone(secret)
+        self.assertEqual("secret_guard", long_horizon.last_write_decision()["reason"])
+
+        transient = long_horizon.consolidate(
+            "guard-session",
+            "帮我看这个 debug log",
+            "The stack trace in /tmp/run.log points to line 42 and only matters for this temporary failure.",
+            concepts=["debug"],
+            scope="session",
+            timestamp=2.0,
+        )
+        self.assertIsNone(transient)
+        self.assertEqual("ephemeral_or_verification_needed", long_horizon.last_write_decision()["reason"])
+        self.assertEqual(0, long_horizon.stats("guard-session")["count"])
 
     async def test_after_response_can_skip_or_exclude_memory_writes(self):
         conversation = _ProtocolConversationBackend()

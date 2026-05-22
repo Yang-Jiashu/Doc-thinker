@@ -409,6 +409,29 @@ def memory_graph_proxy():
     except Exception as e:
         return jsonify({'nodes': [], 'edges': [], 'error': str(e)}), 500
 
+
+@app.route(f'{api_config.api_prefix}/memory/long-horizon/export', methods=['GET'])
+def long_horizon_export_proxy():
+    import requests
+    from flask import Response
+    backend_url = f"http://127.0.0.1:8000{api_config.api_prefix}/memory/long-horizon/export"
+    try:
+        resp = requests.get(backend_url, params=request.args, timeout=30)
+        return Response(
+            resp.text,
+            status=resp.status_code,
+            content_type=resp.headers.get("content-type", "text/markdown; charset=utf-8"),
+            headers={"Content-Disposition": resp.headers.get("content-disposition", "inline; filename=MEMORY.md")},
+        )
+    except requests.exceptions.ConnectionError:
+        return Response(
+            "FastAPI backend is not running.",
+            status=503,
+            content_type="text/plain; charset=utf-8",
+        )
+    except Exception as e:
+        return Response(str(e), status=500, content_type="text/plain; charset=utf-8")
+
 # Query endpoint - Connect to backend
 @app.route(f'{api_config.api_prefix}/query/stream', methods=['POST'])
 def query_stream():

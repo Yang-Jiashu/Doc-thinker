@@ -170,6 +170,24 @@ class LongHorizonMemoryBackend(Protocol):
     def stats(self, session_id: Optional[str] = None) -> Dict[str, Any]:
         """Return observability data for dashboards and tests."""
 
+    def list_insights(
+        self,
+        session_id: Optional[str] = None,
+        *,
+        scope: Optional[str] = None,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        """Return editable long-horizon memory records."""
+
+    def delete_insight(self, memory_id: str, session_id: Optional[str] = None) -> bool:
+        """Delete one long-horizon memory record by id."""
+
+    def export_markdown(self, session_id: Optional[str] = None) -> str:
+        """Export an auditable MEMORY.md-style memory index."""
+
+    def last_write_decision(self) -> Dict[str, Any]:
+        """Return the most recent write/skip decision."""
+
 
 @dataclass
 class AgentMemoryBackends:

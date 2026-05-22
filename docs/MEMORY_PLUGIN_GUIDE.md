@@ -28,8 +28,9 @@ flowchart LR
 - `EpisodicMemoryBackend`: retrieves similar past episodes as analogy context
   and writes the completed turn as a new episode.
 - `LongHorizonMemoryBackend`: builds a recall plan, retrieves durable
-  cross-turn insights, reasons over recalled memory, and consolidates useful
-  answers into long-horizon memory.
+  cross-turn insights, reasons over recalled memory, consolidates useful
+  answers into long-horizon memory, and exposes auditable list/delete/export
+  controls.
 - `ExpandedKnowledgeBackend`: matches candidate KG hypotheses during recall and
   records which candidates were useful in the answer.
 - `GraphPromotionBackend`: promotes repeatedly useful expanded nodes into the
@@ -64,6 +65,19 @@ Per request, hosts can also pass `remember_turn=false` or
 `memory_excluded_layers=["episodic", "long_horizon"]` through DocThinker's
 query API. This keeps the framework controllable: sensitive text, temporary
 drafts, or low-confidence interactions can be answered without becoming memory.
+
+The default long-horizon backend borrows the strongest memory-management ideas
+from file-based agent memory systems while keeping DocThinker's agentic runtime:
+
+- It records the latest write decision (`store`, `update`, `skip`, or
+  `delete`) so UI and hosts can explain why something became memory.
+- It skips obvious secrets such as API keys, tokens, passwords, and cloud
+  credentials.
+- It avoids transient debug logs, temporary file paths, git history, and
+  one-off verification details unless the user explicitly asks to remember
+  them.
+- It can list and delete individual memories, and can export a `MEMORY.md`
+  index for review or portability.
 
 ## Minimal Integration
 

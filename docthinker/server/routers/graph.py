@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Body
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
 from ..schemas import EntityRelationshipRequest, RelationshipRequest
 from ..state import state
@@ -775,6 +775,45 @@ async def memory_dashboard(session_id: Optional[str] = None):
         "memory": memory_payload,
         "long_horizon": long_horizon_payload,
     }
+
+
+@router.get("/memory/long-horizon")
+async def list_long_horizon_memory(
+    session_id: Optional[str] = None,
+    scope: Optional[str] = None,
+    limit: int = 50,
+):
+    """List editable long-horizon memories for audit and management."""
+    backend = get_default_long_horizon_backend()
+    return {
+        "session_id": session_id,
+        "scope": scope,
+        "items": backend.list_insights(session_id=session_id, scope=scope, limit=limit),
+        "last_write_decision": backend.last_write_decision(),
+    }
+
+
+@router.delete("/memory/long-horizon/{memory_id}")
+async def delete_long_horizon_memory(memory_id: str, session_id: Optional[str] = None):
+    """Delete one long-horizon memory record."""
+    deleted = get_default_long_horizon_backend().delete_insight(
+        memory_id,
+        session_id=session_id,
+    )
+    if not deleted:
+        raise HTTPException(status_code=404, detail=f"Memory not found: {memory_id}")
+    return {"deleted": True, "memory_id": memory_id}
+
+
+@router.get("/memory/long-horizon/export")
+async def export_long_horizon_memory(session_id: Optional[str] = None):
+    """Export long-horizon memory as a MEMORY.md-style index."""
+    markdown = get_default_long_horizon_backend().export_markdown(session_id=session_id)
+    return Response(
+        content=markdown,
+        media_type="text/markdown; charset=utf-8",
+        headers={"Content-Disposition": "inline; filename=MEMORY.md"},
+    )
 
 # ── LLM Trace observability endpoints ──────────────────────────────
 
