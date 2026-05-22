@@ -76,8 +76,13 @@ from file-based agent memory systems while keeping DocThinker's agentic runtime:
 - It avoids transient debug logs, temporary file paths, git history, and
   one-off verification details unless the user explicitly asks to remember
   them.
-- It can list and delete individual memories, and can export a `MEMORY.md`
-  index for review or portability.
+- It can plan natural-language edits, list/update/delete individual memories,
+  and export a `MEMORY.md` index for review or portability.
+
+Natural-language memory editing is intentionally two-step. The planner maps an
+instruction to candidate memories with a token/embedding fallback and returns a
+suggested patch. The UI then highlights related graph nodes and edges, lets the
+user choose a candidate, and only mutates memory after explicit confirmation.
 
 ## Minimal Integration
 

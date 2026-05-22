@@ -20,7 +20,13 @@ class IngestionService:
         await self._ensure_ready(rag)
         graphcore = rag.graphcore
         if hasattr(graphcore, "ainsert"):
-            await graphcore.ainsert(text, file_paths=file_path)
+            try:
+                if file_path:
+                    await graphcore.ainsert(text, file_paths=file_path)
+                else:
+                    await graphcore.ainsert(text)
+            except TypeError:
+                await graphcore.ainsert(text)
         else:
             await graphcore.insert(text)
 
@@ -50,6 +56,7 @@ class IngestionService:
         self, text: str, session_id: Optional[str] = None, file_path: str | None = None,
     ) -> None:
         """Ingest text into a session graph."""
+        await self._insert_text(self.rag_global, text, file_path=file_path)
         target_rag = await self._resolve_target_rag(session_id)
         await self._insert_text(target_rag, text, file_path=file_path)
 

@@ -5,6 +5,7 @@ import re
 import shutil
 import time
 from datetime import datetime
+from hashlib import md5
 from pathlib import Path
 from typing import List, Optional, Any, Dict, Iterable
 
@@ -14,12 +15,15 @@ from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile,
 
 from ..schemas import IngestRequest, SignalIngestRequest
 from ..state import state
-from docthinker.hypergraph.utils import compute_mdhash_id
 from docthinker.utils import separate_content
 
 _log = logging.getLogger("docthinker.ingest")
 
 router = APIRouter()
+
+
+def compute_mdhash_id(content: str, prefix: str = "") -> str:
+    return prefix + md5(str(content).encode()).hexdigest()
 
 
 def _read_text_auto_encoding(path: Path) -> str:

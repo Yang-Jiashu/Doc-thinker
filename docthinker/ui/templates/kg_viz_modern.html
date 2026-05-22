@@ -52,7 +52,7 @@
         top: 18px;
         left: 18px;
         width: 268px;
-        border-radius: 24px;
+        border-radius: 14px;
     }
     .kg-dashboard {
         width: 360px;
@@ -63,13 +63,13 @@
     }
     .kg-dashboard-card {
         border: 1px solid var(--dt-hairline);
-        border-radius: 16px;
+        border-radius: 8px;
         background: rgba(255, 255, 255, 0.86);
         padding: 12px;
         box-shadow: 0 2px 16px rgba(193, 165, 140, 0.1);
     }
     .kg-stat-tile {
-        border-radius: 16px;
+        border-radius: 8px;
         padding: 12px;
         background: linear-gradient(180deg, #fffefa 0%, #f7f3ea 100%);
         border: 1px solid var(--dt-hairline);
@@ -107,6 +107,56 @@
         color: var(--dt-copper);
         border-color: #d7a28b;
         background: #fbede6;
+    }
+    .kg-command-input {
+        width: 100%;
+        min-height: 70px;
+        resize: vertical;
+        border-radius: 8px;
+        border: 1px solid #ded8cc;
+        background: #fffefa;
+        padding: 10px;
+        color: #292520;
+        font-size: 12px;
+        line-height: 1.5;
+        outline: none;
+    }
+    .kg-command-input:focus {
+        border-color: #c8876a;
+        box-shadow: 0 0 0 3px rgba(184, 92, 56, 0.12);
+    }
+    .kg-command-chip {
+        border-radius: 999px;
+        border: 1px solid #e7dfd1;
+        background: #fffefa;
+        color: #766f66;
+        padding: 3px 7px;
+        font-size: 11px;
+    }
+    .kg-command-chip.active {
+        border-color: #d7a28b;
+        background: #fbede6;
+        color: #8a3d25;
+    }
+    .kg-edit-summary {
+        width: 100%;
+        min-height: 58px;
+        border-radius: 8px;
+        border: 1px solid #e7dfd1;
+        background: #fffefa;
+        padding: 8px;
+        font-size: 12px;
+        color: #292520;
+    }
+    .nl-node-highlight circle {
+        stroke: var(--dt-copper) !important;
+        stroke-width: 4px !important;
+        filter: drop-shadow(0 0 10px rgba(184, 92, 56, 0.32));
+    }
+    .nl-edge-highlight {
+        stroke: var(--dt-copper) !important;
+        stroke-opacity: 1 !important;
+        stroke-width: 3px !important;
     }
     .kg-control-button {
         min-height: 40px;
@@ -309,6 +359,26 @@
                 </section>
 
                 <section class="kg-dashboard-card">
+                    <div class="flex items-center justify-between gap-2">
+                        <h4 class="text-xs font-semibold text-[#292520]">Natural Language Memory Edit</h4>
+                        <span id="nl-memory-action" class="kg-command-chip">idle</span>
+                    </div>
+                    <textarea id="nl-memory-command" class="kg-command-input mt-3" placeholder="例如：把关于 UI 风格的长期记忆改成更克制、Claude-like；或删除临时 debug 相关记忆"></textarea>
+                    <div class="mt-2 grid grid-cols-2 gap-2">
+                        <button onclick="planNaturalMemoryEdit()" class="dt-mini-button" title="预览匹配">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>预览
+                        </button>
+                        <button onclick="clearNaturalMemoryEdit()" class="dt-mini-button" title="清除高亮">
+                            <i class="fa-solid fa-eraser"></i>清除
+                        </button>
+                    </div>
+                    <div id="nl-memory-graph-hints" class="mt-2 flex flex-wrap gap-1"></div>
+                    <div id="nl-memory-results" class="mt-2 space-y-2">
+                        <p class="text-xs text-[#9b9287]">输入指令后预览候选记忆、节点和边。</p>
+                    </div>
+                </section>
+
+                <section class="kg-dashboard-card">
                     <div class="flex items-center justify-between">
                         <h4 class="text-xs font-semibold text-[#292520]">Long-horizon Memory</h4>
                         <span id="dash-long-count" class="text-[11px] text-[#b85c38]">0 insights</span>
@@ -408,6 +478,7 @@ let currentSessionId = '';
 let focusedNodeId = null;
 let currentGraphView = 'semantic';
 let dashboardExpandedNodes = [];
+let naturalMemoryEditPlan = { candidates: [], graph: { nodes: [], edges: [] } };
 
 window.onload = initGraph;
 
@@ -538,6 +609,7 @@ async function loadRealData() {
                     color: n.color
                 })),
                 links: (data.edges || []).map(e => ({
+                    id: e.id || `${e.source}-${e.target}`,
                     source: e.source,
                     target: e.target,
                     label: e.label || '',
@@ -700,6 +772,202 @@ function exportLongHorizonMemory() {
     }
     const url = getKgApiPrefix() + '/memory/long-horizon/export?session_id=' + encodeURIComponent(currentSessionId);
     window.open(url, '_blank', 'noopener');
+}
+
+function memoryEditTokens(text) {
+    const source = String(text || '').toLowerCase();
+    const tokens = new Set();
+    for (const part of source.match(/[\u4e00-\u9fff]{2,}|[a-z][a-z0-9_-]{2,32}/g) || []) {
+        tokens.add(part);
+        if (/^[\u4e00-\u9fff]+$/.test(part)) {
+            for (let i = 0; i < part.length - 1; i += 1) tokens.add(part.slice(i, i + 2));
+        }
+    }
+    return tokens;
+}
+
+function scoreMemoryEditTarget(instruction, text) {
+    const query = memoryEditTokens(instruction);
+    if (!query.size) return 0;
+    const target = memoryEditTokens(text);
+    let overlap = 0;
+    query.forEach((token) => { if (target.has(token)) overlap += 1; });
+    return overlap / Math.max(1, query.size);
+}
+
+function edgeIdentity(edge) {
+    const src = typeof edge.source === 'object' ? edge.source.id : edge.source;
+    const tgt = typeof edge.target === 'object' ? edge.target.id : edge.target;
+    return edge.id || `${src}-${tgt}`;
+}
+
+function rankGraphEditTargets(instruction) {
+    const nodes = graphData.nodes
+        .map((item) => ({
+            id: item.id,
+            name: item.name || item.id,
+            score: scoreMemoryEditTarget(instruction, `${item.name || item.id} ${item.type || ''} ${item.description || ''}`)
+        }))
+        .filter((item) => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+    const edges = graphData.links
+        .map((item) => {
+            const src = typeof item.source === 'object' ? item.source.id : item.source;
+            const tgt = typeof item.target === 'object' ? item.target.id : item.target;
+            return {
+                id: edgeIdentity(item),
+                source: src,
+                target: tgt,
+                label: item.label || 'related',
+                score: scoreMemoryEditTarget(instruction, `${src} ${tgt} ${item.label || ''} ${item.description || ''}`)
+            };
+        })
+        .filter((item) => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+    return { nodes, edges };
+}
+
+function highlightNaturalMemoryTargets(graphTargets) {
+    const nodeIds = new Set((graphTargets.nodes || []).map((item) => String(item.id)));
+    const edgeIds = new Set((graphTargets.edges || []).map((item) => String(item.id)));
+    if (node) {
+        node.classed('nl-node-highlight', (item) => nodeIds.has(String(item.id)))
+            .attr('opacity', (item) => !nodeIds.size || nodeIds.has(String(item.id)) ? 1 : 0.16);
+    }
+    if (link) {
+        link.classed('nl-edge-highlight', (item) => edgeIds.has(String(edgeIdentity(item))))
+            .attr('stroke-opacity', (item) => !edgeIds.size || edgeIds.has(String(edgeIdentity(item))) ? 1 : 0.08)
+            .attr('stroke-width', (item) => edgeIds.has(String(edgeIdentity(item))) ? 3 : (item.is_discovered ? 2 : 1));
+    }
+}
+
+function renderGraphEditHints(graphTargets) {
+    const el = document.getElementById('nl-memory-graph-hints');
+    if (!el) return;
+    const nodeHints = (graphTargets.nodes || []).slice(0, 3).map((item) =>
+        `<button class="kg-command-chip active" onclick='focusDashboardNode(${JSON.stringify(String(item.id))})'>节点 ${escapeHtml(item.name)}</button>`
+    );
+    const edgeHints = (graphTargets.edges || []).slice(0, 2).map((item) =>
+        `<span class="kg-command-chip">边 ${escapeHtml(item.source)} → ${escapeHtml(item.target)}</span>`
+    );
+    el.innerHTML = [...nodeHints, ...edgeHints].join('');
+}
+
+function renderNaturalMemoryEditResults(plan, graphTargets) {
+    const actionEl = document.getElementById('nl-memory-action');
+    const resultsEl = document.getElementById('nl-memory-results');
+    if (actionEl) {
+        actionEl.textContent = plan.action || 'preview';
+        actionEl.classList.toggle('active', true);
+    }
+    if (!resultsEl) return;
+    const candidates = Array.isArray(plan.candidates) ? plan.candidates : [];
+    if (!candidates.length) {
+        resultsEl.innerHTML = '<p class="text-xs text-[#9b9287]">没有匹配到长期记忆。图中候选仍会高亮，可换一个更具体的词。</p>';
+        return;
+    }
+    resultsEl.innerHTML = candidates.map((item, index) => {
+        const suggested = item.suggested_patch?.summary || plan.suggested_patch?.summary || item.summary || '';
+        const score = Number(item.match?.score || 0).toFixed(2);
+        const terms = (item.match?.matched_terms || []).slice(0, 4).map((term) => `<span class="kg-command-chip">${escapeHtml(term)}</span>`).join('');
+        const isDelete = (item.proposed_action || plan.action) === 'delete';
+        return `<div class="kg-node-row">
+            <div class="flex items-start justify-between gap-2">
+                <div>
+                    <div class="text-xs font-semibold text-[#292520]">${escapeHtml(item.kind || 'insight')}</div>
+                    <div class="mt-1 text-[11px] text-[#766f66]">${escapeHtml(item.id || '')} · score ${score}</div>
+                </div>
+                <button onclick="applyNaturalMemoryEdit(${index})" class="kg-memory-action" title="${isDelete ? '删除候选记忆' : '应用编辑'}">
+                    <i class="fa-solid ${isDelete ? 'fa-trash-can' : 'fa-check'} text-[11px]"></i>
+                </button>
+            </div>
+            <p class="mt-2 text-xs text-[#5f584f]">${escapeHtml(item.summary || '')}</p>
+            ${terms ? `<div class="mt-2 flex flex-wrap gap-1">${terms}</div>` : ''}
+            ${isDelete ? '' : `<textarea id="nl-memory-summary-${index}" class="kg-edit-summary mt-2">${escapeHtml(suggested)}</textarea>`}
+        </div>`;
+    }).join('');
+    renderGraphEditHints(graphTargets);
+}
+
+async function planNaturalMemoryEdit() {
+    const input = document.getElementById('nl-memory-command');
+    const instruction = (input?.value || '').trim();
+    if (!instruction) {
+        showToast('请输入编辑指令', 'warning');
+        return;
+    }
+    if (!currentSessionId) {
+        showToast('请先选择 session', 'warning');
+        return;
+    }
+    try {
+        const graphTargets = rankGraphEditTargets(instruction);
+        const resp = await fetch(getKgApiPrefix() + '/memory/long-horizon/edit-plan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: currentSessionId, instruction, limit: 5 })
+        });
+        const plan = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw new Error(plan.detail || '生成编辑预览失败');
+        naturalMemoryEditPlan = { ...plan, graph: graphTargets };
+        highlightNaturalMemoryTargets(graphTargets);
+        renderNaturalMemoryEditResults(plan, graphTargets);
+        showToast('已生成候选匹配', 'success');
+    } catch (e) {
+        showToast(e.message || '生成编辑预览失败', 'error');
+    }
+}
+
+async function applyNaturalMemoryEdit(index) {
+    const candidate = naturalMemoryEditPlan.candidates?.[index];
+    if (!candidate?.id || !currentSessionId) return;
+    const action = candidate.proposed_action || naturalMemoryEditPlan.action || 'update';
+    if (action === 'delete') {
+        await deleteLongHorizonMemory(candidate.id);
+        clearNaturalMemoryEdit({ keepInput: true });
+        return;
+    }
+    const summaryEl = document.getElementById(`nl-memory-summary-${index}`);
+    const summary = (summaryEl?.value || '').trim();
+    if (!summary) {
+        showToast('编辑内容不能为空', 'warning');
+        return;
+    }
+    try {
+        const resp = await fetch(getKgApiPrefix() + '/memory/long-horizon/' + encodeURIComponent(candidate.id) + '?session_id=' + encodeURIComponent(currentSessionId), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ summary })
+        });
+        const payload = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw new Error(payload.detail || '应用编辑失败');
+        showToast('长期记忆已更新', 'success');
+        await loadDashboardData();
+        await loadLongHorizonManager();
+        clearNaturalMemoryEdit({ keepInput: true });
+    } catch (e) {
+        showToast(e.message || '应用编辑失败', 'error');
+    }
+}
+
+function clearNaturalMemoryEdit(options = {}) {
+    naturalMemoryEditPlan = { candidates: [], graph: { nodes: [], edges: [] } };
+    if (!options.keepInput) {
+        const input = document.getElementById('nl-memory-command');
+        if (input) input.value = '';
+    }
+    const resultsEl = document.getElementById('nl-memory-results');
+    if (resultsEl) resultsEl.innerHTML = '<p class="text-xs text-[#9b9287]">输入指令后预览候选记忆、节点和边。</p>';
+    const hintsEl = document.getElementById('nl-memory-graph-hints');
+    if (hintsEl) hintsEl.innerHTML = '';
+    const actionEl = document.getElementById('nl-memory-action');
+    if (actionEl) {
+        actionEl.textContent = 'idle';
+        actionEl.classList.remove('active');
+    }
+    resetHighlight();
 }
 
 function renderExpandedDashboard(nodes) {
@@ -1075,12 +1343,14 @@ function selectEdge(d) {
 
 function resetHighlight() {
     if (link) {
-        link.attr('stroke', l => l.is_discovered ? '#ef4444' : null)
+        link.classed('nl-edge-highlight', false)
+            .attr('stroke', l => l.is_discovered ? '#ef4444' : null)
             .attr('stroke-width', l => l.is_discovered ? 2 : 1)
             .attr('stroke-opacity', 0.6);
     }
     if (node) {
-        node.attr('opacity', 1);
+        node.classed('nl-node-highlight', false)
+            .attr('opacity', 1);
     }
     focusedNodeId = null;
     closePanel();

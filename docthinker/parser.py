@@ -965,10 +965,9 @@ class MineruParser(Parser):
             content_list, _ = self._read_output_files(
                 run_output_dir, name_without_suff, method=method
             )
-            # Fallback: if AUTO yields only non-textual blocks, optionally retry
-            # with OCR.  When a GPT-Vision fallback is available downstream the
-            # OCR retry is usually redundant and wastes ~50s on low-GPU machines.
-            skip_ocr_retry = os.environ.get("SKIP_MINERU_OCR_RETRY", "1") == "1"
+            # Fallback: if AUTO yields only non-textual blocks, retry with OCR
+            # unless the host explicitly disables the retry for faster vision-first runs.
+            skip_ocr_retry = os.environ.get("SKIP_MINERU_OCR_RETRY", "0") == "1"
             if method == "auto":
                 auto_score = self._content_text_score(content_list)
                 if auto_score == 0 and not skip_ocr_retry:

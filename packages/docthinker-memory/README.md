@@ -56,5 +56,5 @@ Implement the backend protocols when you want to plug in your own vector store,
 database, graph store, or long-term memory service. Use `remember_turn=False`,
 `memory_excluded_layers`, or `MemoryPolicy.allow_memory_writes` when a turn
 should be answered but not remembered. Long-horizon backends can also expose
-list/delete/export controls so host agents can keep memory auditable instead of
-only appending hidden state.
+natural-language edit planning plus list/update/delete/export controls so host
+agents can keep memory auditable instead of only appending hidden state.

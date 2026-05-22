@@ -1,5 +1,18 @@
-from .hypergraphrag import HyperGraphRAG as HyperGraphRAG, QueryParam as QueryParam
-from .bltcy_adapter import bltcy_gpt4o_mini_complete
+"""HyperGraphRAG exports with lazy heavy dependencies."""
+
+from __future__ import annotations
+
+
+def __getattr__(name: str):
+    if name in {"HyperGraphRAG", "QueryParam"}:
+        from .hypergraphrag import HyperGraphRAG, QueryParam
+
+        return HyperGraphRAG if name == "HyperGraphRAG" else QueryParam
+    if name == "bltcy_gpt4o_mini_complete":
+        from .bltcy_adapter import bltcy_gpt4o_mini_complete
+
+        return bltcy_gpt4o_mini_complete
+    raise AttributeError(name)
 
 __all__ = ["HyperGraphRAG", "QueryParam", "bltcy_gpt4o_mini_complete"]
 

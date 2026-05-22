@@ -182,6 +182,24 @@ class LongHorizonMemoryBackend(Protocol):
     def delete_insight(self, memory_id: str, session_id: Optional[str] = None) -> bool:
         """Delete one long-horizon memory record by id."""
 
+    def update_insight(
+        self,
+        memory_id: str,
+        patch: Dict[str, Any],
+        session_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Update one long-horizon memory record and return it."""
+
+    def plan_edit(
+        self,
+        session_id: Optional[str],
+        instruction: str,
+        *,
+        scope: Optional[str] = None,
+        limit: int = 5,
+    ) -> Dict[str, Any]:
+        """Map a natural-language edit instruction to candidate memories."""
+
     def export_markdown(self, session_id: Optional[str] = None) -> str:
         """Export an auditable MEMORY.md-style memory index."""
 

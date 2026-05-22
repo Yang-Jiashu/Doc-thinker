@@ -4,10 +4,14 @@ import logging
 
 from collections.abc import AsyncIterator
 
-import pipmaster as pm
+try:
+    import pipmaster as pm
+except ImportError:
+    pm = None
 
-# install specific modules
-if not pm.is_installed("openai"):
+# install specific modules when pipmaster is available; otherwise rely on the
+# environment/package manager to provide dependencies.
+if pm is not None and not pm.is_installed("openai"):
     pm.install("openai")
 
 from openai import (
@@ -15,12 +19,31 @@ from openai import (
     RateLimitError,
     APITimeoutError,
 )
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_exponential,
-    retry_if_exception_type,
-)
+try:
+    from tenacity import (
+        retry,
+        stop_after_attempt,
+        wait_exponential,
+        retry_if_exception_type,
+    )
+except ImportError:
+    class _NoRetryRule:
+        def __or__(self, _other):
+            return self
+
+    def retry(*_args, **_kwargs):
+        def decorator(func):
+            return func
+        return decorator
+
+    def stop_after_attempt(*_args, **_kwargs):
+        return None
+
+    def wait_exponential(*_args, **_kwargs):
+        return _NoRetryRule()
+
+    def retry_if_exception_type(*_args, **_kwargs):
+        return _NoRetryRule()
 from ..utils import (
     wrap_embedding_func_with_attrs,
     safe_unicode_decode,

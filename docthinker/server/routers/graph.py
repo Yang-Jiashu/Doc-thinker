@@ -805,6 +805,40 @@ async def delete_long_horizon_memory(memory_id: str, session_id: Optional[str] =
     return {"deleted": True, "memory_id": memory_id}
 
 
+@router.patch("/memory/long-horizon/{memory_id}")
+async def update_long_horizon_memory(
+    memory_id: str,
+    payload: Dict[str, Any] = Body(default={}),
+    session_id: Optional[str] = None,
+):
+    """Update one long-horizon memory record after user confirmation."""
+    updated = get_default_long_horizon_backend().update_insight(
+        memory_id,
+        payload,
+        session_id=session_id,
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail=f"Memory not found or patch empty: {memory_id}")
+    return {"updated": True, "memory_id": memory_id, "item": updated}
+
+
+@router.post("/memory/long-horizon/edit-plan")
+async def plan_long_horizon_memory_edit(payload: Dict[str, Any] = Body(default={})):
+    """Map a natural-language memory edit command to editable candidates."""
+    instruction = str(payload.get("instruction") or "").strip()
+    if not instruction:
+        raise HTTPException(status_code=400, detail="instruction is required")
+    session_id = payload.get("session_id")
+    scope = payload.get("scope")
+    limit = int(payload.get("limit") or 5)
+    return get_default_long_horizon_backend().plan_edit(
+        session_id=session_id,
+        instruction=instruction,
+        scope=scope,
+        limit=limit,
+    )
+
+
 @router.get("/memory/long-horizon/export")
 async def export_long_horizon_memory(session_id: Optional[str] = None):
     """Export long-horizon memory as a MEMORY.md-style index."""

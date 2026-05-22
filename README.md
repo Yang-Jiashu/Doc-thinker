@@ -192,7 +192,7 @@ DocThinker organizes retrieval and memory as an agent-facing framework instead o
 * Memory-side reasoning derived from recalled insights before the final answer is generated.
 * KG expanded-node matches and forced retrieval instructions.
 
-After generation, `after_response()` consolidates the turn back into memory layers, writes chat episodes, stores durable long-horizon insights, optionally feeds the Q&A back into the graph, and promotes useful expanded nodes. Hosts can set `remember_turn=false` or pass `memory_excluded_layers` such as `["long_horizon", "episodic"]` to keep specific content out of memory. Long-horizon memory also has a management plane: it records write/skip decisions, blocks obvious secrets, avoids transient debug material by default, supports deletion, and can export a `MEMORY.md`-style audit index.
+After generation, `after_response()` consolidates the turn back into memory layers, writes chat episodes, stores durable long-horizon insights, optionally feeds the Q&A back into the graph, and promotes useful expanded nodes. Hosts can set `remember_turn=false` or pass `memory_excluded_layers` such as `["long_horizon", "episodic"]` to keep specific content out of memory. Long-horizon memory also has a management plane: it records write/skip decisions, blocks obvious secrets, avoids transient debug material by default, supports deletion, natural-language edit planning, confirmed updates, and `MEMORY.md`-style audit export.
 
 ### 2. 🧩 Session-Scoped Knowledge Graphs
 Each session owns its own GraphCore-backed knowledge graph and document state. Uploaded files are parsed, inserted, and queried within that session, which keeps user context isolated while still allowing the graph to grow over time.
@@ -217,7 +217,7 @@ The built-in `InMemoryLongHorizonBackend` gives the framework a default cross-tu
 DocThinker tracks image assets extracted from documents and can activate relevant visual evidence during deep UI queries.
 
 ### 8. 📊 Memory & KG Observability
-The web UI includes a query-time Memory Inspector and a KG dashboard. They expose recall plans, long-horizon matches, episodic matches, expanded-node lifecycle state, graph statistics, memory backend status, memory write decisions, delete/export controls, and evidence sources so users can inspect why an answer was generated and how knowledge is promoted over time. The current UI uses a warmer, Claude-inspired visual language while keeping the original dog mark.
+The web UI includes a query-time Memory Inspector and a KG dashboard. They expose recall plans, long-horizon matches, episodic matches, expanded-node lifecycle state, graph statistics, memory backend status, memory write decisions, delete/export controls, and evidence sources so users can inspect why an answer was generated and how knowledge is promoted over time. The KG dashboard also includes a natural-language memory editor: a user can type an edit instruction, preview matched long-horizon memories plus graph node/edge highlights, then apply or delete only the selected candidate. The current UI uses a warmer, Claude-inspired visual language while keeping the original dog mark.
 
 ---
 
@@ -286,6 +286,8 @@ The web UI includes a query-time Memory Inspector and a KG dashboard. They expos
 | Memory | `/api/v1/memory/stats` | GET | Episode + Claw memory stats |
 | | `/api/v1/memory/dashboard` | GET | Aggregated KG + memory dashboard state |
 | | `/api/v1/memory/long-horizon` | GET | List editable long-horizon memory records |
+| | `/api/v1/memory/long-horizon/edit-plan` | POST | Map a natural-language edit instruction to candidate memories |
+| | `/api/v1/memory/long-horizon/{memory_id}` | PATCH | Update one long-horizon memory record after user confirmation |
 | | `/api/v1/memory/long-horizon/{memory_id}` | DELETE | Delete one long-horizon memory record |
 | | `/api/v1/memory/long-horizon/export` | GET | Export a `MEMORY.md`-style audit index |
 | Settings | `/api/v1/settings` | GET / POST | Runtime config |

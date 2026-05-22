@@ -137,6 +137,10 @@ class InMemoryLongHorizonBackend:
         tokens: set[str] = set()
         for match in re.finditer(r"[\u4e00-\u9fff]{2,8}|[a-z][a-z0-9_\-]{2,32}", source):
             tokens.add(match.group(0))
+        for match in re.finditer(r"[\u4e00-\u9fff]{2,}", source):
+            chunk = match.group(0)
+            for idx in range(max(0, len(chunk) - 1)):
+                tokens.add(chunk[idx:idx + 2])
         return tokens
 
     @staticmethod
@@ -250,6 +254,63 @@ class InMemoryLongHorizonBackend:
     def last_write_decision(self) -> Dict[str, Any]:
         with self._lock:
             return dict(self._last_decision)
+
+    @staticmethod
+    def _candidate_text(item: Dict[str, Any]) -> str:
+        parts: List[str] = [
+            str(item.get("id") or ""),
+            str(item.get("summary") or ""),
+            str(item.get("question") or ""),
+            str(item.get("kind") or ""),
+            str(item.get("scope") or ""),
+            " ".join(str(c) for c in item.get("concepts") or []),
+            " ".join(str(c) for c in item.get("expanded_entities") or []),
+        ]
+        return " ".join(part for part in parts if part)
+
+    @staticmethod
+    def _infer_edit_action(instruction: str) -> str:
+        text = str(instruction or "").lower()
+        if any(k in text for k in ("删除", "忘记", "移除", "delete", "remove", "forget")):
+            return "delete"
+        return "update"
+
+    @staticmethod
+    def _extract_rewrite_summary(instruction: str) -> str:
+        text = re.sub(r"\s+", " ", str(instruction or "")).strip()
+        patterns = (
+            r"(?:改成|改为|更新为|设为|写成|总结为|rewrite to|change to|update to)[:：]?\s*(.+)$",
+            r"(?:新的内容|new summary)[:：]\s*(.+)$",
+        )
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                return match.group(1).strip(" 。.!?;；")
+        return ""
+
+    def _score_edit_candidate(self, instruction: str, item: Dict[str, Any]) -> Dict[str, Any]:
+        query_tokens = self._tokens(instruction)
+        item_tokens = self._tokens(self._candidate_text(item))
+        overlap = query_tokens & item_tokens
+        exact_boost = 0.0
+        lowered = str(instruction or "").lower()
+        for value in (
+            item.get("id"),
+            item.get("summary"),
+            item.get("question"),
+            *(item.get("concepts") or []),
+            *(item.get("expanded_entities") or []),
+        ):
+            value_text = str(value or "").lower().strip()
+            if value_text and value_text in lowered:
+                exact_boost += 0.25
+        confidence = float(item.get("confidence") or 0.0)
+        token_score = (len(overlap) / max(1, len(query_tokens))) if query_tokens else 0.0
+        score = min(1.0, token_score * 0.7 + min(0.2, confidence * 0.2) + exact_boost)
+        return {
+            "score": round(score, 3),
+            "matched_terms": sorted(overlap)[:12],
+        }
 
     def build_recall_plan(
         self,
@@ -508,6 +569,100 @@ class InMemoryLongHorizonBackend:
                     }
                     return True
         return False
+
+    def update_insight(
+        self,
+        memory_id: str,
+        patch: Dict[str, Any],
+        session_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        target = str(memory_id or "").strip()
+        if not target:
+            return None
+        allowed = {"summary", "question", "kind", "concepts", "expanded_entities", "confidence"}
+        clean_patch = {key: value for key, value in (patch or {}).items() if key in allowed}
+        if not clean_patch:
+            return None
+
+        with self._lock:
+            keys = (
+                [
+                    self._scope_key(session_id, "session"),
+                    self._scope_key(session_id, "project"),
+                    self._scope_key(session_id, "user"),
+                ]
+                if session_id
+                else list(self._items.keys())
+            )
+            for key in keys:
+                for item in self._items.get(key, []):
+                    if str(item.get("id")) != target:
+                        continue
+                    if "summary" in clean_patch:
+                        item["summary"] = self._clean_summary(str(clean_patch["summary"])) or str(item.get("summary") or "")
+                    if "question" in clean_patch:
+                        item["question"] = str(clean_patch["question"] or "")[:260]
+                    if "kind" in clean_patch:
+                        item["kind"] = str(clean_patch["kind"] or "insight")[:64]
+                    if "concepts" in clean_patch and isinstance(clean_patch["concepts"], (list, tuple)):
+                        item["concepts"] = [str(c) for c in clean_patch["concepts"][:16] if str(c).strip()]
+                    if "expanded_entities" in clean_patch and isinstance(clean_patch["expanded_entities"], (list, tuple)):
+                        item["expanded_entities"] = [str(c) for c in clean_patch["expanded_entities"][:12] if str(c).strip()]
+                    if "confidence" in clean_patch:
+                        try:
+                            item["confidence"] = max(0.05, min(0.99, float(clean_patch["confidence"])))
+                        except (TypeError, ValueError):
+                            pass
+                    item["last_seen_at"] = time.time()
+                    item["use_count"] = int(item.get("use_count") or 0) + 1
+                    item["audit"] = {
+                        **(item.get("audit") or {}),
+                        "last_decision": "natural_language_edit",
+                        "source": "memory_editor",
+                    }
+                    self._last_decision = {
+                        "action": "update",
+                        "reason": "natural_language_memory_edit",
+                        "memory_id": target,
+                        "fields": sorted(clean_patch),
+                    }
+                    return dict(item)
+        return None
+
+    def plan_edit(
+        self,
+        session_id: Optional[str],
+        instruction: str,
+        *,
+        scope: Optional[str] = None,
+        limit: int = 5,
+    ) -> Dict[str, Any]:
+        action = self._infer_edit_action(instruction)
+        rewrite_summary = self._extract_rewrite_summary(instruction)
+        candidates: List[Dict[str, Any]] = []
+        for item in self.list_insights(session_id=session_id, scope=scope, limit=500):
+            match = self._score_edit_candidate(instruction, item)
+            if match["score"] <= 0:
+                continue
+            candidate = dict(item)
+            candidate["match"] = match
+            candidate["proposed_action"] = action
+            candidate["suggested_patch"] = (
+                {"summary": rewrite_summary}
+                if action == "update" and rewrite_summary
+                else {}
+            )
+            candidates.append(candidate)
+        candidates.sort(key=lambda item: item["match"]["score"], reverse=True)
+        return {
+            "instruction": instruction,
+            "session_id": session_id,
+            "scope": scope,
+            "action": action,
+            "strategy": "token_embedding_fallback",
+            "candidates": candidates[: max(0, int(limit))],
+            "suggested_patch": {"summary": rewrite_summary} if rewrite_summary else {},
+        }
 
     def export_markdown(self, session_id: Optional[str] = None) -> str:
         items = self.list_insights(session_id=session_id, limit=500)

@@ -338,6 +338,20 @@ class AgentMemoryCoreUnitTest(unittest.IsolatedAsyncioTestCase):
         self.assertIn("# DocThinker MEMORY.md", exported)
         self.assertIn("What Not To Save", exported)
         self.assertIn("auditable long-horizon memory", exported)
+        plan = long_horizon.plan_edit(
+            "audit-session",
+            "把 DocThinker 的 memory 管理规则改成可审计、可控、支持推理",
+        )
+        self.assertEqual("update", plan["action"])
+        self.assertEqual(1, len(plan["candidates"]))
+        updated = long_horizon.update_insight(
+            stored["id"],
+            {"summary": "DocThinker memory should be auditable, controllable, and reasoning-capable."},
+            "audit-session",
+        )
+        self.assertIsNotNone(updated)
+        self.assertIn("reasoning-capable", updated["summary"])
+        self.assertEqual("natural_language_memory_edit", long_horizon.last_write_decision()["reason"])
         self.assertTrue(long_horizon.delete_insight(stored["id"], "audit-session"))
         self.assertEqual(0, long_horizon.stats("audit-session")["count"])
 

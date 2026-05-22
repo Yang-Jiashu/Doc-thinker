@@ -15,15 +15,9 @@ from docthinker.providers import load_settings, get_embed_client, get_vlm_client
 from docthinker.utils import create_bltcy_rerank_func
 from docthinker.services import IngestionService
 from docthinker.session_manager import SessionManager
-from docthinker.auto_thinking.orchestrator import HybridRAGOrchestrator
-from docthinker.auto_thinking.classifier import ComplexityClassifier
-from docthinker.auto_thinking.decomposer import QuestionDecomposer
-from docthinker.auto_thinking.vlm_client import VLMClient as AutoThinkingVLMClient
-from docthinker.hypergraph import HyperGraphRAG
 
 from .state import state
 from .memory import save_all_memory_engines
-from .routers import health_router, sessions_router, ingest_router, query_router, graph_router, settings_router
 
 
 class AsyncModelRouter:
@@ -290,6 +284,8 @@ async def _warmup_llm_connection():
 
 
 async def _initialize_rag() -> DocThinker:
+    from docthinker.auto_thinking.vlm_client import VLMClient as AutoThinkingVLMClient
+
     embedding_func = await _get_embedding_func()
     chat_complete = await _get_llm_model_func()
     keyword_complete = await _get_keyword_llm_func()
@@ -447,6 +443,12 @@ async def lifespan(app: FastAPI):
 
     # Initialize Auto-Thinking Orchestrator
     try:
+        from docthinker.auto_thinking.classifier import ComplexityClassifier
+        from docthinker.auto_thinking.decomposer import QuestionDecomposer
+        from docthinker.auto_thinking.orchestrator import HybridRAGOrchestrator
+        from docthinker.auto_thinking.vlm_client import VLMClient as AutoThinkingVLMClient
+        from docthinker.hypergraph import HyperGraphRAG
+
         at_client = AutoThinkingVLMClient(
             api_key=state.settings.llm_api_key,
             api_base=state.settings.vlm_base_url,
@@ -511,11 +513,24 @@ def create_app() -> FastAPI:
             allow_headers=["*"],
         )
 
-    for r in [health_router, sessions_router, ingest_router, query_router, graph_router, settings_router]:
+    routers = []
+    try:
+        from .routers import health_router, sessions_router, ingest_router, query_router, graph_router, settings_router
+
+        routers = [health_router, sessions_router, ingest_router, query_router, graph_router, settings_router]
+    except RuntimeError as exc:
+        if "python-multipart" not in str(exc):
+            raise
+        from .routers.health import router as health_router
+        from .routers.settings import router as settings_router
+
+        routers = [health_router, settings_router]
+        print("WARNING: ingest routes disabled because python-multipart is not installed.")
+
+    for r in routers:
         app.include_router(r, prefix=api_config.api_prefix)
 
     return app
 
 
 app = create_app()
-
