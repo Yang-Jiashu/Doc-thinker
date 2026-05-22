@@ -26,9 +26,9 @@
 
 <br>
 
-**DocThinker** is an agentic memory framework for document understanding. It turns documents, chat turns, retrieval traces, and graph expansions into a multi-layer memory system that can recall, reason, and consolidate knowledge over time.
+**DocThinker** is an agentic memory framework for text and multimodal carriers. It treats inputs as two primary forms: pure text, and image-text interactive documents. When visual evidence dominates, the carrier behaves like images; when language dominates, it behaves like text. DocThinker turns these inputs, chat turns, retrieval traces, and graph expansions into a multi-layer memory system that can recall, reason, and consolidate knowledge over time.
 
-The name has two meanings: **Doc** as in documents, and **Doc** as in doctor-level depth. DocThinker is built for document-grounded memory with research-grade reasoning.
+The name has two meanings: **Doc** as a multimodal carrier, and **Doc** as in doctor-level depth. DocThinker is built for carrier-grounded memory with research-grade reasoning.
 
 Unlike a conventional retrieve-then-respond RAG pipeline, DocThinker treats knowledge as an evolving memory substrate: session-scoped knowledge graphs provide semantic memory, Claw provides tiered conversation memory, Neuro Memory provides episodic analogies, and KG expansion tracks hypotheses that can be promoted through use.
 

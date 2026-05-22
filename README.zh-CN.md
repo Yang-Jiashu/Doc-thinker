@@ -26,9 +26,9 @@
 
 <br>
 
-**DocThinker** 是一个面向文档理解的 agentic memory 框架。它把文档、对话轮次、检索轨迹和图谱扩展转化为可召回、可推理、可巩固的多层记忆系统。
+**DocThinker** 是一个面向纯文本与多模态载体的 agentic memory 框架。输入被定义为两类：纯文本，以及图文交互的文档载体。图像证据占主导时，它更像图片；文本证据占主导时，它更像文字。DocThinker 会把这些输入、对话轮次、检索轨迹和图谱扩展转化为可召回、可推理、可巩固的多层记忆系统。
 
-这个名字有两层含义：**Doc** 既是 document，也是 doctor。DocThinker 的目标是让 agent 基于文档形成记忆，并具备博士级的研究深度和推理能力。
+这个名字有两层含义：**Doc** 既是多模态载体，也暗含 doctor / 博士级深度。DocThinker 的目标是让 agent 基于载体形成记忆，并具备研究级的推理能力。
 
 与传统“检索后回答”的 RAG 管线不同，DocThinker 将知识视为持续演化的记忆底座：session-scoped 知识图谱承担语义记忆，Claw 承担分层对话记忆，Neuro Memory 承担情节类比记忆，KG expansion 则维护可被使用和晋升的图谱假设。
 
