@@ -219,6 +219,16 @@ DocThinker tracks image assets extracted from documents and can activate relevan
 ### 8. 📊 Memory & KG Observability
 The web UI includes a query-time Memory Inspector and a KG dashboard. They expose recall plans, long-horizon matches, episodic matches, expanded-node lifecycle state, graph statistics, memory backend status, memory write decisions, delete/export controls, and evidence sources so users can inspect why an answer was generated and how knowledge is promoted over time. The KG dashboard also includes a natural-language memory editor: a user can type an edit instruction, preview matched long-horizon memories plus graph node/edge highlights, then apply or delete only the selected candidate. The current UI uses a warmer, Claude-inspired visual language while keeping the original dog mark.
 
+<p align="center">
+  <img src="docs/assets/ui_memory_editor_screenshot.png" alt="DocThinker natural-language memory editor UI with highlighted graph nodes and edges" width="920" />
+</p>
+<p align="center"><b>Figure 2.</b> Natural-language memory editing preview with selected nodes and edges highlighted for safe manual operation.</p>
+
+<p align="center">
+  <img src="docs/assets/memory_edit_operation.gif" alt="DocThinker memory edit operation video" width="720" />
+</p>
+<p align="center"><b>Demo.</b> Type an edit instruction, preview matched memory and graph highlights, then confirm the selected update.</p>
+
 ---
 
 ## 💡 Use Cases

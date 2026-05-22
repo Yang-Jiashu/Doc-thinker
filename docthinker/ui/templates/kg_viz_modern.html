@@ -29,7 +29,18 @@
     .level-expanded { fill: #d6aa3d; }
     .level-image { fill: #866bba; }
     .dimmed { opacity: 0.08 !important; }
-    .highlighted circle { stroke: var(--dt-copper); stroke-width: 3; }
+    .highlighted circle,
+    .selected-node circle {
+        stroke: var(--dt-copper) !important;
+        stroke-width: 4px !important;
+        filter: drop-shadow(0 0 11px rgba(184, 92, 56, 0.34));
+    }
+    .selected-edge {
+        stroke: var(--dt-copper) !important;
+        stroke-opacity: 1 !important;
+        stroke-width: 3.5px !important;
+        filter: drop-shadow(0 0 8px rgba(184, 92, 56, 0.28));
+    }
     .detail-section { border-left: 3px solid #e2e8f0; padding-left: 12px; margin-bottom: 12px; }
     .detail-section.edge-detail { border-left-color: var(--dt-lake); }
     .detail-section.node-detail { border-left-color: var(--dt-sage); }
@@ -473,6 +484,7 @@ let svg, g, simulation, node, link;
 let currentTransform = d3.zoomIdentity;
 let graphData = { nodes: [], links: [] };
 let selectedNode = null;
+let selectedEdgeId = null;
 let visibleLevels = { 1: true, 2: true, 3: true, expanded: true };
 let currentSessionId = '';
 let focusedNodeId = null;
@@ -1195,6 +1207,7 @@ function computeHopLevels(startId, maxHops) {
 /* ───────── Node click: focus + hop levels ───────── */
 function selectNode(d) {
     selectedNode = d;
+    selectedEdgeId = null;
     document.getElementById('detail-panel').classList.remove('hidden');
     document.getElementById('detail-node-section').style.display = '';
     document.getElementById('detail-edge-section').style.display = 'none';
@@ -1283,13 +1296,18 @@ function selectNode(d) {
     focusedNodeId = d.id;
 
     if (node) {
-        node.attr('opacity', n => connSet.has(n.id) ? 1 : 0.08);
+        node.classed('selected-node', n => n.id === d.id)
+            .attr('opacity', n => connSet.has(n.id) ? 1 : 0.08);
     }
     if (link) {
-        link.attr('stroke', l => {
+        link.classed('selected-edge', l => {
             const sid = typeof l.source === 'object' ? l.source.id : l.source;
             const tid = typeof l.target === 'object' ? l.target.id : l.target;
-            if (sid === d.id || tid === d.id) return '#3b82f6';
+            return sid === d.id || tid === d.id;
+        }).attr('stroke', l => {
+            const sid = typeof l.source === 'object' ? l.source.id : l.source;
+            const tid = typeof l.target === 'object' ? l.target.id : l.target;
+            if (sid === d.id || tid === d.id) return '#b85c38';
             return l.is_discovered ? '#ef4444' : null;
         }).attr('stroke-width', l => {
             const sid = typeof l.source === 'object' ? l.source.id : l.source;
@@ -1305,8 +1323,12 @@ function selectNode(d) {
 }
 
 function selectEdge(d) {
+    const srcId = typeof d.source === 'object' ? d.source.id : d.source;
+    const tgtId = typeof d.target === 'object' ? d.target.id : d.target;
     const srcName = typeof d.source === 'object' ? (d.source.name || d.source.id) : d.source;
     const tgtName = typeof d.target === 'object' ? (d.target.name || d.target.id) : d.target;
+    selectedNode = null;
+    selectedEdgeId = edgeIdentity(d);
 
     document.getElementById('detail-panel').classList.remove('hidden');
     document.getElementById('detail-node-section').style.display = 'none';
@@ -1334,25 +1356,35 @@ function selectEdge(d) {
         tagEl.style.display = 'none';
     }
 
+    if (node) {
+        node.classed('selected-node', n => n.id === srcId || n.id === tgtId)
+            .attr('opacity', n => (n.id === srcId || n.id === tgtId) ? 1 : 0.14);
+    }
     if (link) {
         const defaultStroke = l => l.is_discovered ? '#ef4444' : null;
-        link.attr('stroke', l => (l === d) ? '#f59e0b' : defaultStroke(l))
-            .attr('stroke-width', l => (l === d) ? 3 : (l.is_discovered ? 2 : 1));
+        link.classed('selected-edge', l => edgeIdentity(l) === selectedEdgeId)
+            .attr('stroke', l => (edgeIdentity(l) === selectedEdgeId) ? '#b85c38' : defaultStroke(l))
+            .attr('stroke-width', l => (edgeIdentity(l) === selectedEdgeId) ? 3.5 : (l.is_discovered ? 2 : 1))
+            .attr('stroke-opacity', l => (edgeIdentity(l) === selectedEdgeId) ? 1 : 0.1);
     }
 }
 
 function resetHighlight() {
     if (link) {
         link.classed('nl-edge-highlight', false)
+            .classed('selected-edge', false)
             .attr('stroke', l => l.is_discovered ? '#ef4444' : null)
             .attr('stroke-width', l => l.is_discovered ? 2 : 1)
             .attr('stroke-opacity', 0.6);
     }
     if (node) {
         node.classed('nl-node-highlight', false)
+            .classed('selected-node', false)
             .attr('opacity', 1);
     }
     focusedNodeId = null;
+    selectedNode = null;
+    selectedEdgeId = null;
     closePanel();
 }
 
