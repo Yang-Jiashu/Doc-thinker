@@ -1,6 +1,6 @@
 {% extends "base_modern.html" %}
 
-{% block title %}知识图谱 - NeuroAgent{% endblock %}
+{% block title %}知识图谱 - DocThinker{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -27,6 +27,45 @@
     .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); object-fit: contain; }
     .lightbox-close { position: absolute; top: 16px; right: 24px; color: #fff; font-size: 28px; cursor: pointer; background: rgba(0,0,0,0.4); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
     .lightbox-close:hover { background: rgba(255,255,255,0.2); }
+    .kg-dashboard {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 360px;
+        max-height: calc(100vh - 128px);
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(10px);
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+    }
+    .kg-dashboard-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #fff;
+        padding: 10px;
+    }
+    .kg-life-bar {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e2e8f0;
+        display: flex;
+    }
+    .kg-life-segment { height: 100%; }
+    .kg-life-candidate { background: #f59e0b; }
+    .kg-life-active { background: #3b82f6; }
+    .kg-life-promoted { background: #10b981; }
+    .kg-node-row {
+        border: 1px solid #f1f5f9;
+        border-radius: 8px;
+        padding: 8px;
+        background: #f8fafc;
+    }
+    @media (max-width: 1100px) {
+        .kg-dashboard { display: none; }
+    }
 </style>
 {% endblock %}
 
@@ -91,6 +130,72 @@
                 <p id="debug-result" class="text-xs text-slate-500 mt-2 break-all"></p>
             </div>
         </div>
+
+        <aside class="kg-dashboard">
+            <div class="p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-diagram-project text-blue-600"></i>
+                            Memory / KG Dashboard
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">当前会话的图谱、记忆与扩展节点状态。</p>
+                    </div>
+                    <button onclick="loadDashboardData()" class="text-slate-400 hover:text-blue-600" title="刷新面板">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="kg-dashboard-card">
+                        <p class="text-[11px] text-slate-500">实体</p>
+                        <p id="dash-entities" class="text-xl font-semibold text-slate-800">-</p>
+                    </div>
+                    <div class="kg-dashboard-card">
+                        <p class="text-[11px] text-slate-500">关系</p>
+                        <p id="dash-relations" class="text-xl font-semibold text-blue-700">-</p>
+                    </div>
+                    <div class="kg-dashboard-card">
+                        <p class="text-[11px] text-slate-500">扩展</p>
+                        <p id="dash-expanded" class="text-xl font-semibold text-amber-700">-</p>
+                    </div>
+                </div>
+
+                <section class="kg-dashboard-card">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-semibold text-slate-700">Expanded Lifecycle</h4>
+                        <span id="dash-life-total" class="text-[11px] text-slate-400">0 total</span>
+                    </div>
+                    <div class="kg-life-bar mt-3">
+                        <div id="dash-life-candidate" class="kg-life-segment kg-life-candidate" style="width:0%"></div>
+                        <div id="dash-life-active" class="kg-life-segment kg-life-active" style="width:0%"></div>
+                        <div id="dash-life-promoted" class="kg-life-segment kg-life-promoted" style="width:0%"></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mt-3 text-[11px]">
+                        <div><span class="inline-block w-2 h-2 rounded-full bg-amber-500"></span> 候选 <b id="dash-candidate-count">0</b></div>
+                        <div><span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span> 活跃 <b id="dash-active-count">0</b></div>
+                        <div><span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> 晋升 <b id="dash-promoted-count">0</b></div>
+                    </div>
+                </section>
+
+                <section class="kg-dashboard-card">
+                    <h4 class="text-xs font-semibold text-slate-700">Memory Backend</h4>
+                    <div id="dash-memory-stats" class="mt-2 text-xs text-slate-600 space-y-1">
+                        <p class="text-slate-400">等待加载...</p>
+                    </div>
+                </section>
+
+                <section class="kg-dashboard-card">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-semibold text-slate-700">Top Expanded Nodes</h4>
+                        <button onclick="focusTopExpandedNode()" class="text-[11px] text-blue-600 hover:text-blue-700">聚焦最高分</button>
+                    </div>
+                    <div id="dash-expanded-list" class="mt-2 space-y-2">
+                        <p class="text-xs text-slate-400">暂无扩展节点。</p>
+                    </div>
+                </section>
+            </div>
+        </aside>
     </div>
     
     <!-- Detail Panel -->
@@ -158,6 +263,7 @@ let visibleLevels = { 1: true, 2: true, 3: true, expanded: true };
 let currentSessionId = '';
 let focusedNodeId = null;
 let currentGraphView = 'semantic';
+let dashboardExpandedNodes = [];
 
 window.onload = initGraph;
 
@@ -213,6 +319,7 @@ async function handleKgSessionSwitch(sid) {
     setStoredSessionId(currentSessionId);
     focusedNodeId = null;
     await loadRealData();
+    await loadDashboardData();
 }
 
 async function initGraph() {
@@ -225,6 +332,7 @@ async function initGraph() {
     g = svg.append('g');
     await ensureKgSessionReady();
     await loadRealData();
+    await loadDashboardData();
     window.addEventListener('resize', () => { svg.attr('width', container.clientWidth).attr('height', container.clientHeight); });
 }
 
@@ -312,6 +420,142 @@ async function loadRealData() {
         document.getElementById('data-source-hint').textContent = ` | 加载失败: ` + (e.message || e);
         graphData = { nodes: [], links: [] }; renderGraph();
     }
+}
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = String(value);
+}
+
+function safeNumber(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function compactDate(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function renderMemoryStats(payload) {
+    const el = document.getElementById('dash-memory-stats');
+    if (!el) return;
+    if (!payload || payload.enabled === false) {
+        el.innerHTML = `<p class="text-slate-400">${payload?.error || '记忆后端暂未启用。'}</p>`;
+        return;
+    }
+    const system = payload.system || 'memory';
+    const rows = Object.entries(payload)
+        .filter(([key, value]) => !['enabled', 'session_id', 'system'].includes(key) && ['string', 'number', 'boolean'].includes(typeof value))
+        .slice(0, 6);
+    el.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-slate-500">系统</span>
+            <span class="font-medium text-slate-700">${system}</span>
+        </div>
+        ${rows.map(([key, value]) => `
+            <div class="flex items-center justify-between gap-2">
+                <span class="text-slate-500 truncate">${key}</span>
+                <span class="font-medium text-slate-700">${value}</span>
+            </div>
+        `).join('')}
+    `;
+}
+
+function renderExpandedDashboard(nodes) {
+    dashboardExpandedNodes = Array.isArray(nodes) ? nodes : [];
+    const counts = { candidate: 0, active: 0, promoted: 0 };
+    dashboardExpandedNodes.forEach((item) => {
+        const status = String(item.status || 'candidate');
+        if (status in counts) counts[status] += 1;
+    });
+    const total = dashboardExpandedNodes.length || 0;
+    setText('dash-expanded', total);
+    setText('dash-life-total', `${total} total`);
+    setText('dash-candidate-count', counts.candidate);
+    setText('dash-active-count', counts.active);
+    setText('dash-promoted-count', counts.promoted);
+    const denom = Math.max(1, total);
+    document.getElementById('dash-life-candidate').style.width = `${counts.candidate / denom * 100}%`;
+    document.getElementById('dash-life-active').style.width = `${counts.active / denom * 100}%`;
+    document.getElementById('dash-life-promoted').style.width = `${counts.promoted / denom * 100}%`;
+
+    const list = document.getElementById('dash-expanded-list');
+    if (!list) return;
+    const top = dashboardExpandedNodes.slice(0, 5);
+    if (!top.length) {
+        list.innerHTML = '<p class="text-xs text-slate-400">暂无扩展节点。</p>';
+        return;
+    }
+    list.innerHTML = top.map((item) => {
+        const name = item.entity || 'expanded node';
+        const score = safeNumber(item.promotion_score).toFixed(2);
+        const hits = safeNumber(item.hit_count);
+        const uses = safeNumber(item.use_count);
+        const status = item.status || 'candidate';
+        const updated = compactDate(item.last_used_at || item.last_hit_at || item.updated_at);
+        return `<button onclick='focusDashboardNode(${JSON.stringify(String(name))})' class="kg-node-row w-full text-left hover:bg-blue-50">
+            <div class="flex items-start justify-between gap-2">
+                <span class="text-xs font-medium text-slate-700 truncate">${escapeHtml(name)}</span>
+                <span class="text-[11px] text-blue-600">${score}</span>
+            </div>
+            <div class="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
+                <span>${escapeHtml(status)}</span>
+                <span>hits ${hits}</span>
+                <span>uses ${uses}</span>
+                ${updated ? `<span>${updated}</span>` : ''}
+            </div>
+        </button>`;
+    }).join('');
+}
+
+async function loadDashboardData() {
+    if (!currentSessionId) return;
+    try {
+        const resp = await fetch(getKgApiPrefix() + '/memory/dashboard?session_id=' + encodeURIComponent(currentSessionId));
+        const dashboard = await resp.json().catch(() => ({}));
+        const stats = dashboard.kg || {};
+        const expanded = dashboard.expanded || {};
+        const memory = dashboard.memory || {};
+        setText('dash-entities', stats.total_entities ?? '-');
+        setText('dash-relations', stats.total_relationships ?? '-');
+        renderExpandedDashboard(expanded.nodes || []);
+        renderMemoryStats(memory);
+    } catch (e) {
+        console.warn('Load dashboard failed:', e);
+        renderMemoryStats({ enabled: false, error: '面板加载失败: ' + e.message });
+    }
+}
+
+function focusDashboardNode(name) {
+    const target = graphData.nodes.find((n) => String(n.id) === String(name) || String(n.name) === String(name));
+    if (target) {
+        selectNode(target);
+        selectedNode = target;
+        focusNode();
+    } else {
+        searchNodes(name);
+        showToast('图中未显示该节点，已尝试搜索匹配项', 'warning');
+    }
+}
+
+function focusTopExpandedNode() {
+    if (!dashboardExpandedNodes.length) {
+        showToast('暂无扩展节点', 'warning');
+        return;
+    }
+    focusDashboardNode(dashboardExpandedNodes[0].entity);
 }
 
 function nodeRadius(d) {
@@ -680,6 +924,7 @@ function resetZoom() {
 
 function refreshGraph() {
     loadRealData();
+    loadDashboardData();
     showToast('知识图谱已刷新', 'success');
 }
 
@@ -719,6 +964,7 @@ async function expandGraph() {
             const validated = data.validated_count || 0;
             showToast(`扩展完成：+${nodes} 节点, +${edges} 边 (聚类=${clusters}, 校验通过=${validated})`, 'success');
             loadRealData();
+            loadDashboardData();
         } else {
             showToast('扩展失败: ' + (data.detail || data.error || '未知错误'), 'error');
         }

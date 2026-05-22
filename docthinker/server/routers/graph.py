@@ -736,6 +736,43 @@ async def memory_stats(session_id: Optional[str] = None):
     except Exception as e:
         return {"enabled": False, "session_id": session_id, "error": str(e)}
 
+
+@router.get("/memory/dashboard")
+async def memory_dashboard(session_id: Optional[str] = None):
+    """Aggregated dashboard state for KG + memory visualization."""
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id is required")
+
+    kg_stats: Dict[str, Any]
+    try:
+        kg_stats = await get_knowledge_graph_stats(session_id=session_id)
+    except Exception as exc:
+        kg_stats = {"error": str(exc), "total_entities": 0, "total_relationships": 0}
+
+    expanded_payload: Dict[str, Any]
+    try:
+        manager = _get_expanded_node_manager_or_raise(session_id)
+        expanded_nodes = manager.list_nodes(limit=100)
+        lifecycle = {"candidate": 0, "active": 0, "promoted": 0, "deprecated": 0}
+        for item in expanded_nodes:
+            status = str(item.get("status") or "candidate")
+            lifecycle[status] = lifecycle.get(status, 0) + 1
+        expanded_payload = {
+            "count": len(expanded_nodes),
+            "lifecycle": lifecycle,
+            "nodes": expanded_nodes,
+        }
+    except Exception as exc:
+        expanded_payload = {"count": 0, "lifecycle": {}, "nodes": [], "error": str(exc)}
+
+    memory_payload = await memory_stats(session_id=session_id)
+    return {
+        "session_id": session_id,
+        "kg": kg_stats,
+        "expanded": expanded_payload,
+        "memory": memory_payload,
+    }
+
 # ── LLM Trace observability endpoints ──────────────────────────────
 
 @router.get("/traces")
@@ -765,4 +802,3 @@ async def get_trace_detail_endpoint(
     if record is None:
         raise HTTPException(status_code=404, detail=f"Trace {call_id} not found")
     return record
-

@@ -48,6 +48,7 @@ Unlike a conventional retrieve-then-respond RAG pipeline, DocThinker treats know
   - [4. Tiered Conversation Memory (Claw)](#4--tiered-conversation-memory-claw)
   - [5. Episodic Analogy Memory](#5--episodic-analogy-memory)
   - [6. Multimodal Retrieval Signals](#6--multimodal-retrieval-signals)
+  - [7. Memory & KG Observability](#7--memory--kg-observability)
 - [💡 Use Cases](#-use-cases)
 - [⚡ Query Modes & PDF Processing](#-query-modes)
 - [📡 API Reference](#-api-reference)
@@ -208,6 +209,9 @@ Neuro Memory stores chat/document experiences as episodes and retrieves similar 
 ### 6. 🖼️ Multimodal Retrieval Signals
 DocThinker tracks image assets extracted from documents and can activate relevant visual evidence during deep UI queries.
 
+### 7. 📊 Memory & KG Observability
+The web UI includes a query-time Memory Inspector and a KG dashboard. They expose recall traces, episodic matches, expanded-node lifecycle state, graph statistics, memory backend status, and evidence sources so users can inspect why an answer was generated and how knowledge is promoted over time.
+
 ---
 
 ## 💡 Use Cases
@@ -273,6 +277,7 @@ DocThinker tracks image assets extracted from documents and can activate relevan
 | | `/api/v1/knowledge-graph/stats` | GET | KG statistics |
 | | `/api/v1/knowledge-graph/expanded-nodes` | GET | Expanded-node lifecycle state |
 | Memory | `/api/v1/memory/stats` | GET | Episode + Claw memory stats |
+| | `/api/v1/memory/dashboard` | GET | Aggregated KG + memory dashboard state |
 | Settings | `/api/v1/settings` | GET / POST | Runtime config |
 
 </details>
