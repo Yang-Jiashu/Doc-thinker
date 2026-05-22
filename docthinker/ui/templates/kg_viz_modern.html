@@ -16,11 +16,7 @@
         --dt-ochre: #b7892d;
     }
     .kg-shell {
-        background:
-            linear-gradient(rgba(41, 37, 32, 0.035) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(41, 37, 32, 0.026) 1px, transparent 1px),
-            linear-gradient(135deg, #fbfaf7 0%, #f3f0e8 46%, #f8faf8 100%);
-        background-size: 28px 28px, 28px 28px, auto;
+        background: linear-gradient(180deg, #FAF8F5 0%, #F7F1EA 100%);
     }
     .node circle { cursor: pointer; transition: all 0.2s; }
     .node:hover circle { filter: saturate(1.1) brightness(1.04); stroke-width: 2.5; }
@@ -56,24 +52,24 @@
         top: 18px;
         left: 18px;
         width: 268px;
-        border-radius: 16px;
+        border-radius: 24px;
     }
     .kg-dashboard {
         width: 360px;
         height: 100%;
         overflow-y: auto;
         border-left: 1px solid var(--dt-hairline);
-        background: rgba(255, 254, 250, 0.96);
+        background: rgba(255, 255, 255, 0.88);
     }
     .kg-dashboard-card {
         border: 1px solid var(--dt-hairline);
-        border-radius: 10px;
-        background: #fffefa;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.86);
         padding: 12px;
-        box-shadow: 0 1px 2px rgba(55, 46, 36, 0.04);
+        box-shadow: 0 2px 16px rgba(193, 165, 140, 0.1);
     }
     .kg-stat-tile {
-        border-radius: 10px;
+        border-radius: 16px;
         padding: 12px;
         background: linear-gradient(180deg, #fffefa 0%, #f7f3ea 100%);
         border: 1px solid var(--dt-hairline);
@@ -96,37 +92,37 @@
         background: #faf7ef;
     }
     .kg-control-button {
-        height: 36px;
+        min-height: 40px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        border-radius: 9px;
+        border-radius: 24px;
         border: 1px solid var(--dt-hairline);
         background: #fffefa;
         color: #5f584f;
         font-weight: 600;
-        transition: transform 0.16s ease, color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+        transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
     .kg-control-button:hover {
         color: var(--dt-copper);
         border-color: #d7a28b;
         background: #fbf2eb;
-        transform: translateY(-1px);
+        transform: translateY(-2px);
     }
     .kg-control-primary {
         color: white;
-        border-color: var(--dt-ink);
-        background: var(--dt-ink);
+        border-color: var(--dt-copper);
+        background: var(--dt-copper);
     }
     .kg-control-primary:hover {
         color: white;
-        background: #15120f;
+        background: var(--dt-copper-dark);
     }
     .kg-tool-icon {
         width: 28px;
         height: 28px;
-        border-radius: 9px;
+        border-radius: 12px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -145,7 +141,7 @@
     .kg-control-accent {
         color: #5f2e1f;
         border-color: #dfb7a5;
-        background: #fbede6;
+        background: #F5E6D3;
     }
     .kg-control-accent:hover {
         color: #5f2e1f;

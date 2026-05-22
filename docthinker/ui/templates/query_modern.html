@@ -15,29 +15,27 @@
         --dt-ochre: #b7892d;
     }
     .query-shell {
-        background:
-            linear-gradient(rgba(41, 37, 32, 0.028) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(41, 37, 32, 0.02) 1px, transparent 1px),
-            linear-gradient(135deg, #fbfaf7 0%, #f5f0e7 52%, #fbfaf7 100%);
-        background-size: 28px 28px, 28px 28px, auto;
+        background: linear-gradient(180deg, #FAF8F5 0%, #F7F1EA 100%);
     }
     .mode-card {
-        min-height: 66px;
-        transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
-        border: 1px solid #ded8cc;
-        background: #fffefa;
+        min-height: 76px;
+        transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        border: 1px solid rgba(232, 221, 211, 0.78);
+        background: rgba(255, 255, 255, 0.86);
         position: relative;
         overflow: hidden;
+        border-radius: 20px !important;
     }
     .mode-card:hover {
-        border-color: #d6a28d;
-        background: #fbf2eb;
-        transform: translateY(-1px);
+        border-color: rgba(217, 119, 87, 0.32);
+        background: #FFFFFF;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(193, 165, 140, 0.14);
     }
     .mode-card.active {
-        border-color: #b85c38;
-        background: #fbede6;
-        box-shadow: inset 0 0 0 1px rgba(184, 92, 56, 0.12), 0 10px 24px rgba(184, 92, 56, 0.08);
+        border-color: rgba(217, 119, 87, 0.45);
+        background: #F5E6D3;
+        box-shadow: inset 0 0 0 1px rgba(217, 119, 87, 0.1), 0 10px 26px rgba(193, 165, 140, 0.16);
     }
     .mode-card.active::before {
         content: "";
@@ -47,7 +45,7 @@
         top: 0;
         height: 3px;
         border-radius: 0 0 999px 999px;
-        background: #b85c38;
+        background: #D97757;
     }
     .mode-icon {
         width: 28px;
@@ -55,15 +53,15 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 9px;
+        border-radius: 12px;
         background: #f7f3ea;
         border: 1px solid #e7dfd1;
     }
     .composer-bar {
         border: 1px solid #ded8cc;
-        border-radius: 16px;
-        background: #fffefa;
-        box-shadow: 0 12px 34px rgba(55, 46, 36, 0.08);
+        border-radius: 24px;
+        background: #FFFFFF;
+        box-shadow: 0 10px 32px rgba(193, 165, 140, 0.16);
     }
     .composer-action {
         width: 36px;
@@ -71,16 +69,16 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 10px;
-        transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease;
+        border-radius: 999px;
+        transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
     .composer-action:hover {
-        transform: translateY(-1px);
+        transform: translateY(-2px);
     }
     .assistant-avatar {
         width: 32px;
         height: 32px;
-        border-radius: 11px;
+        border-radius: 14px;
         background: linear-gradient(180deg, #fff7ed 0%, #f7f3ea 100%);
         color: #292520;
         display: inline-flex;
@@ -88,7 +86,7 @@
         justify-content: center;
         flex-shrink: 0;
         border: 1px solid #ded8cc;
-        box-shadow: 0 8px 18px rgba(41, 37, 32, 0.12);
+        box-shadow: 0 8px 18px rgba(193, 165, 140, 0.18);
     }
     .assistant-avatar::before {
         content: "D";
@@ -349,7 +347,7 @@
                         <i class="fa-solid fa-paperclip"></i>
                     </button>
 
-                    <button onclick="sendMessage()" class="composer-action bg-[#292520] hover:bg-[#15120f] text-[#fffefa] shadow-sm" title="发送">
+                    <button onclick="sendMessage()" class="composer-action btn-primary shadow-sm" title="发送">
                         <i class="fa-solid fa-paper-plane text-sm"></i>
                     </button>
                 </div>

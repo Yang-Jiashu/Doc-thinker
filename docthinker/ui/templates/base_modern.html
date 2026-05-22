@@ -33,26 +33,36 @@
     </script>
 
     <style>
-        * { font-family: 'Inter', sans-serif; }
+        * { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 
         body {
-            background: #fbfaf7;
+            background: #FAF8F5;
+            line-height: 1.65;
         }
 
         :root {
-            --dt-ink: #292520;
-            --dt-muted: #766f66;
-            --dt-soft: #9b9287;
-            --dt-paper: #fbfaf7;
-            --dt-surface: #fffefa;
-            --dt-panel: #f7f3ea;
-            --dt-line: #ded8cc;
-            --dt-copper: #b85c38;
-            --dt-copper-dark: #8f4329;
-            --dt-sage: #54746b;
-            --dt-lake: #4b6f8f;
-            --dt-plum: #8a5f87;
-            --dt-ochre: #b7892d;
+            --dt-ink: #1A1A1A;
+            --dt-muted: #4A4543;
+            --dt-soft: #9C9590;
+            --dt-paper: #FAF8F5;
+            --dt-surface: #FFFFFF;
+            --dt-panel: #F5E6D3;
+            --dt-line: #E8DDD3;
+            --dt-copper: #D97757;
+            --dt-copper-dark: #C4653A;
+            --dt-sage: #6B8F71;
+            --dt-lake: #7C6F67;
+            --dt-plum: #9A7B73;
+            --dt-ochre: #D4A853;
+            --dt-shadow: rgba(193, 165, 140, 0.12);
+            --font-display: Georgia, 'Lora', 'Times New Roman', serif;
+            --font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            color: var(--dt-ink);
+            line-height: 1.2;
+            letter-spacing: 0.01em;
         }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -213,53 +223,55 @@
         }
 
         .card {
-            background: #fffefa;
-            border: 1px solid #ded8cc;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            background: var(--dt-surface);
+            border: 1px solid rgba(232, 221, 211, 0.72);
+            border-radius: 16px;
+            box-shadow: 0 2px 16px var(--dt-shadow);
         }
 
         .card-hover:hover {
-            border-color: #d7a28b;
-            box-shadow: 0 4px 12px rgba(184, 92, 56, 0.12);
+            border-color: rgba(217, 119, 87, 0.35);
+            box-shadow: 0 8px 24px rgba(193, 165, 140, 0.18);
         }
 
         .btn-primary {
-            height: 36px;
+            min-height: 40px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            border-radius: 9px;
-            background: var(--dt-ink);
-            color: var(--dt-surface);
-            font-weight: 600;
-            transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
-            box-shadow: 0 8px 20px rgba(41, 37, 32, 0.12);
+            border: 0;
+            border-radius: 24px;
+            background: var(--dt-copper);
+            color: white;
+            font-weight: 550;
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 4px 16px rgba(217, 119, 87, 0.18);
         }
         .btn-primary:hover {
-            background: #15120f;
-            transform: translateY(-1px);
+            background: var(--dt-copper-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(217, 119, 87, 0.24);
         }
 
         .btn-secondary {
-            height: 36px;
+            min-height: 40px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            border-radius: 9px;
+            border-radius: 24px;
             background: var(--dt-surface);
             border: 1px solid var(--dt-line);
             color: #5f584f;
-            font-weight: 600;
-            transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+            font-weight: 550;
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         .btn-secondary:hover {
-            border-color: #d7a28b;
+            border-color: rgba(217, 119, 87, 0.4);
             color: var(--dt-copper);
-            background: #fbede6;
-            transform: translateY(-1px);
+            background: #F5E6D3;
+            transform: translateY(-2px);
         }
 
         .brand-lockup {
@@ -269,14 +281,14 @@
             gap: 12px;
             padding: 9px;
             border: 1px solid var(--dt-line);
-            border-radius: 16px;
-            background: linear-gradient(180deg, #fffefa 0%, #f7f3ea 100%);
-            box-shadow: 0 10px 28px rgba(55, 46, 36, 0.08);
+            border-radius: 20px;
+            background: linear-gradient(180deg, #FFFFFF 0%, #FAF8F5 100%);
+            box-shadow: 0 4px 24px var(--dt-shadow);
         }
         .brand-mark {
             width: 64px;
             height: 64px;
-            border-radius: 14px;
+            border-radius: 18px;
             display: grid;
             place-items: center;
             overflow: hidden;
@@ -312,23 +324,23 @@
             margin: 0 12px 8px;
         }
         .sidebar-item {
-            min-height: 42px;
-            transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+            min-height: 44px;
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             border: 1px solid transparent;
-            border-radius: 11px;
+            border-radius: 18px;
             color: #4d463e;
-            font-weight: 600;
+            font-weight: 550;
         }
         .sidebar-item:hover {
             background: #fbede6;
             color: #8f4329;
-            transform: translateX(2px);
+            transform: translateX(3px);
         }
         .sidebar-item.active {
             background: #fbede6;
             color: #8f4329;
             border-color: #efcfc0;
-            box-shadow: inset 3px 0 0 var(--dt-copper);
+            box-shadow: inset 3px 0 0 var(--dt-copper), 0 4px 18px rgba(217, 119, 87, 0.08);
         }
         .sidebar-item i {
             width: 26px;
@@ -341,23 +353,23 @@
             background: rgba(255, 254, 250, 0.64);
         }
         .dt-header-button {
-            height: 36px;
+            min-height: 40px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            border-radius: 9px;
+            border-radius: 24px;
             border: 1px solid var(--dt-line);
             background: var(--dt-surface);
             color: #5f584f;
             padding: 0 12px;
             font-size: 14px;
-            font-weight: 600;
-            transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+            font-weight: 550;
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         .dt-header-button:hover {
-            transform: translateY(-1px);
-            background: #fbede6;
+            transform: translateY(-2px);
+            background: #F5E6D3;
             color: var(--dt-copper-dark);
             border-color: #d7a28b;
         }
@@ -371,36 +383,36 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            border-radius: 8px;
+            border-radius: 999px;
             border: 1px solid transparent;
             color: var(--dt-copper-dark);
             background: transparent;
             padding: 0 8px;
             font-size: 12px;
             font-weight: 650;
-            transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         .dt-mini-button:hover {
-            background: #fbede6;
+            background: #F5E6D3;
             border-color: #efcfc0;
             color: var(--dt-copper-dark);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
         .dt-danger-button {
             min-height: 30px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
+            border-radius: 999px;
             border: 1px solid #ead3cf;
-            background: #fff7f5;
+            background: #FFF5F2;
             color: #b42318;
             padding: 0 9px;
-            transition: background 0.16s ease, transform 0.16s ease;
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         .dt-danger-button:hover {
             background: #ffe9e4;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
         .dt-check {
             width: 15px;
