@@ -444,6 +444,9 @@ async def _background_post_query_enrichment(
     expanded_min_score: float = 0.2,
     retrieval_instruction: str = "",
     matched_expanded: Optional[List[Dict[str, Any]]] = None,
+    remember_turn: bool = True,
+    memory_excluded_layers: Optional[List[str]] = None,
+    memory_write_scope: Optional[str] = None,
 ) -> None:
     """All post-query intelligence — runs in background, never blocks the user."""
     _t0 = time.time()
@@ -453,6 +456,9 @@ async def _background_post_query_enrichment(
         question=question,
         answer=answer,
         matched_expanded=matched_expanded,
+        remember=remember_turn,
+        excluded_layers=memory_excluded_layers,
+        write_scope=memory_write_scope,
     )
     _log.info(
         "[bg_enrich] session %s done in %.2fs: %s",
@@ -543,6 +549,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         long_horizon_matches = recall_bundle.long_horizon_matches
         merged_instruction = recall_bundle.retrieval_instruction
         memory_summaries = recall_bundle.memory_summaries
+        memory_reasoning = recall_bundle.memory_reasoning
 
         _log.info("[T+%ss] phase1 done", _elapsed())
         thinking_process = recall_bundle.trace.format_for_response(request.mode)
@@ -554,6 +561,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
             "episodic_matches": episodic_matches[:min(3, len(episodic_matches))],
             "long_horizon_matches": long_horizon_matches[:min(3, len(long_horizon_matches))],
             "memory_summaries": memory_summaries,
+            "memory_reasoning": memory_reasoning,
             "memory_trace": recall_bundle.trace.to_schema(),
             "retrieval_instruction_applied": bool(merged_instruction),
             "mode": request.mode,
@@ -662,6 +670,9 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
                 expanded_min_score=request.expanded_min_score,
                 retrieval_instruction=str(request.retrieval_instruction or ""),
                 matched_expanded=expanded_matches if expanded_matches else None,
+                remember_turn=request.remember_turn,
+                memory_excluded_layers=request.memory_excluded_layers,
+                memory_write_scope=request.memory_write_scope,
             )
 
     return StreamingResponse(generate(), media_type="text/event-stream")
@@ -733,6 +744,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
     long_horizon_matches = recall_bundle.long_horizon_matches
     merged_instruction = recall_bundle.retrieval_instruction
     memory_summaries = recall_bundle.memory_summaries
+    memory_reasoning = recall_bundle.memory_reasoning
 
     # Phase 2: Generation
     try:
@@ -827,6 +839,9 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
                 expanded_min_score=request.expanded_min_score,
                 retrieval_instruction=str(request.retrieval_instruction or ""),
                 matched_expanded=expanded_matches if expanded_matches else None,
+                remember_turn=request.remember_turn,
+                memory_excluded_layers=request.memory_excluded_layers,
+                memory_write_scope=request.memory_write_scope,
             )
 
         if not sources and hasattr(session_rag, "get_last_query_evidence"):
@@ -846,6 +861,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             "episodic_matches": episodic_matches[:min(3, len(episodic_matches))],
             "long_horizon_matches": long_horizon_matches[:min(3, len(long_horizon_matches))],
             "memory_trace": recall_bundle.trace.to_schema(),
+            "memory_reasoning": memory_reasoning,
             "retrieval_instruction_applied": bool(merged_instruction),
             "memory_summaries": memory_summaries,
         }

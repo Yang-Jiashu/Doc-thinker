@@ -3,6 +3,8 @@
 DocThinker exposes its agentic memory layer as a small set of backend
 protocols. A host agent can bring its own database, vector store, graph store,
 or memory service and still use the same recall/consolidation flow.
+The default adapters include Claw/OpenClaw-style conversation memory, but the
+core API is backend-agnostic.
 
 ## Runtime Shape
 
@@ -26,8 +28,8 @@ flowchart LR
 - `EpisodicMemoryBackend`: retrieves similar past episodes as analogy context
   and writes the completed turn as a new episode.
 - `LongHorizonMemoryBackend`: builds a recall plan, retrieves durable
-  cross-turn insights, and consolidates useful answers into long-horizon
-  memory.
+  cross-turn insights, reasons over recalled memory, and consolidates useful
+  answers into long-horizon memory.
 - `ExpandedKnowledgeBackend`: matches candidate KG hypotheses during recall and
   records which candidates were useful in the answer.
 - `GraphPromotionBackend`: promotes repeatedly useful expanded nodes into the
@@ -53,7 +55,15 @@ Use `MemoryPolicy` to tune behavior without changing backend code:
 - `long_horizon_scopes`: scopes to search, such as `session`, `project`, and
   `user`.
 - `long_horizon_write_scope`: where newly consolidated insights are stored.
+- `allow_memory_writes`: global switch for after-response consolidation.
+- `write_excluded_layers`: layers that should never receive writes under this
+  policy.
 - `answer_entity_limit`: max entities extracted from a completed Q&A turn.
+
+Per request, hosts can also pass `remember_turn=false` or
+`memory_excluded_layers=["episodic", "long_horizon"]` through DocThinker's
+query API. This keeps the framework controllable: sensitive text, temporary
+drafts, or low-confidence interactions can be answered without becoming memory.
 
 ## Minimal Integration
 

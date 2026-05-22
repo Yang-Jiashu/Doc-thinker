@@ -61,6 +61,8 @@ class MemoryTrace:
     memory_context_injected: bool = False
     retrieval_instruction_applied: bool = False
     recall_plan: Dict[str, Any] = field(default_factory=dict)
+    memory_reasoning: Dict[str, Any] = field(default_factory=dict)
+    write_policy: Dict[str, Any] = field(default_factory=dict)
     events: List[Dict[str, Any]] = field(default_factory=list)
 
     def format_for_response(self, mode: str = "") -> str:
@@ -73,6 +75,8 @@ class MemoryTrace:
         lines.append(f"long_horizon_hits: {self.long_horizon_hits}")
         if self.recall_plan:
             lines.append(f"recall_plan: {self.recall_plan.get('question_type', 'general')}")
+        if self.memory_reasoning:
+            lines.append(f"memory_reasoning: {self.memory_reasoning.get('mode', 'derived')}")
         if mode:
             lines.append(f"mode: {mode}")
         if self.memory_context_injected:
@@ -94,8 +98,10 @@ class MemoryTrace:
                 "context_injected": self.memory_context_injected,
                 "retrieval_instruction_applied": self.retrieval_instruction_applied,
                 "plan": dict(self.recall_plan or {}),
+                "memory_reasoning": dict(self.memory_reasoning or {}),
             },
             "events": list(self.events),
+            "write_policy": dict(self.write_policy or {}),
             "consolidation": dict(consolidation or {}),
         }
 
@@ -109,6 +115,7 @@ class RecallBundle:
     episodic_matches: List[Dict[str, Any]] = field(default_factory=list)
     expanded_matches: List[Dict[str, Any]] = field(default_factory=list)
     long_horizon_matches: List[Dict[str, Any]] = field(default_factory=list)
+    memory_reasoning: Dict[str, Any] = field(default_factory=dict)
     trace: MemoryTrace = field(default_factory=MemoryTrace)
 
 
@@ -256,6 +263,52 @@ class InMemoryLongHorizonBackend:
             scope = str(item.get("scope") or "session")
             lines.append(f"- [{scope}/{kind}/{confidence:.2f}] {summary[:240]}")
         return "\n".join(lines)
+
+    def reason_over_memory(
+        self,
+        query: str,
+        matches: Sequence[Dict[str, Any]],
+        *,
+        plan: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Derive a compact inference layer from recalled memory."""
+        question_type = str((plan or {}).get("question_type") or self._classify_query(query))
+        if not matches:
+            return {
+                "mode": "memory_reasoning",
+                "question_type": question_type,
+                "conclusions": [],
+                "constraints": [],
+                "open_questions": ["no_long_horizon_match"],
+            }
+        preferences: List[str] = []
+        tasks: List[str] = []
+        reasoning: List[str] = []
+        for item in matches:
+            summary = str(item.get("summary") or "").strip()
+            kind = str(item.get("kind") or "insight")
+            if not summary:
+                continue
+            if kind == "preference":
+                preferences.append(summary)
+            elif kind == "task_memory":
+                tasks.append(summary)
+            else:
+                reasoning.append(summary)
+        conclusions: List[str] = []
+        if preferences:
+            conclusions.append("preserve_user_preferences")
+        if tasks:
+            conclusions.append("continue_project_state")
+        if reasoning:
+            conclusions.append("reuse_prior_reasoning")
+        return {
+            "mode": "memory_reasoning",
+            "question_type": question_type,
+            "conclusions": conclusions or ["use_recalled_context"],
+            "constraints": (preferences + tasks + reasoning)[:5],
+            "open_questions": [],
+        }
 
     def consolidate(
         self,
@@ -444,6 +497,31 @@ class AgentMemoryCore:
                 lines.append(f"  关联原因: {reason[:160]}")
         return "\n".join(lines)
 
+    @staticmethod
+    def _format_memory_reasoning_instruction(memory_reasoning: Dict[str, Any]) -> str:
+        constraints = [
+            str(item).strip()
+            for item in (memory_reasoning.get("constraints") or [])
+            if str(item).strip()
+        ]
+        conclusions = [
+            str(item).strip()
+            for item in (memory_reasoning.get("conclusions") or [])
+            if str(item).strip()
+        ]
+        if not constraints and not conclusions:
+            return ""
+        lines = [
+            "## Memory-side reasoning",
+            "The memory layer has already reasoned over recalled insights. Treat these as continuity constraints, not as standalone facts.",
+            "",
+        ]
+        for item in conclusions[:4]:
+            lines.append(f"- conclusion: {item}")
+        for item in constraints[:5]:
+            lines.append(f"- constraint: {item[:220]}")
+        return "\n".join(lines)
+
     async def recall(
         self,
         *,
@@ -465,6 +543,7 @@ class AgentMemoryCore:
         episodic_matches: List[Dict[str, Any]] = []
         expanded_matches: List[Dict[str, Any]] = []
         long_horizon_matches: List[Dict[str, Any]] = []
+        memory_reasoning: Dict[str, Any] = {}
 
         if skip_memory:
             trace.retrieval_instruction_applied = bool(merged_instruction)
@@ -474,6 +553,7 @@ class AgentMemoryCore:
                 episodic_matches=episodic_matches,
                 expanded_matches=expanded_matches,
                 long_horizon_matches=long_horizon_matches,
+                memory_reasoning=memory_reasoning,
                 trace=trace,
             )
 
@@ -502,19 +582,35 @@ class AgentMemoryCore:
                         long_horizon_matches,
                         limit=self.policy.long_horizon_instruction_limit,
                     )
+                    memory_reasoning = self.backends.long_horizon.reason_over_memory(
+                        query,
+                        long_horizon_matches,
+                        plan=trace.recall_plan,
+                    )
+                    reasoning_instruction = self._format_memory_reasoning_instruction(
+                        memory_reasoning,
+                    )
                     merged_instruction = self._merge_instructions(
                         merged_instruction,
                         long_horizon_instruction,
+                        reasoning_instruction,
                     )
                     memory_summaries.append({
                         "source": "long_horizon",
                         "kind": "consolidated_insight",
                         "count": len(long_horizon_matches),
+                        "reasoned": bool(memory_reasoning.get("conclusions")),
                     })
                     trace.memory_context_injected = True
+                    trace.memory_reasoning = dict(memory_reasoning or {})
                     trace.events.append({
                         "type": "long_horizon_recall",
                         "count": len(long_horizon_matches),
+                    })
+                    trace.events.append({
+                        "type": "memory_reasoning",
+                        "question_type": memory_reasoning.get("question_type"),
+                        "conclusions": memory_reasoning.get("conclusions", []),
                     })
             except Exception as exc:
                 _log.warning("[recall] long-horizon recall failed: %s", exc)
@@ -616,6 +712,7 @@ class AgentMemoryCore:
             episodic_matches=episodic_matches,
             expanded_matches=expanded_matches,
             long_horizon_matches=long_horizon_matches,
+            memory_reasoning=memory_reasoning,
             trace=trace,
         )
 
@@ -626,6 +723,9 @@ class AgentMemoryCore:
         question: str,
         answer: str,
         matched_expanded: Optional[Sequence[Dict[str, Any]]] = None,
+        remember: bool = True,
+        excluded_layers: Optional[Sequence[str]] = None,
+        write_scope: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Consolidate memories after a response has been produced."""
 
@@ -633,8 +733,13 @@ class AgentMemoryCore:
             return {"updated": False}
 
         t0 = time.time()
+        excluded = set(str(layer) for layer in (excluded_layers or ()))
+        excluded.update(str(layer) for layer in self.policy.write_excluded_layers)
+        writes_allowed = bool(remember and self.policy.allow_memory_writes)
         result: Dict[str, Any] = {
-            "updated": True,
+            "updated": writes_allowed,
+            "memory_write_skipped": not writes_allowed,
+            "excluded_layers": sorted(excluded),
             "claw_updated": False,
             "episode_added": False,
             "chat_turn_ingested": False,
@@ -643,7 +748,28 @@ class AgentMemoryCore:
             "long_horizon_insight": None,
         }
 
-        if self.backends.conversation and self.policy.layer_enabled("conversation"):
+        if not writes_allowed:
+            result["elapsed_seconds"] = round(time.time() - t0, 3)
+            result["memory_trace"] = {
+                "memory_mode": "session",
+                "write_policy": {
+                    "remember": bool(remember),
+                    "writes_allowed": False,
+                    "excluded_layers": sorted(excluded),
+                },
+                "consolidation": {
+                    "skipped": True,
+                    "reason": "memory_writes_disabled",
+                    "enabled_layers": sorted(self.policy.enabled_layer_set()),
+                },
+            }
+            return result
+
+        if (
+            self.backends.conversation
+            and self.policy.layer_enabled("conversation")
+            and "conversation" not in excluded
+        ):
             try:
                 result["claw_updated"] = await self.backends.conversation.consolidate(
                     session_id,
@@ -658,7 +784,11 @@ class AgentMemoryCore:
             max_entities=self.policy.answer_entity_limit,
         )
 
-        if self.backends.episodic and self.policy.layer_enabled("episodic"):
+        if (
+            self.backends.episodic
+            and self.policy.layer_enabled("episodic")
+            and "episodic" not in excluded
+        ):
             try:
                 episode_id = await self.backends.episodic.write(
                     session_id,
@@ -673,7 +803,11 @@ class AgentMemoryCore:
             except Exception as exc:
                 _log.warning("[after_response] episode add failed: %s", exc)
 
-        if self.backends.chat_turn and self.policy.layer_enabled("chat_turn"):
+        if (
+            self.backends.chat_turn
+            and self.policy.layer_enabled("chat_turn")
+            and "chat_turn" not in excluded
+        ):
             try:
                 result["chat_turn_ingested"] = await self.backends.chat_turn.ingest(
                     session_id,
@@ -684,7 +818,12 @@ class AgentMemoryCore:
             except Exception as exc:
                 _log.warning("[after_response] chat turn ingest failed: %s", exc)
 
-        if matched_expanded and self.backends.expanded and self.policy.layer_enabled("expanded"):
+        if (
+            matched_expanded
+            and self.backends.expanded
+            and self.policy.layer_enabled("expanded")
+            and "expanded" not in excluded
+        ):
             try:
                 promoted_names = self.backends.expanded.record_usage(
                     session_id,
@@ -703,14 +842,18 @@ class AgentMemoryCore:
             except Exception as exc:
                 _log.warning("[after_response] expanded promotion failed: %s", exc)
 
-        if self.backends.long_horizon and self.policy.layer_enabled("long_horizon"):
+        if (
+            self.backends.long_horizon
+            and self.policy.layer_enabled("long_horizon")
+            and "long_horizon" not in excluded
+        ):
             try:
                 insight = self.backends.long_horizon.consolidate(
                     session_id,
                     question,
                     answer,
                     concepts=concepts,
-                    scope=self.policy.long_horizon_write_scope,
+                    scope=write_scope or self.policy.long_horizon_write_scope,
                     timestamp=time.time(),
                     matched_expanded=matched_expanded,
                 )
@@ -723,6 +866,12 @@ class AgentMemoryCore:
         result["elapsed_seconds"] = round(time.time() - t0, 3)
         result["memory_trace"] = {
             "memory_mode": "session",
+            "write_policy": {
+                "remember": bool(remember),
+                "writes_allowed": True,
+                "excluded_layers": sorted(excluded),
+                "write_scope": write_scope or self.policy.long_horizon_write_scope,
+            },
             "consolidation": {
                 "conversation_updated": bool(result["claw_updated"]),
                 "episode_added": bool(result["episode_added"]),

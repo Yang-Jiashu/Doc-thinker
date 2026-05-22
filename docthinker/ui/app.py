@@ -435,6 +435,9 @@ def query_stream():
             "enable_rerank": ui_mode != "quick",
             "enable_expanded_matching": ui_mode == "deep",
             "enable_image_asset_activation": ui_mode == "deep",
+            "remember_turn": bool(data.get("remember_turn", True)),
+            "memory_excluded_layers": data.get("memory_excluded_layers", []),
+            "memory_write_scope": data.get("memory_write_scope"),
             "session_id": data.get('session_id')
         }
 
@@ -495,6 +498,9 @@ def text_query():
             "enable_rerank": ui_mode != "quick",
             "enable_expanded_matching": ui_mode == "deep",
             "enable_image_asset_activation": ui_mode == "deep",
+            "remember_turn": bool(data.get("remember_turn", True)),
+            "memory_excluded_layers": data.get("memory_excluded_layers", []),
+            "memory_write_scope": data.get("memory_write_scope"),
             "session_id": data.get('session_id')
         }
 
@@ -510,7 +516,10 @@ def text_query():
                 'thinking_process': result.get('thinking_process', ''),
                 'answer_mode': result.get('answer_mode', ''),
                 'expanded_matches': result.get('expanded_matches', []),
+                'long_horizon_matches': result.get('long_horizon_matches', []),
                 'memory_summaries': result.get('memory_summaries', []),
+                'memory_reasoning': result.get('memory_reasoning', {}),
+                'memory_trace': result.get('memory_trace', {}),
             })
         else:
             return jsonify({

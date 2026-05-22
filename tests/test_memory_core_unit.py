@@ -314,8 +314,45 @@ class AgentMemoryCoreUnitTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(1, bundle.trace.long_horizon_hits)
         self.assertEqual(1, len(bundle.long_horizon_matches))
         self.assertIn("长期记忆与跨回合推理", bundle.retrieval_instruction)
+        self.assertIn("Memory-side reasoning", bundle.retrieval_instruction)
         self.assertEqual("planning", bundle.trace.recall_plan["question_type"])
+        self.assertEqual("memory_reasoning", bundle.memory_reasoning["mode"])
+        self.assertIn("continue_project_state", bundle.memory_reasoning["conclusions"])
         self.assertEqual(1, long_horizon.stats("long-session")["count"])
+
+    async def test_after_response_can_skip_or_exclude_memory_writes(self):
+        conversation = _ProtocolConversationBackend()
+        episodic = _ProtocolEpisodicBackend()
+        long_horizon = InMemoryLongHorizonBackend()
+        core = AgentMemoryCore(
+            backends=AgentMemoryBackends(
+                conversation=conversation,
+                episodic=episodic,
+                long_horizon=long_horizon,
+            )
+        )
+
+        skipped = await core.after_response(
+            session_id="control-session",
+            question="do not remember this",
+            answer="This answer should not be written to any memory backend.",
+            remember=False,
+        )
+        self.assertTrue(skipped["memory_write_skipped"])
+        self.assertFalse(conversation.consolidated)
+        self.assertFalse(episodic.written)
+        self.assertEqual(0, long_horizon.stats("control-session")["count"])
+
+        partial = await core.after_response(
+            session_id="control-session",
+            question="only conversation should skip",
+            answer="Long horizon should remember this useful project constraint.",
+            excluded_layers=("conversation",),
+        )
+        self.assertFalse(partial["claw_updated"])
+        self.assertTrue(partial["episode_added"])
+        self.assertTrue(partial["long_horizon_insight_added"])
+        self.assertEqual(["conversation"], partial["excluded_layers"])
 
 
 if __name__ == "__main__":

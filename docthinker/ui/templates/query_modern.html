@@ -328,6 +328,19 @@
                 </button>
             </div>
 
+            <div class="mb-3 flex items-center justify-between gap-3 text-xs text-[#766f66]">
+                <button
+                    onclick="toggleRememberTurn()"
+                    id="remember-toggle"
+                    class="dt-mini-button flex items-center gap-2"
+                    title="控制本轮回答是否写入长期、情节、对话和扩展记忆"
+                >
+                    <i id="remember-toggle-icon" class="fa-solid fa-toggle-on text-[#54746b]"></i>
+                    <span id="remember-toggle-text">写入记忆</span>
+                </button>
+                <span id="remember-toggle-hint">本轮会进入可控记忆巩固</span>
+            </div>
+
             <div id="attached-files" class="hidden flex flex-wrap gap-2 mb-3"></div>
             <div id="processing-list" class="space-y-2 mb-3"></div>
 
@@ -450,6 +463,7 @@
 let currentMode = 'standard';
 let currentFile = null;
 let currentSessionId = null;
+let rememberTurn = true;
 let processingFilesCount = 0;
 let defaultWelcomeHtml = '';
 let latestMemoryInspector = null;
@@ -522,6 +536,10 @@ function summarizeTraceEvent(event) {
     }
     if (type === 'long_horizon_recall') {
         return `Long-horizon Memory 召回 ${event.count || 0} 条长期线索`;
+    }
+    if (type === 'memory_reasoning') {
+        const conclusions = Array.isArray(event.conclusions) ? event.conclusions.join(' / ') : '';
+        return `Memory Reasoning: ${event.question_type || 'general'}${conclusions ? ' · ' + conclusions : ''}`;
     }
     return `${type}: ${JSON.stringify(event)}`;
 }
@@ -777,6 +795,20 @@ function setMode(mode) {
     if (target) target.classList.add('active');
 }
 
+function toggleRememberTurn() {
+    rememberTurn = !rememberTurn;
+    const icon = document.getElementById('remember-toggle-icon');
+    const text = document.getElementById('remember-toggle-text');
+    const hint = document.getElementById('remember-toggle-hint');
+    if (icon) {
+        icon.className = rememberTurn
+            ? 'fa-solid fa-toggle-on text-[#54746b]'
+            : 'fa-solid fa-toggle-off text-[#9b9287]';
+    }
+    if (text) text.textContent = rememberTurn ? '写入记忆' : '不写入记忆';
+    if (hint) hint.textContent = rememberTurn ? '本轮会进入可控记忆巩固' : '本轮只回答，不进入记忆层';
+}
+
 function handleKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -1019,7 +1051,8 @@ async function sendMessage() {
                 question: message || '请分析上传的文件',
                 memory_mode: 'session',
                 ui_mode: currentMode,
-                session_id: currentSessionId
+                session_id: currentSessionId,
+                remember_turn: rememberTurn
             })
         });
 

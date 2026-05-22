@@ -145,6 +145,15 @@ class LongHorizonMemoryBackend(Protocol):
     ) -> str:
         """Return an instruction block for long-horizon matches."""
 
+    def reason_over_memory(
+        self,
+        query: str,
+        matches: Sequence[Dict[str, Any]],
+        *,
+        plan: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Run memory-side reasoning over recalled insights."""
+
     def consolidate(
         self,
         session_id: Optional[str],
@@ -193,6 +202,8 @@ class MemoryPolicy:
         default_factory=lambda: ("session", "project", "user")
     )
     long_horizon_write_scope: str = "session"
+    allow_memory_writes: bool = True
+    write_excluded_layers: Sequence[str] = field(default_factory=tuple)
     answer_entity_limit: int = 12
     enabled_layers: Sequence[str] = field(
         default_factory=lambda: (

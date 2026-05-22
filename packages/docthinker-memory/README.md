@@ -3,6 +3,8 @@
 `docthinker-memory` is the lightweight agentic memory facade from DocThinker.
 It gives external agents a stable interface for recall and consolidation
 without coupling them to DocThinker's server runtime.
+It is backend-agnostic: Claw/OpenClaw-style memory is only one adapter, not a
+required dependency.
 
 The package currently re-exports the memory core shipped in `docthinker`:
 
@@ -51,4 +53,6 @@ bundle = await memory.recall(
 ```
 
 Implement the backend protocols when you want to plug in your own vector store,
-database, graph store, or long-term memory service.
+database, graph store, or long-term memory service. Use `remember_turn=False`,
+`memory_excluded_layers`, or `MemoryPolicy.allow_memory_writes` when a turn
+should be answered but not remembered.

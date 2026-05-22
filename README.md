@@ -184,14 +184,15 @@ DocThinker organizes retrieval and memory as an agent-facing framework instead o
 </div>
 
 ### 1. 🧠 Agentic Memory Core
-`docthinker.memory_core.AgentMemoryCore` is the stable facade for agent memory work. It exposes explicit backend protocols for conversation memory, episodic memory, long-horizon insight memory, expanded KG hypotheses, graph promotion, and optional chat-turn ingestion. `MemoryPolicy` controls which layers are active and how broad each recall step may be. Before generation, `recall()` builds a recall plan and merges:
+`docthinker.memory_core.AgentMemoryCore` is the stable facade for agent memory work. It is not tied to Claw/OpenClaw: Claw is only the default conversation-memory adapter. External agents can plug in their own stores by implementing the backend protocols for conversation memory, episodic memory, long-horizon insight memory, expanded KG hypotheses, graph promotion, and optional chat-turn ingestion. `MemoryPolicy` controls which layers are active, how broad each recall step may be, and whether memory writes are allowed. Before generation, `recall()` builds a recall plan and merges:
 
 * Claw working/core/archive conversation memory.
 * Neuro Memory episodic analogy matches.
 * Long-horizon cross-turn insights for project state, user preferences, and durable reasoning constraints.
+* Memory-side reasoning derived from recalled insights before the final answer is generated.
 * KG expanded-node matches and forced retrieval instructions.
 
-After generation, `after_response()` consolidates the turn back into memory layers, writes chat episodes, stores durable long-horizon insights, optionally feeds the Q&A back into the graph, and promotes useful expanded nodes.
+After generation, `after_response()` consolidates the turn back into memory layers, writes chat episodes, stores durable long-horizon insights, optionally feeds the Q&A back into the graph, and promotes useful expanded nodes. Hosts can set `remember_turn=false` or pass `memory_excluded_layers` such as `["long_horizon", "episodic"]` to keep specific content out of memory.
 
 ### 2. 🧩 Session-Scoped Knowledge Graphs
 Each session owns its own GraphCore-backed knowledge graph and document state. Uploaded files are parsed, inserted, and queried within that session, which keeps user context isolated while still allowing the graph to grow over time.
@@ -210,7 +211,7 @@ Claw implements a three-layer memory hierarchy for long-running conversations: h
 Neuro Memory stores chat/document experiences as episodes and retrieves similar past situations as analogy context. These matches are surfaced through `episodic_matches` and injected as guidance rather than treated as direct factual sources.
 
 ### 6. ♾️ Long-Horizon Memory
-The built-in `InMemoryLongHorizonBackend` gives the framework a default cross-turn loop: it classifies query intent, produces a recall plan, consolidates useful answers into durable insights, and returns `long_horizon_matches` on later related questions. This backend is process-local by default so plugin authors can swap in SQLite, vector databases, or graph storage without changing agent code.
+The built-in `InMemoryLongHorizonBackend` gives the framework a default cross-turn loop: it classifies query intent, produces a recall plan, consolidates useful answers into durable insights, reasons over recalled memory, and returns `long_horizon_matches` plus `memory_reasoning` on later related questions. This backend is process-local by default so plugin authors can swap in SQLite, vector databases, or graph storage without changing agent code.
 
 ### 7. 🖼️ Multimodal Retrieval Signals
 DocThinker tracks image assets extracted from documents and can activate relevant visual evidence during deep UI queries.

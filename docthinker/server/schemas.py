@@ -1,5 +1,5 @@
 from typing import Dict, List, Any, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CreateSessionRequest(BaseModel):
@@ -17,6 +17,9 @@ class QueryRequest(BaseModel):
     enable_expanded_matching: bool = True
     expanded_top_k: int = 2
     expanded_min_score: float = 0.2
+    remember_turn: bool = True
+    memory_excluded_layers: List[str] = Field(default_factory=list)
+    memory_write_scope: Optional[str] = None
     enable_image_asset_activation: bool = True
     image_activation_threshold: float = 0.62
     image_activation_top_k: int = 3
@@ -61,4 +64,3 @@ class SignalIngestRequest(BaseModel):
     tags: Optional[List[str]] = None
     metadata: Optional[Dict[str, Any]] = None
     session_id: Optional[str] = None
-
