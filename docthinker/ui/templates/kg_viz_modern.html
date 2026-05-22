@@ -187,8 +187,8 @@
         <button id="expand-btn" onclick="expandGraph()" class="kg-control-button kg-control-accent px-3 sm:px-4 text-sm" title="LLM 知识扩展">
             <i class="fa-solid fa-wand-magic-sparkles"></i>扩展
         </button>
-        <button onclick="resetHighlight()" class="kg-control-button w-9 hidden sm:inline-flex" title="取消聚焦"><i class="fa-solid fa-eye-slash"></i></button>
-        <button onclick="resetZoom()" class="kg-control-button w-9 hidden sm:inline-flex" title="重置视图"><i class="fa-solid fa-expand"></i></button>
+        <button onclick="resetHighlight()" class="kg-control-button dt-icon-button hidden sm:inline-flex" title="取消聚焦"><i class="fa-solid fa-eye-slash"></i></button>
+        <button onclick="resetZoom()" class="kg-control-button dt-icon-button hidden sm:inline-flex" title="重置视图"><i class="fa-solid fa-expand"></i></button>
         <button onclick="refreshGraph()" class="kg-control-button kg-control-primary px-3 sm:px-4 text-sm" title="刷新">
             <i class="fa-solid fa-rotate"></i>刷新
         </button>
@@ -213,22 +213,22 @@
                 <p class="kg-soft-label font-semibold uppercase mb-2">筛选</p>
                 <div class="grid grid-cols-2 gap-2">
                     <label class="kg-toggle-label flex gap-2 text-sm cursor-pointer">
-                        <input type="checkbox" checked onchange="toggleLevel(3)" class="rounded">
+                        <input type="checkbox" checked onchange="toggleLevel(3)" class="dt-check">
                         <span class="w-2 h-2 rounded-full" style="background:#8a5f87"></span>
                         <span class="text-[#5f584f]">Domain</span>
                     </label>
                     <label class="kg-toggle-label flex gap-2 text-sm cursor-pointer">
-                        <input type="checkbox" checked onchange="toggleLevel(2)" class="rounded">
+                        <input type="checkbox" checked onchange="toggleLevel(2)" class="dt-check">
                         <span class="w-2 h-2 rounded-full" style="background:#4b6f8f"></span>
                         <span class="text-[#5f584f]">Concept</span>
                     </label>
                     <label class="kg-toggle-label flex gap-2 text-sm cursor-pointer">
-                        <input type="checkbox" checked onchange="toggleLevel(1)" class="rounded">
+                        <input type="checkbox" checked onchange="toggleLevel(1)" class="dt-check">
                         <span class="w-2 h-2 rounded-full" style="background:#54746b"></span>
                         <span class="text-[#5f584f]">Instance</span>
                     </label>
                     <label class="kg-toggle-label flex gap-2 text-sm cursor-pointer">
-                        <input type="checkbox" checked onchange="toggleExpanded()" class="rounded" id="chk-expanded">
+                        <input type="checkbox" checked onchange="toggleExpanded()" class="dt-check" id="chk-expanded">
                         <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#d6aa3d"></span>
                         <span class="text-[#5f584f]">扩展节点</span>
                     </label>
@@ -251,7 +251,7 @@
                         </h3>
                         <p class="text-xs text-[#766f66] mt-1">当前会话的图谱、记忆与扩展节点状态。</p>
                     </div>
-                    <button onclick="loadDashboardData()" class="text-[#9b9287] hover:text-[#b85c38]" title="刷新面板">
+                    <button onclick="loadDashboardData()" class="dt-mini-button px-0 w-8" title="刷新面板">
                         <i class="fa-solid fa-rotate"></i>
                     </button>
                 </div>
@@ -298,7 +298,7 @@
                 <section class="kg-dashboard-card">
                     <div class="flex items-center justify-between">
                         <h4 class="text-xs font-semibold text-[#292520]">Top Expanded Nodes</h4>
-                        <button onclick="focusTopExpandedNode()" class="text-[11px] text-[#b85c38] hover:text-[#8f4329]">聚焦最高分</button>
+                        <button onclick="focusTopExpandedNode()" class="dt-mini-button">聚焦最高分</button>
                     </div>
                     <div id="dash-expanded-list" class="mt-2 space-y-2">
                         <p class="text-xs text-[#9b9287]">暂无扩展节点。</p>
@@ -312,7 +312,7 @@
         <div class="p-5">
             <div class="flex items-center justify-between mb-4">
                 <h3 id="detail-title" class="font-semibold text-[#292520] text-base">详情</h3>
-                <button onclick="closePanel()" class="text-[#9b9287] hover:text-[#b85c38]">
+                <button onclick="closePanel()" class="dt-mini-button px-0 w-8" title="关闭详情">
                     <i class="fa-solid fa-times"></i>
                 </button>
             </div>
@@ -353,11 +353,14 @@
                     <div class="text-xs text-[#b85c38] mb-1">描述</div>
                     <div id="detail-edge-desc-text" class="text-sm text-[#5f584f] whitespace-pre-wrap"></div>
                 </div>
-                <div id="detail-edge-tag" class="mb-3 p-3 bg-red-50 rounded-lg" style="display:none;">
+                <div id="detail-edge-tag" class="mb-3 p-3 bg-[#fff7f5] border border-[#ead3cf] rounded-lg" style="display:none;">
                     <span class="text-xs text-red-500 font-medium"></span>
                 </div>
             </div>
-            <button id="detail-focus-btn" onclick="focusNode()" class="btn-primary w-full mt-4 py-2 rounded-lg text-sm">聚焦节点</button>
+            <button id="detail-focus-btn" onclick="focusNode()" class="btn-primary w-full mt-4 px-4 text-sm">
+                <i class="fa-solid fa-crosshairs"></i>
+                聚焦节点
+            </button>
         </div>
     </div>
 </div>

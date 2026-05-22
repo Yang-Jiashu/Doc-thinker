@@ -36,7 +36,7 @@
                         <div class="relative">
                             <input type="password" id="s-llm-api-key" placeholder="sk-..."
                                 class="input-field w-full px-4 py-2 rounded-lg text-sm pr-10">
-                            <button onclick="_toggleVis('s-llm-api-key')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <button onclick="_toggleVis('s-llm-api-key')" class="dt-mini-button absolute right-2 top-1/2 -translate-y-1/2 px-0 w-8" title="显示或隐藏 API Key">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
                         </div>
@@ -83,7 +83,7 @@
                         <div class="relative">
                             <input type="password" id="s-embed-api-key" placeholder="与 LLM 相同则留空"
                                 class="input-field w-full px-4 py-2 rounded-lg text-sm pr-10">
-                            <button onclick="_toggleVis('s-embed-api-key')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <button onclick="_toggleVis('s-embed-api-key')" class="dt-mini-button absolute right-2 top-1/2 -translate-y-1/2 px-0 w-8" title="显示或隐藏 API Key">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
                         </div>
@@ -135,7 +135,7 @@
                         <div class="relative">
                             <input type="password" id="s-rerank-api-key" placeholder="留空则使用 LLM Key"
                                 class="input-field w-full px-4 py-2 rounded-lg text-sm pr-10">
-                            <button onclick="_toggleVis('s-rerank-api-key')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <button onclick="_toggleVis('s-rerank-api-key')" class="dt-mini-button absolute right-2 top-1/2 -translate-y-1/2 px-0 w-8" title="显示或隐藏 API Key">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
                         </div>
@@ -202,8 +202,14 @@
 
             <!-- Save Button -->
             <div class="flex justify-end gap-3 pb-6">
-                <button onclick="_resetForm()" class="btn-secondary px-6 py-2 rounded-lg text-sm">重新加载</button>
-                <button onclick="_saveSettings()" id="save-btn" class="btn-primary px-6 py-2 rounded-lg text-sm">保存设置</button>
+                <button onclick="_resetForm()" class="btn-secondary px-5 text-sm">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    重新加载
+                </button>
+                <button onclick="_saveSettings()" id="save-btn" class="btn-primary px-5 text-sm">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    保存设置
+                </button>
             </div>
         </div>
 
@@ -250,7 +256,7 @@ async function _loadSettings() {
             '<i class="fa-solid fa-triangle-exclamation text-2xl text-amber-500 mb-3 block"></i>' +
             '<p class="text-slate-600">无法连接后端服务</p>' +
             '<p class="text-xs text-slate-400 mt-1">' + e.message + '</p>' +
-            '<button onclick="_loadSettings()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">重试</button>';
+            '<button onclick="_loadSettings()" class="btn-primary mt-4 px-5 text-sm"><i class="fa-solid fa-rotate"></i>重试</button>';
     }
 }
 

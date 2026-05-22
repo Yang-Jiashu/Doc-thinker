@@ -803,7 +803,7 @@ function addProcessingItem(fileId, filename) {
                     <div class="progress-bar" style="width: 0%"></div>
                 </div>
             </div>
-            <button onclick="removeProcessingItem('${fileId}')" class="text-[#9b9287] hover:text-[#b85c38]">
+            <button onclick="removeProcessingItem('${fileId}')" class="dt-mini-button px-0 w-8" title="移除">
                 <i class="fa-solid fa-times"></i>
             </button>
         </div>
@@ -903,7 +903,7 @@ function showAttachedFile(filename, fileId) {
     tag.innerHTML = `
         <i class="fa-solid fa-file text-xs"></i>
         <span>${filename}</span>
-        <button onclick="removeAttachedFile('${fileId}')" class="ml-1 text-[#8f4329] hover:text-[#292520]">
+        <button onclick="removeAttachedFile('${fileId}')" class="dt-mini-button ml-1 px-0 w-6" title="移除附件">
             <i class="fa-solid fa-times text-xs"></i>
         </button>
     `;

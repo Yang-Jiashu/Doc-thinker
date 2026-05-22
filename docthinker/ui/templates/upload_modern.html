@@ -48,15 +48,15 @@
             <div id="upload-area" class="upload-box rounded-lg p-8 text-center cursor-pointer" onclick="document.getElementById('file-input').click()">
                 <input type="file" id="file-input" multiple style="display: none;" onchange="handleFiles(this.files)">
                 
-                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-blue-600"></i>
+                <div class="w-16 h-16 bg-[#fbede6] border border-[#efcfc0] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-[#b85c38]"></i>
                 </div>
                 
                 <h3 class="text-lg font-medium text-slate-700 mb-2">点击上传文件</h3>
                 <p class="text-sm text-slate-500 mb-4">或将文件拖拽到此处</p>
                 
-                <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors" onclick="event.stopPropagation(); document.getElementById('file-input').click()">
-                    <i class="fa-solid fa-folder-open mr-2"></i>
+                <button type="button" class="btn-primary px-5 text-sm" onclick="event.stopPropagation(); document.getElementById('file-input').click()">
+                    <i class="fa-solid fa-folder-open"></i>
                     选择文件
                 </button>
             </div>
@@ -74,7 +74,7 @@
                     <p class="text-xs text-slate-600">PDF</p>
                 </div>
                 <div class="text-center p-3 bg-slate-50 rounded-lg">
-                    <i class="fa-solid fa-file-word text-2xl text-blue-500 mb-2"></i>
+                    <i class="fa-solid fa-file-word text-2xl text-[#4b6f8f] mb-2"></i>
                     <p class="text-xs text-slate-600">Word</p>
                 </div>
                 <div class="text-center p-3 bg-slate-50 rounded-lg">
@@ -132,7 +132,7 @@ function uploadFile(file) {
     item.className = 'bg-white rounded-xl border border-slate-200 p-4 mb-3';
     item.innerHTML = `
         <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+            <div class="dt-file-icon">
                 <i class="fa-solid fa-file text-slate-500"></i>
             </div>
             <div class="flex-1 min-w-0">
@@ -140,7 +140,7 @@ function uploadFile(file) {
                 <p class="text-xs text-slate-500">${formatSize(file.size)}</p>
             </div>
             <span class="status text-xs font-medium text-slate-500">准备上传</span>
-            <button onclick="document.getElementById('${fileId}').remove()" class="text-slate-400 hover:text-red-500">
+            <button onclick="document.getElementById('${fileId}').remove()" class="dt-danger-button" title="移除文件">
                 <i class="fa-solid fa-times"></i>
             </button>
         </div>
@@ -163,7 +163,7 @@ function uploadFile(file) {
     const progressText = item.querySelector('.progress-text');
     
     status.textContent = '上传中...';
-    status.className = 'status text-xs font-medium text-blue-600';
+    status.className = 'status text-xs font-medium text-[#b85c38]';
     
     // Simulate progress
     let progress = 0;
