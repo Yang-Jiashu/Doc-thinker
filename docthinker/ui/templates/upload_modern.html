@@ -1,31 +1,31 @@
 {% extends "base_modern.html" %}
 
-{% block title %}文档上传 - NeuroAgent{% endblock %}
+{% block title %}文档上传 - DocThinker{% endblock %}
 
 {% block extra_css %}
 <style>
     .upload-box {
-        border: 2px dashed #cbd5e1;
-        background: #f8fafc;
+        border: 2px dashed #d8cfc1;
+        background: #fbfaf7;
         transition: all 0.2s;
     }
     .upload-box:hover {
-        border-color: #3b82f6;
-        background: #eff6ff;
+        border-color: #d7a28b;
+        background: #fbede6;
     }
     .upload-box.dragover {
-        border-color: #3b82f6;
-        background: #dbeafe;
+        border-color: #b85c38;
+        background: #f6ded2;
     }
     
     .progress-bg {
-        background: #e2e8f0;
+        background: #e7dfd1;
         border-radius: 999px;
         height: 8px;
         overflow: hidden;
     }
     .progress-bar {
-        background: #3b82f6;
+        background: linear-gradient(90deg, #b85c38, #54746b);
         height: 100%;
         transition: width 0.3s;
     }

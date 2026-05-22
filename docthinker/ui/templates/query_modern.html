@@ -4,26 +4,45 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --dt-ink: #292520;
+        --dt-muted: #766f66;
+        --dt-hairline: #ded8cc;
+        --dt-paper: #fbfaf7;
+        --dt-copper: #b85c38;
+        --dt-sage: #54746b;
+        --dt-lake: #4b6f8f;
+        --dt-ochre: #b7892d;
+    }
+    .query-shell {
+        background:
+            linear-gradient(rgba(41, 37, 32, 0.028) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(41, 37, 32, 0.02) 1px, transparent 1px),
+            linear-gradient(135deg, #fbfaf7 0%, #f5f0e7 52%, #fbfaf7 100%);
+        background-size: 28px 28px, 28px 28px, auto;
+    }
     .mode-card {
         transition: all 0.2s;
-        border: 2px solid transparent;
+        border: 1px solid #ded8cc;
+        background: #fffefa;
     }
     .mode-card:hover {
-        border-color: #e2e8f0;
+        border-color: #d6a28d;
+        background: #fbf2eb;
     }
     .mode-card.active {
-        border-color: #3b82f6;
-        background: #eff6ff;
+        border-color: #b85c38;
+        background: #fbede6;
     }
 
     .message-user {
-        background: #2563eb;
-        color: white;
+        background: #292520;
+        color: #fffefa;
     }
 
     .message-bot {
-        background: white;
-        border: 1px solid #e2e8f0;
+        background: #fffefa;
+        border: 1px solid #ded8cc;
     }
 
     .file-tag {
@@ -47,8 +66,8 @@
     .processing-ring {
         width: 20px;
         height: 20px;
-        border: 2px solid #e2e8f0;
-        border-top-color: #3b82f6;
+        border: 2px solid #ded8cc;
+        border-top-color: #b85c38;
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
     }
@@ -58,24 +77,24 @@
     }
 
     .progress-container {
-        background: #e2e8f0;
+        background: #e7dfd1;
         border-radius: 999px;
         overflow: hidden;
         height: 6px;
     }
 
     .progress-fill {
-        background: linear-gradient(90deg, #3b82f6, #06b6d4);
+        background: linear-gradient(90deg, #b85c38, #54746b);
         height: 100%;
         transition: width 0.3s ease;
     }
 
     .status-processing {
-        color: #3b82f6;
+        color: #b85c38;
     }
 
     .status-done {
-        color: #10b981;
+        color: #54746b;
     }
 
     .status-error {
@@ -84,7 +103,7 @@
 
     /* GPT-style deep thinking block */
     .deep-think-block {
-        border-left: 2px solid #d1d5db;
+        border-left: 2px solid #ded8cc;
         margin-bottom: 10px;
         padding-left: 14px;
         position: relative;
@@ -96,10 +115,10 @@
         cursor: pointer;
         user-select: none;
         font-size: 13px;
-        color: #9ca3af;
+        color: #766f66;
         padding: 4px 0;
     }
-    .deep-think-header:hover { color: #6b7280; }
+    .deep-think-header:hover { color: #b85c38; }
     .deep-think-header .dt-icon { font-size: 12px; }
     .deep-think-header .dt-arrow {
         font-size: 10px;
@@ -117,7 +136,7 @@
     }
     .deep-think-step {
         font-size: 13px;
-        color: #9ca3af;
+        color: #766f66;
         font-style: italic;
         line-height: 1.6;
         padding: 1px 0;
@@ -131,12 +150,12 @@
     }
     .memory-inspector {
         width: 360px;
-        border-left: 1px solid #e2e8f0;
-        background: #f8fafc;
+        border-left: 1px solid #ded8cc;
+        background: rgba(255, 254, 250, 0.96);
     }
     .memory-metric {
-        background: white;
-        border: 1px solid #e2e8f0;
+        background: linear-gradient(180deg, #fffefa 0%, #f7f3ea 100%);
+        border: 1px solid #ded8cc;
         border-radius: 8px;
         padding: 10px;
     }
@@ -146,9 +165,9 @@
         gap: 4px;
         max-width: 100%;
         border-radius: 999px;
-        border: 1px solid #dbeafe;
-        background: #eff6ff;
-        color: #1d4ed8;
+        border: 1px solid #ded8cc;
+        background: #f8f2e8;
+        color: #5f584f;
         padding: 3px 8px;
         font-size: 11px;
         line-height: 1.4;
@@ -156,7 +175,7 @@
     .memory-timeline-item {
         position: relative;
         padding-left: 18px;
-        color: #475569;
+        color: #5f584f;
         font-size: 12px;
         line-height: 1.45;
     }
@@ -168,7 +187,7 @@
         width: 7px;
         height: 7px;
         border-radius: 999px;
-        background: #2563eb;
+        background: #b85c38;
     }
     .memory-timeline-item::after {
         content: "";
@@ -177,7 +196,7 @@
         top: 14px;
         bottom: -10px;
         width: 1px;
-        background: #cbd5e1;
+        background: #ded8cc;
     }
     .memory-timeline-item:last-child::after {
         display: none;
@@ -191,10 +210,11 @@
 {% endblock %}
 
 {% block content %}
-<header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
+<header class="bg-[#fffefa] border-b border-[#ded8cc] px-6 py-4 flex items-center justify-between shrink-0">
     <div>
-        <h2 class="text-lg font-semibold text-slate-800">智能对话</h2>
-        <p class="text-sm text-slate-500">与 AI 助手进行自然语言交流</p>
+        <p class="text-[11px] font-bold uppercase text-[#b85c38]">DocThinker Conversation</p>
+        <h2 class="text-lg font-semibold text-[#292520] mt-0.5">智能对话</h2>
+        <p class="text-sm text-[#766f66]">在文档、记忆与知识图谱之间进行自然语言探索</p>
     </div>
     <div class="flex items-center gap-3">
         <select id="session-selector" class="input-field px-3 py-2 rounded-lg text-sm min-w-[200px]" onchange="handleSessionSwitch(this.value)"></select>
@@ -205,18 +225,18 @@
     </div>
 </header>
 
-<div class="flex-1 flex overflow-hidden">
+<div class="flex-1 flex overflow-hidden query-shell">
     <div class="flex-1 flex flex-col min-w-0">
         <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
             <div class="flex gap-3">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shrink-0">
+                <div class="w-8 h-8 rounded-lg bg-[#292520] flex items-center justify-center text-[#fffefa] shrink-0">
                     <i class="fa-solid fa-robot text-sm"></i>
                 </div>
                 <div class="flex-1 max-w-2xl">
                     <div class="message-bot rounded-2xl rounded-tl-sm px-4 py-3">
-                        <p class="text-slate-700">你好，我是 DocThinker，你的 AI 知识助手。</p>
-                        <p class="text-slate-500 text-sm mt-2">我可以帮你：</p>
-                        <ul class="text-slate-600 text-sm mt-1 space-y-1">
+                        <p class="text-[#292520]">你好，我是 DocThinker，你的 AI 知识助手。</p>
+                        <p class="text-[#766f66] text-sm mt-2">我可以帮你：</p>
+                        <ul class="text-[#5f584f] text-sm mt-1 space-y-1">
                             <li>理解和分析文档内容</li>
                             <li>回答关于知识库的问题</li>
                             <li>通过知识图谱关联信息</li>
@@ -226,28 +246,28 @@
             </div>
         </div>
 
-        <div class="bg-white border-t border-slate-200 p-4">
+        <div class="bg-[#fffefa] border-t border-[#ded8cc] p-4">
             <div class="flex gap-3 mb-4">
-                <button onclick="setMode('quick')" id="mode-quick" class="mode-card flex-1 px-4 py-3 rounded-xl bg-slate-50 text-left">
+                <button onclick="setMode('quick')" id="mode-quick" class="mode-card flex-1 px-4 py-3 rounded-xl bg-[#fffefa] text-left">
                     <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-bolt text-yellow-500"></i>
-                        <span class="font-medium text-sm text-slate-700">快速</span>
+                        <i class="fa-solid fa-bolt text-[#b7892d]"></i>
+                        <span class="font-medium text-sm text-[#292520]">快速</span>
                     </div>
-                    <p class="text-xs text-slate-500 mt-1">向量检索，极速响应</p>
+                    <p class="text-xs text-[#766f66] mt-1">向量检索，极速响应</p>
                 </button>
-                <button onclick="setMode('standard')" id="mode-standard" class="mode-card active flex-1 px-4 py-3 rounded-xl bg-slate-50 text-left">
+                <button onclick="setMode('standard')" id="mode-standard" class="mode-card active flex-1 px-4 py-3 rounded-xl bg-[#fffefa] text-left">
                     <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-scale-balanced text-blue-500"></i>
-                        <span class="font-medium text-sm text-slate-700">标准</span>
+                        <i class="fa-solid fa-scale-balanced text-[#4b6f8f]"></i>
+                        <span class="font-medium text-sm text-[#292520]">标准</span>
                     </div>
-                    <p class="text-xs text-slate-500 mt-1">知识图谱检索</p>
+                    <p class="text-xs text-[#766f66] mt-1">知识图谱检索</p>
                 </button>
-                <button onclick="setMode('deep')" id="mode-deep" class="mode-card flex-1 px-4 py-3 rounded-xl bg-slate-50 text-left">
+                <button onclick="setMode('deep')" id="mode-deep" class="mode-card flex-1 px-4 py-3 rounded-xl bg-[#fffefa] text-left">
                     <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-brain text-purple-500"></i>
-                        <span class="font-medium text-sm text-slate-700">深度</span>
+                        <i class="fa-solid fa-brain text-[#8a5f87]"></i>
+                        <span class="font-medium text-sm text-[#292520]">深度</span>
                     </div>
-                    <p class="text-xs text-slate-500 mt-1">KG + 向量 + 记忆 + 扩展</p>
+                    <p class="text-xs text-[#766f66] mt-1">KG + 向量 + 记忆 + 扩展</p>
                 </button>
             </div>
 
@@ -258,7 +278,7 @@
                 <textarea
                     id="message-input"
                     placeholder="输入你的问题..."
-                    class="input-field w-full px-4 py-3 pr-24 rounded-xl resize-none text-slate-700"
+                    class="input-field w-full px-4 py-3 pr-24 rounded-xl resize-none text-[#292520] bg-[#fffefa] border-[#ded8cc]"
                     rows="2"
                     onkeydown="handleKeyDown(event)"
                 ></textarea>
@@ -266,17 +286,17 @@
                 <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(this)">
 
                 <div class="absolute right-2 bottom-2 flex items-center gap-1">
-                    <button onclick="document.getElementById('file-input').click()" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="上传文件">
+                    <button onclick="document.getElementById('file-input').click()" class="w-9 h-9 flex items-center justify-center text-[#9b9287] hover:text-[#b85c38] hover:bg-[#fbede6] rounded-lg transition-colors" title="上传文件">
                         <i class="fa-solid fa-paperclip"></i>
                     </button>
 
-                    <button onclick="sendMessage()" class="w-9 h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center transition-colors">
+                    <button onclick="sendMessage()" class="w-9 h-9 bg-[#292520] hover:bg-[#15120f] text-[#fffefa] rounded-lg flex items-center justify-center transition-colors">
                         <i class="fa-solid fa-paper-plane text-sm"></i>
                     </button>
                 </div>
             </div>
 
-            <p class="text-xs text-slate-400 mt-2 text-center">按 Enter 发送，Shift+Enter 换行</p>
+            <p class="text-xs text-[#9b9287] mt-2 text-center">按 Enter 发送，Shift+Enter 换行</p>
         </div>
     </div>
 
@@ -284,63 +304,63 @@
         <div class="p-5 space-y-4">
             <div>
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-diagram-project text-blue-600"></i>
+                    <h3 class="text-sm font-semibold text-[#292520] flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project text-[#b85c38]"></i>
                         Memory Inspector
                     </h3>
-                    <span id="memory-inspector-mode" class="text-[11px] px-2 py-1 rounded-full bg-slate-200 text-slate-600">idle</span>
+                    <span id="memory-inspector-mode" class="text-[11px] px-2 py-1 rounded-full bg-[#eee7da] text-[#5f584f]">idle</span>
                 </div>
-                <p class="text-xs text-slate-500 mt-1">查看本轮回答使用了哪些记忆、图谱候选和证据。</p>
+                <p class="text-xs text-[#766f66] mt-1">查看本轮回答使用了哪些记忆、图谱候选和证据。</p>
             </div>
 
-            <div id="memory-empty" class="bg-white border border-dashed border-slate-300 rounded-lg p-4 text-center">
-                <i class="fa-solid fa-brain text-slate-300 text-2xl"></i>
-                <p class="text-sm text-slate-500 mt-2">发送一个问题后，这里会显示记忆召回路径。</p>
+            <div id="memory-empty" class="bg-[#fffefa] border border-dashed border-[#ded8cc] rounded-lg p-4 text-center">
+                <i class="fa-solid fa-brain text-[#d8cfc1] text-2xl"></i>
+                <p class="text-sm text-[#766f66] mt-2">发送一个问题后，这里会显示记忆召回路径。</p>
             </div>
 
             <div id="memory-content" class="hidden space-y-4">
                 <div class="grid grid-cols-3 gap-2">
                     <div class="memory-metric">
-                        <p class="text-[11px] text-slate-500">记忆源</p>
-                        <p id="memory-metric-sources" class="text-xl font-semibold text-slate-800">0</p>
+                        <p class="text-[11px] text-[#766f66]">记忆源</p>
+                        <p id="memory-metric-sources" class="text-xl font-semibold text-[#292520]">0</p>
                     </div>
                     <div class="memory-metric">
-                        <p class="text-[11px] text-slate-500">Episodes</p>
-                        <p id="memory-metric-episodic" class="text-xl font-semibold text-emerald-700">0</p>
+                        <p class="text-[11px] text-[#766f66]">Episodes</p>
+                        <p id="memory-metric-episodic" class="text-xl font-semibold text-[#54746b]">0</p>
                     </div>
                     <div class="memory-metric">
-                        <p class="text-[11px] text-slate-500">Expanded</p>
-                        <p id="memory-metric-expanded" class="text-xl font-semibold text-purple-700">0</p>
+                        <p class="text-[11px] text-[#766f66]">Expanded</p>
+                        <p id="memory-metric-expanded" class="text-xl font-semibold text-[#8a5f87]">0</p>
                     </div>
                 </div>
 
-                <section class="bg-white border border-slate-200 rounded-lg p-3">
-                    <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-route text-blue-500"></i>
+                <section class="bg-[#fffefa] border border-[#ded8cc] rounded-lg p-3">
+                    <h4 class="text-xs font-semibold text-[#292520] flex items-center gap-2">
+                        <i class="fa-solid fa-route text-[#4b6f8f]"></i>
                         Recall Timeline
                     </h4>
                     <div id="memory-timeline" class="mt-3 space-y-3"></div>
                 </section>
 
-                <section class="bg-white border border-slate-200 rounded-lg p-3">
-                    <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i>
+                <section class="bg-[#fffefa] border border-[#ded8cc] rounded-lg p-3">
+                    <h4 class="text-xs font-semibold text-[#292520] flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-[#54746b]"></i>
                         Episodic Matches
                     </h4>
                     <div id="memory-episodic" class="mt-3 space-y-2"></div>
                 </section>
 
-                <section class="bg-white border border-slate-200 rounded-lg p-3">
-                    <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-seedling text-purple-500"></i>
+                <section class="bg-[#fffefa] border border-[#ded8cc] rounded-lg p-3">
+                    <h4 class="text-xs font-semibold text-[#292520] flex items-center gap-2">
+                        <i class="fa-solid fa-seedling text-[#8a5f87]"></i>
                         Expanded Nodes
                     </h4>
                     <div id="memory-expanded" class="mt-3 space-y-2"></div>
                 </section>
 
-                <section class="bg-white border border-slate-200 rounded-lg p-3">
-                    <h4 class="text-xs font-semibold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-link text-cyan-500"></i>
+                <section class="bg-[#fffefa] border border-[#ded8cc] rounded-lg p-3">
+                    <h4 class="text-xs font-semibold text-[#292520] flex items-center gap-2">
+                        <i class="fa-solid fa-link text-[#4b6f8f]"></i>
                         Evidence Sources
                     </h4>
                     <div id="memory-sources" class="mt-3 space-y-2"></div>
@@ -351,9 +371,9 @@
 </div>
 
 <div id="loading" class="hidden absolute inset-0 bg-black/10 flex items-center justify-center z-50">
-    <div class="bg-white rounded-xl p-4 flex items-center gap-3 shadow-lg">
-        <i class="fa-solid fa-circle-notch fa-spin text-blue-500"></i>
-        <span class="text-sm text-slate-600">思考中...</span>
+    <div class="bg-[#fffefa] border border-[#ded8cc] rounded-xl p-4 flex items-center gap-3 shadow-lg">
+        <i class="fa-solid fa-circle-notch fa-spin text-[#b85c38]"></i>
+        <span class="text-sm text-[#5f584f]">思考中...</span>
     </div>
 </div>
 
@@ -458,7 +478,7 @@ function renderMemoryInspector(metaPatch = {}) {
     if (content) content.classList.remove('hidden');
     if (modeEl) {
         modeEl.textContent = meta.mode || meta.answer_mode || 'session';
-        modeEl.className = 'text-[11px] px-2 py-1 rounded-full bg-blue-100 text-blue-700';
+        modeEl.className = 'text-[11px] px-2 py-1 rounded-full bg-[#fbede6] text-[#8f4329]';
     }
 
     const memorySources = recall.memory_sources ?? meta.memory_summaries?.length ?? 0;
@@ -469,7 +489,7 @@ function renderMemoryInspector(metaPatch = {}) {
     const timeline = document.getElementById('memory-timeline');
     if (timeline) {
         if (events.length === 0) {
-            timeline.innerHTML = '<p class="text-xs text-slate-400">本轮没有记忆事件。</p>';
+            timeline.innerHTML = '<p class="text-xs text-[#9b9287]">本轮没有记忆事件。</p>';
         } else {
             timeline.innerHTML = events.map((event) => (
                 `<div class="memory-timeline-item">${escapeHtml(summarizeTraceEvent(event))}</div>`
@@ -481,15 +501,15 @@ function renderMemoryInspector(metaPatch = {}) {
     if (episodicEl) {
         episodicEl.innerHTML = episodic.length ? episodic.map((item) => {
             const concepts = Array.isArray(item.concepts) ? item.concepts.slice(0, 3) : [];
-            return `<div class="rounded-lg border border-emerald-100 bg-emerald-50/50 p-2">
+            return `<div class="rounded-lg border border-[#d9e3d6] bg-[#eef3ed] p-2">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="text-xs font-medium text-slate-700 line-clamp-2">${escapeHtml(item.summary || 'Episode')}</p>
-                    <span class="text-[11px] text-emerald-700">${formatScore(item.score)}</span>
+                    <p class="text-xs font-medium text-[#292520] line-clamp-2">${escapeHtml(item.summary || 'Episode')}</p>
+                    <span class="text-[11px] text-[#54746b]">${formatScore(item.score)}</span>
                 </div>
-                ${item.reason ? `<p class="text-[11px] text-slate-500 mt-1">${escapeHtml(item.reason)}</p>` : ''}
+                ${item.reason ? `<p class="text-[11px] text-[#766f66] mt-1">${escapeHtml(item.reason)}</p>` : ''}
                 ${concepts.length ? `<div class="mt-2 flex flex-wrap gap-1">${concepts.map((c) => `<span class="memory-chip">${escapeHtml(c)}</span>`).join('')}</div>` : ''}
             </div>`;
-        }).join('') : '<p class="text-xs text-slate-400">没有 episode 匹配。</p>';
+        }).join('') : '<p class="text-xs text-[#9b9287]">没有 episode 匹配。</p>';
     }
 
     const expandedEl = document.getElementById('memory-expanded');
@@ -497,37 +517,37 @@ function renderMemoryInspector(metaPatch = {}) {
         expandedEl.innerHTML = expanded.length ? expanded.map((item) => {
             const roots = Array.isArray(item.root_ids) ? item.root_ids.slice(0, 3) : [];
             const entity = item.entity || item.name || 'Expanded node';
-            return `<div class="rounded-lg border border-purple-100 bg-purple-50/50 p-2">
+            return `<div class="rounded-lg border border-[#e3d6df] bg-[#f5eef3] p-2">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="text-xs font-semibold text-slate-700">${escapeHtml(entity)}</p>
-                    <span class="text-[11px] text-purple-700">${formatScore(item.score)}</span>
+                    <p class="text-xs font-semibold text-[#292520]">${escapeHtml(entity)}</p>
+                    <span class="text-[11px] text-[#8a5f87]">${formatScore(item.score)}</span>
                 </div>
-                ${item.description ? `<p class="text-[11px] text-slate-500 mt-1 line-clamp-3">${escapeHtml(item.description)}</p>` : ''}
-                ${item.reason ? `<p class="text-[11px] text-slate-500 mt-1">${escapeHtml(item.reason)}</p>` : ''}
-                <div class="mt-2 flex items-center gap-1 text-[11px] text-slate-500">
-                    <span class="px-2 py-0.5 rounded bg-white border border-purple-100">candidate</span>
+                ${item.description ? `<p class="text-[11px] text-[#766f66] mt-1 line-clamp-3">${escapeHtml(item.description)}</p>` : ''}
+                ${item.reason ? `<p class="text-[11px] text-[#766f66] mt-1">${escapeHtml(item.reason)}</p>` : ''}
+                <div class="mt-2 flex items-center gap-1 text-[11px] text-[#766f66]">
+                    <span class="px-2 py-0.5 rounded bg-[#fffefa] border border-[#e3d6df]">candidate</span>
                     <span>-></span>
-                    <span class="px-2 py-0.5 rounded bg-white border border-purple-100">active</span>
+                    <span class="px-2 py-0.5 rounded bg-[#fffefa] border border-[#e3d6df]">active</span>
                     <span>-></span>
-                    <span class="px-2 py-0.5 rounded bg-white border border-purple-100">promoted</span>
+                    <span class="px-2 py-0.5 rounded bg-[#fffefa] border border-[#e3d6df]">promoted</span>
                 </div>
                 ${roots.length ? `<div class="mt-2 flex flex-wrap gap-1">${roots.map((r) => `<span class="memory-chip">${escapeHtml(r)}</span>`).join('')}</div>` : ''}
             </div>`;
-        }).join('') : '<p class="text-xs text-slate-400">没有 expanded node 匹配。</p>';
+        }).join('') : '<p class="text-xs text-[#9b9287]">没有 expanded node 匹配。</p>';
     }
 
     const sourcesEl = document.getElementById('memory-sources');
     if (sourcesEl) {
         sourcesEl.innerHTML = sources.length ? sources.slice(0, 5).map((item, index) => {
             const content = item.content || item.text || item.source || `Source ${index + 1}`;
-            return `<div class="rounded-lg border border-cyan-100 bg-cyan-50/50 p-2">
+            return `<div class="rounded-lg border border-[#d7e2e5] bg-[#edf3f4] p-2">
                 <div class="flex items-center justify-between gap-2">
-                    <p class="text-[11px] font-medium text-cyan-700">Source ${index + 1}</p>
-                    <span class="text-[11px] text-slate-500">${formatScore(item.confidence)}</span>
+                    <p class="text-[11px] font-medium text-[#4b6f8f]">Source ${index + 1}</p>
+                    <span class="text-[11px] text-[#766f66]">${formatScore(item.confidence)}</span>
                 </div>
-                <p class="text-xs text-slate-600 mt-1 line-clamp-3">${escapeHtml(content)}</p>
+                <p class="text-xs text-[#5f584f] mt-1 line-clamp-3">${escapeHtml(content)}</p>
             </div>`;
-        }).join('') : '<p class="text-xs text-slate-400">答案生成后会显示证据来源。</p>';
+        }).join('') : '<p class="text-xs text-[#9b9287]">答案生成后会显示证据来源。</p>';
     }
 }
 
@@ -708,23 +728,23 @@ function addProcessingItem(fileId, filename) {
     const item = document.createElement('div');
     item.id = fileId;
     item.dataset.processingActive = '1';
-    item.className = 'bg-slate-50 rounded-lg p-3 border border-slate-200';
+    item.className = 'bg-[#fffefa] rounded-lg p-3 border border-[#ded8cc]';
     item.innerHTML = `
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <i class="fa-solid fa-file text-blue-600 text-sm"></i>
+            <div class="w-8 h-8 bg-[#fbede6] rounded-lg flex items-center justify-center">
+                <i class="fa-solid fa-file text-[#b85c38] text-sm"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-slate-700 truncate">${filename}</p>
+                <p class="text-sm font-medium text-[#292520] truncate">${filename}</p>
                 <div class="flex items-center gap-2 mt-1">
                     <div class="processing-ring"></div>
-                    <span class="status-text text-xs text-blue-600">上传中...</span>
+                    <span class="status-text text-xs text-[#b85c38]">上传中...</span>
                 </div>
                 <div class="progress-container mt-2">
                     <div class="progress-bar" style="width: 0%"></div>
                 </div>
             </div>
-            <button onclick="removeProcessingItem('${fileId}')" class="text-slate-400 hover:text-red-500">
+            <button onclick="removeProcessingItem('${fileId}')" class="text-[#9b9287] hover:text-[#b85c38]">
                 <i class="fa-solid fa-times"></i>
             </button>
         </div>
@@ -824,7 +844,7 @@ function showAttachedFile(filename, fileId) {
     tag.innerHTML = `
         <i class="fa-solid fa-file text-xs"></i>
         <span>${filename}</span>
-        <button onclick="removeAttachedFile('${fileId}')" class="ml-1 text-blue-600 hover:text-blue-800">
+        <button onclick="removeAttachedFile('${fileId}')" class="ml-1 text-[#8f4329] hover:text-[#292520]">
             <i class="fa-solid fa-times text-xs"></i>
         </button>
     `;
@@ -936,13 +956,13 @@ async function sendMessage() {
 
         const uid = 'dt_' + Date.now();
         msgDiv.innerHTML = `
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shrink-0">
+            <div class="w-8 h-8 rounded-lg bg-[#292520] flex items-center justify-center text-[#fffefa] shrink-0">
                 <i class="fa-solid fa-robot text-sm"></i>
             </div>
             <div class="flex-1 max-w-2xl" id="${uid}_wrapper">
                 <div class="message-bot rounded-2xl rounded-tl-sm px-4 py-3 hidden" id="${uid}_answer">
-                    <div class="text-slate-700" id="${uid}_text"></div>
-                    <p class="text-xs text-slate-400 mt-1">${formatTimestamp(new Date().toISOString())}</p>
+                    <div class="text-[#292520]" id="${uid}_text"></div>
+                    <p class="text-xs text-[#9b9287] mt-1">${formatTimestamp(new Date().toISOString())}</p>
                 </div>
             </div>
         `;
@@ -1055,8 +1075,8 @@ async function sendMessage() {
                         let html = responseText
                             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                         html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                        html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-800 text-slate-100 p-3 rounded-lg overflow-x-auto text-sm my-2"><code>$1</code></pre>');
-                        html = html.replace(/`([^`]+)`/g, '<code class="bg-slate-100 text-pink-600 px-1 py-0.5 rounded text-sm">$1</code>');
+                        html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-[#292520] text-[#fffefa] p-3 rounded-lg overflow-x-auto text-sm my-2"><code>$1</code></pre>');
+                        html = html.replace(/`([^`]+)`/g, '<code class="bg-[#f7f3ea] text-[#8f4329] px-1 py-0.5 rounded text-sm">$1</code>');
                         html = html.replace(/\n/g, '<br>');
                         document.getElementById(uid + '_text').innerHTML = html;
                     }
@@ -1154,21 +1174,21 @@ function addMessage(content, role, isError = false, timestamp = null, meta = nul
             <div class="flex-1 flex justify-end">
                 <div class="message-user rounded-2xl rounded-tr-sm px-4 py-3 max-w-xl">
                     <p>${safeContent}</p>
-                    <p class="text-xs text-blue-100 mt-1">${timeStr}</p>
+                    <p class="text-xs text-[#eadfd2] mt-1">${timeStr}</p>
                 </div>
             </div>
         `;
     } else {
         const thinkingHtml = _buildThinkingCardHtml(meta);
         div.innerHTML = `
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shrink-0">
+            <div class="w-8 h-8 rounded-lg bg-[#292520] flex items-center justify-center text-[#fffefa] shrink-0">
                 <i class="fa-solid fa-robot text-sm"></i>
             </div>
             <div class="flex-1 max-w-2xl">
                 ${thinkingHtml}
                 <div class="message-bot rounded-2xl rounded-tl-sm px-4 py-3 ${isError ? 'border-red-200 bg-red-50' : ''}">
-                    <p class="${isError ? 'text-red-600' : 'text-slate-700'}">${safeContent.replace(/\n/g, '<br>')}</p>
-                    <p class="text-xs text-slate-400 mt-1">${timeStr}</p>
+                    <p class="${isError ? 'text-red-600' : 'text-[#292520]'}">${safeContent.replace(/\n/g, '<br>')}</p>
+                    <p class="text-xs text-[#9b9287] mt-1">${timeStr}</p>
                 </div>
             </div>
         `;

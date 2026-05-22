@@ -4,245 +4,329 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --dt-ink: #292520;
+        --dt-muted: #766f66;
+        --dt-hairline: #ded8cc;
+        --dt-paper: #fbfaf7;
+        --dt-panel: rgba(255, 254, 250, 0.92);
+        --dt-copper: #b85c38;
+        --dt-sage: #54746b;
+        --dt-lake: #4b6f8f;
+        --dt-ochre: #b7892d;
+    }
+    .kg-shell {
+        background:
+            linear-gradient(rgba(41, 37, 32, 0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(41, 37, 32, 0.026) 1px, transparent 1px),
+            linear-gradient(135deg, #fbfaf7 0%, #f3f0e8 46%, #f8faf8 100%);
+        background-size: 28px 28px, 28px 28px, auto;
+    }
     .node circle { cursor: pointer; transition: all 0.2s; }
-    .node:hover circle { filter: brightness(1.15); stroke-width: 2.5; }
-    .link { stroke: #cbd5e1; stroke-opacity: 0.6; cursor: pointer; }
-    .link:hover { stroke: #3b82f6; stroke-opacity: 1; stroke-width: 2.5; }
+    .node:hover circle { filter: saturate(1.1) brightness(1.04); stroke-width: 2.5; }
+    .link { stroke: #9d9488; stroke-opacity: 0.34; cursor: pointer; }
+    .link:hover { stroke: var(--dt-copper); stroke-opacity: 1; stroke-width: 2.5; }
     .node-label { font-size: 10px; fill: #fff; pointer-events: none; text-anchor: middle; dominant-baseline: central; font-weight: 500; }
-    .level-3 { fill: #ec4899; }
-    .level-2 { fill: #3b82f6; }
-    .level-1 { fill: #10b981; }
-    .level-expanded { fill: #fbbf24; }
-    .level-image { fill: #8b5cf6; }
+    .level-3 { fill: #8a5f87; }
+    .level-2 { fill: var(--dt-lake); }
+    .level-1 { fill: var(--dt-sage); }
+    .level-expanded { fill: #d6aa3d; }
+    .level-image { fill: #866bba; }
     .dimmed { opacity: 0.08 !important; }
-    .highlighted circle { stroke: #f59e0b; stroke-width: 3; }
+    .highlighted circle { stroke: var(--dt-copper); stroke-width: 3; }
     .detail-section { border-left: 3px solid #e2e8f0; padding-left: 12px; margin-bottom: 12px; }
-    .detail-section.edge-detail { border-left-color: #3b82f6; }
-    .detail-section.node-detail { border-left-color: #10b981; }
-    .relation-list-item { padding: 6px 8px; border-radius: 6px; background: #f8fafc; margin-bottom: 4px; font-size: 13px; }
-    .relation-list-item:hover { background: #eff6ff; }
-    .img-thumb { max-width: 100%; max-height: 160px; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; object-fit: contain; background: #f8fafc; }
+    .detail-section.edge-detail { border-left-color: var(--dt-lake); }
+    .detail-section.node-detail { border-left-color: var(--dt-sage); }
+    .relation-list-item { padding: 6px 8px; border-radius: 6px; background: #faf8f2; margin-bottom: 4px; font-size: 13px; }
+    .relation-list-item:hover { background: #f4efe4; }
+    .img-thumb { max-width: 100%; max-height: 160px; border-radius: 8px; border: 1px solid var(--dt-hairline); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; object-fit: contain; background: #faf8f2; }
     .img-thumb:hover { transform: scale(1.03); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
     .lightbox { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; cursor: zoom-out; }
     .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); object-fit: contain; }
     .lightbox-close { position: absolute; top: 16px; right: 24px; color: #fff; font-size: 28px; cursor: pointer; background: rgba(0,0,0,0.4); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
     .lightbox-close:hover { background: rgba(255,255,255,0.2); }
-    .kg-dashboard {
+    .kg-panel {
+        background: var(--dt-panel);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(222, 216, 204, 0.9);
+        box-shadow: 0 18px 44px rgba(55, 46, 36, 0.12);
+    }
+    .kg-toolbar {
         position: absolute;
-        top: 16px;
-        right: 16px;
+        top: 18px;
+        left: 18px;
+        width: 250px;
+        border-radius: 14px;
+    }
+    .kg-dashboard {
         width: 360px;
-        max-height: calc(100vh - 128px);
+        height: 100%;
         overflow-y: auto;
-        background: rgba(255, 255, 255, 0.96);
-        backdrop-filter: blur(10px);
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+        border-left: 1px solid var(--dt-hairline);
+        background: rgba(255, 254, 250, 0.96);
     }
     .kg-dashboard-card {
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--dt-hairline);
         border-radius: 8px;
-        background: #fff;
-        padding: 10px;
+        background: #fffefa;
+        padding: 12px;
+        box-shadow: 0 1px 2px rgba(55, 46, 36, 0.04);
+    }
+    .kg-stat-tile {
+        border-radius: 10px;
+        padding: 12px;
+        background: linear-gradient(180deg, #fffefa 0%, #f7f3ea 100%);
+        border: 1px solid var(--dt-hairline);
     }
     .kg-life-bar {
         height: 8px;
         overflow: hidden;
         border-radius: 999px;
-        background: #e2e8f0;
+        background: #e7dfd1;
         display: flex;
     }
     .kg-life-segment { height: 100%; }
-    .kg-life-candidate { background: #f59e0b; }
-    .kg-life-active { background: #3b82f6; }
-    .kg-life-promoted { background: #10b981; }
+    .kg-life-candidate { background: var(--dt-ochre); }
+    .kg-life-active { background: var(--dt-lake); }
+    .kg-life-promoted { background: var(--dt-sage); }
     .kg-node-row {
-        border: 1px solid #f1f5f9;
+        border: 1px solid #ebe4d8;
         border-radius: 8px;
         padding: 8px;
-        background: #f8fafc;
+        background: #faf7ef;
+    }
+    .kg-control-button {
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: 1px solid var(--dt-hairline);
+        background: #fffefa;
+        color: #5f584f;
+        transition: all 0.16s ease;
+    }
+    .kg-control-button:hover {
+        color: var(--dt-copper);
+        border-color: #d7a28b;
+        background: #fbf2eb;
+    }
+    .kg-control-primary {
+        color: white;
+        border-color: var(--dt-ink);
+        background: var(--dt-ink);
+    }
+    .kg-control-primary:hover {
+        color: white;
+        background: #15120f;
+    }
+    .kg-control-accent {
+        color: #5f2e1f;
+        border-color: #dfb7a5;
+        background: #fbede6;
+    }
+    .kg-control-accent:hover {
+        color: #5f2e1f;
+        background: #f6ded2;
+    }
+    .kg-kicker {
+        color: var(--dt-copper);
+        letter-spacing: 0;
+        text-transform: uppercase;
+        font-size: 11px;
+        font-weight: 700;
+    }
+    .kg-soft-label {
+        color: var(--dt-muted);
+        font-size: 11px;
     }
     @media (max-width: 1100px) {
         .kg-dashboard { display: none; }
+    }
+    @media (max-width: 900px) {
+        .kg-toolbar { width: calc(100% - 36px); }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <script>window.KG_API_PREFIX = '{{ (api_config.api_prefix if api_config else none)|default("/api/v1") }}';</script>
-<header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
+<header class="bg-[#fffefa] border-b border-[#ded8cc] px-6 py-4 flex items-center justify-between shrink-0">
     <div>
-        <h2 class="text-lg font-semibold text-slate-800">知识图谱</h2>
-        <p class="text-sm text-slate-500">可视化展示知识关联与层次结构
-            <span id="data-source-hint" class="text-amber-600 font-medium"></span>
+        <p class="kg-kicker">DocThinker Memory Atlas</p>
+        <h2 class="text-lg font-semibold text-[#292520] mt-0.5">知识图谱</h2>
+        <p class="text-sm text-[#766f66]">查看知识、记忆与扩展节点如何共同生长
+            <span id="data-source-hint" class="text-[#b85c38] font-medium"></span>
         </p>
     </div>
     <div class="flex flex-wrap gap-2 items-center">
         <select id="kg-session-selector" class="input-field px-2 sm:px-3 py-2 rounded-lg text-sm min-w-[140px] sm:min-w-[260px]" onchange="handleKgSessionSwitch(this.value)"></select>
 
-        <button id="expand-btn" onclick="expandGraph()" class="px-3 sm:px-4 py-2 rounded-lg text-sm font-medium bg-amber-400 hover:bg-amber-500 text-slate-800" title="LLM 知识扩展">扩展</button>
-        <button onclick="resetHighlight()" class="btn-secondary px-3 sm:px-4 py-2 rounded-lg text-sm hidden sm:inline-flex" title="取消聚焦">取消聚焦</button>
-        <button onclick="resetZoom()" class="btn-secondary px-3 sm:px-4 py-2 rounded-lg text-sm hidden sm:inline-flex">重置</button>
-        <button onclick="refreshGraph()" class="btn-primary px-3 sm:px-4 py-2 rounded-lg text-sm">刷新</button>
+        <button id="expand-btn" onclick="expandGraph()" class="kg-control-button kg-control-accent px-3 sm:px-4 text-sm font-medium" title="LLM 知识扩展">
+            <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>扩展
+        </button>
+        <button onclick="resetHighlight()" class="kg-control-button w-9 hidden sm:inline-flex" title="取消聚焦"><i class="fa-solid fa-eye"></i></button>
+        <button onclick="resetZoom()" class="kg-control-button w-9 hidden sm:inline-flex" title="重置视图"><i class="fa-solid fa-compress"></i></button>
+        <button onclick="refreshGraph()" class="kg-control-button kg-control-primary px-3 sm:px-4 text-sm" title="刷新">
+            <i class="fa-solid fa-rotate mr-2"></i>刷新
+        </button>
     </div>
 </header>
 
 <div class="flex-1 flex overflow-hidden">
-    <div class="flex-1 relative bg-slate-50">
+    <div class="flex-1 relative kg-shell">
         <div id="graph-container" class="absolute inset-0"></div>
         
-        <div class="absolute top-4 left-4 space-y-3">
-            <div class="card p-3">
+        <div class="kg-toolbar kg-panel p-3 space-y-3">
+            <div>
                 <input type="text" id="search-input" placeholder="搜索节点（模糊匹配）..." 
-                    class="input-field px-3 py-2 rounded-lg text-sm w-48"
+                    class="input-field px-3 py-2 rounded-lg text-sm w-full bg-[#fffefa] border-[#ded8cc] text-[#292520] placeholder:text-[#9b9287]"
                     oninput="searchNodes(this.value)">
             </div>
             
-            <div class="card p-3">
-                <p class="text-xs font-semibold text-slate-500 mb-2">层级筛选</p>
-                <div class="space-y-2">
+            <div>
+                <p class="kg-soft-label font-semibold uppercase mb-2">筛选</p>
+                <div class="grid grid-cols-2 gap-2">
                     <label class="flex items-center gap-2 text-sm cursor-pointer">
                         <input type="checkbox" checked onchange="toggleLevel(3)" class="rounded">
-                        <span class="w-2 h-2 rounded-full bg-pink-500"></span>
-                        <span class="text-slate-600">Domain</span>
+                        <span class="w-2 h-2 rounded-full" style="background:#8a5f87"></span>
+                        <span class="text-[#5f584f]">Domain</span>
                     </label>
                     <label class="flex items-center gap-2 text-sm cursor-pointer">
                         <input type="checkbox" checked onchange="toggleLevel(2)" class="rounded">
-                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                        <span class="text-slate-600">Concept</span>
+                        <span class="w-2 h-2 rounded-full" style="background:#4b6f8f"></span>
+                        <span class="text-[#5f584f]">Concept</span>
                     </label>
                     <label class="flex items-center gap-2 text-sm cursor-pointer">
                         <input type="checkbox" checked onchange="toggleLevel(1)" class="rounded">
-                        <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                        <span class="text-slate-600">Instance</span>
+                        <span class="w-2 h-2 rounded-full" style="background:#54746b"></span>
+                        <span class="text-[#5f584f]">Instance</span>
                     </label>
-                    <label class="flex items-center gap-2 text-sm cursor-pointer mt-2 pt-2 border-t border-slate-200">
+                    <label class="flex items-center gap-2 text-sm cursor-pointer">
                         <input type="checkbox" checked onchange="toggleExpanded()" class="rounded" id="chk-expanded">
-                        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#FFD700"></span>
-                        <span class="text-slate-600">扩展节点</span>
+                        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#d6aa3d"></span>
+                        <span class="text-[#5f584f]">扩展节点</span>
                     </label>
                 </div>
             </div>
-            <div class="card p-3">
-                <p class="text-xs font-semibold text-slate-500 mb-2">调试</p>
-                <button onclick="checkExpandedNodes()" class="px-3 py-1.5 rounded text-xs bg-slate-100 hover:bg-slate-200 text-slate-600">检查扩展节点 (API)</button>
-                <p id="debug-result" class="text-xs text-slate-500 mt-2 break-all"></p>
+            <div class="pt-2 border-t border-[#ded8cc]">
+                <button onclick="checkExpandedNodes()" class="kg-control-button w-full text-xs">检查扩展节点</button>
+                <p id="debug-result" class="text-xs text-[#766f66] mt-2 break-all"></p>
             </div>
         </div>
+    </div>
 
-        <aside class="kg-dashboard">
-            <div class="p-4 space-y-3">
+    <aside class="kg-dashboard shrink-0">
+        <div class="p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-diagram-project text-blue-600"></i>
+                        <h3 class="text-sm font-semibold text-[#292520] flex items-center gap-2">
+                            <i class="fa-solid fa-diagram-project text-[#b85c38]"></i>
                             Memory / KG Dashboard
                         </h3>
-                        <p class="text-xs text-slate-500 mt-1">当前会话的图谱、记忆与扩展节点状态。</p>
+                        <p class="text-xs text-[#766f66] mt-1">当前会话的图谱、记忆与扩展节点状态。</p>
                     </div>
-                    <button onclick="loadDashboardData()" class="text-slate-400 hover:text-blue-600" title="刷新面板">
+                    <button onclick="loadDashboardData()" class="text-[#9b9287] hover:text-[#b85c38]" title="刷新面板">
                         <i class="fa-solid fa-rotate"></i>
                     </button>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2">
-                    <div class="kg-dashboard-card">
-                        <p class="text-[11px] text-slate-500">实体</p>
-                        <p id="dash-entities" class="text-xl font-semibold text-slate-800">-</p>
+                    <div class="kg-stat-tile">
+                        <p class="kg-soft-label">实体</p>
+                        <p id="dash-entities" class="text-xl font-semibold text-[#292520]">-</p>
                     </div>
-                    <div class="kg-dashboard-card">
-                        <p class="text-[11px] text-slate-500">关系</p>
-                        <p id="dash-relations" class="text-xl font-semibold text-blue-700">-</p>
+                    <div class="kg-stat-tile">
+                        <p class="kg-soft-label">关系</p>
+                        <p id="dash-relations" class="text-xl font-semibold text-[#4b6f8f]">-</p>
                     </div>
-                    <div class="kg-dashboard-card">
-                        <p class="text-[11px] text-slate-500">扩展</p>
-                        <p id="dash-expanded" class="text-xl font-semibold text-amber-700">-</p>
+                    <div class="kg-stat-tile">
+                        <p class="kg-soft-label">扩展</p>
+                        <p id="dash-expanded" class="text-xl font-semibold text-[#b7892d]">-</p>
                     </div>
                 </div>
 
                 <section class="kg-dashboard-card">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-semibold text-slate-700">Expanded Lifecycle</h4>
-                        <span id="dash-life-total" class="text-[11px] text-slate-400">0 total</span>
+                        <h4 class="text-xs font-semibold text-[#292520]">Expanded Lifecycle</h4>
+                        <span id="dash-life-total" class="text-[11px] text-[#9b9287]">0 total</span>
                     </div>
                     <div class="kg-life-bar mt-3">
                         <div id="dash-life-candidate" class="kg-life-segment kg-life-candidate" style="width:0%"></div>
                         <div id="dash-life-active" class="kg-life-segment kg-life-active" style="width:0%"></div>
                         <div id="dash-life-promoted" class="kg-life-segment kg-life-promoted" style="width:0%"></div>
                     </div>
-                    <div class="grid grid-cols-3 gap-2 mt-3 text-[11px]">
-                        <div><span class="inline-block w-2 h-2 rounded-full bg-amber-500"></span> 候选 <b id="dash-candidate-count">0</b></div>
-                        <div><span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span> 活跃 <b id="dash-active-count">0</b></div>
-                        <div><span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> 晋升 <b id="dash-promoted-count">0</b></div>
+                    <div class="grid grid-cols-3 gap-2 mt-3 text-[11px] text-[#5f584f]">
+                        <div><span class="inline-block w-2 h-2 rounded-full" style="background:#b7892d"></span> 候选 <b id="dash-candidate-count">0</b></div>
+                        <div><span class="inline-block w-2 h-2 rounded-full" style="background:#4b6f8f"></span> 活跃 <b id="dash-active-count">0</b></div>
+                        <div><span class="inline-block w-2 h-2 rounded-full" style="background:#54746b"></span> 晋升 <b id="dash-promoted-count">0</b></div>
                     </div>
                 </section>
 
                 <section class="kg-dashboard-card">
-                    <h4 class="text-xs font-semibold text-slate-700">Memory Backend</h4>
-                    <div id="dash-memory-stats" class="mt-2 text-xs text-slate-600 space-y-1">
-                        <p class="text-slate-400">等待加载...</p>
+                    <h4 class="text-xs font-semibold text-[#292520]">Memory Backend</h4>
+                    <div id="dash-memory-stats" class="mt-2 text-xs text-[#5f584f] space-y-1">
+                        <p class="text-[#9b9287]">等待加载...</p>
                     </div>
                 </section>
 
                 <section class="kg-dashboard-card">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-semibold text-slate-700">Top Expanded Nodes</h4>
-                        <button onclick="focusTopExpandedNode()" class="text-[11px] text-blue-600 hover:text-blue-700">聚焦最高分</button>
+                        <h4 class="text-xs font-semibold text-[#292520]">Top Expanded Nodes</h4>
+                        <button onclick="focusTopExpandedNode()" class="text-[11px] text-[#b85c38] hover:text-[#8f4329]">聚焦最高分</button>
                     </div>
                     <div id="dash-expanded-list" class="mt-2 space-y-2">
-                        <p class="text-xs text-slate-400">暂无扩展节点。</p>
+                        <p class="text-xs text-[#9b9287]">暂无扩展节点。</p>
                     </div>
                 </section>
-            </div>
-        </aside>
-    </div>
+        </div>
+    </aside>
     
     <!-- Detail Panel -->
-    <div id="detail-panel" class="hidden w-96 bg-white border-l border-slate-200 overflow-y-auto">
+    <div id="detail-panel" class="hidden w-96 bg-[#fffefa] border-l border-[#ded8cc] overflow-y-auto">
         <div class="p-5">
             <div class="flex items-center justify-between mb-4">
-                <h3 id="detail-title" class="font-semibold text-slate-800 text-base">详情</h3>
-                <button onclick="closePanel()" class="text-slate-400 hover:text-slate-600">
+                <h3 id="detail-title" class="font-semibold text-[#292520] text-base">详情</h3>
+                <button onclick="closePanel()" class="text-[#9b9287] hover:text-[#b85c38]">
                     <i class="fa-solid fa-times"></i>
                 </button>
             </div>
             <div id="detail-node-section">
-                <div id="detail-name-full" class="mb-3 p-3 bg-slate-50 rounded-lg">
-                    <div class="text-xs text-slate-400 mb-1">节点全称</div>
-                    <div id="detail-name-text" class="text-sm font-semibold text-slate-800 break-all">-</div>
+                <div id="detail-name-full" class="mb-3 p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0]">
+                    <div class="text-xs text-[#9b9287] mb-1">节点全称</div>
+                    <div id="detail-name-text" class="text-sm font-semibold text-[#292520] break-all">-</div>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mb-3">
-                    <div class="p-3 bg-slate-50 rounded-lg">
-                        <div class="text-xs text-slate-400 mb-1">类型</div>
+                    <div class="p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0]">
+                        <div class="text-xs text-[#9b9287] mb-1">类型</div>
                         <span id="detail-type" class="text-sm font-medium">-</span>
                     </div>
-                    <div class="p-3 bg-slate-50 rounded-lg">
-                        <div class="text-xs text-slate-400 mb-1">连接数</div>
-                        <span id="detail-connections" class="text-sm font-medium text-blue-600">-</span>
+                    <div class="p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0]">
+                        <div class="text-xs text-[#9b9287] mb-1">连接数</div>
+                        <span id="detail-connections" class="text-sm font-medium text-[#4b6f8f]">-</span>
                     </div>
                 </div>
-                <div id="detail-description" class="mb-3 p-3 bg-blue-50 rounded-lg" style="display:none;">
-                    <div class="text-xs text-blue-400 mb-1">描述</div>
-                    <div id="detail-desc-text" class="text-sm text-slate-700 whitespace-pre-wrap"></div>
+                <div id="detail-description" class="mb-3 p-3 bg-[#fbede6] rounded-lg border border-[#efd6c9]" style="display:none;">
+                    <div class="text-xs text-[#b85c38] mb-1">描述</div>
+                    <div id="detail-desc-text" class="text-sm text-[#5f584f] whitespace-pre-wrap"></div>
                 </div>
                 <div id="detail-neighbors" class="mb-3" style="display:none;">
-                    <div class="text-xs text-slate-400 mb-2">关联节点</div>
+                    <div class="text-xs text-[#9b9287] mb-2">关联节点</div>
                     <div id="detail-neighbors-list" class="space-y-1 max-h-48 overflow-y-auto"></div>
                 </div>
             </div>
             <div id="detail-edge-section" style="display:none;">
-                <div class="mb-3 p-3 bg-slate-50 rounded-lg">
-                    <div class="text-xs text-slate-400 mb-1">关系类型</div>
-                    <div id="detail-edge-label" class="text-sm font-semibold text-slate-800">-</div>
+                <div class="mb-3 p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0]">
+                    <div class="text-xs text-[#9b9287] mb-1">关系类型</div>
+                    <div id="detail-edge-label" class="text-sm font-semibold text-[#292520]">-</div>
                 </div>
-                <div class="mb-3 p-3 bg-slate-50 rounded-lg">
-                    <div class="text-xs text-slate-400 mb-1">连接方向</div>
-                    <div id="detail-edge-direction" class="text-sm text-slate-700">-</div>
+                <div class="mb-3 p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0]">
+                    <div class="text-xs text-[#9b9287] mb-1">连接方向</div>
+                    <div id="detail-edge-direction" class="text-sm text-[#5f584f]">-</div>
                 </div>
-                <div id="detail-edge-desc" class="mb-3 p-3 bg-blue-50 rounded-lg" style="display:none;">
-                    <div class="text-xs text-blue-400 mb-1">描述</div>
-                    <div id="detail-edge-desc-text" class="text-sm text-slate-700 whitespace-pre-wrap"></div>
+                <div id="detail-edge-desc" class="mb-3 p-3 bg-[#fbede6] rounded-lg border border-[#efd6c9]" style="display:none;">
+                    <div class="text-xs text-[#b85c38] mb-1">描述</div>
+                    <div id="detail-edge-desc-text" class="text-sm text-[#5f584f] whitespace-pre-wrap"></div>
                 </div>
                 <div id="detail-edge-tag" class="mb-3 p-3 bg-red-50 rounded-lg" style="display:none;">
                     <span class="text-xs text-red-500 font-medium"></span>
@@ -452,7 +536,7 @@ function renderMemoryStats(payload) {
     const el = document.getElementById('dash-memory-stats');
     if (!el) return;
     if (!payload || payload.enabled === false) {
-        el.innerHTML = `<p class="text-slate-400">${payload?.error || '记忆后端暂未启用。'}</p>`;
+        el.innerHTML = `<p class="text-[#9b9287]">${payload?.error || '记忆后端暂未启用。'}</p>`;
         return;
     }
     const system = payload.system || 'memory';
@@ -461,13 +545,13 @@ function renderMemoryStats(payload) {
         .slice(0, 6);
     el.innerHTML = `
         <div class="flex items-center justify-between">
-            <span class="text-slate-500">系统</span>
-            <span class="font-medium text-slate-700">${system}</span>
+            <span class="text-[#766f66]">系统</span>
+            <span class="font-medium text-[#292520]">${system}</span>
         </div>
         ${rows.map(([key, value]) => `
             <div class="flex items-center justify-between gap-2">
-                <span class="text-slate-500 truncate">${key}</span>
-                <span class="font-medium text-slate-700">${value}</span>
+                <span class="text-[#766f66] truncate">${key}</span>
+                <span class="font-medium text-[#292520]">${value}</span>
             </div>
         `).join('')}
     `;
@@ -495,7 +579,7 @@ function renderExpandedDashboard(nodes) {
     if (!list) return;
     const top = dashboardExpandedNodes.slice(0, 5);
     if (!top.length) {
-        list.innerHTML = '<p class="text-xs text-slate-400">暂无扩展节点。</p>';
+        list.innerHTML = '<p class="text-xs text-[#9b9287]">暂无扩展节点。</p>';
         return;
     }
     list.innerHTML = top.map((item) => {
@@ -505,12 +589,12 @@ function renderExpandedDashboard(nodes) {
         const uses = safeNumber(item.use_count);
         const status = item.status || 'candidate';
         const updated = compactDate(item.last_used_at || item.last_hit_at || item.updated_at);
-        return `<button onclick='focusDashboardNode(${JSON.stringify(String(name))})' class="kg-node-row w-full text-left hover:bg-blue-50">
+        return `<button onclick='focusDashboardNode(${JSON.stringify(String(name))})' class="kg-node-row w-full text-left hover:bg-[#fbede6]">
             <div class="flex items-start justify-between gap-2">
-                <span class="text-xs font-medium text-slate-700 truncate">${escapeHtml(name)}</span>
-                <span class="text-[11px] text-blue-600">${score}</span>
+                <span class="text-xs font-medium text-[#292520] truncate">${escapeHtml(name)}</span>
+                <span class="text-[11px] text-[#b85c38]">${score}</span>
             </div>
-            <div class="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
+            <div class="mt-1 flex items-center gap-2 text-[11px] text-[#766f66]">
                 <span>${escapeHtml(status)}</span>
                 <span>hits ${hits}</span>
                 <span>uses ${uses}</span>
@@ -728,15 +812,15 @@ function selectNode(d) {
     if (!sourceEl) {
         sourceEl = document.createElement('div');
         sourceEl.id = 'detail-source';
-        sourceEl.className = 'mb-3 p-3 bg-green-50 rounded-lg';
+        sourceEl.className = 'mb-3 p-3 bg-[#eef3ed] rounded-lg border border-[#d9e3d6]';
         descEl.parentNode.insertBefore(sourceEl, descEl.nextSibling);
     }
     const srcFile = d.file_path || d.source_id || '';
     if (srcFile && srcFile !== 'llm_expansion') {
-        sourceEl.innerHTML = `<div class="text-xs text-green-400 mb-1">来源文件</div><div class="text-sm text-slate-700">${srcFile}</div>`;
+        sourceEl.innerHTML = `<div class="text-xs text-[#54746b] mb-1">来源文件</div><div class="text-sm text-[#5f584f]">${srcFile}</div>`;
         sourceEl.style.display = '';
     } else if (isExp) {
-        sourceEl.innerHTML = `<div class="text-xs text-amber-400 mb-1">来源</div><div class="text-sm text-slate-700">LLM 知识扩展生成</div>`;
+        sourceEl.innerHTML = `<div class="text-xs text-[#b7892d] mb-1">来源</div><div class="text-sm text-[#5f584f]">LLM 知识扩展生成</div>`;
         sourceEl.style.display = '';
     } else {
         sourceEl.style.display = 'none';
@@ -758,9 +842,9 @@ function selectNode(d) {
             const arrow = sid === d.id ? '→' : '←';
             const item = document.createElement('div');
             item.className = 'relation-list-item cursor-pointer flex items-center gap-1';
-            item.innerHTML = `<span class="text-slate-400 text-xs">${arrow}</span>` +
-                `<span class="text-blue-600 text-xs font-medium truncate" title="${otherName}">${otherName}</span>` +
-                (l.label ? `<span class="ml-auto text-slate-400 text-xs truncate max-w-[120px]" title="${l.label}">${l.label}</span>` : '');
+            item.innerHTML = `<span class="text-[#9b9287] text-xs">${arrow}</span>` +
+                `<span class="text-[#4b6f8f] text-xs font-medium truncate" title="${otherName}">${otherName}</span>` +
+                (l.label ? `<span class="ml-auto text-[#9b9287] text-xs truncate max-w-[120px]" title="${l.label}">${l.label}</span>` : '');
             item.onclick = () => {
                 const targetNode = graphData.nodes.find(n => n.id === otherName);
                 if (targetNode) selectNode(targetNode);
@@ -769,7 +853,7 @@ function selectNode(d) {
         });
         if (connEdges.length > 20) {
             const more = document.createElement('div');
-            more.className = 'text-xs text-slate-400 text-center py-1';
+            more.className = 'text-xs text-[#9b9287] text-center py-1';
             more.textContent = `还有 ${connEdges.length - 20} 个关联...`;
             neighborsList.appendChild(more);
         }

@@ -20,11 +20,11 @@
                     },
                     colors: {
                         primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
+                            50: '#fbede6',
+                            100: '#f6ded2',
+                            500: '#b85c38',
+                            600: '#8f4329',
+                            700: '#5f2e1f',
                         }
                     }
                 }
@@ -36,7 +36,7 @@
         * { font-family: 'Inter', sans-serif; }
 
         body {
-            background: #f8fafc;
+            background: #fbfaf7;
         }
 
         /* 强制侧边栏 logo 尺寸 */
@@ -55,38 +55,39 @@
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #d8cfc1; border-radius: 3px; }
 
         .card {
-            background: white;
-            border: 1px solid #e2e8f0;
+            background: #fffefa;
+            border: 1px solid #ded8cc;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         .card-hover:hover {
-            border-color: #3b82f6;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+            border-color: #d7a28b;
+            box-shadow: 0 4px 12px rgba(184, 92, 56, 0.12);
         }
 
         .btn-primary {
-            background: #2563eb;
-            color: white;
+            background: #292520;
+            color: #fffefa;
             transition: all 0.2s;
         }
         .btn-primary:hover {
-            background: #1d4ed8;
+            background: #15120f;
         }
 
         .btn-secondary {
-            background: white;
-            border: 1px solid #e2e8f0;
-            color: #475569;
+            background: #fffefa;
+            border: 1px solid #ded8cc;
+            color: #5f584f;
             transition: all 0.2s;
         }
         .btn-secondary:hover {
-            border-color: #3b82f6;
-            color: #2563eb;
+            border-color: #d7a28b;
+            color: #b85c38;
+            background: #fbede6;
         }
 
         .sidebar-item {
@@ -94,33 +95,33 @@
             border-left: 3px solid transparent;
         }
         .sidebar-item:hover {
-            background: #f1f5f9;
-            color: #2563eb;
+            background: #fbede6;
+            color: #8f4329;
         }
         .sidebar-item.active {
-            background: #eff6ff;
-            color: #2563eb;
-            border-left-color: #2563eb;
+            background: #fbede6;
+            color: #8f4329;
+            border-left-color: #b85c38;
         }
 
         .input-field {
-            border: 1px solid #e2e8f0;
+            border: 1px solid #ded8cc;
             transition: all 0.2s;
         }
         .input-field:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: #b85c38;
+            box-shadow: 0 0 0 3px rgba(184, 92, 56, 0.12);
         }
 
         .progress-container {
-            background: #e2e8f0;
+            background: #e7dfd1;
             border-radius: 999px;
             overflow: hidden;
             height: 8px;
         }
         .progress-fill {
-            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            background: linear-gradient(90deg, #b85c38, #54746b);
             height: 100%;
             transition: width 0.3s ease;
         }
@@ -128,6 +129,20 @@
         .toast {
             animation: slideIn 0.3s ease;
         }
+        .bg-white { background-color: #fffefa !important; }
+        .bg-slate-50, .bg-slate-100 { background-color: #f7f3ea !important; }
+        .border-slate-100, .border-slate-200 { border-color: #ded8cc !important; }
+        .text-slate-800, .text-slate-700 { color: #292520 !important; }
+        .text-slate-600, .text-slate-500 { color: #766f66 !important; }
+        .text-slate-400 { color: #9b9287 !important; }
+        .bg-blue-50, .bg-blue-100 { background-color: #fbede6 !important; }
+        .bg-blue-600 { background-color: #292520 !important; }
+        .hover\:bg-blue-700:hover { background-color: #15120f !important; }
+        .text-blue-500, .text-blue-600 { color: #b85c38 !important; }
+        .hover\:text-blue-800:hover { color: #292520 !important; }
+        .text-green-500, .text-green-600 { color: #54746b !important; }
+        .text-purple-500 { color: #8a5f87 !important; }
+        .text-amber-500, .text-yellow-500 { color: #b7892d !important; }
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -136,22 +151,22 @@
 
     {% block extra_css %}{% endblock %}
 </head>
-<body class="text-slate-700 h-screen overflow-hidden">
+<body class="text-[#292520] h-screen overflow-hidden">
     <div class="flex h-full">
-        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full">
-            <div class="p-5 border-b border-slate-100">
+        <aside class="w-64 bg-[#fffefa] border-r border-[#ded8cc] flex flex-col h-full">
+            <div class="p-5 border-b border-[#ece5d9]">
                 <div class="flex items-center gap-3">
                     <img src="/logo.png" alt="DocThinker" id="docthinker-logo" class="w-10 h-10 rounded-xl object-contain flex-shrink-0" width="96" height="96" style="width:96px;height:96px;min-width:96px;min-height:96px;max-width:96px;max-height:96px;border-radius:14px;object-fit:contain;display:block;" />
                     <div>
-                        <h1 class="font-bold text-lg text-slate-800">DocThinker</h1>
-                        <p class="text-xs text-slate-400">AI 知识助手</p>
+                        <h1 class="font-bold text-lg text-[#292520]">DocThinker</h1>
+                        <p class="text-xs text-[#9b9287]">AI 知识助手</p>
                     </div>
                 </div>
             </div>
 
             <nav class="flex-1 overflow-y-auto py-4 px-3">
                 <div class="space-y-1">
-                    <p class="px-3 text-xs font-semibold text-slate-400 uppercase mb-2">功能</p>
+                    <p class="px-3 text-xs font-semibold text-[#9b9287] uppercase mb-2">功能</p>
 
                     <a href="/query" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {% if request.endpoint == 'query_page' %}active{% endif %}">
                         <i class="fa-solid fa-comments w-5 text-center"></i>
@@ -171,7 +186,7 @@
             </nav>
         </aside>
 
-        <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50">
+        <main class="flex-1 flex flex-col h-full overflow-hidden bg-[#fbfaf7]">
             {% block content %}{% endblock %}
         </main>
     </div>
@@ -184,10 +199,10 @@
             const toast = document.createElement('div');
 
             const colors = {
-                success: 'bg-green-500',
+                success: 'bg-[#54746b]',
                 error: 'bg-red-500',
-                warning: 'bg-yellow-500',
-                info: 'bg-blue-500'
+                warning: 'bg-[#b7892d]',
+                info: 'bg-[#292520]'
             };
 
             toast.className = `toast ${colors[type]} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2`;
