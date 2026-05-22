@@ -552,6 +552,8 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
             "expanded_matches": expanded_matches[:min(2, len(expanded_matches))],
             "episodic_matches": episodic_matches[:min(3, len(episodic_matches))],
             "memory_summaries": memory_summaries,
+            "memory_trace": recall_bundle.trace.to_schema(),
+            "retrieval_instruction_applied": bool(merged_instruction),
             "mode": request.mode,
         })
 
@@ -839,7 +841,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             "answer_mode": answer_mode,
             "expanded_matches": expanded_matches[:min(2, len(expanded_matches))],
             "episodic_matches": episodic_matches[:min(3, len(episodic_matches))],
-            "memory_trace": recall_bundle.trace.events,
+            "memory_trace": recall_bundle.trace.to_schema(),
             "retrieval_instruction_applied": bool(merged_instruction),
             "memory_summaries": memory_summaries,
         }
