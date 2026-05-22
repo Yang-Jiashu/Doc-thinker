@@ -9,6 +9,7 @@ from ..state import state
 from ..memory import get_session_memory_engine
 from docthinker.kg_expansion import ExpandedNodeManager
 from docthinker.image_assets import is_image_node, resolve_graph_node_color
+from docthinker.memory_core import get_default_long_horizon_backend
 
 import logging
 
@@ -766,11 +767,13 @@ async def memory_dashboard(session_id: Optional[str] = None):
         expanded_payload = {"count": 0, "lifecycle": {}, "nodes": [], "error": str(exc)}
 
     memory_payload = await memory_stats(session_id=session_id)
+    long_horizon_payload = get_default_long_horizon_backend().stats(session_id)
     return {
         "session_id": session_id,
         "kg": kg_stats,
         "expanded": expanded_payload,
         "memory": memory_payload,
+        "long_horizon": long_horizon_payload,
     }
 
 # ── LLM Trace observability endpoints ──────────────────────────────

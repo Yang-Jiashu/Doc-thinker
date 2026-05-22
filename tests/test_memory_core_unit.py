@@ -1,5 +1,10 @@
 import unittest
-from docthinker.memory_core import AgentMemoryBackends, AgentMemoryCore, MemoryPolicy
+from docthinker.memory_core import (
+    AgentMemoryBackends,
+    AgentMemoryCore,
+    InMemoryLongHorizonBackend,
+    MemoryPolicy,
+)
 
 
 class _FakeClawManager:
@@ -169,7 +174,7 @@ class AgentMemoryCoreUnitTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(1, len(bundle.episodic_matches))
         self.assertIn("情节记忆与类比参考", bundle.retrieval_instruction)
         self.assertEqual(1, bundle.trace.episodic_hits)
-        self.assertEqual("episodic_recall", bundle.trace.events[0]["type"])
+        self.assertTrue(any(e["type"] == "episodic_recall" for e in bundle.trace.events))
 
     async def test_after_response_updates_memory_layers(self):
         claw = _FakeClawManager()
@@ -278,6 +283,39 @@ class AgentMemoryCoreUnitTest(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(result["claw_updated"])
         self.assertEqual([], graph.promoted)
         self.assertEqual(["episodic", "expanded"], result["memory_trace"]["consolidation"]["enabled_layers"])
+
+    async def test_long_horizon_memory_consolidates_and_guides_later_recall(self):
+        long_horizon = InMemoryLongHorizonBackend()
+        core = AgentMemoryCore(
+            backends=AgentMemoryBackends(long_horizon=long_horizon),
+            policy=MemoryPolicy(
+                enabled_layers=("long_horizon",),
+                long_horizon_top_k=2,
+            ),
+        )
+
+        result = await core.after_response(
+            session_id="long-session",
+            question="DocThinker 的长期记忆架构应该怎么优化？",
+            answer="DocThinker should use long-horizon memory to consolidate cross-turn insights and guide recall planning.",
+            matched_expanded=[{"entity": "Long Horizon Memory", "score": 0.8}],
+        )
+
+        self.assertTrue(result["long_horizon_insight_added"])
+        self.assertEqual("task_memory", result["long_horizon_insight"]["kind"])
+
+        bundle = await core.recall(
+            session_id="long-session",
+            query="long-horizon memory recall planning 怎么做？",
+            enable_thinking=False,
+            enable_expanded_matching=False,
+        )
+
+        self.assertEqual(1, bundle.trace.long_horizon_hits)
+        self.assertEqual(1, len(bundle.long_horizon_matches))
+        self.assertIn("长期记忆与跨回合推理", bundle.retrieval_instruction)
+        self.assertEqual("planning", bundle.trace.recall_plan["question_type"])
+        self.assertEqual(1, long_horizon.stats("long-session")["count"])
 
 
 if __name__ == "__main__":

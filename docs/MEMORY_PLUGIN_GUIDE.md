@@ -12,6 +12,7 @@ flowchart LR
     Policy["MemoryPolicy"] --> Core
     Core --> Conversation["ConversationMemoryBackend"]
     Core --> Episodic["EpisodicMemoryBackend"]
+    Core --> LongHorizon["LongHorizonMemoryBackend"]
     Core --> Expanded["ExpandedKnowledgeBackend"]
     Core --> Graph["GraphPromotionBackend"]
     Core --> ChatTurn["ChatTurnBackend"]
@@ -24,6 +25,9 @@ flowchart LR
   generation and consolidates the final turn afterward.
 - `EpisodicMemoryBackend`: retrieves similar past episodes as analogy context
   and writes the completed turn as a new episode.
+- `LongHorizonMemoryBackend`: builds a recall plan, retrieves durable
+  cross-turn insights, and consolidates useful answers into long-horizon
+  memory.
 - `ExpandedKnowledgeBackend`: matches candidate KG hypotheses during recall and
   records which candidates were useful in the answer.
 - `GraphPromotionBackend`: promotes repeatedly useful expanded nodes into the
@@ -44,6 +48,11 @@ Use `MemoryPolicy` to tune behavior without changing backend code:
 - `expanded_min_score`: minimum expanded-node match score.
 - `expanded_instruction_limit`: number of expanded candidates allowed in the
   generated retrieval instruction.
+- `long_horizon_top_k`: number of durable insights to retrieve.
+- `long_horizon_min_confidence`: minimum confidence for long-horizon recall.
+- `long_horizon_scopes`: scopes to search, such as `session`, `project`, and
+  `user`.
+- `long_horizon_write_scope`: where newly consolidated insights are stored.
 - `answer_entity_limit`: max entities extracted from a completed Q&A turn.
 
 ## Minimal Integration

@@ -114,6 +114,54 @@ class ChatTurnBackend(Protocol):
         """Return True when the turn was ingested."""
 
 
+class LongHorizonMemoryBackend(Protocol):
+    """Cross-turn memory used for durable insights and recall planning."""
+
+    def build_recall_plan(
+        self,
+        query: str,
+        *,
+        mode: str = "",
+        enable_thinking: bool = False,
+    ) -> Dict[str, Any]:
+        """Return a lightweight plan describing which memory layers matter."""
+
+    def retrieve(
+        self,
+        session_id: Optional[str],
+        query: str,
+        *,
+        scopes: Sequence[str],
+        top_k: int,
+        min_confidence: float,
+    ) -> List[Dict[str, Any]]:
+        """Return long-horizon insights relevant to the next answer."""
+
+    def build_instruction(
+        self,
+        matches: Sequence[Dict[str, Any]],
+        *,
+        limit: int,
+    ) -> str:
+        """Return an instruction block for long-horizon matches."""
+
+    def consolidate(
+        self,
+        session_id: Optional[str],
+        question: str,
+        answer: str,
+        *,
+        concepts: Sequence[str],
+        scope: str,
+        timestamp: float,
+        matched_expanded: Optional[Sequence[Dict[str, Any]]] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Store one durable insight and return its serialized form."""
+
+    def stats(self, session_id: Optional[str] = None) -> Dict[str, Any]:
+        """Return observability data for dashboards and tests."""
+
+
 @dataclass
 class AgentMemoryBackends:
     """Pluggable backend bundle used by :class:`AgentMemoryCore`."""
@@ -123,6 +171,7 @@ class AgentMemoryBackends:
     expanded: Optional[ExpandedKnowledgeBackend] = None
     graph: Optional[GraphPromotionBackend] = None
     chat_turn: Optional[ChatTurnBackend] = None
+    long_horizon: Optional[LongHorizonMemoryBackend] = None
 
 
 @dataclass(frozen=True)
@@ -137,12 +186,20 @@ class MemoryPolicy:
     expanded_top_k: int = 2
     expanded_min_score: float = 0.2
     expanded_instruction_limit: int = 2
+    long_horizon_top_k: int = 3
+    long_horizon_min_confidence: float = 0.35
+    long_horizon_instruction_limit: int = 3
+    long_horizon_scopes: Sequence[str] = field(
+        default_factory=lambda: ("session", "project", "user")
+    )
+    long_horizon_write_scope: str = "session"
     answer_entity_limit: int = 12
     enabled_layers: Sequence[str] = field(
         default_factory=lambda: (
             "conversation",
             "episodic",
             "expanded",
+            "long_horizon",
             "graph",
             "chat_turn",
         )

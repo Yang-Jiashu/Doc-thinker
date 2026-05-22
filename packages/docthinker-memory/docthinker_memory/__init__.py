@@ -13,9 +13,12 @@ from docthinker.memory_core import (
     EpisodicMemoryBackend,
     ExpandedKnowledgeBackend,
     GraphPromotionBackend,
+    InMemoryLongHorizonBackend,
+    LongHorizonMemoryBackend,
     MemoryPolicy,
     MemoryTrace,
     RecallBundle,
+    get_default_long_horizon_backend,
 )
 
 __all__ = [
@@ -26,7 +29,10 @@ __all__ = [
     "EpisodicMemoryBackend",
     "ExpandedKnowledgeBackend",
     "GraphPromotionBackend",
+    "InMemoryLongHorizonBackend",
+    "LongHorizonMemoryBackend",
     "MemoryPolicy",
     "MemoryTrace",
     "RecallBundle",
+    "get_default_long_horizon_backend",
 ]

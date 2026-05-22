@@ -540,6 +540,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         )
         expanded_matches = recall_bundle.expanded_matches
         episodic_matches = recall_bundle.episodic_matches
+        long_horizon_matches = recall_bundle.long_horizon_matches
         merged_instruction = recall_bundle.retrieval_instruction
         memory_summaries = recall_bundle.memory_summaries
 
@@ -551,6 +552,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
             "answer_mode": answer_mode,
             "expanded_matches": expanded_matches[:min(2, len(expanded_matches))],
             "episodic_matches": episodic_matches[:min(3, len(episodic_matches))],
+            "long_horizon_matches": long_horizon_matches[:min(3, len(long_horizon_matches))],
             "memory_summaries": memory_summaries,
             "memory_trace": recall_bundle.trace.to_schema(),
             "retrieval_instruction_applied": bool(merged_instruction),
@@ -566,8 +568,8 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         try:
             if is_identity_query:
                 system_prompt = (
-                    "You are DocThinker, an assistant for document understanding, knowledge retrieval, and "
-                    "structured reasoning. Answer briefly and clearly."
+                    "You are DocThinker, an assistant for text and multimodal carrier understanding, "
+                    "knowledge retrieval, agentic memory, and structured reasoning. Answer briefly and clearly."
                 )
                 llm_resp = await state.rag_instance.llm_model_func(
                     f"{system_prompt}\n\nUser: {request.question}\nAssistant:"
@@ -728,6 +730,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
     )
     expanded_matches = recall_bundle.expanded_matches
     episodic_matches = recall_bundle.episodic_matches
+    long_horizon_matches = recall_bundle.long_horizon_matches
     merged_instruction = recall_bundle.retrieval_instruction
     memory_summaries = recall_bundle.memory_summaries
 
@@ -735,13 +738,13 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
     try:
         if is_identity_query:
             system_prompt = (
-                "You are DocThinker, an assistant for document understanding, knowledge retrieval, and "
-                "structured reasoning. Answer briefly and clearly."
+                "You are DocThinker, an assistant for text and multimodal carrier understanding, "
+                "knowledge retrieval, agentic memory, and structured reasoning. Answer briefly and clearly."
             )
             llm_resp = await state.rag_instance.llm_model_func(
                 f"{system_prompt}\n\nUser: {request.question}\nAssistant:"
             )
-            answer = llm_resp if llm_resp else "I can help with document understanding and knowledge retrieval."
+            answer = llm_resp if llm_resp else "I can help with text, multimodal carriers, memory, and knowledge retrieval."
             answer_mode = "identity"
 
         elif request.session_id and _looks_like_file_question(request.question):
@@ -841,6 +844,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             "answer_mode": answer_mode,
             "expanded_matches": expanded_matches[:min(2, len(expanded_matches))],
             "episodic_matches": episodic_matches[:min(3, len(episodic_matches))],
+            "long_horizon_matches": long_horizon_matches[:min(3, len(long_horizon_matches))],
             "memory_trace": recall_bundle.trace.to_schema(),
             "retrieval_instruction_applied": bool(merged_instruction),
             "memory_summaries": memory_summaries,

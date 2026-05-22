@@ -9,8 +9,9 @@ The package currently re-exports the memory core shipped in `docthinker`:
 - `AgentMemoryCore`
 - `AgentMemoryBackends`
 - `MemoryPolicy`
-- backend protocols for conversation, episodic, expanded KG, graph promotion,
-  and chat-turn ingestion
+- backend protocols for conversation, episodic, long-horizon insight memory,
+  expanded KG, graph promotion, and chat-turn ingestion
+- `InMemoryLongHorizonBackend` as a default process-local implementation
 - `RecallBundle` and `MemoryTrace`
 
 ## Install
@@ -37,7 +38,8 @@ memory = AgentMemoryCore(
     policy=MemoryPolicy(
         episodic_top_k=3,
         expanded_top_k=2,
-        enabled_layers=("conversation", "episodic", "expanded"),
+        long_horizon_top_k=3,
+        enabled_layers=("conversation", "episodic", "expanded", "long_horizon"),
     )
 )
 

@@ -376,7 +376,7 @@
             </div>
 
             <div id="memory-content" class="hidden space-y-4">
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-4 gap-2">
                     <div class="memory-metric">
                         <p class="text-[11px] text-[#766f66]">记忆源</p>
                         <p id="memory-metric-sources" class="text-xl font-semibold text-[#292520]">0</p>
@@ -389,6 +389,10 @@
                         <p class="text-[11px] text-[#766f66]">Expanded</p>
                         <p id="memory-metric-expanded" class="text-xl font-semibold text-[#8a5f87]">0</p>
                     </div>
+                    <div class="memory-metric">
+                        <p class="text-[11px] text-[#766f66]">Long</p>
+                        <p id="memory-metric-long" class="text-xl font-semibold text-[#b85c38]">0</p>
+                    </div>
                 </div>
 
                 <section class="bg-[#fffefa] border border-[#ded8cc] rounded-lg p-3">
@@ -397,6 +401,14 @@
                         Recall Timeline
                     </h4>
                     <div id="memory-timeline" class="mt-3 space-y-3"></div>
+                </section>
+
+                <section class="bg-[#fffefa] border border-[#ded8cc] rounded-lg p-3">
+                    <h4 class="text-xs font-semibold text-[#292520] flex items-center gap-2">
+                        <i class="fa-solid fa-infinity text-[#b85c38]"></i>
+                        Long-horizon Memory
+                    </h4>
+                    <div id="memory-long-horizon" class="mt-3 space-y-2"></div>
                 </section>
 
                 <section class="bg-[#fffefa] border border-[#ded8cc] rounded-lg p-3">
@@ -505,6 +517,12 @@ function summarizeTraceEvent(event) {
     if (type === 'expanded_match') {
         return `Expanded KG 匹配 ${event.count || 0} 个候选节点`;
     }
+    if (type === 'recall_plan') {
+        return `Recall Plan: ${event.question_type || 'general'} · ${(event.layers || []).join(' / ')}`;
+    }
+    if (type === 'long_horizon_recall') {
+        return `Long-horizon Memory 召回 ${event.count || 0} 条长期线索`;
+    }
     return `${type}: ${JSON.stringify(event)}`;
 }
 
@@ -526,6 +544,7 @@ function renderMemoryInspector(metaPatch = {}) {
     const events = Array.isArray(trace.events) ? trace.events : [];
     const episodic = Array.isArray(meta.episodic_matches) ? meta.episodic_matches : [];
     const expanded = Array.isArray(meta.expanded_matches) ? meta.expanded_matches : [];
+    const longHorizon = Array.isArray(meta.long_horizon_matches) ? meta.long_horizon_matches : [];
     const sources = Array.isArray(meta.sources) ? meta.sources : [];
 
     const empty = document.getElementById('memory-empty');
@@ -542,6 +561,7 @@ function renderMemoryInspector(metaPatch = {}) {
     document.getElementById('memory-metric-sources').textContent = memorySources;
     document.getElementById('memory-metric-episodic').textContent = recall.episodic_hits ?? episodic.length;
     document.getElementById('memory-metric-expanded').textContent = recall.expanded_hits ?? expanded.length;
+    document.getElementById('memory-metric-long').textContent = recall.long_horizon_hits ?? longHorizon.length;
 
     const timeline = document.getElementById('memory-timeline');
     if (timeline) {
@@ -567,6 +587,21 @@ function renderMemoryInspector(metaPatch = {}) {
                 ${concepts.length ? `<div class="mt-2 flex flex-wrap gap-1">${concepts.map((c) => `<span class="memory-chip">${escapeHtml(c)}</span>`).join('')}</div>` : ''}
             </div>`;
         }).join('') : '<p class="text-xs text-[#9b9287]">没有 episode 匹配。</p>';
+    }
+
+    const longEl = document.getElementById('memory-long-horizon');
+    if (longEl) {
+        longEl.innerHTML = longHorizon.length ? longHorizon.map((item) => {
+            const concepts = Array.isArray(item.concepts) ? item.concepts.slice(0, 4) : [];
+            return `<div class="rounded-lg border border-[#ead8ca] bg-[#fff7f0] p-2">
+                <div class="flex items-start justify-between gap-2">
+                    <p class="text-xs font-medium text-[#292520] line-clamp-2">${escapeHtml(item.summary || 'Long-horizon insight')}</p>
+                    <span class="text-[11px] text-[#b85c38]">${formatScore(item.score || item.confidence)}</span>
+                </div>
+                <p class="text-[11px] text-[#766f66] mt-1">${escapeHtml(item.kind || 'insight')} · ${escapeHtml(item.scope || 'session')}</p>
+                ${concepts.length ? `<div class="mt-2 flex flex-wrap gap-1">${concepts.map((c) => `<span class="memory-chip">${escapeHtml(c)}</span>`).join('')}</div>` : ''}
+            </div>`;
+        }).join('') : '<p class="text-xs text-[#9b9287]">没有长期线索匹配。</p>';
     }
 
     const expandedEl = document.getElementById('memory-expanded');

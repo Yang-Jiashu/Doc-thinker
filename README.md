@@ -135,12 +135,14 @@ memory = AgentMemoryCore(
         conversation=my_conversation_memory,
         episodic=my_episode_store,
         expanded=my_candidate_graph,
+        long_horizon=my_long_horizon_store,
         graph=my_semantic_graph,
     ),
     policy=MemoryPolicy(
         episodic_top_k=3,
         expanded_top_k=2,
-        enabled_layers=("conversation", "episodic", "expanded", "graph"),
+        long_horizon_top_k=3,
+        enabled_layers=("conversation", "episodic", "expanded", "long_horizon", "graph"),
     ),
 )
 
@@ -182,13 +184,14 @@ DocThinker organizes retrieval and memory as an agent-facing framework instead o
 </div>
 
 ### 1. 🧠 Agentic Memory Core
-`docthinker.memory_core.AgentMemoryCore` is the stable facade for agent memory work. It exposes explicit backend protocols for conversation memory, episodic memory, expanded KG hypotheses, graph promotion, and optional chat-turn ingestion. `MemoryPolicy` controls which layers are active and how broad each recall step may be. Before generation, `recall()` merges:
+`docthinker.memory_core.AgentMemoryCore` is the stable facade for agent memory work. It exposes explicit backend protocols for conversation memory, episodic memory, long-horizon insight memory, expanded KG hypotheses, graph promotion, and optional chat-turn ingestion. `MemoryPolicy` controls which layers are active and how broad each recall step may be. Before generation, `recall()` builds a recall plan and merges:
 
 * Claw working/core/archive conversation memory.
 * Neuro Memory episodic analogy matches.
+* Long-horizon cross-turn insights for project state, user preferences, and durable reasoning constraints.
 * KG expanded-node matches and forced retrieval instructions.
 
-After generation, `after_response()` consolidates the turn back into memory layers, writes chat episodes, optionally feeds the Q&A back into the graph, and promotes useful expanded nodes.
+After generation, `after_response()` consolidates the turn back into memory layers, writes chat episodes, stores durable long-horizon insights, optionally feeds the Q&A back into the graph, and promotes useful expanded nodes.
 
 ### 2. 🧩 Session-Scoped Knowledge Graphs
 Each session owns its own GraphCore-backed knowledge graph and document state. Uploaded files are parsed, inserted, and queried within that session, which keeps user context isolated while still allowing the graph to grow over time.
@@ -206,11 +209,14 @@ Claw implements a three-layer memory hierarchy for long-running conversations: h
 ### 5. 🧠 Episodic Analogy Memory
 Neuro Memory stores chat/document experiences as episodes and retrieves similar past situations as analogy context. These matches are surfaced through `episodic_matches` and injected as guidance rather than treated as direct factual sources.
 
-### 6. 🖼️ Multimodal Retrieval Signals
+### 6. ♾️ Long-Horizon Memory
+The built-in `InMemoryLongHorizonBackend` gives the framework a default cross-turn loop: it classifies query intent, produces a recall plan, consolidates useful answers into durable insights, and returns `long_horizon_matches` on later related questions. This backend is process-local by default so plugin authors can swap in SQLite, vector databases, or graph storage without changing agent code.
+
+### 7. 🖼️ Multimodal Retrieval Signals
 DocThinker tracks image assets extracted from documents and can activate relevant visual evidence during deep UI queries.
 
-### 7. 📊 Memory & KG Observability
-The web UI includes a query-time Memory Inspector and a KG dashboard. They expose recall traces, episodic matches, expanded-node lifecycle state, graph statistics, memory backend status, and evidence sources so users can inspect why an answer was generated and how knowledge is promoted over time.
+### 8. 📊 Memory & KG Observability
+The web UI includes a query-time Memory Inspector and a KG dashboard. They expose recall plans, long-horizon matches, episodic matches, expanded-node lifecycle state, graph statistics, memory backend status, and evidence sources so users can inspect why an answer was generated and how knowledge is promoted over time. The current UI uses a warmer, Claude-inspired visual language while keeping the original dog mark.
 
 ---
 
