@@ -10,7 +10,7 @@ import math
 from pathlib import Path
 from typing import Iterable, Sequence
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageOps
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,6 +53,36 @@ F18 = font(18, True)
 F22 = font(22, True)
 F28 = font(28, True)
 F34 = font(34, True)
+
+
+def load_logo(size: int) -> Image.Image | None:
+    """Load the project dog mark and crop excess white padding for README demos."""
+    for path in (ROOT / "logo.png", ROOT / "docthinker" / "ui" / "static" / "logo.png"):
+        if not path.exists():
+            continue
+        logo = Image.open(path).convert("RGBA")
+        # The historical logo is a PNG with a white canvas. Trim that canvas so
+        # the dog mark survives inside compact UI mockups.
+        white = Image.new("RGBA", logo.size, (255, 255, 255, 255))
+        diff = ImageChops.difference(logo, white)
+        bbox = diff.getbbox()
+        if bbox:
+            logo = logo.crop(bbox)
+        return ImageOps.contain(logo, (size, size), Image.Resampling.LANCZOS)
+    return None
+
+
+def paste_logo(img: Image.Image, xy: tuple[int, int], size: int) -> None:
+    logo = load_logo(size)
+    draw = ImageDraw.Draw(img)
+    x, y = xy
+    draw.rounded_rectangle((x, y, x + size, y + size), radius=14, fill="#fffefa", outline="#ded8cc", width=2)
+    if logo is None:
+        draw.text((x + 12, y + 18), "DT", font=F18, fill=COPPER)
+        return
+    px = x + (size - logo.width) // 2
+    py = y + (size - logo.height) // 2
+    img.alpha_composite(logo, (px, py))
 
 
 def text_width(draw: ImageDraw.ImageDraw, text: str, ft: ImageFont.ImageFont) -> int:
@@ -243,35 +273,58 @@ def draw_node(draw: ImageDraw.ImageDraw, x: int, y: int, label_text: str, color:
 
 
 def draw_ui_frame(step: int = 2) -> Image.Image:
-    img = Image.new("RGB", (1600, 960), "#f7f1ea")
+    img = Image.new("RGBA", (1600, 960), "#f7f1ea")
     draw = ImageDraw.Draw(img)
-    draw.rectangle((0, 0, 1600, 70), fill=PANEL)
-    draw.line((0, 70, 1600, 70), fill=HAIRLINE, width=2)
-    draw.text((42, 17), "DocThinker Memory Atlas", font=F12, fill=COPPER)
-    draw.text((42, 36), "知识图谱", font=F22, fill=INK)
-    draw.rounded_rectangle((1230, 18, 1335, 52), radius=8, fill="#f5e6d3", outline="#dfb7a5")
-    draw.text((1260, 27), "扩展", font=F13, fill="#5f2e1f")
-    draw.rounded_rectangle((1360, 18, 1468, 52), radius=8, fill=COPPER)
-    draw.text((1390, 27), "刷新", font=F13, fill="#fffefa")
+    draw.rectangle((0, 0, 1600, 960), fill="#f7f1ea")
+
+    # Persistent app chrome. This mirrors base_modern.html and keeps the dog
+    # logo visible in both the screenshot and the README GIF.
+    draw.rectangle((0, 0, 248, 960), fill="#fffefa")
+    draw.line((248, 0, 248, 960), fill=HAIRLINE, width=2)
+    paste_logo(img, (28, 26), 58)
+    draw.text((100, 33), "DocThinker", font=F18, fill=INK)
+    draw.text((100, 58), "Agentic memory", font=F11, fill=MUTED)
+    draw.text((28, 116), "Workspace", font=F10, fill="#9b9287")
+    nav_items = [("智能对话", 145, False), ("知识图谱", 190, True), ("设置", 235, False)]
+    for label_text, y, active in nav_items:
+        fill = "#f5eee4" if active else "#fffefa"
+        outline = "#e8ded0" if active else "#fffefa"
+        draw.rounded_rectangle((20, y, 228, y + 36), radius=9, fill=fill, outline=outline)
+        draw.ellipse((38, y + 12, 50, y + 24), fill=COPPER if active else "#c9c0b5")
+        draw.text((66, y + 10), label_text, font=F13, fill=INK if active else MUTED)
+    draw.rounded_rectangle((24, 820, 224, 912), radius=14, fill="#fbfaf7", outline=HAIRLINE)
+    draw.text((42, 842), "Memory Policy", font=F13, fill=INK)
+    draw.text((42, 868), "controllable writes", font=F11, fill=MUTED)
+
+    # Top bar.
+    draw.rectangle((248, 0, 1600, 72), fill=PANEL)
+    draw.line((248, 72, 1600, 72), fill=HAIRLINE, width=2)
+    draw.text((286, 16), "DocThinker Memory Atlas", font=F12, fill=COPPER)
+    draw.text((286, 36), "知识图谱", font=F22, fill=INK)
+    draw.rounded_rectangle((1278, 18, 1383, 52), radius=8, fill="#fffefa", outline="#ded8cc")
+    draw.text((1310, 27), "扩展", font=F13, fill=INK)
+    draw.rounded_rectangle((1408, 18, 1516, 52), radius=8, fill=COPPER)
+    draw.text((1440, 27), "刷新", font=F13, fill="#fffefa")
 
     # Canvas and toolbar.
-    draw.rectangle((0, 70, 1220, 960), fill="#faf8f5")
-    draw.rounded_rectangle((26, 94, 296, 315), radius=14, fill="#fffefa", outline=HAIRLINE, width=2)
-    draw.rounded_rectangle((45, 114, 278, 150), radius=8, fill=PANEL, outline=HAIRLINE)
-    draw.text((62, 123), "搜索节点...", font=F13, fill="#9b9287")
+    draw.rectangle((248, 72, 1208, 960), fill="#faf8f5")
+    draw.rounded_rectangle((278, 100, 548, 342), radius=14, fill="#fffefa", outline=HAIRLINE, width=2)
+    draw.text((302, 123), "Graph Controls", font=F14, fill=INK)
+    draw.rounded_rectangle((302, 154, 526, 190), radius=8, fill=PANEL, outline=HAIRLINE)
+    draw.text((319, 163), "搜索节点...", font=F13, fill="#9b9287")
     for i, name in enumerate(["Domain", "Concept", "Instance", "扩展节点"]):
-        x = 45 + (i % 2) * 115
-        y = 178 + (i // 2) * 46
-        draw.rounded_rectangle((x, y, x + 102, y + 32), radius=8, fill="#fffefa", outline="#ebe4d8")
-        draw.text((x + 22, y + 9), name, font=F11, fill=MUTED)
+        x = 302 + (i % 2) * 110
+        y = 216 + (i // 2) * 46
+        draw.rounded_rectangle((x, y, x + 96, y + 32), radius=8, fill="#fffefa", outline="#ebe4d8")
+        draw.text((x + 17, y + 9), name, font=F11, fill=MUTED)
 
     # Graph edges.
     nodes = {
-        "Input": (410, 310, COPPER),
-        "Core": (620, 255, LAKE),
-        "Long": (795, 360, SAGE),
-        "KG": (635, 520, OCHRE),
-        "UI": (910, 520, PLUM),
+        "Input": (620, 315, COPPER),
+        "Core": (800, 240, LAKE),
+        "Long": (980, 352, SAGE),
+        "KG": (755, 548, OCHRE),
+        "UI": (1005, 580, PLUM),
     }
     edges = [("Input", "Core"), ("Core", "Long"), ("Core", "KG"), ("Long", "UI"), ("KG", "UI")]
     selected_edge = ("Long", "UI") if step >= 2 else None
@@ -289,53 +342,58 @@ def draw_ui_frame(step: int = 2) -> Image.Image:
         draw_node(draw, x, y, name, color, selected=(step >= 2 and name in {"Long", "UI"}))
 
     # Right dashboard.
-    draw.rectangle((1220, 70, 1600, 960), fill="#fffefa")
-    draw.line((1220, 70, 1220, 960), fill=HAIRLINE, width=2)
-    draw.text((1250, 100), "Memory / KG Dashboard", font=F18, fill=INK)
-    draw.text((1250, 128), "当前会话的图谱、记忆与扩展节点状态。", font=F11, fill=MUTED)
+    draw.rectangle((1208, 72, 1600, 960), fill="#fffefa")
+    draw.line((1208, 72, 1208, 960), fill=HAIRLINE, width=2)
+    draw.text((1238, 102), "Memory / KG Dashboard", font=F18, fill=INK)
+    draw.text((1238, 130), "当前会话的图谱、记忆与扩展节点状态。", font=F11, fill=MUTED)
 
     def mini_card(x: int, y: int, w: int, h: int, title: str, value: str, color: str = INK) -> None:
         draw.rounded_rectangle((x, y, x + w, y + h), radius=8, fill="#f7f3ea", outline=HAIRLINE)
         draw.text((x + 12, y + 10), title, font=F11, fill=MUTED)
         draw.text((x + 12, y + 30), value, font=F22, fill=color)
 
-    mini_card(1250, 168, 92, 72, "实体", "42", INK)
-    mini_card(1354, 168, 92, 72, "关系", "68", LAKE)
-    mini_card(1458, 168, 92, 72, "扩展", "12", OCHRE)
+    mini_card(1238, 168, 92, 72, "实体", "42", INK)
+    mini_card(1342, 168, 92, 72, "关系", "68", LAKE)
+    mini_card(1446, 168, 92, 72, "扩展", "12", OCHRE)
 
     y = 265
-    draw.rounded_rectangle((1250, y, 1550, y + 210), radius=8, fill=PANEL, outline=HAIRLINE)
-    draw.text((1266, y + 16), "Natural Language Memory Edit", font=F14, fill=INK)
-    draw.rounded_rectangle((1492, y + 13, 1534, y + 36), radius=12, fill="#fbede6", outline="#d7a28b")
-    draw.text((1502, y + 18), "edit", font=F10, fill=COPPER)
-    draw.rounded_rectangle((1266, y + 50, 1534, y + 100), radius=8, fill="#fffefa", outline=HAIRLINE)
+    draw.rounded_rectangle((1238, y, 1562, y + 238), radius=10, fill=PANEL, outline=HAIRLINE)
+    draw.text((1256, y + 16), "Natural Language Memory Edit", font=F14, fill=INK)
+    draw.rounded_rectangle((1504, y + 13, 1546, y + 36), radius=12, fill="#fbede6", outline="#d7a28b")
+    draw.text((1514, y + 18), "edit", font=F10, fill=COPPER)
+    draw.rounded_rectangle((1256, y + 52, 1546, y + 112), radius=8, fill="#fffefa", outline=HAIRLINE)
     command = "把 UI 风格的长期记忆改成 Claude-like，并高亮相关节点和边"
-    draw.text((1278, y + 61), command, font=F11, fill=INK)
-    draw.rounded_rectangle((1266, y + 114, 1394, y + 144), radius=8, fill="#fffefa", outline=HAIRLINE)
-    draw.text((1304, y + 123), "预览", font=F12, fill=INK)
-    draw.rounded_rectangle((1406, y + 114, 1534, y + 144), radius=8, fill="#fffefa", outline=HAIRLINE)
-    draw.text((1444, y + 123), "清除", font=F12, fill=INK)
+    for i, line in enumerate(wrap_text(draw, command, F11, 260)):
+        draw.text((1268, y + 63 + i * 18), line, font=F11, fill=INK)
+    preview_fill = COPPER if step >= 1 else "#fffefa"
+    preview_text = "#fffefa" if step >= 1 else INK
+    draw.rounded_rectangle((1256, y + 126, 1396, y + 158), radius=8, fill=preview_fill, outline="#d7a28b")
+    draw.text((1304, y + 135), "预览", font=F12, fill=preview_text)
+    draw.rounded_rectangle((1406, y + 126, 1546, y + 158), radius=8, fill="#fffefa", outline=HAIRLINE)
+    draw.text((1452, y + 135), "清除", font=F12, fill=INK)
     if step >= 1:
-        draw.rounded_rectangle((1266, y + 160, 1534, y + 194), radius=8, fill="#faf7ef", outline="#ebe4d8")
-        draw.text((1278, y + 170), "project_state · score 0.92 · UI style memory", font=F11, fill=INK)
+        draw.rounded_rectangle((1256, y + 176, 1546, y + 216), radius=8, fill="#faf7ef", outline=COPPER if step >= 2 else "#ebe4d8", width=2 if step >= 2 else 1)
+        draw.text((1268, y + 188), "project_state · score 0.92 · UI style memory", font=F11, fill=INK)
 
     y2 = 500
-    draw.rounded_rectangle((1250, y2, 1550, y2 + 245), radius=8, fill=PANEL, outline=HAIRLINE)
-    draw.text((1266, y2 + 16), "Long-horizon Memory", font=F14, fill=INK)
+    draw.rounded_rectangle((1238, y2, 1562, y2 + 272), radius=10, fill=PANEL, outline=HAIRLINE)
+    draw.text((1256, y2 + 16), "Long-horizon Memory", font=F14, fill=INK)
     for i, text in enumerate([
         "DocThinker UI should be Claude-like, artful, restrained, and control-first.",
         "Memory edits require preview, graph highlight, and user confirmation.",
         "Secrets and temporary debug traces are skipped by default.",
     ]):
-        yy = y2 + 52 + i * 56
-        draw.rounded_rectangle((1266, yy, 1534, yy + 44), radius=8, fill="#faf7ef", outline="#ebe4d8")
-        draw.text((1276, yy + 10), text[:54], font=F10, fill=MUTED if i else INK)
+        yy = y2 + 52 + i * 66
+        selected = step >= 2 and i == 0
+        draw.rounded_rectangle((1256, yy, 1546, yy + 54), radius=8, fill="#fff8f1" if selected else "#faf7ef", outline=COPPER if selected else "#ebe4d8", width=2 if selected else 1)
+        for j, line in enumerate(wrap_text(draw, text, F10, 254)[:2]):
+            draw.text((1268, yy + 10 + j * 15), line, font=F10, fill=INK if selected else MUTED)
 
     if step >= 3:
-        draw.rounded_rectangle((590, 685, 950, 735), radius=12, fill="#f5f8f5", outline=SAGE, width=2)
-        draw.text((625, 701), "Memory updated. Selected edge and nodes stay highlighted.", font=F14, fill=SAGE)
+        draw.rounded_rectangle((590, 705, 1015, 760), radius=12, fill="#f5f8f5", outline=SAGE, width=2)
+        draw.text((625, 723), "Memory updated. Selected edge and nodes stay highlighted.", font=F14, fill=SAGE)
 
-    return img
+    return img.convert("RGB")
 
 
 def render_ui_assets() -> None:
