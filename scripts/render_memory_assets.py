@@ -128,126 +128,109 @@ def label(draw: ImageDraw.ImageDraw, xy: tuple[int, int], text: str, ft: ImageFo
 
 
 def render_architecture() -> None:
-    img = Image.new("RGB", (1800, 1080), PAPER)
+    img = Image.new("RGB", (2200, 1300), PAPER)
     draw = ImageDraw.Draw(img)
-    draw.rectangle((0, 0, 1800, 1080), fill=PAPER)
-    draw.text((72, 54), "DocThinker Agentic Memory Architecture", font=F34, fill=INK)
-    draw.text((74, 98), "Carrier-grounded memory that can recall, reason, consolidate, and be edited under user control.", font=F16, fill=MUTED)
+    draw.rectangle((0, 0, 2200, 1300), fill=PAPER)
 
-    columns = [
-        (60, 170, 300, 690, "Inputs", COPPER),
-        (365, 170, 610, 690, "Session Runtime", LAKE),
-        (690, 170, 990, 690, "AgentMemoryCore", INK),
-        (1070, 170, 1340, 850, "Pluggable Backends", SAGE),
-        (1430, 170, 1720, 850, "User Control + UI", OCHRE),
+    title = "DocThinker Agentic Memory Architecture"
+    subtitle = "text + image-text carriers · recall planning · memory-side reasoning · controlled consolidation · graph evolution"
+    draw.text(((2200 - text_width(draw, title, F34)) // 2, 54), title, font=F34, fill=INK)
+    draw.text(((2200 - text_width(draw, subtitle, F16)) // 2, 104), subtitle, font=F16, fill=MUTED)
+
+    # Main pipeline row. Cards are separated by generous gutters; arrows stay in
+    # those gutters only, so no connector crosses text or card bodies.
+    pipeline = [
+        ((80, 205, 390, 405), "Input Carriers", ["Pure text", "Image-text interactive docs", "Graph signals", "Edit commands"], COPPER),
+        ((470, 205, 780, 405), "Session Runtime", ["Session-scoped KG", "Query API + Web UI", "MemoryPolicy", "MemoryTrace"], LAKE),
+        ((860, 185, 1320, 425), "AgentMemoryCore", ["recall(): plan + merge + reason", "generation context assembly", "after_response(): audit + write"], INK),
+        ((1400, 205, 1710, 405), "Generation", ["RAG / deep thinking", "sources + memory metadata", "observable answer trace"], PLUM),
+        ((1790, 205, 2100, 405), "Answer + Control", ["Generated response", "remember / exclude layers", "selected memory edits"], OCHRE),
     ]
-    for x0, y0, x1, y1, title, accent in columns:
-        draw.rounded_rectangle((x0, y0, x1, y1), radius=22, fill="#fdfbf7", outline=HAIRLINE, width=2)
-        draw.text((x0 + 22, y0 + 18), title, font=F18, fill=accent)
+    for xy, title_text, body, accent in pipeline:
+        card(draw, xy, title_text, body, fill="#fdfbf7", accent=accent, title_font=F18, body_font=F13, radius=18)
 
-    input_cards = [
-        ("Pure Text", ["Chat, notes, instructions"]),
-        ("Image-text Docs", ["PDF pages, figures, tables"]),
-        ("Graph Signals", ["Entities + evidence"]),
-        ("Edit Commands", ["NL memory edits"]),
+    for left, right, color in [
+        (pipeline[0][0], pipeline[1][0], COPPER),
+        (pipeline[1][0], pipeline[2][0], LAKE),
+        (pipeline[2][0], pipeline[3][0], INK),
+        (pipeline[3][0], pipeline[4][0], OCHRE),
+    ]:
+        arrow(draw, [(left[2] + 14, 305), (right[0] - 14, 305)], fill=color, width=4)
+
+    # Core phases inside the central card; no lines pass through them.
+    phase_y = 345
+    phases = [
+        ("Recall Plan", 895, COPPER),
+        ("Layer Merge", 1015, SAGE),
+        ("Memory Trace", 1135, LAKE),
+        ("Policy Control", 1255, PLUM),
     ]
-    for i, (title, body) in enumerate(input_cards):
-        card(draw, (88, 230 + i * 102, 272, 306 + i * 102), title, body, accent=COPPER, title_font=F14)
+    for text, x, color in phases:
+        draw.rounded_rectangle((x, phase_y, x + 102, phase_y + 38), radius=19, fill=PANEL, outline=color, width=2)
+        draw.text((x + 13, phase_y + 11), text, font=F11, fill=color)
 
-    runtime_cards = [
-        ("Session Manager", ["Session graph + files"]),
-        ("Query Router", ["Quick / Standard / Deep"]),
-        ("Memory Policy", ["Scopes, top-k, write controls"]),
-        ("Memory Trace", ["Plan, hits, reasoning, writes"]),
-    ]
-    for i, (title, body) in enumerate(runtime_cards):
-        card(draw, (390, 230 + i * 102, 585, 306 + i * 102), title, body, accent=LAKE, title_font=F14)
-
-    card(
-        draw,
-        (720, 245, 960, 390),
-        "Recall Before Generation",
-        [
-            "Build recall plan",
-            "Retrieve durable insights",
-            "Attach expanded KG hypotheses",
-            "Derive memory-side reasoning",
-        ],
-        fill="#fff9f2",
-        accent=COPPER,
-        title_font=F16,
-    )
-    card(
-        draw,
-        (720, 470, 960, 615),
-        "Consolidate After Response",
-        [
-            "Write only allowed layers",
-            "Promote useful hypotheses",
-            "Audit write/skip decision",
-            "Update long-horizon memory",
-        ],
-        fill="#f5f8f5",
-        accent=SAGE,
-        title_font=F16,
-    )
-    draw.rounded_rectangle((758, 406, 922, 454), radius=24, fill=INK)
-    draw.text((790, 419), "Generation", font=F16, fill="#fffefa")
-
+    # Backend lane. A single bus below the core fans out vertically; this avoids
+    # diagonal connector clutter and keeps every backend card readable.
+    draw.rounded_rectangle((210, 545, 1990, 805), radius=22, fill="#fffefa", outline=HAIRLINE, width=2)
+    draw.text((250, 575), "Pluggable Memory + Graph Backends", font=F22, fill=SAGE)
     backend_cards = [
-        ("Conversation", ["Claw working/core/archive"]),
-        ("Episodic", ["Neuro memory analogies"]),
-        ("Long-horizon", ["Durable insights + reasoning"]),
-        ("Expanded KG", ["Candidate hypotheses"]),
-        ("Graph Promotion", ["Validated graph writes"]),
-        ("Tri-Graph", ["Causal DAG + flow + SEAL"]),
+        ((250, 655, 500, 755), "Conversation", ["Claw working/core/archive"], LAKE),
+        ((545, 655, 795, 755), "Episodic", ["Neuro analogy episodes"], PLUM),
+        ((840, 655, 1090, 755), "Long-horizon", ["Durable insights + reasoning"], COPPER),
+        ((1135, 655, 1385, 755), "Expanded KG", ["Candidate hypotheses"], OCHRE),
+        ((1430, 655, 1680, 755), "GraphCore KG", ["Promoted durable structure"], SAGE),
+        ((1725, 655, 1950, 755), "Tri-Graph", ["Causal DAG + flow + SEAL"], INK),
     ]
-    for i, (title, body) in enumerate(backend_cards):
-        card(draw, (1100, 230 + i * 96, 1310, 300 + i * 96), title, body, accent=[LAKE, PLUM, COPPER, OCHRE, SAGE, INK][i], title_font=F14)
+    bus_y = 620
+    draw.line((375, bus_y, 1838, bus_y), fill="#9d9488", width=3)
+    arrow(draw, [(1090, 425), (1090, bus_y - 4)], fill=INK, width=3)
+    for xy, title_text, body, accent in backend_cards:
+        x_mid = (xy[0] + xy[2]) // 2
+        draw.line((x_mid, bus_y, x_mid, xy[1]), fill="#9d9488", width=2)
+        arrow(draw, [(x_mid, xy[1] - 22), (x_mid, xy[1])], fill="#9d9488", width=2)
+        card(draw, xy, title_text, body, fill="#fdfbf7", accent=accent, title_font=F16, body_font=F12, radius=12)
 
+    # Controlled consolidation uses a separate lower channel, never crossing
+    # the backend labels.
+    draw.rounded_rectangle((620, 850, 1580, 1020), radius=22, fill="#fdfbf7", outline=HAIRLINE, width=2)
+    draw.text((660, 882), "Agentic Memory Loop", font=F22, fill=INK)
+    loop_steps = [
+        ("1 Recall", 675, 935, COPPER),
+        ("2 Reason", 850, 935, LAKE),
+        ("3 Answer", 1030, 935, INK),
+        ("4 Consolidate", 1210, 935, SAGE),
+        ("5 Edit / Export", 1420, 935, OCHRE),
+    ]
+    for step, x, y, color in loop_steps:
+        draw.rounded_rectangle((x, y, x + 130, y + 46), radius=23, fill=PANEL, outline=color, width=2)
+        draw.text((x + 18, y + 14), step, font=F13, fill=color)
+    for i in range(len(loop_steps) - 1):
+        x0 = loop_steps[i][1] + 130
+        x1 = loop_steps[i + 1][1]
+        arrow(draw, [(x0 + 8, 958), (x1 - 8, 958)], fill="#a89d90", width=2)
+    arrow(draw, [(1270, 805), (1270, 850)], fill=SAGE, width=3)
+    arrow(draw, [(1540, 935), (1540, 825), (1610, 825), (1610, 805)], fill=OCHRE, width=3)
+
+    # UI/control lane. These are outputs of the loop, so connectors use only
+    # vertical drops into the lane.
+    draw.rounded_rectangle((210, 1080, 1990, 1230), radius=22, fill="#fffefa", outline=HAIRLINE, width=2)
+    draw.text((250, 1114), "User-Controlled Operations", font=F22, fill=OCHRE)
     ui_cards = [
-        ("Memory Inspector", ["Recall plans and matches"]),
-        ("KG Dashboard", ["Nodes, edges, lifecycle"]),
-        ("NL Memory Editor", ["Preview candidates, then confirm"]),
-        ("Highlighting", ["Selected nodes and edges glow"]),
-        ("MEMORY.md Export", ["Portable audit index"]),
+        ((545, 1135, 795, 1205), "Memory Inspector", ["recall plans + matches"], LAKE),
+        ((840, 1135, 1090, 1205), "KG Dashboard", ["node / edge operations"], SAGE),
+        ((1135, 1135, 1385, 1205), "NL Memory Editor", ["preview -> highlight -> confirm"], COPPER),
+        ((1430, 1135, 1680, 1205), "Audit Export", ["MEMORY.md + trace"], PLUM),
     ]
-    for i, (title, body) in enumerate(ui_cards):
-        card(draw, (1460, 230 + i * 108, 1692, 306 + i * 108), title, body, accent=[LAKE, SAGE, COPPER, OCHRE, PLUM][i], title_font=F14)
+    for xy, title_text, body, accent in ui_cards:
+        card(draw, xy, title_text, body, fill="#fdfbf7", accent=accent, title_font=F14, body_font=F11, radius=10)
+    arrow(draw, [(1540, 1020), (1540, 1080)], fill=OCHRE, width=3)
 
-    # Main forward flow.
-    arrow(draw, [(300, 430), (365, 430)], fill=COPPER)
-    arrow(draw, [(610, 430), (690, 430)], fill=LAKE)
-    arrow(draw, [(960, 318), (1070, 318)], fill=COPPER)
-    arrow(draw, [(960, 542), (1070, 542)], fill=SAGE)
-    arrow(draw, [(1340, 430), (1430, 430)], fill=OCHRE)
-    arrow(draw, [(840, 390), (840, 406)], fill=INK)
-    arrow(draw, [(840, 454), (840, 470)], fill=INK)
-
-    # Feedback/control loop around the bottom.
-    draw.rounded_rectangle((365, 770, 990, 940), radius=22, fill="#fffefa", outline=HAIRLINE, width=2)
-    draw.text((395, 800), "Agentic Memory Loop", font=F22, fill=INK)
-    loop_items = [
-        ("1. Recall", 410, 850, COPPER),
-        ("2. Reason", 560, 850, LAKE),
-        ("3. Answer", 715, 850, INK),
-        ("4. Consolidate", 860, 850, SAGE),
-    ]
-    for title, x, y, color in loop_items:
-        draw.rounded_rectangle((x, y, x + 110, y + 44), radius=20, fill="#f7f1ea", outline=color, width=2)
-        draw.text((x + 16, y + 13), title, font=F13, fill=color)
-    arrow(draw, [(520, 872), (560, 872)], fill="#a89d90", width=2)
-    arrow(draw, [(670, 872), (715, 872)], fill="#a89d90", width=2)
-    arrow(draw, [(825, 872), (860, 872)], fill="#a89d90", width=2)
-    arrow(draw, [(915, 850), (915, 720), (815, 720), (815, 615)], fill=SAGE, width=2)
-
-    label(draw, (316, 402), "carriers become memory events")
-    label(draw, (626, 402), "policy-guided recall")
-    label(draw, (990, 286), "read")
-    label(draw, (990, 510), "write")
-    label(draw, (1360, 402), "inspect + edit")
-
-    draw.text((72, 1000), "No-overlap layout: fixed columns, orthogonal arrows, and separated read/write loops.", font=F13, fill=MUTED)
+    draw.text(
+        (80, 1260),
+        "Layout rule: no diagonal crossings, no arrows through text, and each operation surface has a dedicated lane.",
+        font=F13,
+        fill=MUTED,
+    )
     img.save(ASSET_DIR / "agentic_memory_architecture.png", quality=95)
 
 
