@@ -9,8 +9,11 @@ Supports both rule-based and model-based entity extraction.
 import re
 import os
 import sys
+import logging
 from typing import Dict, List, Any, Optional, Tuple
 from abc import ABC, abstractmethod
+
+_log = logging.getLogger("docthinker.entity_extractor")
 
 try:
     import spacy
@@ -338,7 +341,7 @@ class SpacyEntityExtractor(EntityExtractor):
             try:
                 self.ner = SpacyNER(model_name)
             except Exception as e:
-                print(f"Error loading Spacy model {model_name}: {e}")
+                _log.error("Error loading Spacy model %s: %s", model_name, e)
     
     def extract_entities(self, text: str, **kwargs) -> List[Dict[str, Any]]:
         """Extract entities using Spacy"""

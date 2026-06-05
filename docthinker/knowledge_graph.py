@@ -1,4 +1,5 @@
 """Knowledge Graph module for multi-document relationship management"""
+import logging
 from typing import Dict, List, Optional, Set, Any, Tuple
 from dataclasses import dataclass, field
 from uuid import uuid4
@@ -9,6 +10,8 @@ import re
 import json
 import time
 import sqlite3
+
+_log = logging.getLogger("docthinker.knowledge_graph")
 
 # Import entity extractor
 from docthinker.entity_extractor import EntityLinker
@@ -1751,14 +1754,14 @@ class KnowledgeGraph:
                 )
                 added_relationships.append(relationship)
             except ValueError as e:
-                print(f"Error adding relationship: {e}")
+                _log.error("Error adding relationship: %s", e)
                 continue
         return added_relationships
-    
+
     def save(self, path: str):
         """Save knowledge graph to file"""
         if self.use_storage and self.storage:
-            print("Warning: Using external storage, save() method is not supported. Use storage-specific methods instead.")
+            _log.warning("Using external storage, save() method is not supported. Use storage-specific methods instead.")
             return
         
         data = {

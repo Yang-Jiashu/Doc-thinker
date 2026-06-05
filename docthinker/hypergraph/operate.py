@@ -688,7 +688,7 @@ async def kg_query(
                 continue
     # Handle parsing error
     except json.JSONDecodeError as e:
-        print(f"JSON parsing error: {e} {final_result}")
+        logger.error("JSON parsing error: %s | payload=%s", e, final_result)
         failure = PROMPTS["fail_response"]
         return {**base_payload, "response": failure}
 

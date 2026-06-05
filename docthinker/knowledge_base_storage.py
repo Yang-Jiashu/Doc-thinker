@@ -6,10 +6,13 @@ This module provides a SQLite-based storage engine for the knowledge base system
 
 import sqlite3
 import json
+import logging
 from typing import Dict, List, Any, Optional, Set
 from pathlib import Path
 from datetime import datetime
 from uuid import uuid4
+
+_log = logging.getLogger("docthinker.knowledge_base_storage")
 
 from docthinker.knowledge_base import KnowledgeBase, KnowledgeEntry
 
@@ -45,9 +48,9 @@ class KnowledgeBaseStorage:
             conn.commit()
             
             if not db_exists:
-                print(f"Created new knowledge base database at {self.db_path}")
+                _log.info("Created new knowledge base database at %s", self.db_path)
             else:
-                print(f"Connected to existing knowledge base database at {self.db_path}")
+                _log.info("Connected to existing knowledge base database at %s", self.db_path)
         finally:
             conn.close()
     
@@ -467,10 +470,10 @@ class KnowledgeBaseStorage:
         """Backup the database to a file"""
         import shutil
         shutil.copy2(str(self.db_path), backup_path)
-        print(f"Database backed up to {backup_path}")
-    
+        _log.info("Database backed up to %s", backup_path)
+
     def restore_database(self, backup_path: str):
         """Restore the database from a backup file"""
         import shutil
         shutil.copy2(backup_path, str(self.db_path))
-        print(f"Database restored from {backup_path}")
+        _log.info("Database restored from %s", backup_path)

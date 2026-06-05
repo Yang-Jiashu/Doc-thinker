@@ -11,6 +11,9 @@ from uuid import uuid4
 from datetime import datetime
 from pathlib import Path
 import json
+import logging
+
+_log = logging.getLogger("docthinker.knowledge_base")
 
 # Forward declaration for knowledge graph integration
 class KnowledgeGraph:
@@ -436,7 +439,7 @@ class KnowledgeBaseManager:
                 kb = KnowledgeBase.load(str(kb_file))
                 self.knowledge_bases[kb.name] = kb
             except Exception as e:
-                print(f"Error loading knowledge base {kb_file}: {e}")
+                _log.error("Error loading knowledge base %s: %s", kb_file, e)
     
     def create_knowledge_base(self, name: str, kb_type: str, metadata: Optional[Dict[str, Any]] = None) -> KnowledgeBase:
         """Create a new knowledge base"""
