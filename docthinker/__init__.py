@@ -6,7 +6,7 @@ Imports are resolved lazily so lightweight subpackages such as
 
 __version__ = "1.2.8"
 __author__ = "Zirui Guo"
-__url__ = "https://github.com/Yang-Jiashu/doc-thinker"
+__url__ = "https://github.com/Yang-Jiashu/Doc-thinker"
 
 __all__ = [
     "DocThinker",

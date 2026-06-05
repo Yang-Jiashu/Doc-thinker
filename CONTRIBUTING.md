@@ -5,7 +5,7 @@
 ## 开发环境
 
 ```bash
-git clone https://github.com/Yang-Jiashu/doc-thinker.git
+git clone https://github.com/Yang-Jiashu/Doc-thinker.git
 cd doc-thinker
 python -m venv .venv
 # Windows: .venv\Scripts\activate

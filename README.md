@@ -61,7 +61,7 @@ We recommend using Python version 3.10 or higher for DocThinker.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Yang-Jiashu/doc-thinker.git
+git clone https://github.com/Yang-Jiashu/Doc-thinker.git
 cd doc-thinker
 
 # 2. Create a virtual environment

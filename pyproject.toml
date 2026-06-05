@@ -46,10 +46,10 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Yang-Jiashu/doc-thinker"
-Documentation = "https://github.com/Yang-Jiashu/doc-thinker"
-Repository = "https://github.com/Yang-Jiashu/doc-thinker"
-Issues = "https://github.com/Yang-Jiashu/doc-thinker/issues"
+Homepage = "https://github.com/Yang-Jiashu/Doc-thinker"
+Documentation = "https://github.com/Yang-Jiashu/Doc-thinker"
+Repository = "https://github.com/Yang-Jiashu/Doc-thinker"
+Issues = "https://github.com/Yang-Jiashu/Doc-thinker/issues"
 
 [tool.uv]
 dev-dependencies = [

@@ -61,7 +61,7 @@
 
 ```bash
 # 1. 克隆代码仓库
-git clone https://github.com/Yang-Jiashu/doc-thinker.git
+git clone https://github.com/Yang-Jiashu/Doc-thinker.git
 cd doc-thinker
 
 # 2. 创建虚拟环境
