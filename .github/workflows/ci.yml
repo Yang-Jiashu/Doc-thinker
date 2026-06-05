@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main, master]
 
+# Force Node.js 24 on runner to avoid the deprecation warning for
+# actions/checkout@v4 and actions/setup-python@v5 (Node.js 20 support
+# ends 2026-09-16, default switch 2026-06-16).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -24,4 +30,6 @@ jobs:
           pip install -e ".[all]"
           pip install pytest pytest-asyncio
       - name: Run tests
-        run: pytest tests/ -v --ignore=tests/debug_db.py 2>/dev/null || true
+        # Removed `|| true` so test failures actually fail CI. Pytest's
+        # exit code now propagates to the workflow.
+        run: pytest tests/ -v --ignore=tests/debug_db.py
