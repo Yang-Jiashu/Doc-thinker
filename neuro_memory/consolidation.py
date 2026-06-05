@@ -100,8 +100,8 @@ async def consolidate(
     content_sim_threshold: float = 0.5,
     structure_sim_threshold: float = 0.3,
     llm_func: Optional[Callable[..., Any]] = None,
-    content_sim_fn: Optional[Callable[..., Union[float, Any]]] = None,
-    structure_sim_fn: Optional[Callable[..., Union[float, Any]]] = None,
+    content_sim_fn: Optional[Callable[[str, str], Union[float, Any]]] = None,
+    structure_sim_fn: Optional[Callable[[str, str], Union[float, Any]]] = None,
     recent_activation_days: float = 7.0,
     consolidation_weight_delta: float = DEFAULT_CONSOLIDATION_WEIGHT_DELTA,
     max_weight: float = DEFAULT_MAX_EDGE_WEIGHT,
@@ -109,7 +109,8 @@ async def consolidate(
     """
     巩固流程：采样 → 配对 → 跨事件推断 → 写回图。
     不要求必传 llm_func；无 LLM 时只做基于相似度的边添加。
-    content_sim_fn / structure_sim_fn 可为 async，本函数会 await。
+    content_sim_fn / structure_sim_fn 接收 (episode_id_a, episode_id_b)，
+    内部基于已缓存的 embedding 计算相似度；可为 async，本函数会 await。
     """
 
     async def _sim(a: str, b: str, fn: Optional[Callable[..., Any]]) -> float:
@@ -157,12 +158,8 @@ async def consolidate(
             if not ep_a or not ep_b:
                 continue
 
-            content_sim = await _sim(ep_a.content_for_embedding(), ep_b.content_for_embedding(), content_sim_fn)
-            structure_sim = await _sim(
-                ep_a.structure_description or build_structure_description(ep_a),
-                ep_b.structure_description or build_structure_description(ep_b),
-                structure_sim_fn,
-            )
+            content_sim = await _sim(eid_a, eid_b, content_sim_fn)
+            structure_sim = await _sim(eid_a, eid_b, structure_sim_fn)
 
             if content_sim < content_sim_threshold and structure_sim < structure_sim_threshold:
                 continue

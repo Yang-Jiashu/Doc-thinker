@@ -180,33 +180,43 @@ class MemoryEngine:
         if not episodes:
             return {"edges_added": 0, "pairs_processed": 0, "edges_strengthened": 0}
 
-        async def content_sim(a: str, b: str) -> float:
-            emb_a = await self._embed([a])
-            emb_b = await self._embed([b])
-            if not emb_a or not emb_b:
+        # 批量预计算每条 episode 的 content / structure embedding，
+        # 避免 O(N²) 次重复调用 embed（每对都重新 encode）。
+        cache_content: Dict[str, List[float]] = {}
+        cache_structure: Dict[str, List[float]] = {}
+        if self.embedding_func:
+            ep_items = list(episodes.values())
+            content_texts = [ep.content_for_embedding() for ep in ep_items]
+            content_embs = await self._embed(content_texts)
+            for ep, emb in zip(ep_items, content_embs or []):
+                if emb:
+                    cache_content[ep.episode_id] = emb
+
+            struct_texts = [
+                ep.structure_description or build_structure_description(ep) for ep in ep_items
+            ]
+            struct_embs = await self._embed(struct_texts)
+            for ep, emb in zip(ep_items, struct_embs or []):
+                if emb:
+                    cache_structure[ep.episode_id] = emb
+
+        @staticmethod
+        def _cosine(a: List[float], b: List[float]) -> float:
+            if not a or not b:
                 return 0.0
             try:
-                dot = sum(x * y for x, y in zip(emb_a[0], emb_b[0]))
-                na = (sum(x * x for x in emb_a[0]) ** 0.5) or 1e-8
-                nb = (sum(x * x for x in emb_b[0]) ** 0.5) or 1e-8
+                dot = sum(x * y for x, y in zip(a, b))
+                na = (sum(x * x for x in a) ** 0.5) or 1e-8
+                nb = (sum(x * x for x in b) ** 0.5) or 1e-8
                 return max(0.0, min(1.0, dot / (na * nb)))
             except Exception:
                 return 0.0
 
-        async def structure_sim(a: str, b: str) -> float:
-            if not a.strip() or not b.strip():
-                return 0.0
-            ea = await self._embed([a])
-            eb = await self._embed([b])
-            if not ea or not eb:
-                return 0.0
-            try:
-                dot = sum(x * y for x, y in zip(ea[0], eb[0]))
-                na = (sum(x * x for x in ea[0]) ** 0.5) or 1e-8
-                nb = (sum(x * x for x in eb[0]) ** 0.5) or 1e-8
-                return max(0.0, min(1.0, dot / (na * nb)))
-            except Exception:
-                return 0.0
+        async def content_sim(a_id: str, b_id: str) -> float:
+            return _cosine(cache_content.get(a_id, []), cache_content.get(b_id, []))
+
+        async def structure_sim(a_id: str, b_id: str) -> float:
+            return _cosine(cache_structure.get(a_id, []), cache_structure.get(b_id, []))
 
         llm_fn = self.llm_func if run_llm else None
         return await consolidate(
@@ -237,9 +247,10 @@ class MemoryEngine:
         if not episodes:
             return []
 
-        query_emb = []
+        query_emb: List[float] = []
         if self.embedding_func and query_text:
-            query_emb = (await self._embed([query_text]))[0] if (await self._embed([query_text])) else []
+            embedded = await self._embed([query_text])
+            query_emb = embedded[0] if embedded else []
         if not query_emb:
             return []
 

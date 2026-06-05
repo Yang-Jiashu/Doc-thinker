@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import numpy as np
 from contextlib import asynccontextmanager
 from typing import Any, List
@@ -13,6 +14,8 @@ from docthinker.api_config import APIConfig
 from docthinker.cognitive import CognitiveProcessor
 from docthinker.providers import load_settings, get_embed_client, get_vlm_client
 from docthinker.utils import create_bltcy_rerank_func
+
+_log = logging.getLogger("docthinker.server.app")
 from docthinker.services import IngestionService
 from docthinker.session_manager import SessionManager
 
@@ -116,9 +119,9 @@ def _cleanup_global_graphcore_artifacts(workdir: str) -> None:
                 continue
 
     if removed:
-        print(
-            "INFO: Removed global GraphCore artifacts for session isolation: "
-            + ", ".join(sorted(removed))
+        _log.info(
+            "Removed global GraphCore artifacts for session isolation: %s",
+            ", ".join(sorted(removed)),
         )
 
 
@@ -395,9 +398,9 @@ async def lifespan(app: FastAPI):
         state.memory_engine_factory = _session_memory_factory
         state.memory_engines = {}
         state.memory_engine = None
-        print("INFO: Neuro memory engine initialized in session-scoped mode.")
+        _log.info("Neuro memory engine initialized in session-scoped mode.")
     except Exception as e:
-        print(f"WARNING: Neuro memory engine not initialized: {e}")
+        _log.warning("Neuro memory engine not initialized: %s", e)
         state.memory_engine = None
         state.memory_engine_factory = None
         state.memory_engines = {}
@@ -427,9 +430,9 @@ async def lifespan(app: FastAPI):
 
         state.claw_manager_factory = _claw_manager_factory
         state.claw_managers = {}
-        print("INFO: Claw tiered memory system initialized.")
+        _log.info("Claw tiered memory system initialized.")
     except Exception as e:
-        print(f"WARNING: Claw memory system not initialized: {e}")
+        _log.warning("Claw memory system not initialized: %s", e)
         state.claw_manager_factory = None
         state.claw_managers = {}
 
@@ -477,9 +480,9 @@ async def lifespan(app: FastAPI):
             enable_multi_step=True,
             sync_mode="eager", # Sync immediately for demo purposes
         )
-        print("INFO: Auto-Thinking Orchestrator (Hybrid) initialized.")
+        _log.info("Auto-Thinking Orchestrator (Hybrid) initialized.")
     except Exception as e:
-        print(f"WARNING: Failed to initialize Auto-Thinking Orchestrator: {e}")
+        _log.warning("Failed to initialize Auto-Thinking Orchestrator: %s", e)
 
     yield
 
@@ -525,7 +528,7 @@ def create_app() -> FastAPI:
         from .routers.settings import router as settings_router
 
         routers = [health_router, settings_router]
-        print("WARNING: ingest routes disabled because python-multipart is not installed.")
+        _log.warning("ingest routes disabled because python-multipart is not installed.")
 
     for r in routers:
         app.include_router(r, prefix=api_config.api_prefix)
