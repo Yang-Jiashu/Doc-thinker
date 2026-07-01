@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import tempfile
-import textwrap
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -12,6 +11,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import StreamingResponse
 
 from docthinker.kg_expansion import ExpandedNodeManager
+from docthinker.harness import QueryControls, QueryHarness
 from docthinker.memory_core import AgentMemoryCore
 from ..memory import get_session_claw_manager, get_session_memory_engine
 from ..schemas import MultiDocumentQueryRequest, QueryRequest
@@ -429,6 +429,13 @@ def _get_agent_memory_core() -> AgentMemoryCore:
     )
 
 
+def _get_query_harness() -> QueryHarness:
+    return QueryHarness(
+        memory_core_factory=_get_agent_memory_core,
+        history_loader=_get_recent_conversation_history,
+    )
+
+
 # ── Unified background enrichment ──────────────────────────────────
 # Runs AFTER the answer is delivered.  Does all heavy work and warms
 # the cache so the *next* query can use pre-computed context instantly.
@@ -482,8 +489,6 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         raise HTTPException(status_code=400, detail="session_id is required; global knowledge is disabled")
 
     session_rag = await _get_session_rag_or_raise(request.session_id)
-    effective_memory_mode = "session"
-
     identity_keywords = ["who are you", "your name", "hello", "hi"]
     question_lower = (request.question or "").lower()
     is_identity_query = any(k in question_lower for k in identity_keywords) and len(request.question) < 40
@@ -533,26 +538,20 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         if not is_identity_query:
             yield yield_status("正在检索知识...")
 
-        recall_bundle = await _get_agent_memory_core().recall(
-            session_id=request.session_id,
-            query=request.question,
-            base_instruction=str(request.retrieval_instruction or ""),
-            mode=request.mode,
-            enable_thinking=request.enable_thinking,
-            enable_expanded_matching=request.enable_expanded_matching,
-            expanded_top_k=request.expanded_top_k,
-            expanded_min_score=request.expanded_min_score,
+        harness = _get_query_harness()
+        run_context = await harness.prepare(
+            request=request,
             skip_memory=is_identity_query,
         )
-        expanded_matches = recall_bundle.expanded_matches
-        episodic_matches = recall_bundle.episodic_matches
-        long_horizon_matches = recall_bundle.long_horizon_matches
-        merged_instruction = recall_bundle.retrieval_instruction
-        memory_summaries = recall_bundle.memory_summaries
-        memory_reasoning = recall_bundle.memory_reasoning
+        expanded_matches = run_context.expanded_matches
+        episodic_matches = run_context.episodic_matches
+        long_horizon_matches = run_context.long_horizon_matches
+        merged_instruction = run_context.retrieval_instruction
+        memory_summaries = run_context.memory_summaries
+        memory_reasoning = run_context.memory_reasoning
 
         _log.info("[T+%ss] phase1 done", _elapsed())
-        thinking_process = recall_bundle.trace.format_for_response(request.mode)
+        thinking_process = run_context.trace.format_for_response(request.mode)
 
         yield yield_meta({
             "thinking_process": thinking_process,
@@ -562,13 +561,13 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
             "long_horizon_matches": long_horizon_matches[:min(3, len(long_horizon_matches))],
             "memory_summaries": memory_summaries,
             "memory_reasoning": memory_reasoning,
-            "memory_trace": recall_bundle.trace.to_schema(),
+            "memory_trace": run_context.trace.to_schema(),
+            "run_controls": run_context.controls.to_schema(),
             "retrieval_instruction_applied": bool(merged_instruction),
             "mode": request.mode,
         })
 
-        # Build conversation history for LLM context
-        conversation_history = _get_recent_conversation_history(request.session_id)
+        query_options = run_context.graph_query_options(request)
 
         # Phase 2: Generation (keyword extraction + retrieval + LLM)
         full_answer = ""
@@ -585,26 +584,15 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
                 yield yield_chunk(llm_resp)
                 full_answer = llm_resp
             else:
-                _log.info(f"[T+{_elapsed()}s] phase2 start: aquery_stream (mode={request.mode}, history={len(conversation_history)} msgs)")
+                _log.info(
+                    f"[T+{_elapsed()}s] phase2 start: aquery_stream "
+                    f"(mode={request.mode}, history={len(run_context.conversation_history)} msgs)"
+                )
                 result = await asyncio.wait_for(
                     session_rag.aquery_stream(
                         query=request.question,
                         mode=request.mode,
-                        enable_rerank=request.enable_rerank,
-                        top_k=request.top_k,
-                        chunk_top_k=request.chunk_top_k,
-                        max_relation_tokens=request.max_relation_tokens,
-                        max_total_tokens=request.max_total_tokens,
-                        include_discovered_edges=request.include_discovered_edges,
-                        max_relations=request.max_relations,
-                        max_discovered_relations=request.max_discovered_relations,
-                        min_discovered_edge_confidence=request.min_discovered_edge_confidence,
-                        require_discovered_evidence=request.require_discovered_evidence,
-                        enable_image_asset_activation=request.enable_image_asset_activation,
-                        image_activation_threshold=request.image_activation_threshold,
-                        image_activation_top_k=request.image_activation_top_k,
-                        user_prompt=merged_instruction or None,
-                        conversation_history=conversation_history,
+                        **query_options,
                     ),
                     timeout=SESSION_QUERY_TIMEOUT_SECONDS,
                 )
@@ -617,19 +605,8 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
                         session_rag.aquery(
                             query=request.question,
                             mode=request.mode,
-                            enable_rerank=request.enable_rerank,
-                            top_k=request.top_k,
-                            chunk_top_k=request.chunk_top_k,
-                            max_relation_tokens=request.max_relation_tokens,
-                            max_total_tokens=request.max_total_tokens,
-                            include_discovered_edges=request.include_discovered_edges,
-                            max_relations=request.max_relations,
-                            max_discovered_relations=request.max_discovered_relations,
-                            min_discovered_edge_confidence=request.min_discovered_edge_confidence,
-                            require_discovered_evidence=request.require_discovered_evidence,
                             vlm_enhanced=False,
-                            user_prompt=merged_instruction or None,
-                            conversation_history=conversation_history,
+                            **query_options,
                         ),
                         timeout=SESSION_QUERY_TIMEOUT_SECONDS,
                     )
@@ -676,7 +653,11 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         # All heavy post-query work runs in background: episodic memory,
         # co-activation, chat-turn ingest, expansion promotion, and
         # warm-cache preparation for the next query.
-        if full_answer and not is_identity_query:
+        if (
+            full_answer
+            and not is_identity_query
+            and harness.should_enrich(run_context)
+        ):
             background_tasks.add_task(
                 _background_post_query_enrichment,
                 request.session_id,
@@ -688,7 +669,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
                 expanded_min_score=request.expanded_min_score,
                 retrieval_instruction=str(request.retrieval_instruction or ""),
                 matched_expanded=expanded_matches if expanded_matches else None,
-                remember_turn=request.remember_turn,
+                remember_turn=run_context.controls.remember_turn,
                 memory_excluded_layers=request.memory_excluded_layers,
                 memory_write_scope=request.memory_write_scope,
             )
@@ -705,7 +686,9 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=400, detail="session_id is required; global knowledge is disabled")
 
     session_rag = await _get_session_rag_or_raise(request.session_id)
-    effective_memory_mode = "session"
+    effective_memory_mode = (
+        "session" if QueryControls.from_request(request).use_memory else "off"
+    )
 
     identity_keywords = ["who are you", "your name", "hello", "hi"]
     question_lower = (request.question or "").lower()
@@ -742,27 +725,21 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
     thinking_process: Optional[str] = None
     answer_mode = "rag"
 
-    conversation_history = _get_recent_conversation_history(request.session_id)
     if request.enable_thinking and not is_identity_query:
         answer_mode = "session_thinking"
 
-    recall_bundle = await _get_agent_memory_core().recall(
-        session_id=request.session_id,
-        query=request.question,
-        base_instruction=str(request.retrieval_instruction or ""),
-        mode=request.mode,
-        enable_thinking=request.enable_thinking,
-        enable_expanded_matching=request.enable_expanded_matching,
-        expanded_top_k=request.expanded_top_k,
-        expanded_min_score=request.expanded_min_score,
+    harness = _get_query_harness()
+    run_context = await harness.prepare(
+        request=request,
         skip_memory=is_identity_query,
     )
-    expanded_matches = recall_bundle.expanded_matches
-    episodic_matches = recall_bundle.episodic_matches
-    long_horizon_matches = recall_bundle.long_horizon_matches
-    merged_instruction = recall_bundle.retrieval_instruction
-    memory_summaries = recall_bundle.memory_summaries
-    memory_reasoning = recall_bundle.memory_reasoning
+    expanded_matches = run_context.expanded_matches
+    episodic_matches = run_context.episodic_matches
+    long_horizon_matches = run_context.long_horizon_matches
+    merged_instruction = run_context.retrieval_instruction
+    memory_summaries = run_context.memory_summaries
+    memory_reasoning = run_context.memory_reasoning
+    query_options = run_context.graph_query_options(request)
 
     # Phase 2: Generation
     try:
@@ -796,21 +773,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
                     session_rag.aquery(
                         query=request.question,
                         mode=request.mode,
-                        enable_rerank=request.enable_rerank,
-                        top_k=request.top_k,
-                        chunk_top_k=request.chunk_top_k,
-                        max_relation_tokens=request.max_relation_tokens,
-                        max_total_tokens=request.max_total_tokens,
-                        include_discovered_edges=request.include_discovered_edges,
-                        max_relations=request.max_relations,
-                        max_discovered_relations=request.max_discovered_relations,
-                        min_discovered_edge_confidence=request.min_discovered_edge_confidence,
-                        require_discovered_evidence=request.require_discovered_evidence,
-                        enable_image_asset_activation=request.enable_image_asset_activation,
-                        image_activation_threshold=request.image_activation_threshold,
-                        image_activation_top_k=request.image_activation_top_k,
-                        user_prompt=merged_instruction or None,
-                        conversation_history=conversation_history,
+                        **query_options,
                     ),
                     timeout=SESSION_QUERY_TIMEOUT_SECONDS,
                 )
@@ -820,7 +783,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
                 answer = ""
 
             if request.enable_thinking:
-                thinking_process = recall_bundle.trace.format_for_response(request.mode)
+                thinking_process = run_context.trace.format_for_response(request.mode)
 
             if hasattr(session_rag, "get_last_query_evidence"):
                 sources = _build_sources_from_details({}, session_rag.get_last_query_evidence())
@@ -854,7 +817,11 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             pass
 
         # All heavy post-query work in background
-        if answer and not is_identity_query:
+        if (
+            answer
+            and not is_identity_query
+            and harness.should_enrich(run_context)
+        ):
             background_tasks.add_task(
                 _background_post_query_enrichment,
                 request.session_id,
@@ -866,7 +833,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
                 expanded_min_score=request.expanded_min_score,
                 retrieval_instruction=str(request.retrieval_instruction or ""),
                 matched_expanded=expanded_matches if expanded_matches else None,
-                remember_turn=request.remember_turn,
+                remember_turn=run_context.controls.remember_turn,
                 memory_excluded_layers=request.memory_excluded_layers,
                 memory_write_scope=request.memory_write_scope,
             )
@@ -887,7 +854,8 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             "expanded_matches": expanded_matches[:min(2, len(expanded_matches))],
             "episodic_matches": episodic_matches[:min(3, len(episodic_matches))],
             "long_horizon_matches": long_horizon_matches[:min(3, len(long_horizon_matches))],
-            "memory_trace": recall_bundle.trace.to_schema(),
+            "memory_trace": run_context.trace.to_schema(),
+            "run_controls": run_context.controls.to_schema(),
             "memory_reasoning": memory_reasoning,
             "retrieval_instruction_applied": bool(merged_instruction),
             "memory_summaries": memory_summaries,

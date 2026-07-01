@@ -106,6 +106,9 @@ class QueryParam:
     stream: bool = False
     """If True, enables streaming output for real-time responses."""
 
+    use_llm_cache: bool = True
+    """Request-scoped cache policy; False bypasses cache reads and writes."""
+
     top_k: int = int(os.getenv("TOP_K", str(DEFAULT_TOP_K)))
     """Number of top items to retrieve. Represents entities in 'local' mode and relationships in 'global' mode."""
 

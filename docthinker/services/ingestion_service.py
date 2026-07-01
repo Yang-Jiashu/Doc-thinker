@@ -56,7 +56,6 @@ class IngestionService:
         self, text: str, session_id: Optional[str] = None, file_path: str | None = None,
     ) -> None:
         """Ingest text into a session graph."""
-        await self._insert_text(self.rag_global, text, file_path=file_path)
         target_rag = await self._resolve_target_rag(session_id)
         await self._insert_text(target_rag, text, file_path=file_path)
 
