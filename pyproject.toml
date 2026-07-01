@@ -21,6 +21,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
+    "aiohttp>=3.9.0",
     "huggingface_hub",
     "mineru[core]",
     "shapely>=2.0.0",
