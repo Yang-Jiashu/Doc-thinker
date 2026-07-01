@@ -43,7 +43,7 @@ class SelfStudyConfig:
     strategy_weights: Optional[Dict[str, float]] = None
     max_entities_per_round: int = 40
     experience_store_path: Optional[str] = None
-    writeback_confidence_threshold: float = 0.5
+    writeback_confidence_threshold: float = 0.80
 
 
 @dataclass
@@ -313,7 +313,7 @@ class SelfStudyOrchestrator:
             synthesis["new_edges"] = [
                 e for e in synthesis["new_edges"]
                 if float(e.get("confidence", 0)) >= threshold
-                and len(e.get("evidence_chain", [])) >= 1
+                and len(e.get("evidence_chain", [])) >= 2
             ]
         if "summary_nodes" in synthesis:
             synthesis["summary_nodes"] = [

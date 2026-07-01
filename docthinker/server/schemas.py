@@ -10,6 +10,15 @@ class QueryRequest(BaseModel):
     question: str
     mode: str = "hybrid"
     enable_rerank: bool = True
+    top_k: int = Field(default=20, ge=1, le=100)
+    chunk_top_k: int = Field(default=12, ge=1, le=50)
+    max_relation_tokens: int = Field(default=5000, ge=256, le=30000)
+    max_total_tokens: int = Field(default=24000, ge=2048, le=120000)
+    include_discovered_edges: bool = False
+    max_relations: int = Field(default=32, ge=1, le=200)
+    max_discovered_relations: int = Field(default=8, ge=0, le=50)
+    min_discovered_edge_confidence: float = Field(default=0.80, ge=0.0, le=1.0)
+    require_discovered_evidence: bool = True
     session_id: Optional[str] = None
     memory_mode: str = "session"
     retrieval_instruction: Optional[str] = None

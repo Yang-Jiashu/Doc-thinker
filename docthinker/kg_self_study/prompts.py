@@ -322,7 +322,7 @@ KNOWLEDGE_SYNTHESIS_PROMPT = """\
 }}
 
 写回规则：
-1. new_edges: confidence < 0.5 的不输出；evidence_chain 为空的不输出
+1. new_edges: confidence < 0.8 的不输出；evidence_chain 少于 2 条的不输出
 2. contradiction_flags: 不自动解决矛盾，只标记
 3. deprecation_candidates: 必须有明确证据才能建议废弃
 4. summary_nodes: 至少归纳 3 个已有实体才允许创建汇总节点

@@ -16,6 +16,7 @@ from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile,
 from ..schemas import IngestRequest, SignalIngestRequest
 from ..state import state
 from docthinker.utils import separate_content
+from graphcore.coregraph.constants import GRAPH_FIELD_SEP
 
 _log = logging.getLogger("docthinker.ingest")
 
@@ -213,17 +214,26 @@ async def _background_edge_discovery(sid: str) -> None:
 
         # Write discovered edges into the graph
         added = 0
+        added_edges = []
         for edge in discovered:
             if await graph.has_edge(edge.source, edge.target):
                 continue
             await graph.upsert_edge(edge.source, edge.target, {
                 "keywords": edge.keywords,
                 "description": edge.description,
-                "weight": "0.5",
+                "weight": str(edge.confidence),
+                "confidence": str(edge.confidence),
                 "is_discovered": "1",
-                "source_id": "edge_discovery",
+                "query_eligible": "1",
+                "evidence": json.dumps(edge.evidence, ensure_ascii=False),
+                "evidence_chunk_ids": json.dumps(
+                    edge.evidence_chunk_ids, ensure_ascii=False
+                ),
+                "source_id": GRAPH_FIELD_SEP.join(edge.evidence_chunk_ids),
+                "provenance": "edge_discovery",
             })
             added += 1
+            added_edges.append(edge)
 
         if added > 0:
             await graph.index_done_callback(force_save=True)
@@ -231,7 +241,7 @@ async def _background_edge_discovery(sid: str) -> None:
             # Also index discovered edges into the relationships VDB
             if gc.relationships_vdb and session_rag.embedding_func:
                 vdb_data = {}
-                for edge in discovered:
+                for edge in added_edges:
                     edge_key = f"{edge.source}-{edge.target}"
                     content = f"{edge.source} {edge.keywords} {edge.target}: {edge.description}"
                     vdb_data[edge_key] = {
@@ -312,12 +322,27 @@ async def _background_self_study(sid: str) -> None:
                     continue
                 if await graph.has_edge(src, tgt):
                     continue
+                confidence = float(edge.get("confidence", 0.0) or 0.0)
+                evidence_chain = [
+                    str(item).strip()
+                    for item in (edge.get("evidence_chain") or [])
+                    if str(item).strip()
+                ]
+                if confidence < 0.80 or len(evidence_chain) < 2:
+                    continue
                 await graph.upsert_edge(src, tgt, {
                     "keywords": edge.get("keywords", edge.get("relation", "")),
                     "description": edge.get("relation", ""),
-                    "weight": str(edge.get("confidence", 0.5)),
+                    "weight": str(confidence),
+                    "confidence": str(confidence),
                     "is_discovered": "1",
+                    "query_eligible": "0",
+                    "review_status": "candidate",
+                    "evidence_chain": json.dumps(
+                        evidence_chain, ensure_ascii=False
+                    ),
                     "source_id": "self_study",
+                    "provenance": "self_study",
                 })
 
             for upd in operations.get("entity_updates", []):

@@ -16,6 +16,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+GRAPH_FIELD_SEP = "<SEP>"
+
 _log = logging.getLogger("docthinker.edge_discovery")
 
 EDGE_DISCOVERY_PROMPT = """你是知识图谱关系发现专家。
@@ -37,8 +39,10 @@ EDGE_DISCOVERY_PROMPT = """你是知识图谱关系发现专家。
 
 ## 要求
 
-- 只输出**确信度较高**的关系，不要猜测
-- 每条关系必须包含 source、target、keywords（关系类型简述）、description（具体描述）
+- 只输出能够被下方实体描述直接支持的关系，不要补充外部常识，不要猜测
+- confidence 必须 >= 0.80；不确定时输出空数组
+- evidence 必须分别包含 source 和 target 的逐字证据片段，quote 必须原样出现在对应实体描述中
+- 每条关系必须包含 source、target、keywords（关系类型简述）、description（具体描述）、confidence 和 evidence
 - source 和 target 必须是上面列出的实体名称（精确匹配）
 - 不要重复已经存在的关系
 
@@ -50,7 +54,7 @@ EDGE_DISCOVERY_PROMPT = """你是知识图谱关系发现专家。
 
 严格输出 JSON 数组，每个元素格式：
 ```json
-{{"source": "实体A", "target": "实体B", "keywords": "关系类型", "description": "具体描述"}}
+{{"source": "实体A", "target": "实体B", "keywords": "关系类型", "description": "具体描述", "confidence": 0.88, "evidence": [{{"entity": "实体A", "quote": "来自实体A描述的逐字片段"}}, {{"entity": "实体B", "quote": "来自实体B描述的逐字片段"}}]}}
 ```
 
 如果没有发现有价值的潜在关系，输出空数组 `[]`。
@@ -63,6 +67,9 @@ class DiscoveredEdge:
     target: str
     keywords: str
     description: str
+    confidence: float
+    evidence: List[Dict[str, str]] = field(default_factory=list)
+    evidence_chunk_ids: List[str] = field(default_factory=list)
 
 
 async def discover_edges(
@@ -73,6 +80,7 @@ async def discover_edges(
     window_size: int = 30,
     overlap: int = 10,
     max_parallel: int = 3,
+    min_confidence: float = 0.80,
 ) -> List[DiscoveredEdge]:
     """Scan entity windows and ask LLM to find latent relationships.
 
@@ -99,7 +107,12 @@ async def discover_edges(
     async def _process_window(win_nodes: List[Dict[str, Any]], idx: int):
         async with sem:
             return await _discover_in_window(
-                win_nodes, existing_edges, existing_pairs, llm_func, idx,
+                win_nodes,
+                existing_edges,
+                existing_pairs,
+                llm_func,
+                idx,
+                min_confidence=min_confidence,
             )
 
     tasks = [_process_window(w, i) for i, w in enumerate(windows)]
@@ -166,6 +179,8 @@ async def _discover_in_window(
     existing_pairs: set,
     llm_func: Callable,
     window_idx: int,
+    *,
+    min_confidence: float = 0.80,
 ) -> List[DiscoveredEdge]:
     node_names = {str(n.get("id") or n.get("entity_id") or "") for n in win_nodes}
     entities_block = _format_entities_block(win_nodes)
@@ -182,11 +197,75 @@ async def _discover_in_window(
         _log.warning("[edge_discovery] LLM call failed for window %d: %s", window_idx, exc)
         return []
 
-    return _parse_edges(raw, node_names, existing_pairs)
+    nodes_by_name = {
+        str(n.get("id") or n.get("entity_id") or ""): n for n in win_nodes
+    }
+    return _parse_edges(
+        raw,
+        node_names,
+        existing_pairs,
+        nodes_by_name=nodes_by_name,
+        min_confidence=min_confidence,
+    )
+
+
+def _normalise_evidence(value: Any) -> List[Dict[str, str]]:
+    if not isinstance(value, list):
+        return []
+    evidence: List[Dict[str, str]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        entity = str(item.get("entity") or "").strip()
+        quote = " ".join(str(item.get("quote") or "").split())
+        if entity and quote:
+            evidence.append({"entity": entity, "quote": quote})
+    return evidence
+
+
+def _evidence_is_grounded(
+    evidence: List[Dict[str, str]],
+    source: str,
+    target: str,
+    nodes_by_name: Dict[str, Dict[str, Any]],
+) -> bool:
+    required = {source, target}
+    supported = set()
+    for item in evidence:
+        entity = item["entity"]
+        if entity not in required:
+            continue
+        description = " ".join(
+            str((nodes_by_name.get(entity) or {}).get("description") or "").split()
+        )
+        quote = item["quote"]
+        if len(quote) >= 4 and quote in description:
+            supported.add(entity)
+    return supported == required
+
+
+def _source_chunks_for_edge(
+    source: str,
+    target: str,
+    nodes_by_name: Dict[str, Dict[str, Any]],
+) -> List[str]:
+    chunk_ids: List[str] = []
+    for entity in (source, target):
+        raw = str((nodes_by_name.get(entity) or {}).get("source_id") or "")
+        for chunk_id in raw.split(GRAPH_FIELD_SEP):
+            chunk_id = chunk_id.strip()
+            if chunk_id and chunk_id not in chunk_ids:
+                chunk_ids.append(chunk_id)
+    return chunk_ids[:8]
 
 
 def _parse_edges(
-    raw: str, valid_names: set, existing_pairs: set,
+    raw: str,
+    valid_names: set,
+    existing_pairs: set,
+    *,
+    nodes_by_name: Optional[Dict[str, Dict[str, Any]]] = None,
+    min_confidence: float = 0.80,
 ) -> List[DiscoveredEdge]:
     text = raw.strip()
     # Extract JSON array from response
@@ -207,11 +286,35 @@ def _parse_edges(
         tgt = str(item.get("target", "")).strip()
         kw = str(item.get("keywords", "related")).strip()
         desc = str(item.get("description", "")).strip()
+        try:
+            confidence = float(item.get("confidence", 0.0))
+        except (TypeError, ValueError):
+            confidence = 0.0
+        evidence = _normalise_evidence(item.get("evidence"))
         if not src or not tgt or src == tgt:
             continue
         if src not in valid_names or tgt not in valid_names:
             continue
         if (src, tgt) in existing_pairs or (tgt, src) in existing_pairs:
             continue
-        results.append(DiscoveredEdge(source=src, target=tgt, keywords=kw, description=desc))
+        if confidence < float(min_confidence):
+            continue
+        if not desc or not nodes_by_name:
+            continue
+        if not _evidence_is_grounded(evidence, src, tgt, nodes_by_name):
+            continue
+        evidence_chunk_ids = _source_chunks_for_edge(src, tgt, nodes_by_name)
+        if not evidence_chunk_ids:
+            continue
+        results.append(
+            DiscoveredEdge(
+                source=src,
+                target=tgt,
+                keywords=kw,
+                description=desc,
+                confidence=min(1.0, confidence),
+                evidence=evidence,
+                evidence_chunk_ids=evidence_chunk_ids,
+            )
+        )
     return results

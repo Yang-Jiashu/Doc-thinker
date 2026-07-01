@@ -190,6 +190,32 @@ class QueryParam:
     1 or 2 = after initial entity/relation retrieval, expand along graph edges (BFS) to include
     neighboring entities and relations. Makes Graph RAG retrieval truly graph-based."""
 
+    include_discovered_edges: bool = (
+        os.getenv("INCLUDE_DISCOVERED_EDGES", "false").lower() == "true"
+    )
+    """Whether evidence-gated self-evolution edges may participate in retrieval.
+
+    Disabled by default so inferred edges cannot silently change source-grounded answers.
+    """
+
+    max_relations: int = int(os.getenv("MAX_RELATIONS", "32"))
+    """Hard count budget for relations sent to the answer model."""
+
+    max_discovered_relations: int = int(
+        os.getenv("MAX_DISCOVERED_RELATIONS", "8")
+    )
+    """Maximum inferred relations within the total relation budget."""
+
+    min_discovered_edge_confidence: float = float(
+        os.getenv("MIN_DISCOVERED_EDGE_CONFIDENCE", "0.80")
+    )
+    """Minimum stored confidence for an inferred relation to be query eligible."""
+
+    require_discovered_evidence: bool = (
+        os.getenv("REQUIRE_DISCOVERED_EVIDENCE", "true").lower() == "true"
+    )
+    """Require auditable evidence metadata on inferred relations."""
+
 
 @dataclass
 class StorageNameSpace(ABC):
