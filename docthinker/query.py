@@ -312,6 +312,8 @@ class QueryMixin:
             self.logger.info("No multimodal content provided, executing text query")
             return await self.aquery(query, mode=mode, **kwargs)
 
+        use_llm_cache = bool(kwargs.get("use_llm_cache", True))
+
         # Generate cache key for multimodal query
         cache_key = self._generate_multimodal_cache_key(
             query, multimodal_content, mode, **kwargs
@@ -325,7 +327,7 @@ class QueryMixin:
             and hasattr(self.graphcore, "llm_response_cache")
             and self.graphcore.llm_response_cache
         ):
-            if self.graphcore.llm_response_cache.global_config.get(
+            if use_llm_cache and self.graphcore.llm_response_cache.global_config.get(
                 "enable_llm_cache", True
             ):
                 try:
@@ -361,7 +363,7 @@ class QueryMixin:
             and hasattr(self.graphcore, "llm_response_cache")
             and self.graphcore.llm_response_cache
         ):
-            if self.graphcore.llm_response_cache.global_config.get(
+            if use_llm_cache and self.graphcore.llm_response_cache.global_config.get(
                 "enable_llm_cache", True
             ):
                 try:

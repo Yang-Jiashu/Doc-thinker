@@ -2784,6 +2784,7 @@ class GraphCore:
             only_need_prompt=False,
             response_type=param.response_type,
             stream=False,  # Data retrieval doesn't need streaming
+            use_llm_cache=param.use_llm_cache,
             top_k=param.top_k,
             chunk_top_k=param.chunk_top_k,
             max_entity_tokens=param.max_entity_tokens,

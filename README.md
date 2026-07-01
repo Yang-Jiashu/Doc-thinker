@@ -41,6 +41,7 @@ Unlike a conventional retrieve-then-respond RAG pipeline, DocThinker treats know
   - [1. Web UI & Server](#1-web-ui--server)
   - [2. Python API Usage](#2-python-api-usage)
   - [3. Memory Layer API](#3-memory-layer-api)
+- [🏗️ System Architecture](#system-architecture)
 - [🧬 Key Contributions](#-key-contributions)
   - [1. Agentic Memory Core](#1--agentic-memory-core)
   - [2. Session-Scoped Knowledge Graphs](#2--session-scoped-knowledge-graphs)
@@ -171,6 +172,139 @@ python packages/docthinker-memory/examples/custom_backend.py
 ```
 
 See [`docs/MEMORY_PLUGIN_GUIDE.md`](docs/MEMORY_PLUGIN_GUIDE.md) for the backend contract checklist.
+
+---
+
+## System Architecture
+
+The thin Query Harness centralizes request-scoped controls for memory recall,
+conversation context, LLM caching, and self-evolution. Each chat session owns
+its document state and GraphCore workspace, so the same document can be
+ingested independently by multiple sessions without global deduplication
+leaking across them.
+
+```mermaid
+flowchart TB
+    U["用户 / Web UI"]
+
+    subgraph UI["前端层"]
+        CHAT["对话页面"]
+        KG["知识图谱页面"]
+        SWITCH["实验开关<br/>记忆 / 上下文 / 缓存 / 自进化"]
+    end
+
+    subgraph API["API 层"]
+        INGEST_API["文档上传接口"]
+        QUERY_API["查询接口<br/>流式 / 普通"]
+        GRAPH_API["图谱查询与扩展接口"]
+        SESSION_API["会话管理接口"]
+    end
+
+    subgraph HARNESS["Query Harness：统一控制层"]
+        POLICY["请求策略<br/>读取四个实验开关"]
+        RUN["Query Run Context<br/>记录本次运行状态"]
+        ROUTE["查询路由<br/>快速 / 标准 / 深度"]
+    end
+
+    subgraph SESSION["会话隔离层"]
+        SM["Session Manager"]
+        S2["对话2独立目录<br/>data/#00002/knowledge"]
+        S3["对话3独立目录<br/>data/#00003/knowledge"]
+    end
+
+    subgraph INGEST["文档处理层"]
+        PARSER["文档解析<br/>PDF / Word / 图片 / 文本"]
+        MULTI["多模态处理<br/>图片 / 表格 / 公式"]
+        EXTRACT["实体和原始关系提取"]
+    end
+
+    subgraph RETRIEVAL["检索与生成层"]
+        GC["GraphCore<br/>图谱 + 向量 + Chunk 检索"]
+        RERANK["重排序与数量限制"]
+        CONTEXT["上下文组装"]
+        LLM["LLM 生成答案"]
+        CACHE["LLM Cache"]
+    end
+
+    subgraph MEMORY["记忆系统"]
+        CONV["对话记忆"]
+        EPISODE["情节记忆"]
+        LONG["长期记忆"]
+        EXPANDED["扩展节点记忆"]
+    end
+
+    subgraph EVOLUTION["自进化系统"]
+        EDGE["后台补边<br/>批量实体 → 单条新关系"]
+        STUDY["Self-study<br/>自动发现图谱缺口"]
+        SEAL["SEAL<br/>生成并验证假设"]
+        PROMOTE["扩展节点晋升"]
+    end
+
+    subgraph STORAGE["每个会话的存储"]
+        DOCS["原始文档与 Chunk"]
+        NODES["实体节点"]
+        ORIGINAL["原文关系"]
+        DISCOVERED["自进化关系"]
+        MEMSTORE["记忆数据"]
+    end
+
+    U --> UI
+    CHAT --> QUERY_API
+    KG --> GRAPH_API
+    SWITCH --> QUERY_API
+
+    SESSION_API --> SM
+    INGEST_API --> SM
+    QUERY_API --> HARNESS
+
+    SM --> S2
+    SM --> S3
+    S2 --> PARSER
+    S3 --> PARSER
+    PARSER --> MULTI
+    MULTI --> EXTRACT
+    EXTRACT --> GC
+
+    POLICY --> RUN
+    RUN --> ROUTE
+    ROUTE --> GC
+    POLICY -.控制.-> CACHE
+    POLICY -.控制.-> MEMORY
+    POLICY -.控制.-> EVOLUTION
+
+    GC --> RERANK
+    RERANK --> CONTEXT
+    MEMORY --> CONTEXT
+    EVOLUTION --> CONTEXT
+    CONTEXT --> LLM
+    CACHE <--> LLM
+    LLM --> CHAT
+
+    GC --> DOCS
+    GC --> NODES
+    GC --> ORIGINAL
+    EXTRACT --> EDGE
+    EDGE --> DISCOVERED
+    STUDY --> DISCOVERED
+    SEAL --> DISCOVERED
+    PROMOTE --> DISCOVERED
+    CONV --> MEMSTORE
+    EPISODE --> MEMSTORE
+    LONG --> MEMSTORE
+    EXPANDED --> MEMSTORE
+
+    classDef problem fill:#ffe5e5,stroke:#d33,stroke-width:2px,color:#222;
+    classDef harness fill:#e7f5ea,stroke:#3a8b55,stroke-width:2px,color:#222;
+    classDef session fill:#e8f1ff,stroke:#4679bd,color:#222;
+    class EDGE,STUDY,SEAL,DISCOVERED problem;
+    class POLICY,RUN,ROUTE,SWITCH harness;
+    class S2,S3,SM session;
+```
+
+Green nodes are the thin Harness and experiment controls, blue nodes show
+session isolation, and red nodes mark the self-evolution area where future
+work will move from isolated edge discovery to evidence-grounded path
+completion.
 
 ---
 

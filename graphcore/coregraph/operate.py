@@ -3230,9 +3230,11 @@ async def kg_query(
         query_param.enable_rerank,
     )
 
-    cached_result = await handle_cache(
-        hashing_kv, args_hash, user_query, query_param.mode, cache_type="query"
-    )
+    cached_result = None
+    if query_param.use_llm_cache:
+        cached_result = await handle_cache(
+            hashing_kv, args_hash, user_query, query_param.mode, cache_type="query"
+        )
 
     if cached_result is not None:
         cached_response, _ = cached_result
@@ -3252,7 +3254,11 @@ async def kg_query(
             f"[kg_query T+{_kq_elapsed()}s] LLM generation done ({round(_time.time()-_t_llm,2)}s)"
         )
 
-        if hashing_kv and hashing_kv.global_config.get("enable_llm_cache"):
+        if (
+            query_param.use_llm_cache
+            and hashing_kv
+            and hashing_kv.global_config.get("enable_llm_cache")
+        ):
             queryparam_dict = {
                 "mode": query_param.mode,
                 "response_type": query_param.response_type,
@@ -3397,9 +3403,11 @@ async def extract_keywords_only(
         param.mode,
         text,
     )
-    cached_result = await handle_cache(
-        hashing_kv, args_hash, text, param.mode, cache_type="keywords"
-    )
+    cached_result = None
+    if param.use_llm_cache:
+        cached_result = await handle_cache(
+            hashing_kv, args_hash, text, param.mode, cache_type="keywords"
+        )
     if cached_result is not None:
         cached_response, _ = cached_result
         try:
@@ -3463,7 +3471,7 @@ async def extract_keywords_only(
             "high_level_keywords": hl_keywords,
             "low_level_keywords": ll_keywords,
         }
-        if hashing_kv.global_config.get("enable_llm_cache"):
+        if param.use_llm_cache and hashing_kv.global_config.get("enable_llm_cache"):
             # Save to cache with query parameters
             queryparam_dict = {
                 "mode": param.mode,
@@ -5392,9 +5400,11 @@ async def naive_query(
         query_param.user_prompt or "",
         query_param.enable_rerank,
     )
-    cached_result = await handle_cache(
-        hashing_kv, args_hash, user_query, query_param.mode, cache_type="query"
-    )
+    cached_result = None
+    if query_param.use_llm_cache:
+        cached_result = await handle_cache(
+            hashing_kv, args_hash, user_query, query_param.mode, cache_type="query"
+        )
     _t_llm_n = _time.time()
     if cached_result is not None:
         cached_response, _ = cached_result
@@ -5414,7 +5424,11 @@ async def naive_query(
             f"[naive_query T+{_nq_el()}s] LLM generation done ({round(_time.time()-_t_llm_n,2)}s)"
         )
 
-        if hashing_kv and hashing_kv.global_config.get("enable_llm_cache"):
+        if (
+            query_param.use_llm_cache
+            and hashing_kv
+            and hashing_kv.global_config.get("enable_llm_cache")
+        ):
             queryparam_dict = {
                 "mode": query_param.mode,
                 "response_type": query_param.response_type,

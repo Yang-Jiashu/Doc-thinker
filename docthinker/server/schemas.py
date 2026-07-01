@@ -21,6 +21,10 @@ class QueryRequest(BaseModel):
     require_discovered_evidence: bool = True
     session_id: Optional[str] = None
     memory_mode: str = "session"
+    use_memory: bool = True
+    use_conversation_context: bool = True
+    use_llm_cache: bool = True
+    use_self_evolution: bool = True
     retrieval_instruction: Optional[str] = None
     enable_thinking: bool = False
     enable_expanded_matching: bool = True
