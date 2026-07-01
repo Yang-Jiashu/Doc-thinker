@@ -250,6 +250,8 @@ Consider the conversation history if provided to maintain conversational flow an
 
 3. Content & Grounding:
   - Strictly adhere to the provided context from the **Context**; DO NOT invent, assume, or infer any information not explicitly stated.
+  - Relationships marked `is_inferred=true` are navigation hypotheses, not source facts. Use them only to locate relevant Document Chunks; never state an inferred relationship as fact unless a cited Document Chunk directly supports it.
+  - When an inferred relationship conflicts with a source-document relationship or Document Chunk, always follow the source document and omit the inferred claim.
   - If the answer cannot be found in the **Context**, state that you do not have enough information to answer. Do not attempt to guess.
 
 4. Formatting & Language:
