@@ -229,6 +229,11 @@ The web UI includes a query-time Memory Inspector and a KG dashboard. They expos
 </p>
 <p align="center"><b>Demo.</b> Type an edit instruction, preview matched memory and graph highlights, then confirm the selected update.</p>
 
+<p align="center">
+  <img src="docs/assets/gpu_knowledge_graph_demo.gif" alt="DocThinker GPU semantic-zoom knowledge graph demo" width="920" />
+</p>
+<p align="center"><b>Demo.</b> Explore the full session graph as a GPU-rendered semantic star map, with labels and local relationships revealed progressively as the view zooms in.</p>
+
 ---
 
 ## 💡 Use Cases
