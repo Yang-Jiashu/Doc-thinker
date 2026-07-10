@@ -166,7 +166,7 @@ async def _run_density_clustering(sid: str) -> None:
         _log.info("[cluster] no dense clusters found for session %s", sid)
 
 
-async def _background_edge_discovery(sid: str) -> None:
+async def _background_path_edge_discovery(sid: str) -> None:
     """Run latent edge discovery in the background after ingestion.
 
     Discovered edges are written into the graph with ``is_discovered=1``
@@ -178,6 +178,8 @@ async def _background_edge_discovery(sid: str) -> None:
         session = state.session_manager.get_session(sid)
         if not session:
             return
+        metadata = session.get("metadata") or {}
+        knowledge_dir = metadata.get("knowledge_dir") or session.get("knowledge_dir")
 
         config = state.rag_instance.config
         graphcore_kwargs = getattr(state.rag_instance, "graphcore_kwargs", {})
@@ -191,25 +193,38 @@ async def _background_edge_discovery(sid: str) -> None:
 
         graph = gc.chunk_entity_relation_graph
         nodes_data = await graph.get_all_nodes()
-        edges_data = await graph.get_all_edges()
 
         if len(nodes_data) < 3:
-            _log.info("[edge_discovery] only %d nodes for session %s, skipping", len(nodes_data), sid)
+            _log.info("[path_edge_discovery] only %d nodes for session %s, skipping", len(nodes_data), sid)
             return
 
-        from docthinker.kg_expansion.edge_discovery import discover_edges
+        from docthinker.kg_expansion.path_edge_discovery import (
+            PathDiscoveryConfig,
+            discover_path_edges,
+        )
 
         llm_fn = getattr(session_rag, "llm_model_func", None)
         if not llm_fn:
             return
 
-        discovered = await discover_edges(
-            nodes_data, edges_data, llm_fn,
-            window_size=30, overlap=10, max_parallel=2,
+        discovered = await discover_path_edges(
+            graph=graph,
+            text_chunks=gc.text_chunks,
+            llm_func=llm_fn,
+            config=PathDiscoveryConfig(
+                max_depth=10,
+                max_branch=10,
+                max_roots=6,
+                max_paths=24,
+                max_chunks=80,
+                max_output_tokens=8192,
+                max_parallel=1,
+                artifact_dir=str(Path(knowledge_dir) / "path_edge_discovery_runs") if knowledge_dir else None,
+            ),
         )
 
         if not discovered:
-            _log.info("[edge_discovery] no new edges discovered for session %s", sid)
+            _log.info("[path_edge_discovery] no new edges discovered for session %s", sid)
             return
 
         # Write discovered edges into the graph
@@ -225,12 +240,15 @@ async def _background_edge_discovery(sid: str) -> None:
                 "confidence": str(edge.confidence),
                 "is_discovered": "1",
                 "query_eligible": "1",
-                "evidence": json.dumps(edge.evidence, ensure_ascii=False),
+                "relation": edge.relation,
+                "inference_type": edge.inference_type,
+                "path_used": json.dumps(edge.path_used, ensure_ascii=False),
+                "evidence_chain": json.dumps(edge.evidence_chain, ensure_ascii=False),
                 "evidence_chunk_ids": json.dumps(
                     edge.evidence_chunk_ids, ensure_ascii=False
                 ),
                 "source_id": GRAPH_FIELD_SEP.join(edge.evidence_chunk_ids),
-                "provenance": "edge_discovery",
+                "provenance": "path_edge_discovery",
             })
             added += 1
             added_edges.append(edge)
@@ -253,11 +271,11 @@ async def _background_edge_discovery(sid: str) -> None:
                     await gc.relationships_vdb.upsert(vdb_data)
                     await gc.relationships_vdb.index_done_callback()
 
-        _log.info("[edge_discovery:bg] session %s — discovered %d, persisted %d edges",
+        _log.info("[path_edge_discovery:bg] session %s — discovered %d, persisted %d edges",
                   sid, len(discovered), added)
 
     except Exception as exc:
-        _log.warning("[edge_discovery:bg] failed for session %s (non-fatal): %s", sid, exc)
+        _log.warning("[path_edge_discovery:bg] failed for session %s (non-fatal): %s", sid, exc)
 
 
 async def _background_self_study(sid: str) -> None:
@@ -1441,7 +1459,7 @@ async def ingest_files(
 
                 # Fire-and-forget: discover latent edges in the background.
                 # This does NOT block the user — they can query immediately.
-                asyncio.create_task(_background_edge_discovery(sid))
+                asyncio.create_task(_background_path_edge_discovery(sid))
 
                 # Fire-and-forget: KG self-study loop (test-time scaling on KG)
                 asyncio.create_task(_background_self_study(sid))

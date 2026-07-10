@@ -49,7 +49,7 @@ def _create_config():
 
 
 class IngestionServiceUnitTest(unittest.IsolatedAsyncioTestCase):
-    async def test_dual_ingest_text(self):
+    async def test_ingest_text_targets_session_only(self):
         global_rag = _RAG()
         sm = _SessionManager()
         svc = IngestionService(
@@ -60,7 +60,7 @@ class IngestionServiceUnitTest(unittest.IsolatedAsyncioTestCase):
             get_embedding_func=_fake_embed,
         )
         await svc.ingest_text("hello", session_id="s1")
-        self.assertIn("hello", global_rag.graphcore.items)
+        self.assertIsNone(global_rag.graphcore)
         self.assertIn("hello", sm.rags["s1"].graphcore.items)
 
 

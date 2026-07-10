@@ -212,8 +212,35 @@ async def get_all_graph_stats():
     return result
 
 
+def _select_graph_nodes(
+    nodes_data: List[Dict[str, Any]],
+    edge_degree: Dict[str, int],
+    *,
+    scope: str = "summary",
+    max_nodes: int = 200,
+) -> List[Dict[str, Any]]:
+    """Select graph nodes without changing the classic graph's default cap."""
+    normalized_scope = str(scope or "summary").strip().lower()
+    if normalized_scope == "full":
+        return list(nodes_data)
+
+    expanded_nodes = [n for n in nodes_data if _is_expanded_node(n)]
+    other_nodes = sorted(
+        [n for n in nodes_data if not _is_expanded_node(n)],
+        key=lambda n: edge_degree.get(
+            str(n.get("id") or n.get("entity_id") or ""), 0
+        ),
+        reverse=True,
+    )
+    budget = max(0, max_nodes - len(expanded_nodes))
+    return expanded_nodes + other_nodes[:budget]
+
+
 @router.get("/knowledge-graph/data")
-async def get_graph_data(session_id: Optional[str] = None):
+async def get_graph_data(
+    session_id: Optional[str] = None,
+    scope: str = "summary",
+):
     if not state.rag_instance or not state.session_manager:
         raise HTTPException(status_code=500, detail="Service not initialized")
 
@@ -239,8 +266,6 @@ async def get_graph_data(session_id: Optional[str] = None):
 
         nodes = []
         edges = []
-        max_nodes = 200
-
         # Sort non-expanded nodes by degree (most connected first) so the
         # 200-node cap keeps the most important entities visible.
         edge_degree: Dict[str, int] = {}
@@ -249,14 +274,11 @@ async def get_graph_data(session_id: Optional[str] = None):
                 nid = e.get(k, "")
                 edge_degree[nid] = edge_degree.get(nid, 0) + 1
 
-        expanded_nodes = [n for n in nodes_data if _is_expanded_node(n)]
-        other_nodes = sorted(
-            [n for n in nodes_data if not _is_expanded_node(n)],
-            key=lambda n: edge_degree.get(n.get("id") or n.get("entity_id") or "", 0),
-            reverse=True,
+        nodes_to_use = _select_graph_nodes(
+            nodes_data,
+            edge_degree,
+            scope=scope,
         )
-        budget = max(0, max_nodes - len(expanded_nodes))
-        nodes_to_use = expanded_nodes + other_nodes[:budget]
         for node_info in nodes_to_use:
             node_id = node_info.get("id") or node_info.get("entity_id") or ""
             if not node_id:
@@ -310,6 +332,8 @@ async def get_graph_data(session_id: Optional[str] = None):
             "discovered_edges": discovered_edges_count,
             "session_id": session_id,
             "nodes_returned": len(nodes),
+            "edges_returned": len(edges),
+            "truncated": len(nodes) < len(nodes_data),
             "expanded_in_response": expanded_in_response,
             "image_nodes_in_response": image_nodes_in_response,
         }
@@ -322,6 +346,71 @@ async def get_graph_data(session_id: Optional[str] = None):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to extract graph data: {str(e)}")
+
+
+def _split_chunk_source_ids(raw: Any) -> List[str]:
+    seen = set()
+    chunk_ids: List[str] = []
+    for item in str(raw or "").split("<SEP>"):
+        chunk_id = item.strip()
+        if chunk_id and chunk_id not in seen:
+            seen.add(chunk_id)
+            chunk_ids.append(chunk_id)
+    return chunk_ids
+
+
+def _limit_chunk_source_ids(source_ids: List[str], max_chunks: int) -> List[str]:
+    """Use zero for all chunks while preserving the existing positive cap."""
+    requested_max = int(max_chunks)
+    if requested_max <= 0:
+        return list(source_ids)
+    return list(source_ids[: min(requested_max, 80)])
+
+
+@router.get("/knowledge-graph/entity-chunks")
+async def get_entity_chunks(
+    session_id: Optional[str] = None,
+    entity_id: Optional[str] = None,
+    max_chunks: int = 20,
+):
+    """Return source chunk ids and chunk text for one graph entity."""
+    session_rag = await _get_session_rag_or_raise(session_id)
+    if not entity_id:
+        raise HTTPException(status_code=400, detail="entity_id is required")
+
+    try:
+        if not session_rag.graphcore:
+            await session_rag._ensure_graphcore_initialized()
+        graphcore = session_rag.graphcore
+        graph = graphcore.chunk_entity_relation_graph
+        node_info = await graph.get_node(entity_id)
+        if not node_info:
+            return {"entity_id": entity_id, "source_ids": [], "chunks": []}
+
+        source_ids = _split_chunk_source_ids(node_info.get("source_id", ""))
+        source_ids = _limit_chunk_source_ids(source_ids, max_chunks)
+        if not source_ids or not getattr(graphcore, "text_chunks", None):
+            return {"entity_id": entity_id, "source_ids": source_ids, "chunks": []}
+
+        chunk_data_list = await graphcore.text_chunks.get_by_ids(source_ids)
+        chunks: List[Dict[str, Any]] = []
+        for chunk_id, data in zip(source_ids, chunk_data_list):
+            if not data:
+                chunks.append({"chunk_id": chunk_id, "content": "", "missing": True})
+                continue
+            content = str(data.get("content") or data.get("text") or "")
+            chunks.append(
+                {
+                    "chunk_id": chunk_id,
+                    "content": content,
+                    "file_path": data.get("file_path") or data.get("full_doc_id") or "",
+                    "tokens": data.get("tokens"),
+                    "chunk_order_index": data.get("chunk_order_index"),
+                }
+            )
+        return {"entity_id": entity_id, "source_ids": source_ids, "chunks": chunks}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load entity chunks: {str(e)}")
 
 
 @router.get("/knowledge-graph/image/{session_id}/{filename}")

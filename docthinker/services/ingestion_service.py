@@ -55,8 +55,13 @@ class IngestionService:
     async def ingest_text(
         self, text: str, session_id: Optional[str] = None, file_path: str | None = None,
     ) -> None:
-        """Ingest text into a session graph."""
-        await self._insert_text(self.rag_global, text, file_path=file_path)
+        """Ingest text into the target session graph only.
+
+        GraphCore de-duplicates documents by content hash within the running
+        process.  Inserting into the global graph before the session graph can
+        make the session insert look like a duplicate, leaving the session KG
+        empty while the global ``_system`` graph receives the entities.
+        """
         target_rag = await self._resolve_target_rag(session_id)
         await self._insert_text(target_rag, text, file_path=file_path)
 
