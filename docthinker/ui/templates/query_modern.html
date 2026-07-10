@@ -341,6 +341,13 @@
                 <span id="remember-toggle-hint">本轮会进入可控记忆巩固</span>
             </div>
 
+            <div class="mb-3 flex flex-wrap gap-2 text-xs" aria-label="实验控制">
+                <button onclick="toggleRunControl('memory')" id="control-memory" class="dt-mini-button" title="关闭记忆召回和记忆写入">记忆：开</button>
+                <button onclick="toggleRunControl('context')" id="control-context" class="dt-mini-button" title="关闭历史对话注入，仍保留界面聊天记录">上下文：开</button>
+                <button onclick="toggleRunControl('cache')" id="control-cache" class="dt-mini-button" title="本轮绕过 LLM 缓存读取和写入">缓存：开</button>
+                <button onclick="toggleRunControl('evolution')" id="control-evolution" class="dt-mini-button" title="关闭补边和扩展节点参与查询">自进化：开</button>
+            </div>
+
             <div id="attached-files" class="hidden flex flex-wrap gap-2 mb-3"></div>
             <div id="processing-list" class="space-y-2 mb-3"></div>
 
@@ -464,6 +471,12 @@ let currentMode = 'standard';
 let currentFile = null;
 let currentSessionId = null;
 let rememberTurn = true;
+const runControls = {
+    memory: true,
+    context: true,
+    cache: true,
+    evolution: true,
+};
 let processingFilesCount = 0;
 let defaultWelcomeHtml = '';
 let latestMemoryInspector = null;
@@ -809,6 +822,29 @@ function toggleRememberTurn() {
     if (hint) hint.textContent = rememberTurn ? '本轮会进入可控记忆巩固' : '本轮只回答，不进入记忆层';
 }
 
+function toggleRunControl(name) {
+    if (!(name in runControls)) return;
+    runControls[name] = !runControls[name];
+    const labels = {
+        memory: '记忆',
+        context: '上下文',
+        cache: '缓存',
+        evolution: '自进化',
+    };
+    const button = document.getElementById(`control-${name}`);
+    if (button) {
+        button.textContent = `${labels[name]}：${runControls[name] ? '开' : '关'}`;
+        button.classList.toggle('opacity-50', !runControls[name]);
+    }
+    if (name === 'memory' && !runControls.memory) {
+        rememberTurn = false;
+        const text = document.getElementById('remember-toggle-text');
+        const hint = document.getElementById('remember-toggle-hint');
+        if (text) text.textContent = '不写入记忆';
+        if (hint) hint.textContent = '记忆已关闭：不召回，也不写入';
+    }
+}
+
 function handleKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -1052,7 +1088,11 @@ async function sendMessage() {
                 memory_mode: 'session',
                 ui_mode: currentMode,
                 session_id: currentSessionId,
-                remember_turn: rememberTurn
+                remember_turn: rememberTurn,
+                use_memory: runControls.memory,
+                use_conversation_context: runControls.context,
+                use_llm_cache: runControls.cache,
+                use_self_evolution: runControls.evolution
             })
         });
 

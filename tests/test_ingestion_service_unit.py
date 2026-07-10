@@ -49,7 +49,7 @@ def _create_config():
 
 
 class IngestionServiceUnitTest(unittest.IsolatedAsyncioTestCase):
-    async def test_ingest_text_targets_session_only(self):
+    async def test_ingest_text_is_session_scoped(self):
         global_rag = _RAG()
         sm = _SessionManager()
         svc = IngestionService(
@@ -60,8 +60,26 @@ class IngestionServiceUnitTest(unittest.IsolatedAsyncioTestCase):
             get_embedding_func=_fake_embed,
         )
         await svc.ingest_text("hello", session_id="s1")
-        self.assertIsNone(global_rag.graphcore)
         self.assertIn("hello", sm.rags["s1"].graphcore.items)
+        self.assertIsNone(global_rag.graphcore)
+
+    async def test_same_text_can_be_ingested_into_two_sessions(self):
+        global_rag = _RAG()
+        sm = _SessionManager()
+        svc = IngestionService(
+            rag_global=global_rag,
+            session_manager=sm,
+            create_rag_config=_create_config,
+            get_llm_model_func=_fake_llm,
+            get_embedding_func=_fake_embed,
+        )
+
+        await svc.ingest_text("same document", session_id="s2")
+        await svc.ingest_text("same document", session_id="s3")
+
+        self.assertEqual(["same document"], sm.rags["s2"].graphcore.items)
+        self.assertEqual(["same document"], sm.rags["s3"].graphcore.items)
+        self.assertIsNot(sm.rags["s2"].graphcore, sm.rags["s3"].graphcore)
 
 
 if __name__ == "__main__":
