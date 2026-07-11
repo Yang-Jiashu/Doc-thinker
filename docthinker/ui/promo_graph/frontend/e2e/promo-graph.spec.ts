@@ -23,6 +23,9 @@ async function mockApi(page: Page) {
   await page.route("**/api/v1/knowledge-graph/entity-chunks**", route => route.fulfill({
     json: { entity_id: "entity-0", source_ids: ["chunk-0"], chunks: [{ chunk_id: "chunk-0", content: "这是用于验证右侧证据面板的原文内容。", chunk_order_index: 0 }] },
   }));
+  await page.route("**/api/v1/knowledge-graph/edge-chunks**", route => route.fulfill({
+    json: { edge_id: "edge-test", source_ids: ["chunk-edge"], chunks: [{ chunk_id: "chunk-edge", content: "这是用于验证关系边证据面板的原文内容。", chunk_order_index: 1 }] },
+  }));
 }
 
 for (const viewport of [
@@ -85,6 +88,71 @@ test("uses the shared conversation session and shows ids for duplicate titles", 
   await expect(selector.locator('option[value="visual-test"]')).toHaveText("visual-test | 新对话");
   await expect(selector.locator('option[value="stale-session"]')).toHaveText("stale-session | 新对话");
   expect(await page.evaluate(() => localStorage.getItem("current_session_id"))).toBe("visual-test");
+});
+
+test("selects fact and ECLRR-v4 edges and opens their relation evidence", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.route("**/api/v1/sessions", route => route.fulfill({ json: { sessions: [{ id: "edge-test", title: "关系测试" }] } }));
+  await page.route("**/api/v1/knowledge-graph/data**", route => route.fulfill({
+    json: {
+      nodes: ["A", "B", "C", "D"].map(id => ({ id, label: id, type: "person" })),
+      edges: [
+        { id: "fact-edge", source: "A", target: "B", relation: "协作", description: "A 与 B 共同执行任务。", source_id: "chunk-fact", edge_kind: "original" },
+        {
+          id: "rel-eclrr-edge",
+          source: "C",
+          target: "D",
+          relation: "间接影响",
+          description: "C 经证据链间接影响 D。",
+          source_id: "chunk-1<SEP>chunk-2",
+          edge_kind: "eclrr_v4",
+          is_promoted: true,
+          path_used: JSON.stringify(["C", "X", "Y", "D"]),
+          evidence_chain: JSON.stringify([{ source: "C", target: "X", chunk_id: "chunk-1", quote: "C 影响 X" }]),
+          evidence_chunk_ids: JSON.stringify(["chunk-1", "chunk-2"]),
+          judge_scores: JSON.stringify({ total: 9 }),
+        },
+      ],
+      metadata: { total_nodes: 4, total_edges: 2, truncated: false },
+    },
+  }));
+  await page.route("**/api/v1/knowledge-graph/edge-chunks**", route => {
+    const url = new URL(route.request().url());
+    const edgeId = url.searchParams.get("edge_id") || "";
+    route.fulfill({
+      json: {
+        edge_id: edgeId,
+        source_ids: edgeId === "fact-edge" ? ["chunk-fact"] : ["chunk-1", "chunk-2"],
+        chunks: [{ chunk_id: edgeId === "fact-edge" ? "chunk-fact" : "chunk-1", content: `关系 ${edgeId} 的原文证据。` }],
+      },
+    });
+  });
+
+  await page.goto("/promo-graph");
+  const stage = page.locator("#star-map-stage");
+  await expect(stage).toHaveAttribute("data-webgl-ready", "true", { timeout: 15_000 });
+  await page.evaluate(() => window.__PROMO_GRAPH_DEBUG__?.autoRotate(false));
+  const stageBounds = await stage.boundingBox();
+  const factPosition = await page.evaluate(() => window.__PROMO_GRAPH_DEBUG__?.edgePosition(0));
+  expect(stageBounds).not.toBeNull();
+  expect(factPosition).not.toBeNull();
+  await page.mouse.click((stageBounds?.x ?? 0) + (factPosition?.x ?? 0), (stageBounds?.y ?? 0) + (factPosition?.y ?? 0));
+  await expect(stage).toHaveAttribute("data-selected-edge", "0");
+  await expect(page.locator("[data-detail-kind]")).toHaveText("FACT EDGE");
+  await expect(page.locator("[data-detail-title]")).toHaveText("协作");
+  await expect(page.locator("[data-detail-meta]")).toContainText("入库事实关系 · 实线");
+  await expect(page.locator(".chunk-card")).toContainText("fact-edge");
+
+  const inferredPosition = await page.evaluate(() => window.__PROMO_GRAPH_DEBUG__?.edgePosition(1));
+  expect(inferredPosition).not.toBeNull();
+  await page.mouse.click((stageBounds?.x ?? 0) + (inferredPosition?.x ?? 0), (stageBounds?.y ?? 0) + (inferredPosition?.y ?? 0));
+  await expect(stage).toHaveAttribute("data-selected-edge", "1");
+  await expect(page.locator("[data-detail-kind]")).toHaveText("ECLRR-V4 EDGE");
+  await expect(page.locator("[data-detail-title]")).toHaveText("间接影响");
+  await expect(page.locator("[data-detail-meta]")).toContainText("ECLRR-v4 推断关系 · 虚线");
+  await expect(page.locator("[data-relation-evidence]")).toBeVisible();
+  await expect(page.locator(".evidence-path")).toHaveText("C → X → Y → D");
+  await expect(page.locator(".chunk-card")).toContainText("rel-eclrr-edge");
 });
 
 test("auto rotation pauses and resumes without resetting the current zoom", async ({ page }) => {

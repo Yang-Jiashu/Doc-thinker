@@ -7,6 +7,7 @@ interface PointerState {
 
 export interface InputCallbacks {
   onSelect: (nodeIndex: number) => void;
+  onSelectEdge: (edgeIndex: number) => void;
   onNodeAttractionStart: (nodeIndex: number) => void;
   onNodeAttractionEnd: () => void;
   onHover: (nodeIndex: number) => void;
@@ -27,6 +28,7 @@ export class InputController {
   private pointers = new Map<number, PointerState>();
   private activePointer = -1;
   private downNode = -1;
+  private downEdge = -1;
   private draggingNode = -1;
   private attractionNode = -1;
   private moved = false;
@@ -79,6 +81,7 @@ export class InputController {
       this.draggingNode = -1;
       this.dragPlaneAnchor = null;
       this.downNode = -1;
+      this.downEdge = -1;
       this.callbacks.onNodeDraggingChange(false);
       this.callbacks.onOrbitInteractionChange(true);
       this.updatePinchBaseline();
@@ -89,6 +92,7 @@ export class InputController {
     this.lastY = point.y;
     this.moved = false;
     this.downNode = this.renderer.pick(point.x, point.y);
+    this.downEdge = this.downNode >= 0 ? -1 : this.renderer.pickEdge(point.x, point.y);
     if (this.downNode >= 0) {
       this.attractionNode = this.downNode;
       this.callbacks.onNodeAttractionStart(this.downNode);
@@ -176,11 +180,17 @@ export class InputController {
     }
     if (this.draggingNode < 0 && !this.moved) {
       const picked = this.downNode >= 0 ? this.downNode : this.renderer.pick(point.x, point.y);
-      this.callbacks.onSelect(picked);
+      if (picked >= 0) this.callbacks.onSelect(picked);
+      else {
+        const edge = this.downEdge >= 0 ? this.downEdge : this.renderer.pickEdge(point.x, point.y);
+        if (edge >= 0) this.callbacks.onSelectEdge(edge);
+        else this.callbacks.onSelect(-1);
+      }
     }
     if (this.attractionNode >= 0) this.callbacks.onNodeAttractionEnd();
     this.activePointer = -1;
     this.downNode = -1;
+    this.downEdge = -1;
     this.draggingNode = -1;
     this.attractionNode = -1;
     this.dragPlaneAnchor = null;

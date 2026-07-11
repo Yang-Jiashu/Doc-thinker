@@ -73,21 +73,31 @@ const PICK_FRAGMENT_SHADER = `
 const EDGE_VERTEX_SHADER = `
   attribute vec3 aColor;
   attribute float aState;
+  attribute float aLineT;
+  attribute float aDashed;
   varying vec3 vColor;
   varying float vState;
+  varying float vLineT;
+  varying float vDashed;
   void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     vColor = aColor;
     vState = aState;
+    vLineT = aLineT;
+    vDashed = aDashed;
   }
 `;
 
 const EDGE_FRAGMENT_SHADER = `
   varying vec3 vColor;
   varying float vState;
+  varying float vLineT;
+  varying float vDashed;
   void main() {
-    float alpha = vState > 1.5 ? 0.78 : vState > 0.5 ? 0.025 : 0.105;
-    gl_FragColor = vec4(vColor, alpha);
+    if (vDashed > 0.5 && mod(vLineT * 22.0, 1.0) > 0.58) discard;
+    float alpha = vState > 2.5 ? 0.98 : vState > 1.5 ? 0.78 : vState > 0.5 ? 0.025 : 0.105;
+    vec3 color = vState > 2.5 ? mix(vColor, vec3(0.94, 1.0, 1.0), 0.72) : vColor;
+    gl_FragColor = vec4(color, alpha);
   }
 `;
 
@@ -154,6 +164,7 @@ export class StarMapRenderer {
   private height = 1;
   private fitZoom = 1;
   private selectedIndex = -1;
+  private selectedEdgeIndex = -1;
   private hoveredIndex = -1;
   private searchIndex = -1;
   private focusIndices = new Uint32Array();
@@ -186,7 +197,7 @@ export class StarMapRenderer {
     this.canvas.className = "star-map-canvas";
     this.canvas.tabIndex = 0;
     this.canvas.setAttribute("role", "application");
-    this.canvas.setAttribute("aria-label", "二维语义缩放知识星图。使用滚轮缩放，拖动画布平移，点击节点查看证据。");
+    this.canvas.setAttribute("aria-label", "二维语义缩放知识星图。使用滚轮缩放，拖动画布平移，点击节点或关系边查看证据。");
     host.replaceChildren(this.canvas);
     this.applyCameraOrbit();
     this.labels = new GpuLabelLayer(this.scene, this.resolution);
@@ -268,15 +279,23 @@ export class StarMapRenderer {
     const edgePositions = new Float32Array(model.edges.length * 6);
     const edgeColors = new Float32Array(model.edges.length * 6);
     const edgeStates = new Float32Array(model.edges.length * 2);
+    const edgeLineT = new Float32Array(model.edges.length * 2);
+    const edgeDashed = new Float32Array(model.edges.length * 2);
     model.edges.forEach((edge, index) => {
-      const color = edge.isDiscovered ? [1, 0.48, 0.48] : [0.54, 0.69, 0.8];
+      const color = edge.isPromoted ? [0.73, 0.58, 1] : [0.54, 0.69, 0.8];
       edgeColors.set(color, index * 6);
       edgeColors.set(color, index * 6 + 3);
+      edgeLineT[index * 2] = 0;
+      edgeLineT[index * 2 + 1] = 1;
+      edgeDashed[index * 2] = edge.isPromoted ? 1 : 0;
+      edgeDashed[index * 2 + 1] = edge.isPromoted ? 1 : 0;
     });
     const edgeGeometry = new THREE.BufferGeometry();
     edgeGeometry.setAttribute("position", new THREE.BufferAttribute(edgePositions, 3).setUsage(THREE.DynamicDrawUsage));
     edgeGeometry.setAttribute("aColor", new THREE.BufferAttribute(edgeColors, 3));
     edgeGeometry.setAttribute("aState", new THREE.BufferAttribute(edgeStates, 1).setUsage(THREE.DynamicDrawUsage));
+    edgeGeometry.setAttribute("aLineT", new THREE.BufferAttribute(edgeLineT, 1));
+    edgeGeometry.setAttribute("aDashed", new THREE.BufferAttribute(edgeDashed, 1));
     const edgeMaterial = new THREE.ShaderMaterial({
       vertexShader: EDGE_VERTEX_SHADER,
       fragmentShader: EDGE_FRAGMENT_SHADER,
@@ -322,16 +341,36 @@ export class StarMapRenderer {
   setSelection(nodeIndex: number): void {
     if (!this.model || !this.nodePoints || !this.edgeLines) return;
     this.selectedIndex = nodeIndex;
+    this.selectedEdgeIndex = -1;
+    this.refreshSelectionStates();
+  }
+
+  setEdgeSelection(edgeIndex: number): void {
+    if (!this.model || !this.nodePoints || !this.edgeLines) return;
+    this.selectedIndex = -1;
+    this.selectedEdgeIndex = edgeIndex >= 0 && edgeIndex < this.model.edges.length ? edgeIndex : -1;
+    this.refreshSelectionStates();
+  }
+
+  private refreshSelectionStates(): void {
+    if (!this.model || !this.nodePoints || !this.edgeLines) return;
+    const nodeIndex = this.selectedIndex;
+    const edgeIndex = this.selectedEdgeIndex;
     const neighbors = nodeIndex >= 0 ? new Set(neighborsOf(this.model, nodeIndex)) : new Set<number>();
+    const selectedEdge = edgeIndex >= 0 ? this.model.edges[edgeIndex] : undefined;
     const nodeStates = (this.nodePoints.geometry.getAttribute("aState") as THREE.BufferAttribute).array as Float32Array;
     for (let index = 0; index < nodeStates.length; index += 1) {
-      nodeStates[index] = nodeIndex < 0 ? 0 : index === nodeIndex ? 3 : neighbors.has(index) ? 2 : 1;
+      if (nodeIndex >= 0) nodeStates[index] = index === nodeIndex ? 3 : neighbors.has(index) ? 2 : 1;
+      else if (selectedEdge) nodeStates[index] = index === selectedEdge.source || index === selectedEdge.target ? 3 : 1;
+      else nodeStates[index] = 0;
     }
     if (this.hoveredIndex >= 0 && this.hoveredIndex !== nodeIndex) nodeStates[this.hoveredIndex] = 4;
     (this.nodePoints.geometry.getAttribute("aState") as THREE.BufferAttribute).needsUpdate = true;
     const edgeStates = (this.edgeLines.geometry.getAttribute("aState") as THREE.BufferAttribute).array as Float32Array;
     this.model.edges.forEach((edge, index) => {
-      const state = nodeIndex < 0 ? 0 : edge.source === nodeIndex || edge.target === nodeIndex ? 2 : 1;
+      const state = nodeIndex >= 0
+        ? edge.source === nodeIndex || edge.target === nodeIndex ? 2 : 1
+        : edgeIndex >= 0 ? index === edgeIndex ? 3 : 1 : 0;
       edgeStates[index * 2] = state;
       edgeStates[index * 2 + 1] = state;
     });
@@ -340,14 +379,16 @@ export class StarMapRenderer {
   }
 
   clearSelection(animate = true): void {
-    this.setSelection(-1);
+    this.selectedIndex = -1;
+    this.selectedEdgeIndex = -1;
+    this.refreshSelectionStates();
     if (animate) this.clearFocus(280);
   }
 
   setHovered(nodeIndex: number): void {
     if (!this.model || !this.nodePoints || nodeIndex === this.hoveredIndex) return;
     this.hoveredIndex = nodeIndex;
-    this.setSelection(this.selectedIndex);
+    this.refreshSelectionStates();
   }
 
   setSearchMatch(nodeIndex: number): void {
@@ -552,11 +593,54 @@ export class StarMapRenderer {
     return decoded >= 0 && decoded < this.model.nodes.length ? decoded : -1;
   }
 
+  pickEdge(screenX: number, screenY: number, tolerance = 7): number {
+    if (!this.model || screenX < 0 || screenY < 0 || screenX > this.width || screenY > this.height) return -1;
+    let nearestIndex = -1;
+    let nearestDistanceSquared = tolerance * tolerance;
+    this.model.edges.forEach((edge, edgeIndex) => {
+      const source = this.projectNode(edge.source);
+      const target = this.projectNode(edge.target);
+      const minX = Math.min(source.x, target.x) - tolerance;
+      const maxX = Math.max(source.x, target.x) + tolerance;
+      const minY = Math.min(source.y, target.y) - tolerance;
+      const maxY = Math.max(source.y, target.y) + tolerance;
+      if (screenX < minX || screenX > maxX || screenY < minY || screenY > maxY) return;
+      const dx = target.x - source.x;
+      const dy = target.y - source.y;
+      const lengthSquared = dx * dx + dy * dy;
+      if (lengthSquared < 1) return;
+      const ratio = THREE.MathUtils.clamp(((screenX - source.x) * dx + (screenY - source.y) * dy) / lengthSquared, 0, 1);
+      const projectedX = source.x + dx * ratio;
+      const projectedY = source.y + dy * ratio;
+      const distanceSquared = (screenX - projectedX) ** 2 + (screenY - projectedY) ** 2;
+      if (distanceSquared <= nearestDistanceSquared) {
+        nearestDistanceSquared = distanceSquared;
+        nearestIndex = edgeIndex;
+      }
+    });
+    return nearestIndex;
+  }
+
+  getEdgeScreenMidpoint(edgeIndex: number): { x: number; y: number } | null {
+    const edge = this.model?.edges[edgeIndex];
+    if (!edge) return null;
+    const source = this.projectNode(edge.source);
+    const target = this.projectNode(edge.target);
+    return { x: (source.x + target.x) / 2, y: (source.y + target.y) / 2 };
+  }
+
   private refreshLabels(now: number): void {
     if (!this.model || !this.labelsDirty || now - this.lastLabelUpdate < 70) return;
     const level = this.labelPolicy.update(this.zoomRatio);
     const screenNodes: ScreenNode[] = this.model.nodes.map((_, nodeIndex) => ({ nodeIndex, ...this.projectNode(nodeIndex) }));
-    const special = new Set([this.selectedIndex, this.hoveredIndex, this.searchIndex].filter(index => index >= 0));
+    const selectedEdge = this.selectedEdgeIndex >= 0 ? this.model.edges[this.selectedEdgeIndex] : undefined;
+    const special = new Set([
+      this.selectedIndex,
+      selectedEdge?.source ?? -1,
+      selectedEdge?.target ?? -1,
+      this.hoveredIndex,
+      this.searchIndex,
+    ].filter(index => index >= 0));
     const candidates = selectLabelCandidates(this.model, screenNodes, level, special);
     const placements = resolveLabelCollisions(candidates, this.width, this.height);
     this.labels.update(placements, this.renderPositions);
@@ -678,6 +762,10 @@ export class StarMapRenderer {
 
   get selectedNodeIndex(): number {
     return this.selectedIndex;
+  }
+
+  get selectedRelationIndex(): number {
+    return this.selectedEdgeIndex;
   }
 
   getStats(): RenderStats {

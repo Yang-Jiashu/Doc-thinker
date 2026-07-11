@@ -34,6 +34,32 @@ function endpoint(value: unknown): string {
   return text(value);
 }
 
+function truthy(value: unknown): boolean {
+  return value === true || value === 1 || ["1", "true", "yes"].includes(text(value).toLowerCase());
+}
+
+function jsonValue(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return undefined;
+  }
+}
+
+function jsonArray<T = unknown>(value: unknown): T[] {
+  const parsed = jsonValue(value);
+  return Array.isArray(parsed) ? parsed as T[] : [];
+}
+
+function numberRecord(value: unknown): Record<string, number> {
+  const parsed = jsonValue(value);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+  return Object.fromEntries(
+    Object.entries(parsed).flatMap(([key, item]) => Number.isFinite(Number(item)) ? [[key, Number(item)]] : []),
+  );
+}
+
 export function stableHash(value: string): number {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -51,7 +77,7 @@ export function splitSourceIds(value: unknown): string[] {
 
 export function cleanDescription(value: unknown): string {
   const result = text(value).split("<SEP>").map(part => part.trim()).filter(Boolean).join("\n");
-  return result || "该节点暂无可展示的描述。";
+  return result || "暂无可展示的描述。";
 }
 
 export function groupForType(value: unknown): number {
@@ -137,15 +163,36 @@ export function normalizeGraph(payload: RawGraphResponse): GraphModel {
     if (source === undefined || target === undefined || source === target) return;
     computedDegree[source] += 1;
     computedDegree[target] += 1;
+    const reviewStatus = text(raw.review_status).toLowerCase();
+    const provenance = text(raw.provenance).toLowerCase();
+    const algorithmVersion = text(raw.algorithm_version).toLowerCase();
+    const isPromoted = truthy(raw.is_promoted) || (
+      reviewStatus === "promoted" && provenance === "eclrr_v4" && algorithmVersion === "eclrr_v4"
+    );
+    const sourceIds = splitSourceIds(raw.source_id);
+    const evidenceChunkIds = jsonArray<unknown>(raw.evidence_chunk_ids).map(text).filter(Boolean);
+    const decisionScore = Number(raw.decision_score);
     edges.push({
       id: text(raw.id) || `edge-${rawIndex}`,
       source,
       target,
-      label: text(raw.label) || "related",
+      label: text(raw.relation ?? raw.label) || "related",
       description: cleanDescription(raw.description),
       sourceId: text(raw.source_id),
       weight: Number(raw.weight) || 1,
-      isDiscovered: String(raw.is_discovered ?? "").toLowerCase() === "true" || String(raw.is_discovered) === "1",
+      isDiscovered: truthy(raw.is_discovered),
+      isPromoted,
+      kind: isPromoted || text(raw.edge_kind).toLowerCase() === "eclrr_v4" ? "eclrr_v4" : "original",
+      relationFamily: text(raw.relation_family),
+      direction: text(raw.direction),
+      relationId: text(raw.relation_id),
+      canonicalKey: text(raw.canonical_key),
+      pathUsed: jsonArray<unknown>(raw.path_used).map(text).filter(Boolean),
+      supportingPaths: jsonArray(raw.supporting_paths),
+      evidenceChain: jsonArray(raw.evidence_chain),
+      evidenceChunkIds: evidenceChunkIds.length ? evidenceChunkIds : sourceIds,
+      judgeScores: numberRecord(raw.judge_scores),
+      decisionScore: Number.isFinite(decisionScore) ? decisionScore : null,
     });
   });
 

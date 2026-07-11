@@ -19,10 +19,26 @@ export interface RawGraphEdge {
   src_id?: unknown;
   tgt_id?: unknown;
   label?: unknown;
+  relation?: unknown;
+  relation_family?: unknown;
+  direction?: unknown;
   description?: unknown;
   source_id?: unknown;
   weight?: unknown;
   is_discovered?: unknown;
+  is_promoted?: unknown;
+  edge_kind?: unknown;
+  review_status?: unknown;
+  provenance?: unknown;
+  algorithm_version?: unknown;
+  relation_id?: unknown;
+  canonical_key?: unknown;
+  path_used?: unknown;
+  supporting_paths?: unknown;
+  evidence_chain?: unknown;
+  evidence_chunk_ids?: unknown;
+  judge_scores?: unknown;
+  decision_score?: unknown;
 }
 
 export interface RawGraphResponse {
@@ -56,6 +72,29 @@ export interface GraphEdge {
   sourceId: string;
   weight: number;
   isDiscovered: boolean;
+  isPromoted: boolean;
+  kind: "original" | "eclrr_v4";
+  relationFamily: string;
+  direction: string;
+  relationId: string;
+  canonicalKey: string;
+  pathUsed: string[];
+  supportingPaths: unknown[];
+  evidenceChain: EdgeEvidence[];
+  evidenceChunkIds: string[];
+  judgeScores: Record<string, number>;
+  decisionScore: number | null;
+}
+
+export interface EdgeEvidence {
+  source?: string;
+  target?: string;
+  relation?: string;
+  chunk_id?: string;
+  quote?: string;
+  start?: number;
+  end?: number;
+  edge_id?: string;
 }
 
 export interface GraphModel {
@@ -86,6 +125,7 @@ export interface ChunkEvidence {
 
 export interface EntityChunkResponse {
   entity_id?: string;
+  edge_id?: string;
   source_ids?: string[];
   chunks?: ChunkEvidence[];
   error?: string;

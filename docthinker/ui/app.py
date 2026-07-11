@@ -350,6 +350,41 @@ def kg_entity_chunks_proxy():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+@app.route(f'{api_config.api_prefix}/knowledge-graph/edge-chunks', methods=['GET'])
+def kg_edge_chunks_proxy():
+    """Proxy relation evidence without adding chunk text to the full graph payload."""
+    import requests as req_lib
+
+    session_id = request.args.get('session_id', '')
+    source_id = request.args.get('source_id')
+    edge_id = request.args.get('edge_id', '')
+    max_chunks = request.args.get('max_chunks', '20')
+    if not session_id or source_id is None:
+        return jsonify({'error': 'session_id and source_id are required'}), 400
+
+    backend_url = f"http://127.0.0.1:8000{api_config.api_prefix}/knowledge-graph/edge-chunks"
+    try:
+        resp = req_lib.get(
+            backend_url,
+            params={
+                'session_id': session_id,
+                'source_id': source_id,
+                'edge_id': edge_id,
+                'max_chunks': max_chunks,
+            },
+            timeout=120,
+        )
+        try:
+            body = resp.json()
+        except Exception:
+            body = {'error': f'Backend returned non-JSON (HTTP {resp.status_code})'}
+        return jsonify(body), resp.status_code
+    except req_lib.exceptions.ConnectionError:
+        return jsonify({'error': 'Unable to connect to the backend on port 8000'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route(f'{api_config.api_prefix}/knowledge-graph/expand', methods=['POST'])
 def kg_expand_proxy():
     import requests

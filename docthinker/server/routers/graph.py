@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -303,33 +304,20 @@ async def get_graph_data(
             )
 
         node_ids = set(n["id"] for n in nodes)
-        for edge_info in edges_data:
-            u = edge_info["source"]
-            v = edge_info["target"]
-            if u in node_ids and v in node_ids:
-                is_discovered = str(edge_info.get("is_discovered", "0")) == "1"
-                edges.append(
-                    {
-                        "id": f"{u}-{v}",
-                        "source": u,
-                        "target": v,
-                        "label": edge_info.get("keywords", "related"),
-                        "description": edge_info.get("description", ""),
-                        "weight": edge_info.get("weight", 1.0),
-                        "source_id": edge_info.get("source_id", ""),
-                        "color": "#ef4444" if is_discovered else "#95a5a6",
-                        "width": 2 if is_discovered else 1,
-                        "is_discovered": is_discovered,
-                    }
-                )
+        for edge_index, edge_info in enumerate(edges_data):
+            for edge in _expand_graph_edge_records(edge_info, edge_index):
+                if edge["source"] in node_ids and edge["target"] in node_ids:
+                    edges.append(edge)
 
         expanded_in_response = sum(1 for x in nodes if x.get("is_expanded"))
         image_nodes_in_response = sum(1 for x in nodes if x.get("is_image_node"))
         discovered_edges_count = sum(1 for x in edges if x.get("is_discovered"))
+        promoted_edges_count = sum(1 for x in edges if x.get("is_promoted"))
         meta = {
             "total_nodes": len(nodes_data),
             "total_edges": len(edges_data),
             "discovered_edges": discovered_edges_count,
+            "promoted_edges": promoted_edges_count,
             "session_id": session_id,
             "nodes_returned": len(nodes),
             "edges_returned": len(edges),
@@ -367,6 +355,129 @@ def _limit_chunk_source_ids(source_ids: List[str], max_chunks: int) -> List[str]
     return list(source_ids[: min(requested_max, 80)])
 
 
+def _json_list(value: Any) -> List[Dict[str, Any]]:
+    if isinstance(value, list):
+        return [dict(item) for item in value if isinstance(item, dict)]
+    if not value:
+        return []
+    try:
+        parsed = json.loads(str(value))
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return []
+    if not isinstance(parsed, list):
+        return []
+    return [dict(item) for item in parsed if isinstance(item, dict)]
+
+
+def _is_eclrr_v4_promoted(edge: Dict[str, Any]) -> bool:
+    return (
+        str(edge.get("review_status") or "").strip().lower() == "promoted"
+        and str(edge.get("provenance") or "").strip().lower() == "eclrr_v4"
+        and str(edge.get("algorithm_version") or "").strip().lower() == "eclrr_v4"
+    )
+
+
+def _graph_edge_response(
+    edge: Dict[str, Any],
+    source: str,
+    target: str,
+    *,
+    fallback_id: str,
+) -> Dict[str, Any]:
+    promoted = _is_eclrr_v4_promoted(edge)
+    discovered = str(edge.get("is_discovered", "0")) in {"1", "true", "True"}
+    relation_id = str(
+        edge.get("relation_id") or edge.get("canonical_key") or ""
+    ).strip()
+    return {
+        "id": relation_id or fallback_id,
+        "source": str(edge.get("source") or edge.get("src_id") or source),
+        "target": str(edge.get("target") or edge.get("tgt_id") or target),
+        "label": edge.get("relation") or edge.get("keywords") or edge.get("label") or "related",
+        "relation": edge.get("relation") or edge.get("keywords") or edge.get("label") or "related",
+        "relation_family": edge.get("relation_family", ""),
+        "direction": edge.get("direction", ""),
+        "description": edge.get("description", ""),
+        "weight": edge.get("weight", 1.0),
+        "source_id": edge.get("source_id", ""),
+        "is_discovered": discovered,
+        "is_promoted": promoted,
+        "edge_kind": "eclrr_v4" if promoted else "original",
+        "color": "#ef4444" if discovered else "#95a5a6",
+        "width": 2 if discovered else 1,
+        "review_status": edge.get("review_status", ""),
+        "provenance": edge.get("provenance", ""),
+        "algorithm_version": edge.get("algorithm_version", ""),
+        "relation_id": relation_id,
+        "canonical_key": edge.get("canonical_key", ""),
+        "path_used": edge.get("path_used", ""),
+        "supporting_paths": edge.get("supporting_paths", ""),
+        "evidence_chain": edge.get("evidence_chain", ""),
+        "evidence_chunk_ids": edge.get("evidence_chunk_ids", ""),
+        "judge_scores": edge.get("judge_scores", ""),
+        "decision_score": edge.get("decision_score", ""),
+    }
+
+
+def _expand_graph_edge_records(edge: Dict[str, Any], index: int) -> List[Dict[str, Any]]:
+    """Expose one physical fact edge plus any independently selectable ECLRR relations."""
+    source = str(edge.get("source") or edge.get("src_id") or "").strip()
+    target = str(edge.get("target") or edge.get("tgt_id") or "").strip()
+    if not source or not target:
+        return []
+
+    physical = _graph_edge_response(
+        edge,
+        source,
+        target,
+        fallback_id=f"edge-{index}-{source}-{target}",
+    )
+    records = [physical]
+    physical_identity = str(edge.get("relation_id") or edge.get("canonical_key") or "")
+    for nested_index, relation in enumerate(_json_list(edge.get("eclrr_relations"))):
+        if not _is_eclrr_v4_promoted(relation):
+            continue
+        nested_identity = str(relation.get("relation_id") or relation.get("canonical_key") or "")
+        if nested_identity and nested_identity == physical_identity:
+            continue
+        records.append(
+            _graph_edge_response(
+                relation,
+                source,
+                target,
+                fallback_id=f"edge-{index}-eclrr-{nested_index}",
+            )
+        )
+    return records
+
+
+async def _load_source_chunks(
+    graphcore: Any,
+    source_id: Any,
+    max_chunks: int,
+) -> tuple[List[str], List[Dict[str, Any]]]:
+    source_ids = _limit_chunk_source_ids(_split_chunk_source_ids(source_id), max_chunks)
+    if not source_ids or not getattr(graphcore, "text_chunks", None):
+        return source_ids, []
+
+    chunk_data_list = await graphcore.text_chunks.get_by_ids(source_ids)
+    chunks: List[Dict[str, Any]] = []
+    for chunk_id, data in zip(source_ids, chunk_data_list):
+        if not data:
+            chunks.append({"chunk_id": chunk_id, "content": "", "missing": True})
+            continue
+        chunks.append(
+            {
+                "chunk_id": chunk_id,
+                "content": str(data.get("content") or data.get("text") or ""),
+                "file_path": data.get("file_path") or data.get("full_doc_id") or "",
+                "tokens": data.get("tokens"),
+                "chunk_order_index": data.get("chunk_order_index"),
+            }
+        )
+    return source_ids, chunks
+
+
 @router.get("/knowledge-graph/entity-chunks")
 async def get_entity_chunks(
     session_id: Optional[str] = None,
@@ -387,30 +498,38 @@ async def get_entity_chunks(
         if not node_info:
             return {"entity_id": entity_id, "source_ids": [], "chunks": []}
 
-        source_ids = _split_chunk_source_ids(node_info.get("source_id", ""))
-        source_ids = _limit_chunk_source_ids(source_ids, max_chunks)
-        if not source_ids or not getattr(graphcore, "text_chunks", None):
-            return {"entity_id": entity_id, "source_ids": source_ids, "chunks": []}
-
-        chunk_data_list = await graphcore.text_chunks.get_by_ids(source_ids)
-        chunks: List[Dict[str, Any]] = []
-        for chunk_id, data in zip(source_ids, chunk_data_list):
-            if not data:
-                chunks.append({"chunk_id": chunk_id, "content": "", "missing": True})
-                continue
-            content = str(data.get("content") or data.get("text") or "")
-            chunks.append(
-                {
-                    "chunk_id": chunk_id,
-                    "content": content,
-                    "file_path": data.get("file_path") or data.get("full_doc_id") or "",
-                    "tokens": data.get("tokens"),
-                    "chunk_order_index": data.get("chunk_order_index"),
-                }
-            )
+        source_ids, chunks = await _load_source_chunks(
+            graphcore,
+            node_info.get("source_id", ""),
+            max_chunks,
+        )
         return {"entity_id": entity_id, "source_ids": source_ids, "chunks": chunks}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load entity chunks: {str(e)}")
+
+
+@router.get("/knowledge-graph/edge-chunks")
+async def get_edge_chunks(
+    session_id: Optional[str] = None,
+    source_id: Optional[str] = None,
+    edge_id: Optional[str] = None,
+    max_chunks: int = 20,
+):
+    """Return the exact source chunks carried by one displayed graph relation."""
+    session_rag = await _get_session_rag_or_raise(session_id)
+    if source_id is None:
+        raise HTTPException(status_code=400, detail="source_id is required")
+    try:
+        if not session_rag.graphcore:
+            await session_rag._ensure_graphcore_initialized()
+        source_ids, chunks = await _load_source_chunks(
+            session_rag.graphcore,
+            source_id,
+            max_chunks,
+        )
+        return {"edge_id": edge_id or "", "source_ids": source_ids, "chunks": chunks}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load edge chunks: {str(e)}")
 
 
 @router.get("/knowledge-graph/image/{session_id}/{filename}")

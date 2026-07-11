@@ -27,6 +27,7 @@ declare global {
       stats: () => ReturnType<StarMapRenderer["getStats"]> & { nodes: number; edges: number };
       zoom: (ratio: number) => void;
       select: (nodeIndex: number) => void;
+      selectEdge: (edgeIndex: number) => void;
       fit: () => void;
       autoRotate: (enabled: boolean) => void;
       rotation: () => {
@@ -37,6 +38,7 @@ declare global {
       attract: (nodeIndex: number) => void;
       releaseAttraction: () => void;
       position: (nodeIndex: number) => ReturnType<StarMapRenderer["getNodeWorldPosition"]>;
+      edgePosition: (edgeIndex: number) => ReturnType<StarMapRenderer["getEdgeScreenMidpoint"]>;
     };
   }
 }
@@ -123,6 +125,7 @@ class PromoGraphApp {
   private graphAbort: AbortController | null = null;
   private chunksAbort: AbortController | null = null;
   private selectedIndex = -1;
+  private selectedEdgeIndex = -1;
   private graphReady = false;
   private selectedSearchResult = -1;
   private statsTimer = 0;
@@ -161,6 +164,7 @@ class PromoGraphApp {
     );
     this.input = new InputController(this.renderer, {
       onSelect: nodeIndex => this.selectNode(nodeIndex),
+      onSelectEdge: edgeIndex => this.selectEdge(edgeIndex),
       onNodeAttractionStart: nodeIndex => this.beginNodeAttraction(nodeIndex),
       onNodeAttractionEnd: () => this.endNodeAttraction(),
       onHover: nodeIndex => this.onHover(nodeIndex),
@@ -197,6 +201,7 @@ class PromoGraphApp {
         this.renderer.zoomAt(this.stage.clientWidth / 2, this.stage.clientHeight / 2, ratio / Math.max(0.001, current));
       },
       select: nodeIndex => this.selectNode(nodeIndex),
+      selectEdge: edgeIndex => this.selectEdge(edgeIndex),
       fit: () => this.renderer.fitToGraph(),
       autoRotate: enabled => this.setAutoRotationEnabled(enabled),
       rotation: () => ({ decision: this.autoRotation.evaluate(), state: this.rotationDebugState() }),
@@ -204,6 +209,7 @@ class PromoGraphApp {
       attract: nodeIndex => this.beginNodeAttraction(nodeIndex),
       releaseAttraction: () => this.endNodeAttraction(),
       position: nodeIndex => this.renderer.getNodeWorldPosition(nodeIndex),
+      edgePosition: edgeIndex => this.renderer.getEdgeScreenMidpoint(edgeIndex),
     };
   }
 
@@ -216,7 +222,7 @@ class PromoGraphApp {
     required<HTMLButtonElement>("#close-panel").addEventListener("click", () => this.closePanel());
     required<HTMLButtonElement>("#retry-load").addEventListener("click", () => void this.loadGraph());
     this.panelToggle.addEventListener("click", () => {
-      if (this.selectedIndex < 0) return;
+      if (this.selectedIndex < 0 && this.selectedEdgeIndex < 0) return;
       this.root.classList.contains("is-panel-open") ? this.closePanel() : this.openPanel();
     });
     this.sessionSelect.addEventListener("change", () => {
@@ -311,6 +317,7 @@ class PromoGraphApp {
       return;
     }
     this.selectedIndex = nodeIndex;
+    this.selectedEdgeIndex = -1;
     this.autoRotation.setHasSelection(true);
     const node = this.model.nodes[nodeIndex];
     this.renderer.setSelection(nodeIndex);
@@ -318,6 +325,28 @@ class PromoGraphApp {
     this.openPanel();
     this.setStatus("已聚焦节点", node.label);
     void this.loadChunks(node.id);
+  }
+
+  private selectEdge(edgeIndex: number): void {
+    if (!this.model || edgeIndex < 0 || edgeIndex >= this.model.edges.length) {
+      this.clearSelection();
+      return;
+    }
+    if (edgeIndex === this.selectedEdgeIndex) {
+      this.clearSelection();
+      return;
+    }
+    this.selectedIndex = -1;
+    this.selectedEdgeIndex = edgeIndex;
+    this.autoRotation.setHasSelection(true);
+    const edge = this.model.edges[edgeIndex];
+    const source = this.model.nodes[edge.source];
+    const target = this.model.nodes[edge.target];
+    this.renderer.setEdgeSelection(edgeIndex);
+    this.detail.showEdge(edge, source, target);
+    this.openPanel();
+    this.setStatus(edge.kind === "eclrr_v4" ? "已聚焦 ECLRR-v4 推断关系" : "已聚焦事实关系", `${source.label} → ${target.label}`);
+    void this.loadEdgeChunks(edgeIndex);
   }
 
   private beginNodeAttraction(nodeIndex: number): void {
@@ -337,13 +366,15 @@ class PromoGraphApp {
     this.attractionNode = -1;
     this.attractionRequest += 1;
     this.renderer.clearFocus(320);
-    this.renderer.setSelection(this.selectedIndex);
+    if (this.selectedEdgeIndex >= 0) this.renderer.setEdgeSelection(this.selectedEdgeIndex);
+    else this.renderer.setSelection(this.selectedIndex);
   }
 
   private clearSelection(): void {
     this.attractionNode = -1;
     this.attractionRequest += 1;
     this.selectedIndex = -1;
+    this.selectedEdgeIndex = -1;
     this.autoRotation.setHasSelection(false);
     this.chunksAbort?.abort();
     this.renderer.clearSelection(true);
@@ -364,6 +395,30 @@ class PromoGraphApp {
       if (this.model?.nodes[this.selectedIndex]?.id === entityId) this.detail.showChunks(payload.chunks ?? []);
     } catch (error) {
       if ((error as Error).name !== "AbortError") this.detail.showChunks([], `原文读取失败：${(error as Error).message}`);
+    }
+  }
+
+  private async loadEdgeChunks(edgeIndex: number): Promise<void> {
+    const edge = this.model?.edges[edgeIndex];
+    if (!edge) return;
+    this.chunksAbort?.abort();
+    const controller = new AbortController();
+    this.chunksAbort = controller;
+    try {
+      const params = new URLSearchParams({
+        session_id: this.currentSessionId,
+        source_id: edge.sourceId,
+        edge_id: edge.id,
+        max_chunks: "0",
+      });
+      const response = await fetch(`${this.apiPrefix}/knowledge-graph/edge-chunks?${params}`, { cache: "no-store", signal: controller.signal });
+      const payload = await response.json() as EntityChunkResponse;
+      if (!response.ok || payload.error) throw new Error(payload.error || `HTTP ${response.status}`);
+      if (this.selectedEdgeIndex === edgeIndex && this.model?.edges[edgeIndex]?.id === edge.id) this.detail.showChunks(payload.chunks ?? []);
+    } catch (error) {
+      if ((error as Error).name !== "AbortError" && this.selectedEdgeIndex === edgeIndex) {
+        this.detail.showChunks([], `原文读取失败：${(error as Error).message}`);
+      }
     }
   }
 
@@ -437,11 +492,11 @@ class PromoGraphApp {
 
   private onHover(nodeIndex: number): void {
     if (nodeIndex >= 0 && this.model) this.status.textContent = this.model.nodes[nodeIndex].label;
-    else if (this.selectedIndex < 0 && this.model) this.status.textContent = "知识星图已就绪";
+    else if (this.selectedIndex < 0 && this.selectedEdgeIndex < 0 && this.model) this.status.textContent = "知识星图已就绪";
   }
 
   private openPanel(): void {
-    if (this.selectedIndex < 0) return;
+    if (this.selectedIndex < 0 && this.selectedEdgeIndex < 0) return;
     this.panelRoot.hidden = false;
     requestAnimationFrame(() => this.root.classList.add("is-panel-open"));
     this.panelToggle.setAttribute("aria-expanded", "true");
@@ -480,6 +535,8 @@ class PromoGraphApp {
     this.stage.dataset.webglReady = String(this.graphReady);
     this.stage.dataset.nodeCount = String(this.model?.nodes.length ?? 0);
     this.stage.dataset.edgeCount = String(this.model?.edges.length ?? 0);
+    this.stage.dataset.selectedNode = String(this.selectedIndex);
+    this.stage.dataset.selectedEdge = String(this.selectedEdgeIndex);
     this.stage.dataset.labelLevel = String(stats.labelLevel);
     this.stage.dataset.zoomRatio = stats.zoomRatio.toFixed(3);
     this.stage.dataset.fps = stats.fps.toFixed(1);
@@ -542,7 +599,7 @@ class PromoGraphApp {
     const title = !enabled
       ? "自动旋转已关闭"
       : pausedReason === "selection"
-        ? "自动旋转已开启，当前因选中节点而暂停"
+        ? "自动旋转已开启，当前因选中图谱元素而暂停"
         : "自动旋转已开启";
     this.rotationButton.title = title;
     this.rotationButton.setAttribute("aria-label", title);

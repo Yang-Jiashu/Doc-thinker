@@ -167,11 +167,7 @@ async def _run_density_clustering(sid: str) -> None:
 
 
 async def _background_path_edge_discovery(sid: str) -> None:
-    """Run latent edge discovery in the background after ingestion.
-
-    Discovered edges are written into the graph with ``is_discovered=1``
-    so the frontend can render them in red.  This never blocks user queries.
-    """
+    """Run evidence-gated ECLRR-v4 discovery after ingestion."""
     try:
         if not state.session_manager or not state.rag_instance:
             return
@@ -194,88 +190,42 @@ async def _background_path_edge_discovery(sid: str) -> None:
         graph = gc.chunk_entity_relation_graph
         nodes_data = await graph.get_all_nodes()
 
-        if len(nodes_data) < 3:
-            _log.info("[path_edge_discovery] only %d nodes for session %s, skipping", len(nodes_data), sid)
+        if len(nodes_data) < 4:
+            _log.info("[eclrr_v4] only %d nodes for session %s; skipping", len(nodes_data), sid)
             return
 
-        from docthinker.kg_expansion.path_edge_discovery import (
-            PathDiscoveryConfig,
-            discover_path_edges,
-        )
+        from docthinker.kg_expansion.eclrr_v4 import ECLRRConfig, run_eclrr_v4
 
         llm_fn = getattr(session_rag, "llm_model_func", None)
         if not llm_fn:
             return
 
-        discovered = await discover_path_edges(
+        result = await run_eclrr_v4(
             graph=graph,
             text_chunks=gc.text_chunks,
-            llm_func=llm_fn,
-            config=PathDiscoveryConfig(
-                max_depth=10,
-                max_branch=10,
-                max_roots=6,
-                max_paths=24,
-                max_chunks=80,
-                max_output_tokens=8192,
-                max_parallel=1,
-                artifact_dir=str(Path(knowledge_dir) / "path_edge_discovery_runs") if knowledge_dir else None,
+            generator_func=llm_fn,
+            judge_func=llm_fn,
+            relationships_vdb=gc.relationships_vdb,
+            config=ECLRRConfig(
+                artifact_dir=(
+                    str(Path(knowledge_dir) / "eclrr_v4_runs")
+                    if knowledge_dir
+                    else None
+                ),
             ),
         )
 
-        if not discovered:
-            _log.info("[path_edge_discovery] no new edges discovered for session %s", sid)
-            return
-
-        # Write discovered edges into the graph
-        added = 0
-        added_edges = []
-        for edge in discovered:
-            if await graph.has_edge(edge.source, edge.target):
-                continue
-            await graph.upsert_edge(edge.source, edge.target, {
-                "keywords": edge.keywords,
-                "description": edge.description,
-                "weight": str(edge.confidence),
-                "confidence": str(edge.confidence),
-                "is_discovered": "1",
-                "query_eligible": "1",
-                "relation": edge.relation,
-                "inference_type": edge.inference_type,
-                "path_used": json.dumps(edge.path_used, ensure_ascii=False),
-                "evidence_chain": json.dumps(edge.evidence_chain, ensure_ascii=False),
-                "evidence_chunk_ids": json.dumps(
-                    edge.evidence_chunk_ids, ensure_ascii=False
-                ),
-                "source_id": GRAPH_FIELD_SEP.join(edge.evidence_chunk_ids),
-                "provenance": "path_edge_discovery",
-            })
-            added += 1
-            added_edges.append(edge)
-
-        if added > 0:
-            await graph.index_done_callback(force_save=True)
-
-            # Also index discovered edges into the relationships VDB
-            if gc.relationships_vdb and session_rag.embedding_func:
-                vdb_data = {}
-                for edge in added_edges:
-                    edge_key = f"{edge.source}-{edge.target}"
-                    content = f"{edge.source} {edge.keywords} {edge.target}: {edge.description}"
-                    vdb_data[edge_key] = {
-                        "src_id": edge.source,
-                        "tgt_id": edge.target,
-                        "content": content,
-                    }
-                if vdb_data:
-                    await gc.relationships_vdb.upsert(vdb_data)
-                    await gc.relationships_vdb.index_done_callback()
-
-        _log.info("[path_edge_discovery:bg] session %s — discovered %d, persisted %d edges",
-                  sid, len(discovered), added)
+        _log.info(
+            "[eclrr_v4:bg] session %s reviewed=%d proposed=%d committed=%d no_op=%d",
+            sid,
+            len(result.review_items),
+            len(result.proposals),
+            len(result.committed),
+            result.metrics.get("no_op", 0),
+        )
 
     except Exception as exc:
-        _log.warning("[path_edge_discovery:bg] failed for session %s (non-fatal): %s", sid, exc)
+        _log.warning("[eclrr_v4:bg] failed for session %s (non-fatal): %s", sid, exc, exc_info=True)
 
 
 async def _background_self_study(sid: str) -> None:
@@ -290,6 +240,8 @@ async def _background_self_study(sid: str) -> None:
         session = state.session_manager.get_session(sid)
         if not session:
             return
+        metadata = session.get("metadata") or {}
+        knowledge_dir = metadata.get("knowledge_dir") or session.get("knowledge_dir")
 
         config = state.rag_instance.config
         graphcore_kwargs = getattr(state.rag_instance, "graphcore_kwargs", {})
@@ -303,7 +255,6 @@ async def _background_self_study(sid: str) -> None:
 
         graph = gc.chunk_entity_relation_graph
         all_nodes = await graph.get_all_nodes()
-        all_edges = await graph.get_all_edges()
 
         if len(all_nodes) < 5:
             _log.info("[self_study] only %d nodes for session %s, skipping",
@@ -320,6 +271,7 @@ async def _background_self_study(sid: str) -> None:
         )
 
         workdir = getattr(gc, "workspace", None) or "./data/_system"
+        self_study_audit = Path(knowledge_dir or workdir) / "self_study_audit.jsonl"
 
         async def kg_query_func(question: str):
             try:
@@ -333,36 +285,19 @@ async def _background_self_study(sid: str) -> None:
                 return {"entities": [], "relations": [], "chunks": []}
 
         async def kg_write_func(operations: dict):
-            for edge in operations.get("new_edges", []):
-                src = edge.get("source", "")
-                tgt = edge.get("target", "")
-                if not src or not tgt or src == tgt:
-                    continue
-                if await graph.has_edge(src, tgt):
-                    continue
-                confidence = float(edge.get("confidence", 0.0) or 0.0)
-                evidence_chain = [
-                    str(item).strip()
-                    for item in (edge.get("evidence_chain") or [])
-                    if str(item).strip()
-                ]
-                if confidence < 0.80 or len(evidence_chain) < 2:
-                    continue
-                await graph.upsert_edge(src, tgt, {
-                    "keywords": edge.get("keywords", edge.get("relation", "")),
-                    "description": edge.get("relation", ""),
-                    "weight": str(confidence),
-                    "confidence": str(confidence),
-                    "is_discovered": "1",
-                    "query_eligible": "0",
-                    "review_status": "candidate",
-                    "evidence_chain": json.dumps(
-                        evidence_chain, ensure_ascii=False
-                    ),
-                    "source_id": "self_study",
-                    "provenance": "self_study",
-                })
+            proposed_edges = operations.get("new_edges", [])
+            if proposed_edges:
+                self_study_audit.parent.mkdir(parents=True, exist_ok=True)
+                record = {
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                    "session_id": sid,
+                    "review_status": "audit_only",
+                    "new_edges": proposed_edges,
+                }
+                with self_study_audit.open("a", encoding="utf-8") as handle:
+                    handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
+            graph_changed = False
             for upd in operations.get("entity_updates", []):
                 entity_name = upd.get("entity", "")
                 if not entity_name:
@@ -375,8 +310,10 @@ async def _background_self_study(sid: str) -> None:
                         if new_content and new_content not in old_desc:
                             node["description"] = f"{old_desc} | {new_content}"
                             await graph.upsert_node(entity_name, node)
+                            graph_changed = True
 
-            await graph.index_done_callback(force_save=True)
+            if graph_changed:
+                await graph.index_done_callback(force_save=True)
 
         async def kg_read_nodes():
             return await graph.get_all_nodes()

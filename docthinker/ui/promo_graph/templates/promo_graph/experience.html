@@ -51,16 +51,20 @@
             <span id="zoom-status">1.00×</span>
         </div>
 
-        <aside id="node-panel" class="node-panel" aria-label="节点详情" hidden>
+        <aside id="node-panel" class="node-panel" aria-label="图谱详情" hidden>
             <header class="panel-header">
-                <div><span>FOCUSED NODE</span><h1 data-detail-title>节点详情</h1></div>
+                <div><span data-detail-kind>FOCUSED NODE</span><h1 data-detail-title>节点详情</h1></div>
                 <button id="close-panel" class="icon-button" type="button" title="关闭详情" aria-label="关闭详情"><i data-lucide="x"></i></button>
             </header>
             <div class="panel-scroll">
                 <p class="detail-meta" data-detail-meta></p>
                 <section class="detail-section" aria-labelledby="description-heading">
-                    <h2 id="description-heading">节点描述</h2>
+                    <h2 id="description-heading" data-description-heading>节点描述</h2>
                     <p class="detail-description" data-detail-description></p>
+                </section>
+                <section class="detail-section relation-evidence" data-relation-evidence hidden aria-labelledby="evidence-heading">
+                    <div class="section-heading"><h2 id="evidence-heading">关系证据链</h2><span data-evidence-status></span></div>
+                    <div class="evidence-list" data-evidence-list></div>
                 </section>
                 <section class="detail-section" aria-labelledby="source-heading">
                     <div class="section-heading"><h2 id="source-heading">来源 chunk</h2></div>
