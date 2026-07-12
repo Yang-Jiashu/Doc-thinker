@@ -363,12 +363,6 @@ Refinement)** to refine vague edges and create missing relations:
    `no-op`. Evidence-complete promoted edges are atomically indexed and later
    retrieved together with their original chunks.
 
-The classic expanded-node memory lifecycle remains a separate optional memory
-feature; it is not the approval path for ECLRR hidden edges. In Graph 2, source
-facts are solid edges and promoted ECLRR-v4 relations are rendered as red dashed
-edges. See [the architecture image prompt](docs/ECLRR_V4_ARCHITECTURE_IMAGE_PROMPT.md)
-for producing a publication-style explanatory figure.
-
 ### 4. 🗃️ Tiered Conversation Memory (Claw)
 Claw implements a three-layer memory hierarchy for long-running conversations: hot working memory, warm core summaries, and cold semantic archives.
 
