@@ -9,7 +9,7 @@
 *Language captures the results of cognition, while cognition itself encompasses perception, experience, and reasoning.*
 
 [![Paper](https://img.shields.io/badge/arXiv-2603.05551-b31b1b.svg)](https://arxiv.org/pdf/2603.05551)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: PolyForm Shield 1.0.0](https://img.shields.io/badge/License-PolyForm_Shield_1.0.0-orange.svg)](LICENSE)
 [![Demo](https://img.shields.io/badge/Demo-Local_UI-orange)](http://localhost:5000)
 [![GraphCore](https://img.shields.io/badge/GraphCore-KG-8B5CF6)](#2--session-scoped-knowledge-graphs)
 [![Claw](https://img.shields.io/badge/Claw-Tiered_Memory-E74C3C)](#4--tiered-conversation-memory-claw)
@@ -484,4 +484,12 @@ PRs and issues welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## 📜 License
 
-[MIT](LICENSE)
+Source-available under the [PolyForm Shield License 1.0.0](LICENSE). You may use,
+study, modify, and redistribute the software for permitted purposes, but you may
+not use it to provide a product that competes with DocThinker or the licensor's
+related products and services. Contact the project maintainers for commercial
+licensing when your use falls outside these terms.
+
+Versions previously released under MIT remain available under their original
+license terms. This repository's current and future versions use PolyForm Shield
+unless a file or release explicitly states otherwise.
