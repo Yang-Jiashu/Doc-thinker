@@ -8,7 +8,8 @@ import re
 from dataclasses import asdict
 from typing import Any
 
-from .graph_view import FactGraphView, canonical_relation_key
+from .graph_view import FactGraphView, canonical_relation_key, split_source_ids
+from .clue_semantics import PERSON_ONLY_RELATIONS, clue_relation_ontology
 from .models import (
     ECLRRConfig,
     EvidencePackage,
@@ -28,8 +29,30 @@ _GENERIC_RELATIONS = {
     "相关",
     "有关",
     "某种联系",
+    "evidence_linkage",
+    "shared_object_connection",
+    "route_alignment",
+    "reserved_seat_ritual",
+    "temporal_alignment",
 }
 _DIRECTIONS = {"source_to_target", "target_to_source", "undirected"}
+_SURFACE_RELATION_TERMS = (
+    "artifact",
+    "ritual",
+    "trace",
+    "linkage",
+    "alignment",
+    "reserved_seat",
+    "symbolic",
+    "archival",
+)
+def _node_type(node: dict[str, Any]) -> str:
+    return str(node.get("entity_type") or node.get("type") or "").strip().casefold()
+
+
+def _is_person(node: dict[str, Any]) -> bool:
+    value = _node_type(node)
+    return value in {"person", "human", "character", "\u4eba\u7269", "\u4eba"}
 
 
 async def _chunk_map(text_chunks: Any, chunk_ids: list[str]) -> dict[str, str]:
@@ -107,7 +130,11 @@ async def deterministic_gate(
     )
     relation = str(relation or "").strip()
     family = str(family or "").strip().lower()
-    if not relation or relation.casefold() in _GENERIC_RELATIONS:
+    if (
+        not relation
+        or relation.casefold() in _GENERIC_RELATIONS
+        or any(term in relation.casefold() for term in _SURFACE_RELATION_TERMS)
+    ):
         return _noop(item.review_id, item.source, item.target, "generic_relation")
     if family not in RELATION_FAMILIES:
         return _noop(
@@ -115,6 +142,20 @@ async def deterministic_gate(
         )
     if proposal.direction not in _DIRECTIONS:
         return _noop(item.review_id, item.source, item.target, "invalid_direction")
+    expected_relations = clue_relation_ontology(
+        [evidence.quote for evidence in package.direct_evidence]
+    )
+    if expected_relations is not None and relation not in expected_relations:
+        return _noop(
+            item.review_id, item.source, item.target, "relation_conflicts_with_direct_clue"
+        )
+    if relation in PERSON_ONLY_RELATIONS and not (
+        _is_person(view.nodes[proposal.source])
+        and _is_person(view.nodes[proposal.target])
+    ):
+        return _noop(
+            item.review_id, item.source, item.target, "relation_endpoint_type_mismatch"
+        )
 
     path = item.primary_path
     if not config.min_hops <= path.hops <= config.max_hops:
@@ -149,7 +190,14 @@ async def deterministic_gate(
         return _noop(
             item.review_id, item.source, item.target, "missing_primary_evidence"
         )
-    required_refs = {evidence.evidence_id for evidence in package.primary_evidence}
+    if item.fuzzy_edge and not package.direct_evidence:
+        return _noop(
+            item.review_id, item.source, item.target, "missing_direct_endpoint_evidence"
+        )
+    required_refs = {
+        evidence.evidence_id
+        for evidence in (*package.primary_evidence, *package.direct_evidence)
+    }
     if not required_refs.issubset(set(proposal.evidence_refs)):
         return _noop(
             item.review_id, item.source, item.target, "generator_missing_evidence_ref"
@@ -159,9 +207,10 @@ async def deterministic_gate(
             item.review_id, item.source, item.target, "judge_missing_evidence_ref"
         )
 
-    chunk_ids = list(
-        dict.fromkeys(evidence.chunk_id for evidence in package.primary_evidence)
-    )
+    chunk_ids = list(dict.fromkeys(
+        evidence.chunk_id
+        for evidence in (*package.primary_evidence, *package.direct_evidence)
+    ))
     chunks = await _chunk_map(text_chunks, chunk_ids)
     evidence_chain: list[dict[str, Any]] = []
     for hop_index, step in enumerate(path.steps):
@@ -189,7 +238,41 @@ async def deterministic_gate(
             return _noop(
                 item.review_id, item.source, item.target, "quote_not_about_hop"
             )
-        evidence_chain.append(asdict(evidence))
+        evidence_chain.append({"evidence_kind": "path", **asdict(evidence)})
+
+    if item.fuzzy_edge:
+        fuzzy_source_ids = set(split_source_ids(item.fuzzy_edge.get("source_id")))
+        endpoint_aliases = (
+            _node_aliases(item.source, view.nodes[item.source]),
+            _node_aliases(item.target, view.nodes[item.target]),
+        )
+        for evidence in package.direct_evidence:
+            text = chunks.get(evidence.chunk_id)
+            if text is None or evidence.chunk_id not in fuzzy_source_ids:
+                return _noop(
+                    item.review_id,
+                    item.source,
+                    item.target,
+                    "direct_evidence_not_owned_by_fuzzy_edge",
+                )
+            if not (0 <= evidence.start < evidence.end <= len(text)):
+                return _noop(
+                    item.review_id, item.source, item.target, "invalid_direct_quote_offsets"
+                )
+            if text[evidence.start : evidence.end] != evidence.quote:
+                return _noop(
+                    item.review_id, item.source, item.target, "direct_quote_not_exact_substring"
+                )
+            if not all(
+                any(alias.casefold() in evidence.quote.casefold() for alias in aliases)
+                for aliases in endpoint_aliases
+            ):
+                return _noop(
+                    item.review_id, item.source, item.target, "direct_quote_missing_endpoint"
+                )
+            evidence_chain.insert(
+                0, {"evidence_kind": "direct_endpoint", **asdict(evidence)}
+            )
 
     canonical_key = canonical_relation_key(
         proposal.source,
@@ -206,7 +289,7 @@ async def deterministic_gate(
     action = "refine" if item.fuzzy_edge else "create"
     chain = " → ".join(path.nodes)
     description = (
-        f"{chain} 的逐步关系由 chunk 证据完整支持；结合端点关系，"
+        f"{chain} 的逐步关系由 chunk 证据完整支持；结合端点直接暗示，"
         f"推断 {proposal.source} → {proposal.target} 为 {relation}。"
         "该结论属于证据支持的隐藏关系，并非原文明示。"
     )

@@ -234,17 +234,22 @@ flowchart TB
     end
 
     subgraph EVOLUTION["自进化系统"]
-        EDGE["后台补边<br/>批量实体 → 单条新关系"]
-        STUDY["Self-study<br/>自动发现图谱缺口"]
-        SEAL["SEAL<br/>生成并验证假设"]
-        PROMOTE["扩展节点晋升"]
+        FACTVIEW["事实图快照<br/>G_fact / H_fuzzy"]
+        BEAM["关系感知 Beam Search<br/>3–8 跳确定性长链"]
+        REVIEW["ReviewItem<br/>仅内存与审计文件"]
+        EVIDENCE["EvidencePackage<br/>逐跳 chunk / quote / offset"]
+        GENERATOR["Generator<br/>提出规范关系"]
+        JUDGE["独立 Judge<br/>accept / revise / reject"]
+        GATE["确定性 Gate<br/>证据、方向、重复、冲突"]
+        ACTION["create / refine / no-op<br/>补偿式原子写回"]
+        AUDIT["完整运行审计"]
     end
 
     subgraph STORAGE["每个会话的存储"]
         DOCS["原始文档与 Chunk"]
         NODES["实体节点"]
         ORIGINAL["原文关系"]
-        DISCOVERED["自进化关系"]
+        DISCOVERED["ECLRR-v4 promoted 关系<br/>可检索 + 原文证据"]
         MEMSTORE["记忆数据"]
     end
 
@@ -283,11 +288,14 @@ flowchart TB
     GC --> DOCS
     GC --> NODES
     GC --> ORIGINAL
-    EXTRACT --> EDGE
-    EDGE --> DISCOVERED
-    STUDY --> DISCOVERED
-    SEAL --> DISCOVERED
-    PROMOTE --> DISCOVERED
+    GC --> FACTVIEW
+    FACTVIEW --> BEAM --> REVIEW --> EVIDENCE --> GENERATOR --> JUDGE --> GATE --> ACTION
+    ACTION --> DISCOVERED
+    REVIEW -.-> AUDIT
+    EVIDENCE -.-> AUDIT
+    GENERATOR -.-> AUDIT
+    JUDGE -.-> AUDIT
+    GATE -.-> AUDIT
     CONV --> MEMSTORE
     EPISODE --> MEMSTORE
     LONG --> MEMSTORE
@@ -296,15 +304,15 @@ flowchart TB
     classDef problem fill:#ffe5e5,stroke:#d33,stroke-width:2px,color:#222;
     classDef harness fill:#e7f5ea,stroke:#3a8b55,stroke-width:2px,color:#222;
     classDef session fill:#e8f1ff,stroke:#4679bd,color:#222;
-    class EDGE,STUDY,SEAL,DISCOVERED problem;
+    class FACTVIEW,BEAM,REVIEW,EVIDENCE,GENERATOR,JUDGE,GATE,ACTION,DISCOVERED problem;
     class POLICY,RUN,ROUTE,SWITCH harness;
     class S2,S3,SM session;
 ```
 
 Green nodes are the thin Harness and experiment controls, blue nodes show
-session isolation, and red nodes mark the self-evolution area where future
-work will move from isolated edge discovery to evidence-grounded path
-completion.
+session isolation, and red nodes show the implemented ECLRR-v4 evidence path:
+deterministic long-chain search, two independent LLM decisions, deterministic
+verification, and promoted-edge retrieval with original chunks.
 
 ---
 
@@ -329,14 +337,37 @@ DocThinker organizes retrieval and memory as an agent-facing framework instead o
 After generation, `after_response()` consolidates the turn back into memory layers, writes chat episodes, stores durable long-horizon insights, optionally feeds the Q&A back into the graph, and promotes useful expanded nodes. Hosts can set `remember_turn=false` or pass `memory_excluded_layers` such as `["long_horizon", "episodic"]` to keep specific content out of memory. Long-horizon memory also has a management plane: it records write/skip decisions, blocks obvious secrets, avoids transient debug material by default, supports deletion, natural-language edit planning, confirmed updates, and `MEMORY.md`-style audit export.
 
 ### 2. 🧩 Session-Scoped Knowledge Graphs
-Each session owns its own GraphCore-backed knowledge graph and document state. Uploaded files are parsed, inserted, and queried within that session, which keeps user context isolated while still allowing the graph to grow over time.
+Each session owns its own GraphCore-backed knowledge graph, document status,
+parse cache, vector indexes, answer cache, and memory stores. New sessions use a
+dedicated GraphCore workspace and session-derived document IDs, so uploading
+the same file in two conversations triggers independent ingestion and graph
+construction. Query-cache keys also include the session storage scope and the
+retrieved-context fingerprint; adding a document or changing the graph cannot
+silently reuse an answer produced from an older context. Existing sessions that
+already use the legacy on-disk layout remain readable without migration.
 
 ### 3. 🔀 Self-Evolving KG Expansion
-Expansion operates in two complementary passes:
-* **Path A (Cluster-based):** HDBSCAN clusters entity embeddings → LLM generates cluster summaries → expands new entities grounded in cluster themes.
-* **Path B (Top-N multi-angle):** Top-50 highest-degree nodes expanded across 6 cognitive dimensions (hierarchy, causation, analogy, contrast, temporal, application).
+Hidden-edge evolution uses **ECLRR-v4 (Evidence-Carrying Long-Chain Relation
+Refinement)** to refine vague edges and create missing relations:
 
-Newly expanded nodes do not immediately become authoritative knowledge. They enter as candidates, are matched during query time, and only become formal graph nodes after repeated useful adoption in assistant responses.
+1. **Fact-path search:** deterministic, relation-aware beam search explores
+   3–8 hop source-fact paths. Any entity type may bridge a path, while fuzzy,
+   promoted, and legacy inferred edges cannot prove another relation.
+2. **Evidence grounding:** every hop resolves `source_id` to an original chunk
+   and verifies its quote, offsets, edge, and direction. One missing hop rejects
+   the item.
+3. **Generation and review:** a Generator proposes the relation, an independent
+   Judge reviews it, and a deterministic Gate checks continuity, citations,
+   direction, duplicates, and conflicts.
+4. **Writeback and retrieval:** the only outcomes are `create`, `refine`, and
+   `no-op`. Evidence-complete promoted edges are atomically indexed and later
+   retrieved together with their original chunks.
+
+The classic expanded-node memory lifecycle remains a separate optional memory
+feature; it is not the approval path for ECLRR hidden edges. In Graph 2, source
+facts are solid edges and promoted ECLRR-v4 relations are rendered as red dashed
+edges. See [the architecture image prompt](docs/ECLRR_V4_ARCHITECTURE_IMAGE_PROMPT.md)
+for producing a publication-style explanatory figure.
 
 ### 4. 🗃️ Tiered Conversation Memory (Claw)
 Claw implements a three-layer memory hierarchy for long-running conversations: hot working memory, warm core summaries, and cold semantic archives.

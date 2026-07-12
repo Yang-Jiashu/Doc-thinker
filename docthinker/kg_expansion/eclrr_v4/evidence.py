@@ -11,6 +11,26 @@ from .graph_view import FactGraphView
 from .models import ECLRRConfig, EvidencePackage, EvidenceRef, ReviewItem
 
 _SENTENCE_BREAK = re.compile(r"[^。！？!?\n]+[。！？!?]?|[^\n]+$")
+_DIRECT_CLUE_TERMS = (
+    "每次经过",
+    "座位空出来",
+    "桌牌上压着",
+    "从不解释",
+    "红钉",
+    "路线图",
+    "钟表记录",
+    "戒面",
+    "银铃",
+    "裂口正好",
+    "墨点",
+    "出生时辰",
+    "旧衣角",
+    "无法复原的印记",
+    "停下笔",
+    "锁进没有标签",
+    "严丝合缝",
+    "互相对上",
+)
 
 
 def _aliases(node_name: str, node: dict[str, Any]) -> tuple[str, ...]:
@@ -109,13 +129,20 @@ async def build_evidence_package(
     text_chunks: Any,
     config: ECLRRConfig,
 ) -> tuple[EvidencePackage | None, str]:
-    ordered_ids = list(
-        dict.fromkeys(
-            chunk_id for step in item.primary_path.steps for chunk_id in step.source_ids
+    fuzzy_source_ids = tuple(
+        str(item.fuzzy_edge.get("source_id") or "").split("<SEP>")
+    ) if item.fuzzy_edge else ()
+    ordered_ids = list(dict.fromkeys(
+        chunk_id.strip()
+        for chunk_id in (
+            *(chunk_id for step in item.primary_path.steps for chunk_id in step.source_ids),
+            *fuzzy_source_ids,
         )
-    )
+        if chunk_id.strip()
+    ))
     chunk_text = await _load_chunks(text_chunks, ordered_ids)
     primary: list[EvidenceRef] = []
+    direct: list[EvidenceRef] = []
     alternates: list[EvidenceRef] = []
 
     for hop_index, step in enumerate(item.primary_path.steps):
@@ -160,10 +187,62 @@ async def build_evidence_package(
             else:
                 alternates.append(evidence)
 
+    if item.fuzzy_edge:
+        direct_candidates: list[tuple[int, int, str, str, int, str]] = []
+        source_aliases = _aliases(item.source, view.nodes[item.source])
+        target_aliases = _aliases(item.target, view.nodes[item.target])
+        relation = str(
+            item.fuzzy_edge.get("relation")
+            or item.fuzzy_edge.get("keywords")
+            or "implicit clue"
+        )
+        for chunk_id in fuzzy_source_ids:
+            chunk_id = chunk_id.strip()
+            text = chunk_text.get(chunk_id)
+            if text is None:
+                continue
+            for start, end, quote, context, rank in _quote_candidates(
+                text,
+                source_aliases,
+                target_aliases,
+                relation,
+                context_chars=config.context_chars,
+            ):
+                if rank >= 5:
+                    clue_bonus = 6 * sum(
+                        term.casefold() in quote.casefold()
+                        for term in _DIRECT_CLUE_TERMS
+                    )
+                    direct_candidates.append(
+                        (start, end, quote, context, rank + clue_bonus, chunk_id)
+                    )
+        direct_candidates.sort(key=lambda row: (-row[4], row[5], row[0], row[1]))
+        if not direct_candidates:
+            return None, "missing_direct_endpoint_evidence"
+        start, end, quote, context, _rank, chunk_id = direct_candidates[0]
+        digest = hashlib.md5(
+            f"{item.review_id}|direct|{chunk_id}|{start}|{end}".encode("utf-8")
+        ).hexdigest()[:16]
+        direct.append(
+            EvidenceRef(
+                evidence_id=f"ev-{digest}",
+                hop_index=-1,
+                edge_id=f"fuzzy-{item.review_id}",
+                source=item.source,
+                target=item.target,
+                chunk_id=chunk_id,
+                quote=quote,
+                start=start,
+                end=end,
+                context=context,
+            )
+        )
+
     return (
         EvidencePackage(
             review_item=item,
             primary_evidence=primary,
+            direct_evidence=direct,
             alternate_evidence=alternates,
             node_types={name: view.node_type(name) for name in item.primary_path.nodes},
         ),

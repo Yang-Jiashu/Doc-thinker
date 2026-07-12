@@ -18,11 +18,13 @@ class ECLRRConfig:
     beam_width: int = 12
     max_neighbours: int = 24
     max_review_items: int = 128
+    max_promotions: int = 20
     max_paths_per_item: int = 3
     max_generator_chains: int = 2
     max_generator_items: int = 8
     max_prompt_chars: int = 14_000
     max_output_tokens: int = 4096
+    max_llm_retries: int = 1
     alternate_evidence_per_hop: int = 2
     context_chars: int = 320
     artifact_dir: str | None = None
@@ -101,6 +103,7 @@ class EvidenceRef:
 class EvidencePackage:
     review_item: ReviewItem
     primary_evidence: list[EvidenceRef]
+    direct_evidence: list[EvidenceRef]
     alternate_evidence: list[EvidenceRef]
     node_types: dict[str, str]
 
@@ -116,6 +119,10 @@ class EvidencePackage:
                 payload.pop("context", None)
             return payload
 
+        required_refs = [
+            item.evidence_id
+            for item in (*self.primary_evidence, *self.direct_evidence)
+        ]
         return {
             "review_id": self.review_item.review_id,
             "source": self.review_item.source,
@@ -126,6 +133,10 @@ class EvidencePackage:
             "primary_evidence": [
                 evidence_payload(item) for item in self.primary_evidence
             ],
+            "direct_endpoint_evidence": [
+                evidence_payload(item) for item in self.direct_evidence
+            ],
+            "required_evidence_refs": required_refs,
             "alternate_evidence": (
                 [evidence_payload(item) for item in self.alternate_evidence]
                 if include_alternates

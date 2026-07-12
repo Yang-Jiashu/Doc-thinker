@@ -1,4 +1,6 @@
+import asyncio
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -18,6 +20,13 @@ _log = logging.getLogger("docthinker.graph")
 
 
 router = APIRouter()
+
+_ECLRR_RUN_TASKS: Dict[str, asyncio.Task] = {}
+_ECLRR_RUN_STATUS: Dict[str, Dict[str, Any]] = {}
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _get_memory_engine_or_raise(session_id: Optional[str]):
@@ -42,7 +51,14 @@ async def _get_session_rag_or_raise(session_id: Optional[str]):
         )
         session_rag.llm_model_func = state.rag_instance.llm_model_func
         session_rag.embedding_func = state.rag_instance.embedding_func
-        await session_rag._ensure_graphcore_initialized()
+        init_result = await session_rag._ensure_graphcore_initialized()
+        if session_rag.graphcore is None:
+            detail = (
+                init_result.get("error")
+                if isinstance(init_result, dict)
+                else "unknown initialization failure"
+            )
+            raise RuntimeError(f"GraphCore initialization failed: {detail}")
         return session_rag
     except HTTPException:
         raise
@@ -406,6 +422,7 @@ def _graph_edge_response(
         "color": "#ef4444" if discovered else "#95a5a6",
         "width": 2 if discovered else 1,
         "review_status": edge.get("review_status", ""),
+        "query_eligible": edge.get("query_eligible", ""),
         "provenance": edge.get("provenance", ""),
         "algorithm_version": edge.get("algorithm_version", ""),
         "relation_id": relation_id,
@@ -530,6 +547,132 @@ async def get_edge_chunks(
         return {"edge_id": edge_id or "", "source_ids": source_ids, "chunks": chunks}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load edge chunks: {str(e)}")
+
+
+async def _run_eclrr_for_session(session_id: str, max_new_edges: int) -> None:
+    status = _ECLRR_RUN_STATUS[session_id]
+    try:
+        session_rag = await _get_session_rag_or_raise(session_id)
+        graphcore = session_rag.graphcore
+        if graphcore is None:
+            await session_rag._ensure_graphcore_initialized()
+            graphcore = session_rag.graphcore
+        if graphcore is None:
+            raise RuntimeError("GraphCore initialization failed")
+        graph = graphcore.chunk_entity_relation_graph
+        nodes = await graph.get_all_nodes()
+        if len(nodes) < 4:
+            raise RuntimeError("At least four graph nodes are required")
+        llm_fn = getattr(session_rag, "llm_model_func", None)
+        if not llm_fn:
+            raise RuntimeError("LLM function is not configured")
+
+        session = state.session_manager.get_session(session_id) if state.session_manager else None
+        metadata = (session or {}).get("metadata") or {}
+        knowledge_dir = metadata.get("knowledge_dir") or (session or {}).get("knowledge_dir")
+        from docthinker.kg_expansion.eclrr_v4 import ECLRRConfig, run_eclrr_v4
+
+        result = await run_eclrr_v4(
+            graph=graph,
+            text_chunks=graphcore.text_chunks,
+            generator_func=llm_fn,
+            judge_func=llm_fn,
+            relationships_vdb=graphcore.relationships_vdb,
+            config=ECLRRConfig(
+                max_review_items=min(128, max(60, max_new_edges * 4)),
+                max_promotions=max_new_edges,
+                artifact_dir=(
+                    str(Path(knowledge_dir) / "eclrr_v4_runs")
+                    if knowledge_dir
+                    else None
+                ),
+            ),
+        )
+        status.update(
+            {
+                "status": "completed",
+                "finished_at": _utc_now(),
+                "reviewed": len(result.review_items),
+                "proposed": len(result.proposals),
+                "accepted": len(result.committed),
+                "rejected": result.metrics.get("no_op", 0),
+                "create": result.metrics.get("create", 0),
+                "refine": result.metrics.get("refine", 0),
+                "write_failures": len(result.metrics.get("write_failures", {})),
+                "relations": [
+                    {
+                        "id": item.relation_id,
+                        "source": item.source,
+                        "target": item.target,
+                        "relation": item.relation,
+                        "action": item.action,
+                    }
+                    for item in result.committed
+                ],
+            }
+        )
+    except Exception as exc:
+        _log.exception("ECLRR-v4 manual run failed for session %s", session_id)
+        status.update(
+            {
+                "status": "failed",
+                "finished_at": _utc_now(),
+                "error": f"{type(exc).__name__}: {exc}",
+            }
+        )
+    finally:
+        _ECLRR_RUN_TASKS.pop(session_id, None)
+
+
+@router.post("/knowledge-graph/eclrr-v4/run")
+async def start_eclrr_v4(payload: Dict[str, Any] = Body(default={})):
+    session_id = str(payload.get("session_id") or "").strip()
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id is required")
+    try:
+        requested_limit = int(payload.get("max_new_edges", 40))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="max_new_edges must be an integer")
+    max_new_edges = min(40, max(1, requested_limit))
+
+    running = _ECLRR_RUN_TASKS.get(session_id)
+    if running and not running.done():
+        return _ECLRR_RUN_STATUS[session_id]
+
+    await _get_session_rag_or_raise(session_id)
+    status = {
+        "session_id": session_id,
+        "status": "running",
+        "max_new_edges": max_new_edges,
+        "started_at": _utc_now(),
+        "reviewed": 0,
+        "proposed": 0,
+        "accepted": 0,
+        "rejected": 0,
+    }
+    _ECLRR_RUN_STATUS[session_id] = status
+    _ECLRR_RUN_TASKS[session_id] = asyncio.create_task(
+        _run_eclrr_for_session(session_id, max_new_edges)
+    )
+    return status
+
+
+@router.get("/knowledge-graph/eclrr-v4/status")
+async def get_eclrr_v4_status(session_id: Optional[str] = None):
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id is required")
+    return _ECLRR_RUN_STATUS.get(
+        session_id,
+        {
+            "session_id": session_id,
+            "status": "idle",
+            "max_new_edges": 40,
+            "reviewed": 0,
+            "proposed": 0,
+            "accepted": 0,
+            "rejected": 0,
+        },
+    )
 
 
 @router.get("/knowledge-graph/image/{session_id}/{filename}")

@@ -81,9 +81,14 @@ async def run_eclrr_v4(
     audit.record("gate", gate_results)
     committed = []
     write_failures: dict[str, str] = {}
+    promotable = [
+        item for item in gate_results if item.action in {"create", "refine"}
+    ]
+    promotion_limit = max(0, int(cfg.max_promotions))
+    selected_for_write = promotable[:promotion_limit]
     if write_graph:
         committed, write_failures = await commit_promotions(
-            gate_results, graph, relationships_vdb
+            selected_for_write, graph, relationships_vdb
         )
     audit.record(
         "writeback",
@@ -104,6 +109,9 @@ async def run_eclrr_v4(
         "no_op": sum(result.action == "no-op" for result in gate_results),
         "committed": len(committed),
         "write_failures": write_failures,
+        "promotion_limit": promotion_limit,
+        "promotion_candidates": len(promotable),
+        "promotion_limit_dropped": max(0, len(promotable) - len(selected_for_write)),
     }
     audit.finalize(metrics)
     return ECLRRRunResult(

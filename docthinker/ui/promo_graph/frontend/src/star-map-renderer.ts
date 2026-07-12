@@ -95,8 +95,13 @@ const EDGE_FRAGMENT_SHADER = `
   varying float vDashed;
   void main() {
     if (vDashed > 0.5 && mod(vLineT * 22.0, 1.0) > 0.58) discard;
-    float alpha = vState > 2.5 ? 0.98 : vState > 1.5 ? 0.78 : vState > 0.5 ? 0.025 : 0.105;
-    vec3 color = vState > 2.5 ? mix(vColor, vec3(0.94, 1.0, 1.0), 0.72) : vColor;
+    float baseAlpha = vDashed > 0.5 ? 0.9 : 0.105;
+    float mutedAlpha = vDashed > 0.5 ? 0.24 : 0.025;
+    float alpha = vState > 2.5 ? 0.98 : vState > 1.5 ? 0.82 : vState > 0.5 ? mutedAlpha : baseAlpha;
+    vec3 selectedColor = vDashed > 0.5
+      ? vec3(1.0, 0.08, 0.05)
+      : mix(vColor, vec3(0.94, 1.0, 1.0), 0.72);
+    vec3 color = vState > 2.5 ? selectedColor : vColor;
     gl_FragColor = vec4(color, alpha);
   }
 `;
@@ -282,7 +287,7 @@ export class StarMapRenderer {
     const edgeLineT = new Float32Array(model.edges.length * 2);
     const edgeDashed = new Float32Array(model.edges.length * 2);
     model.edges.forEach((edge, index) => {
-      const color = edge.isPromoted ? [0.73, 0.58, 1] : [0.54, 0.69, 0.8];
+      const color = edge.isPromoted ? [1.0, 0.06, 0.04] : [0.54, 0.69, 0.8];
       edgeColors.set(color, index * 6);
       edgeColors.set(color, index * 6 + 3);
       edgeLineT[index * 2] = 0;

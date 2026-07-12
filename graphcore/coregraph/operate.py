@@ -92,6 +92,18 @@ except Exception:  # pragma: no cover - optional dependency
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env", override=False)
 
 
+def _query_cache_scope(
+    hashing_kv: BaseKVStorage | None,
+    global_config: dict[str, Any],
+    context: str = "",
+) -> str:
+    """Bind cached query output to one store and one retrieved context."""
+    workspace = str(getattr(hashing_kv, "workspace", "") or "")
+    working_dir = str(global_config.get("working_dir") or "")
+    context_id = compute_mdhash_id(str(context or ""), prefix="ctx-")
+    return f"{workspace}|{working_dir}|{context_id}"
+
+
 def _truncate_entity_identifier(
     identifier: str, limit: int, chunk_key: str, identifier_role: str
 ) -> str:
@@ -3216,6 +3228,19 @@ async def kg_query(
 
     _t_llm = _time.time()
     args_hash = compute_args_hash(
+        _query_cache_scope(
+            hashing_kv,
+            global_config,
+            json.dumps(
+                {
+                    "context": context_result.context,
+                    "history": query_param.conversation_history,
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+                default=str,
+            ),
+        ),
         query_param.mode,
         query,
         query_param.response_type,
@@ -3400,6 +3425,7 @@ async def extract_keywords_only(
         return hl, ll
 
     args_hash = compute_args_hash(
+        _query_cache_scope(hashing_kv, global_config),
         param.mode,
         text,
     )
@@ -5415,6 +5441,19 @@ async def naive_query(
 
     # Handle cache
     args_hash = compute_args_hash(
+        _query_cache_scope(
+            hashing_kv,
+            global_config,
+            json.dumps(
+                {
+                    "context": context_content,
+                    "history": query_param.conversation_history,
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+                default=str,
+            ),
+        ),
         query_param.mode,
         query,
         query_param.response_type,

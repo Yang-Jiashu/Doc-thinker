@@ -14,6 +14,11 @@ from docthinker.kg_expansion.eclrr_v4 import (
     discover_review_items,
 )
 from docthinker.retrieval_policy import select_relations_for_query
+from docthinker.kg_expansion.eclrr_v4.clue_semantics import (
+    clue_contract,
+    clue_relation_ontology,
+)
+from docthinker.kg_expansion.eclrr_v4.gate import _is_person
 
 
 class FakeChunks:
@@ -55,6 +60,9 @@ def chain_graph(names="ABCD", *, fuzzy=False):
             }
         )
     if fuzzy:
+        chunks["chunk-fuzzy"] = (
+            f"{names[0]} and {names[-1]} share an unrecorded endpoint clue, but the archive does not name the relation."
+        )
         edges.append(
             {
                 "source": names[0],
@@ -140,6 +148,27 @@ class ECLRRSearchTest(unittest.TestCase):
 
 
 class ECLRRDeterministicGateTest(unittest.IsolatedAsyncioTestCase):
+    def test_direct_clue_relation_constraints_are_specific(self):
+        self.assertEqual(
+            {"spouses"},
+            clue_relation_ontology(["two \u65e7\u6212\u9762 fit into one circle"]),
+        )
+        self.assertEqual(
+            {"influence", "causation"},
+            clue_relation_ontology(["a dated \u7ea2\u9489 appeared beside the file"]),
+        )
+        self.assertIsNone(clue_relation_ontology(["an unrelated direct clue"]))
+        contract = clue_contract(
+            ["B\u7684\u540d\u5b57 appears, then A leaves a \u58a8\u70b9\u6ef4\u5728 the page"],
+            "A",
+            "B",
+        )
+        self.assertEqual("source_to_target", contract["direction_hint"])
+
+    def test_person_only_relation_type_check_keeps_non_person_bridges_eligible(self):
+        self.assertTrue(_is_person({"entity_type": "person"}))
+        self.assertFalse(_is_person({"entity_type": "artifact"}))
+
     async def _package(self, *, fuzzy=False):
         view, chunks = chain_graph("ABCD", fuzzy=fuzzy)
         item = next(
@@ -164,7 +193,10 @@ class ECLRRDeterministicGateTest(unittest.IsolatedAsyncioTestCase):
             relation_family="causation",
             direction="source_to_target",
             description="A indirectly causes D through B and C.",
-            evidence_refs=tuple(item.evidence_id for item in package.primary_evidence),
+            evidence_refs=tuple(
+                item.evidence_id
+                for item in (*package.primary_evidence, *package.direct_evidence)
+            ),
         )
 
     @staticmethod
@@ -181,7 +213,8 @@ class ECLRRDeterministicGateTest(unittest.IsolatedAsyncioTestCase):
             revised_relation=None,
             revised_relation_family=None,
             verified_evidence_refs=tuple(
-                item.evidence_id for item in package.primary_evidence
+                item.evidence_id
+                for item in (*package.primary_evidence, *package.direct_evidence)
             ),
         )
 

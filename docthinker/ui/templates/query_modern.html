@@ -469,6 +469,7 @@
 <script>
 let currentMode = 'standard';
 let currentFile = null;
+let currentFileSessionId = null;
 let currentSessionId = null;
 let rememberTurn = true;
 const runControls = {
@@ -509,6 +510,7 @@ function clearUiAttachments() {
         processing.classList.add('hidden');
     }
     currentFile = null;
+    currentFileSessionId = null;
     processingFilesCount = 0;
 }
 
@@ -865,13 +867,17 @@ async function handleFileSelect(input) {
         return;
     }
 
-    currentFile = file;
-
     const fileId = 'proc-' + Date.now();
+    const uploadSessionId = String(currentSessionId || '');
     addProcessingItem(fileId, file.name);
 
-    uploadFileWithProgress(file, fileId, (status, data) => {
+    uploadFileWithProgress(file, fileId, uploadSessionId, (status, data) => {
+        if (String(currentSessionId || '') !== uploadSessionId) {
+            return;
+        }
         if (status === 'success') {
+            currentFile = file;
+            currentFileSessionId = uploadSessionId;
             updateProcessingStatus(fileId, 'done', '处理完成');
             showAttachedFile(file.name, fileId);
         } else if (status === 'processing') {
@@ -1063,6 +1069,14 @@ async function sendMessage() {
         return;
     }
 
+    if (currentFile && currentFileSessionId !== String(currentSessionId || '')) {
+        clearUiAttachments();
+        showToast('该文件属于另一个对话，请在当前对话重新上传', 'warning');
+        return;
+    }
+
+    const requestSessionId = String(currentSessionId || '');
+
     _lockInput();
     resetMemoryInspector('recalling');
 
@@ -1078,6 +1092,7 @@ async function sendMessage() {
     attached.innerHTML = '';
     attached.classList.add('hidden');
     currentFile = null;
+    currentFileSessionId = null;
 
     try {
         const response = await fetch('/api/v1/query/stream', {
@@ -1087,7 +1102,7 @@ async function sendMessage() {
                 question: message || '请分析上传的文件',
                 memory_mode: 'session',
                 ui_mode: currentMode,
-                session_id: currentSessionId,
+                session_id: requestSessionId,
                 remember_turn: rememberTurn,
                 use_memory: runControls.memory,
                 use_conversation_context: runControls.context,
@@ -1376,11 +1391,11 @@ async function clearChat() {
 }
 
 // Override upload behavior: keep file in "processing" until backend document status is done.
-function uploadFileWithProgress(file, fileId, onStatusChange) {
+function uploadFileWithProgress(file, fileId, uploadSessionId, onStatusChange) {
     const formData = new FormData();
     formData.append('files', file);
-    if (currentSessionId) {
-        formData.append('session_id', currentSessionId);
+    if (uploadSessionId) {
+        formData.append('session_id', uploadSessionId);
     }
 
     let uploadProgress = 0;
@@ -1419,9 +1434,9 @@ function uploadFileWithProgress(file, fileId, onStatusChange) {
         }
 
         const backgroundProcessing = !!(data && (data.background_processing === true || data.status === 'processing'));
-        if (backgroundProcessing && currentSessionId) {
+        if (backgroundProcessing && uploadSessionId) {
             updateProcessingStatus(fileId, 'processing', 'Background parsing...', 95);
-            waitForFileProcessed(currentSessionId, file.name).then((result) => {
+            waitForFileProcessed(uploadSessionId, file.name).then((result) => {
                 if (result.ok) {
                     updateProcessingStatus(fileId, 'done', 'Processing completed', 100);
                     onStatusChange('success', data || {});

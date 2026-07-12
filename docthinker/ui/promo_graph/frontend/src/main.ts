@@ -5,6 +5,7 @@ import {
   PanelRight,
   RotateCw,
   Search,
+  Sparkles,
   TriangleAlert,
   X,
   ZoomIn,
@@ -63,6 +64,19 @@ const AUTO_ROTATION_STORAGE_KEY = "docthinker.promo.autoRotate";
 const SHARED_SESSION_STORAGE_KEY = "current_session_id";
 const LEGACY_PROMO_SESSION_STORAGE_KEY = "docthinker.promo.session";
 
+interface EclrrRunStatus {
+  session_id: string;
+  status: "idle" | "running" | "completed" | "failed";
+  max_new_edges: number;
+  started_at?: string;
+  finished_at?: string;
+  reviewed: number;
+  proposed: number;
+  accepted: number;
+  rejected: number;
+  error?: string;
+}
+
 function storedSessionPreference(): string {
   try {
     return localStorage.getItem(SHARED_SESSION_STORAGE_KEY)
@@ -102,6 +116,7 @@ class PromoGraphApp {
   private panelRoot = required<HTMLElement>("#node-panel");
   private panelToggle = required<HTMLButtonElement>("#toggle-panel");
   private rotationButton = required<HTMLButtonElement>("#toggle-auto-rotation");
+  private eclrrButton = required<HTMLButtonElement>("#run-eclrr");
   private gestureButton = required<HTMLButtonElement>("#toggle-gesture");
   private gestureLayer = required<HTMLElement>("#gesture-layer");
   private gestureVideo = required<HTMLVideoElement>("#gesture-video");
@@ -136,6 +151,8 @@ class PromoGraphApp {
   private gestureNodeDragging = false;
   private attractionNode = -1;
   private attractionRequest = 0;
+  private eclrrPollTimer = 0;
+  private eclrrCompletionSeen = "";
 
   constructor() {
     this.renderer = new StarMapRenderer(this.stage);
@@ -218,6 +235,7 @@ class PromoGraphApp {
     required<HTMLButtonElement>("#zoom-out").addEventListener("click", () => this.renderer.zoomAt(this.stage.clientWidth / 2, this.stage.clientHeight / 2, 0.78));
     required<HTMLButtonElement>("#fit-graph").addEventListener("click", () => this.renderer.fitToGraph());
     this.rotationButton.addEventListener("click", () => this.setAutoRotationEnabled(!this.autoRotation.snapshot.enabled));
+    this.eclrrButton.addEventListener("click", () => void this.startEclrr());
     this.gestureButton.addEventListener("click", () => void this.toggleGestureControl());
     required<HTMLButtonElement>("#close-panel").addEventListener("click", () => this.closePanel());
     required<HTMLButtonElement>("#retry-load").addEventListener("click", () => void this.loadGraph());
@@ -226,12 +244,15 @@ class PromoGraphApp {
       this.root.classList.contains("is-panel-open") ? this.closePanel() : this.openPanel();
     });
     this.sessionSelect.addEventListener("change", () => {
+      window.clearTimeout(this.eclrrPollTimer);
+      this.eclrrCompletionSeen = "";
+      this.setEclrrButtonRunning(false);
       this.currentSessionId = this.sessionSelect.value;
       storeSessionPreference(this.currentSessionId);
       const url = new URL(window.location.href);
       url.searchParams.set("session_id", this.currentSessionId);
       window.history.replaceState({}, "", url);
-      void this.loadGraph();
+      void this.loadGraph().then(() => this.refreshEclrrStatus());
     });
     this.searchInput.addEventListener("input", () => this.updateSearchResults());
     this.searchInput.addEventListener("keydown", event => this.onSearchKeyDown(event));
@@ -239,11 +260,14 @@ class PromoGraphApp {
   }
 
   async init(): Promise<void> {
-    createIcons({ icons: { ArrowLeft, Hand, Maximize2, PanelRight, RotateCw, Search, TriangleAlert, X, ZoomIn, ZoomOut } });
+    createIcons({ icons: { ArrowLeft, Hand, Maximize2, PanelRight, RotateCw, Search, Sparkles, TriangleAlert, X, ZoomIn, ZoomOut } });
     this.updateRotationButton();
     this.updateGestureButton();
     await this.loadSessions();
-    if (this.currentSessionId) await this.loadGraph();
+    if (this.currentSessionId) {
+      await this.loadGraph();
+      await this.refreshEclrrStatus();
+    }
   }
 
   private async loadSessions(): Promise<void> {
@@ -546,6 +570,76 @@ class PromoGraphApp {
     this.stage.dataset.triangles = String(stats.triangles);
   }
 
+  private setEclrrButtonRunning(running: boolean): void {
+    this.eclrrButton.disabled = running;
+    this.eclrrButton.classList.toggle("is-running", running);
+    const title = running
+      ? "ECLRR-v4 自进化正在运行"
+      : "运行 ECLRR-v4 自进化，最多生成 40 条新边";
+    this.eclrrButton.title = title;
+    this.eclrrButton.setAttribute("aria-label", title);
+  }
+
+  private async startEclrr(): Promise<void> {
+    if (!this.currentSessionId || this.eclrrButton.disabled) return;
+    this.setEclrrButtonRunning(true);
+    this.setStatus("ECLRR-v4 自进化启动中", "最多写回 40 条新边");
+    try {
+      const response = await fetch(`${this.apiPrefix}/knowledge-graph/eclrr-v4/run`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: this.currentSessionId, max_new_edges: 40 }),
+      });
+      const payload = await response.json() as EclrrRunStatus & { detail?: string };
+      if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+      this.applyEclrrStatus(payload);
+    } catch (error) {
+      this.setEclrrButtonRunning(false);
+      this.setStatus("ECLRR-v4 启动失败", (error as Error).message);
+    }
+  }
+
+  private async refreshEclrrStatus(): Promise<void> {
+    if (!this.currentSessionId) return;
+    try {
+      const url = `${this.apiPrefix}/knowledge-graph/eclrr-v4/status?session_id=${encodeURIComponent(this.currentSessionId)}`;
+      const response = await fetch(url, { cache: "no-store" });
+      const payload = await response.json() as EclrrRunStatus;
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      this.applyEclrrStatus(payload);
+    } catch (error) {
+      this.setEclrrButtonRunning(false);
+      this.setStatus("ECLRR-v4 状态读取失败", (error as Error).message);
+    }
+  }
+
+  private applyEclrrStatus(payload: EclrrRunStatus): void {
+    window.clearTimeout(this.eclrrPollTimer);
+    if (payload.status === "running") {
+      this.setEclrrButtonRunning(true);
+      this.setStatus("ECLRR-v4 自进化中", `最多 ${payload.max_new_edges} 条新边`);
+      this.eclrrPollTimer = window.setTimeout(() => void this.refreshEclrrStatus(), 1_500);
+      return;
+    }
+
+    this.setEclrrButtonRunning(false);
+    if (payload.status === "failed") {
+      this.setStatus("ECLRR-v4 自进化失败", payload.error || "未知错误");
+      return;
+    }
+    if (payload.status !== "completed") return;
+
+    const completionKey = payload.finished_at || payload.started_at || "completed";
+    if (completionKey === this.eclrrCompletionSeen) return;
+    this.eclrrCompletionSeen = completionKey;
+    void this.loadGraph().then(() => {
+      this.setStatus(
+        "ECLRR-v4 自进化完成",
+        `审核 ${payload.reviewed} · 提议 ${payload.proposed} · 写回 ${payload.accepted} · 拒绝 ${payload.rejected}`,
+      );
+    });
+  }
+
   private setAutoRotationEnabled(enabled: boolean): void {
     this.autoRotation.setEnabled(enabled);
     try {
@@ -631,6 +725,7 @@ class PromoGraphApp {
 
   dispose(): void {
     window.clearInterval(this.statsTimer);
+    window.clearTimeout(this.eclrrPollTimer);
     this.graphAbort?.abort();
     this.chunksAbort?.abort();
     document.removeEventListener("visibilitychange", this.onVisibilityChange);

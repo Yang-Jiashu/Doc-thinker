@@ -15,6 +15,13 @@ from .models import (
 from .prompts import RELATION_FAMILIES, fit_judge_prompt, plan_generator_batches
 
 
+def _required_evidence_refs(package: EvidencePackage) -> set[str]:
+    return {
+        item.evidence_id
+        for item in (*package.primary_evidence, *package.direct_evidence)
+    }
+
+
 def _strict_object(raw: Any) -> dict[str, Any]:
     if not isinstance(raw, str):
         raise ValueError("llm_output_not_string")
@@ -151,12 +158,36 @@ async def run_generator_and_judge(
     for batch_index, (batch, prompt) in enumerate(batches):
         ids = {item.review_item.review_id for item in batch}
         try:
-            raw = await generator_func(
-                prompt,
-                max_tokens=config.max_output_tokens,
-                temperature=0.0,
-            )
-            parsed = parse_proposals(raw, ids)
+            raw = ""
+            parsed: list[Proposal] | None = None
+            last_error: Exception | None = None
+            for attempt in range(config.max_llm_retries + 1):
+                try:
+                    raw = await generator_func(
+                        prompt,
+                        max_tokens=config.max_output_tokens,
+                        temperature=0.0,
+                    )
+                    parsed = parse_proposals(raw, ids)
+                    for proposal in parsed:
+                        required = _required_evidence_refs(
+                            package_by_id[proposal.review_id]
+                        )
+                        if set(proposal.evidence_refs) != required:
+                            raise ValueError("generator_evidence_refs_incomplete")
+                    break
+                except Exception as exc:
+                    last_error = exc
+                    if audit:
+                        audit.record_llm(
+                            "generator-attempt",
+                            batch_index * (config.max_llm_retries + 1) + attempt,
+                            prompt,
+                            raw,
+                            {"error": str(exc)},
+                        )
+            if parsed is None:
+                raise last_error or ValueError("generator_failed_without_error")
             proposals.extend(parsed)
             if audit:
                 audit.record_llm(
@@ -182,12 +213,59 @@ async def run_generator_and_judge(
             failures[proposal.review_id] = str(exc)
             continue
         try:
-            raw = await judge_func(
-                prompt,
-                max_tokens=config.max_output_tokens,
-                temperature=0.0,
-            )
-            decision = parse_judge_decision(raw, proposal.review_id)
+            raw = ""
+            decision: JudgeDecision | None = None
+            last_error: Exception | None = None
+            for attempt in range(config.max_llm_retries + 1):
+                try:
+                    raw = await judge_func(
+                        (
+                            prompt
+                            if last_error is None
+                            else prompt
+                            + "\nPREVIOUS_OUTPUT_VALIDATION_ERROR="
+                            + str(last_error)
+                            + ". Return corrected strict JSON only."
+                        ),
+                        max_tokens=config.max_output_tokens,
+                        temperature=0.0,
+                    )
+                    decision = parse_judge_decision(raw, proposal.review_id)
+                    if (
+                        decision.decision == "reject"
+                        and decision.total >= 8
+                        and decision.evidence_coverage == 4
+                        and decision.semantic_composability >= 2
+                        and decision.relation_direction >= 1
+                    ):
+                        raise ValueError("judge_reject_conflicts_with_passing_scores")
+                    if (
+                        decision.evidence_coverage == 4
+                        and any(
+                            "missing_direct_evidence" in code.casefold()
+                            for code in decision.reason_codes
+                        )
+                    ):
+                        raise ValueError("judge_score_reason_conflict")
+                    if (
+                        decision.decision in {"accept", "revise"}
+                        and set(decision.verified_evidence_refs)
+                        != _required_evidence_refs(package)
+                    ):
+                        raise ValueError("judge_evidence_refs_incomplete")
+                    break
+                except Exception as exc:
+                    last_error = exc
+                    if audit:
+                        audit.record_llm(
+                            "judge-attempt",
+                            index * (config.max_llm_retries + 1) + attempt,
+                            prompt,
+                            raw,
+                            {"error": str(exc)},
+                        )
+            if decision is None:
+                raise last_error or ValueError("judge_failed_without_error")
             decisions.append(decision)
             if audit:
                 audit.record_llm("judge", index, prompt, raw, asdict(decision))

@@ -113,6 +113,16 @@ select:focus-visible,
   background: rgba(101, 231, 242, 0.09);
 }
 
+.icon-button.is-running {
+  color: var(--cyan);
+  border-color: rgba(101, 231, 242, 0.3);
+  background: rgba(101, 231, 242, 0.09);
+}
+
+.icon-button.is-running svg {
+  animation: eclrr-running 1.2s linear infinite;
+}
+
 .icon-button svg {
   width: 19px;
   height: 19px;
@@ -611,6 +621,10 @@ select:focus-visible,
 @keyframes loading-pulse {
   0%, 100% { opacity: 0.38; transform: scale(0.8); }
   50% { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes eclrr-running {
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 900px) {

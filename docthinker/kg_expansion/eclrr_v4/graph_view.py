@@ -17,6 +17,8 @@ _FUZZY_TERMS = (
     "未明确",
     "关系不明",
     "隐秘关系",
+    "隐秘联系",
+    "未被记录",
     "某种联系",
     "物品关联",
     "暗示",
@@ -27,6 +29,28 @@ _FUZZY_TERMS = (
     "unclear relationship",
     "implicit relation",
     "some connection",
+    "implicit_clue",
+)
+_FUZZY_CLUE_PATTERNS = (
+    "没有写下结论",
+    "没有写明结论",
+    "未写下判断",
+    "没有写下判断",
+    "却没有写下",
+    "从不解释",
+    "只夹着",
+    "档案里只",
+    "只在页边",
+    "无法复原的印记",
+    "遥遥相对",
+    "严丝合缝",
+    "停下笔",
+    "墨点滴在",
+    "红钉后来出现在",
+    "能够互相对上",
+    "把最靠窗的座位空出来",
+    "不能坐人",
+    "锁进没有标签",
 )
 _GENERIC_RELATIONS = {
     "related",
@@ -95,7 +119,7 @@ def classify_edge(edge: dict[str, Any]) -> str:
     text = " ".join(
         str(edge.get(key) or "") for key in ("relation", "keywords", "description")
     ).casefold()
-    if any(term.casefold() in text for term in _FUZZY_TERMS):
+    if any(term.casefold() in text for term in (*_FUZZY_TERMS, *_FUZZY_CLUE_PATTERNS)):
         return "fuzzy"
     return "fact"
 
