@@ -489,7 +489,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         raise HTTPException(status_code=400, detail="session_id is required; global knowledge is disabled")
 
     session_rag = await _get_session_rag_or_raise(request.session_id)
-    identity_keywords = ["who are you", "your name", "hello", "hi"]
+    identity_keywords = ["who are you", "your name", "hello", "hi", "你好", "你是谁", "你叫什么"]
     question_lower = (request.question or "").lower()
     is_identity_query = any(k in question_lower for k in identity_keywords) and len(request.question) < 40
 
