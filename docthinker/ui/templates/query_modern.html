@@ -1095,13 +1095,20 @@ async function sendMessage() {
     currentFileSessionId = null;
 
     try {
+        const queryMode = currentMode === 'quick'
+            ? { mode: 'naive', enableThinking: false, enableRerank: false }
+            : currentMode === 'deep'
+                ? { mode: 'mix', enableThinking: true, enableRerank: true }
+                : { mode: 'local', enableThinking: false, enableRerank: true };
         const response = await fetch('/api/v1/query/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 question: message || '请分析上传的文件',
                 memory_mode: 'session',
-                ui_mode: currentMode,
+                mode: queryMode.mode,
+                enable_thinking: queryMode.enableThinking,
+                enable_rerank: queryMode.enableRerank,
                 session_id: requestSessionId,
                 remember_turn: rememberTurn,
                 use_memory: runControls.memory,
