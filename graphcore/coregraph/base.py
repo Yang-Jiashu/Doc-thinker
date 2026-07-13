@@ -106,6 +106,9 @@ class QueryParam:
     stream: bool = False
     """If True, enables streaming output for real-time responses."""
 
+    use_llm_cache: bool = True
+    """Request-scoped cache policy; False bypasses cache reads and writes."""
+
     top_k: int = int(os.getenv("TOP_K", str(DEFAULT_TOP_K)))
     """Number of top items to retrieve. Represents entities in 'local' mode and relationships in 'global' mode."""
 
@@ -189,6 +192,32 @@ class QueryParam:
     """Number of graph traversal hops to expand retrieval. 0 = disabled (vector-only retrieval).
     1 or 2 = after initial entity/relation retrieval, expand along graph edges (BFS) to include
     neighboring entities and relations. Makes Graph RAG retrieval truly graph-based."""
+
+    include_discovered_edges: bool = (
+        os.getenv("INCLUDE_DISCOVERED_EDGES", "false").lower() == "true"
+    )
+    """Whether evidence-gated self-evolution edges may participate in retrieval.
+
+    Disabled by default so inferred edges cannot silently change source-grounded answers.
+    """
+
+    max_relations: int = int(os.getenv("MAX_RELATIONS", "32"))
+    """Hard count budget for relations sent to the answer model."""
+
+    max_discovered_relations: int = int(
+        os.getenv("MAX_DISCOVERED_RELATIONS", "8")
+    )
+    """Maximum inferred relations within the total relation budget."""
+
+    min_discovered_edge_confidence: float = float(
+        os.getenv("MIN_DISCOVERED_EDGE_CONFIDENCE", "0.80")
+    )
+    """Minimum stored confidence for an inferred relation to be query eligible."""
+
+    require_discovered_evidence: bool = (
+        os.getenv("REQUIRE_DISCOVERED_EVIDENCE", "true").lower() == "true"
+    )
+    """Require auditable evidence metadata on inferred relations."""
 
 
 @dataclass

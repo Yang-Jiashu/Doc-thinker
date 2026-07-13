@@ -42,7 +42,14 @@ class AsyncModelRouter:
             self._cursor += 1
             return idx
 
-    async def chat_completion(self, *, messages: List[dict], max_tokens: int = 2048, stream: bool = False) -> Any:
+    async def chat_completion(
+        self,
+        *,
+        messages: List[dict],
+        max_tokens: int = 2048,
+        stream: bool = False,
+        temperature: float = 0.1,
+    ) -> Any:
         if not self.models:
             raise ValueError("No LLM models configured for routing")
 
@@ -59,6 +66,10 @@ class AsyncModelRouter:
                         if is_gpt5
                         else {"max_tokens": completion_budget}
                     )
+                    if not is_gpt5:
+                        token_kwargs["temperature"] = max(
+                            0.0, min(2.0, float(temperature))
+                        )
                     return await self.client.chat.completions.create(
                         model=model,
                         messages=messages,
@@ -189,7 +200,7 @@ async def _get_llm_model_func() -> Any:
         prompt: str,
         system_prompt: str | None = None,
         history_messages: List[dict] | None = None,
-        **_: Any,
+        **kwargs: Any,
     ) -> str:
         messages = []
         if system_prompt:
@@ -198,7 +209,12 @@ async def _get_llm_model_func() -> Any:
             messages.extend(history_messages)
         messages.append({"role": "user", "content": prompt})
 
-        resp = await model_router.chat_completion(messages=messages, max_tokens=2048, stream=False)
+        resp = await model_router.chat_completion(
+            messages=messages,
+            max_tokens=int(kwargs.get("max_tokens", 2048) or 2048),
+            stream=False,
+            temperature=state.settings.llm_temperature,
+        )
         if not hasattr(resp, "choices") or not resp.choices:
             return str(resp)
         return resp.choices[0].message.content
@@ -330,7 +346,12 @@ async def _initialize_rag() -> DocThinker:
             if system_prompt:
                 messages.append({"role": "system", "content": system_prompt})
             messages.append({"role": "user", "content": prompt})
-            resp = await extraction_router.chat_completion(messages=messages, max_tokens=2048, stream=False)
+            resp = await extraction_router.chat_completion(
+                messages=messages,
+                max_tokens=2048,
+                stream=False,
+                temperature=0.0,
+            )
             if not hasattr(resp, "choices") or not resp.choices:
                 return str(resp)
             return resp.choices[0].message.content

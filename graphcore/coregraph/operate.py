@@ -68,6 +68,11 @@ from graphcore.coregraph.constants import (
     DEFAULT_ENTITY_NAME_MAX_LENGTH,
 )
 from graphcore.coregraph.kg.shared_storage import get_storage_keyed_lock
+from docthinker.retrieval_policy import (
+    relation_confidence as _relation_confidence,
+    select_relations_for_query as _select_relations_for_query,
+    truthy_metadata as _truthy_metadata,
+)
 import time
 from dotenv import load_dotenv
 
@@ -80,10 +85,23 @@ except Exception:  # pragma: no cover - optional dependency
     normalize_bm25_scores = None
     _BM25_AVAILABLE = False
 
+
 # use the .env that is inside the current folder
 # allows to use different .env file for each graphcore.coregraph instance
 # the OS environment variables take precedence over the .env file
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env", override=False)
+
+
+def _query_cache_scope(
+    hashing_kv: BaseKVStorage | None,
+    global_config: dict[str, Any],
+    context: str = "",
+) -> str:
+    """Bind cached query output to one store and one retrieved context."""
+    workspace = str(getattr(hashing_kv, "workspace", "") or "")
+    working_dir = str(global_config.get("working_dir") or "")
+    context_id = compute_mdhash_id(str(context or ""), prefix="ctx-")
+    return f"{workspace}|{working_dir}|{context_id}"
 
 
 def _truncate_entity_identifier(
@@ -3210,6 +3228,19 @@ async def kg_query(
 
     _t_llm = _time.time()
     args_hash = compute_args_hash(
+        _query_cache_scope(
+            hashing_kv,
+            global_config,
+            json.dumps(
+                {
+                    "context": context_result.context,
+                    "history": query_param.conversation_history,
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+                default=str,
+            ),
+        ),
         query_param.mode,
         query,
         query_param.response_type,
@@ -3224,9 +3255,11 @@ async def kg_query(
         query_param.enable_rerank,
     )
 
-    cached_result = await handle_cache(
-        hashing_kv, args_hash, user_query, query_param.mode, cache_type="query"
-    )
+    cached_result = None
+    if query_param.use_llm_cache:
+        cached_result = await handle_cache(
+            hashing_kv, args_hash, user_query, query_param.mode, cache_type="query"
+        )
 
     if cached_result is not None:
         cached_response, _ = cached_result
@@ -3246,7 +3279,11 @@ async def kg_query(
             f"[kg_query T+{_kq_elapsed()}s] LLM generation done ({round(_time.time()-_t_llm,2)}s)"
         )
 
-        if hashing_kv and hashing_kv.global_config.get("enable_llm_cache"):
+        if (
+            query_param.use_llm_cache
+            and hashing_kv
+            and hashing_kv.global_config.get("enable_llm_cache")
+        ):
             queryparam_dict = {
                 "mode": query_param.mode,
                 "response_type": query_param.response_type,
@@ -3388,12 +3425,15 @@ async def extract_keywords_only(
         return hl, ll
 
     args_hash = compute_args_hash(
+        _query_cache_scope(hashing_kv, global_config),
         param.mode,
         text,
     )
-    cached_result = await handle_cache(
-        hashing_kv, args_hash, text, param.mode, cache_type="keywords"
-    )
+    cached_result = None
+    if param.use_llm_cache:
+        cached_result = await handle_cache(
+            hashing_kv, args_hash, text, param.mode, cache_type="keywords"
+        )
     if cached_result is not None:
         cached_response, _ = cached_result
         try:
@@ -3457,7 +3497,7 @@ async def extract_keywords_only(
             "high_level_keywords": hl_keywords,
             "low_level_keywords": ll_keywords,
         }
-        if hashing_kv.global_config.get("enable_llm_cache"):
+        if param.use_llm_cache and hashing_kv.global_config.get("enable_llm_cache"):
             # Save to cache with query parameters
             queryparam_dict = {
                 "mode": param.mode,
@@ -3582,6 +3622,7 @@ async def _expand_search_by_graph_traversal(
     seed_edge_pairs: set,
     knowledge_graph_inst: BaseGraphStorage,
     max_hops: int,
+    query_param: QueryParam,
     max_expand_entities: int = 100,
 ) -> tuple[list[str], list[tuple[str, str]]]:
     """
@@ -3597,11 +3638,35 @@ async def _expand_search_by_graph_traversal(
         if not frontier:
             break
         batch_edges = await knowledge_graph_inst.get_nodes_edges_batch(frontier)
+        candidate_pairs: list[tuple[str, str]] = []
+        seen_pairs: set[tuple[str, str]] = set()
+        for node_name in frontier:
+            for edge in batch_edges.get(node_name, []):
+                pair = tuple(sorted([edge[0], edge[1]]))
+                if pair not in seen_pairs:
+                    seen_pairs.add(pair)
+                    candidate_pairs.append(pair)
+        edge_props = await knowledge_graph_inst.get_edges_batch(
+            [{"src": pair[0], "tgt": pair[1]} for pair in candidate_pairs]
+        )
+        eligible_relations = _select_relations_for_query(
+            [
+                {"src_tgt": pair, **(edge_props.get(pair) or {})}
+                for pair in candidate_pairs
+                if edge_props.get(pair) is not None
+            ],
+            query_param,
+        )
+        eligible_pairs = {
+            tuple(sorted(relation["src_tgt"])) for relation in eligible_relations
+        }
         next_frontier: list[str] = []
         for node_name in frontier:
             for e in batch_edges.get(node_name, []):
                 src, tgt = e[0], e[1]
                 pair = tuple(sorted([src, tgt]))
+                if pair not in eligible_pairs:
+                    continue
                 all_edge_pairs.add(pair)
                 for n in (src, tgt):
                     if n not in visited:
@@ -3798,7 +3863,10 @@ async def _perform_kg_search(
             seed_edge_pairs,
             knowledge_graph_inst,
             max_hops=traversal_hops,
-            max_expand_entities=100,
+            query_param=query_param,
+            max_expand_entities=min(
+                40, max(10, int(getattr(query_param, "max_relations", 32)) * 2)
+            ),
         )
         if new_entity_names or new_edge_pairs:
             if new_entity_names:
@@ -3890,7 +3958,9 @@ async def _apply_token_truncation(
     )
 
     final_entities = search_result["final_entities"]
-    final_relations = search_result["final_relations"]
+    final_relations = _select_relations_for_query(
+        search_result["final_relations"], query_param
+    )
 
     # Create mappings from entity/relation identifiers to original data
     entity_id_to_original = {}
@@ -3939,6 +4009,10 @@ async def _apply_token_truncation(
                 "entity1": entity1,
                 "entity2": entity2,
                 "description": relation.get("description", "UNKNOWN"),
+                "provenance": relation.get("provenance", "source_document"),
+                "confidence": _relation_confidence(relation),
+                "is_inferred": _truthy_metadata(relation.get("is_discovered")),
+                "evidence": relation.get("evidence", ""),
                 "created_at": created_at,
                 "file_path": relation.get("file_path", "unknown_source"),
             }
@@ -4637,7 +4711,7 @@ async def _find_most_related_edges_from_entities(
         all_edges_data, key=lambda x: (x["rank"], x["weight"]), reverse=True
     )
 
-    return all_edges_data
+    return _select_relations_for_query(all_edges_data, query_param)
 
 
 async def _find_related_text_unit_from_entities(
@@ -4852,6 +4926,11 @@ async def _get_edge_data(
     def _relation_key(item: dict) -> str:
         if "relation_key" in item:
             return item["relation_key"]
+        if item.get("relation_id"):
+            return str(item["relation_id"])
+        edge_data = item.get("edge_data")
+        if isinstance(edge_data, dict) and edge_data.get("relation_id"):
+            return str(edge_data["relation_id"])
         src = item.get("src_id")
         tgt = item.get("tgt_id")
         return f"{src}->{tgt}"
@@ -4875,18 +4954,40 @@ async def _get_edge_data(
     edge_datas = []
     for cand in combined_candidates:
         pair = (cand.get("src_id"), cand.get("tgt_id"))
-        edge_props = cand.get("edge_data") or edge_data_dict.get(pair)
+        if (
+            cand.get("relation_id")
+            and str(cand.get("review_status") or "").strip().lower() == "promoted"
+        ):
+            edge_props = {
+                key: value
+                for key, value in cand.items()
+                if key
+                not in {
+                    "distance",
+                    "created_at",
+                    "relation_key",
+                    "id",
+                    "__id__",
+                    "__created_at__",
+                }
+            }
+        else:
+            edge_props = cand.get("edge_data") or edge_data_dict.get(pair)
         if edge_props is None:
             continue
+        edge_props = dict(edge_props)
         if "weight" not in edge_props:
-            edge_props["weight"] = edge_props.get("weight", 1.0)
+            edge_props["weight"] = 1.0
         combined = {
             "src_id": pair[0],
             "tgt_id": pair[1],
             "created_at": cand.get("created_at"),
+            "retrieval_distance": cand.get("distance"),
             **edge_props,
         }
         edge_datas.append(combined)
+
+    edge_datas = _select_relations_for_query(edge_datas, query_param)
 
     use_entities = await _find_most_related_entities_from_relationships(
         edge_datas,
@@ -4965,7 +5066,9 @@ async def _find_related_text_unit_from_relations(
             )
             if chunks:
                 # Build relation identifier
-                if "src_tgt" in relation:
+                if relation.get("relation_id"):
+                    rel_key = str(relation["relation_id"])
+                elif "src_tgt" in relation:
                     rel_key = tuple(sorted(relation["src_tgt"]))
                 else:
                     rel_key = tuple(
@@ -5105,7 +5208,7 @@ async def _find_related_text_unit_from_relations(
         )
 
     logger.debug(
-        f"KG related chunks: {len(entity_chunks)} from entitys, {len(selected_chunk_ids)} from relations"
+        f"KG related chunks: {len(entity_chunks or [])} from entitys, {len(selected_chunk_ids)} from relations"
     )
 
     if not selected_chunk_ids:
@@ -5338,6 +5441,19 @@ async def naive_query(
 
     # Handle cache
     args_hash = compute_args_hash(
+        _query_cache_scope(
+            hashing_kv,
+            global_config,
+            json.dumps(
+                {
+                    "context": context_content,
+                    "history": query_param.conversation_history,
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+                default=str,
+            ),
+        ),
         query_param.mode,
         query,
         query_param.response_type,
@@ -5349,9 +5465,11 @@ async def naive_query(
         query_param.user_prompt or "",
         query_param.enable_rerank,
     )
-    cached_result = await handle_cache(
-        hashing_kv, args_hash, user_query, query_param.mode, cache_type="query"
-    )
+    cached_result = None
+    if query_param.use_llm_cache:
+        cached_result = await handle_cache(
+            hashing_kv, args_hash, user_query, query_param.mode, cache_type="query"
+        )
     _t_llm_n = _time.time()
     if cached_result is not None:
         cached_response, _ = cached_result
@@ -5371,7 +5489,11 @@ async def naive_query(
             f"[naive_query T+{_nq_el()}s] LLM generation done ({round(_time.time()-_t_llm_n,2)}s)"
         )
 
-        if hashing_kv and hashing_kv.global_config.get("enable_llm_cache"):
+        if (
+            query_param.use_llm_cache
+            and hashing_kv
+            and hashing_kv.global_config.get("enable_llm_cache")
+        ):
             queryparam_dict = {
                 "mode": query_param.mode,
                 "response_type": query_param.response_type,

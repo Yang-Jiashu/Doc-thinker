@@ -341,6 +341,13 @@
                 <span id="remember-toggle-hint">本轮会进入可控记忆巩固</span>
             </div>
 
+            <div class="mb-3 flex flex-wrap gap-2 text-xs" aria-label="实验控制">
+                <button onclick="toggleRunControl('memory')" id="control-memory" class="dt-mini-button" title="关闭记忆召回和记忆写入">记忆：开</button>
+                <button onclick="toggleRunControl('context')" id="control-context" class="dt-mini-button" title="关闭历史对话注入，仍保留界面聊天记录">上下文：开</button>
+                <button onclick="toggleRunControl('cache')" id="control-cache" class="dt-mini-button" title="本轮绕过 LLM 缓存读取和写入">缓存：开</button>
+                <button onclick="toggleRunControl('evolution')" id="control-evolution" class="dt-mini-button" title="关闭补边和扩展节点参与查询">自进化：开</button>
+            </div>
+
             <div id="attached-files" class="hidden flex flex-wrap gap-2 mb-3"></div>
             <div id="processing-list" class="space-y-2 mb-3"></div>
 
@@ -462,8 +469,15 @@
 <script>
 let currentMode = 'standard';
 let currentFile = null;
+let currentFileSessionId = null;
 let currentSessionId = null;
 let rememberTurn = true;
+const runControls = {
+    memory: true,
+    context: true,
+    cache: true,
+    evolution: true,
+};
 let processingFilesCount = 0;
 let defaultWelcomeHtml = '';
 let latestMemoryInspector = null;
@@ -496,6 +510,7 @@ function clearUiAttachments() {
         processing.classList.add('hidden');
     }
     currentFile = null;
+    currentFileSessionId = null;
     processingFilesCount = 0;
 }
 
@@ -809,6 +824,29 @@ function toggleRememberTurn() {
     if (hint) hint.textContent = rememberTurn ? '本轮会进入可控记忆巩固' : '本轮只回答，不进入记忆层';
 }
 
+function toggleRunControl(name) {
+    if (!(name in runControls)) return;
+    runControls[name] = !runControls[name];
+    const labels = {
+        memory: '记忆',
+        context: '上下文',
+        cache: '缓存',
+        evolution: '自进化',
+    };
+    const button = document.getElementById(`control-${name}`);
+    if (button) {
+        button.textContent = `${labels[name]}：${runControls[name] ? '开' : '关'}`;
+        button.classList.toggle('opacity-50', !runControls[name]);
+    }
+    if (name === 'memory' && !runControls.memory) {
+        rememberTurn = false;
+        const text = document.getElementById('remember-toggle-text');
+        const hint = document.getElementById('remember-toggle-hint');
+        if (text) text.textContent = '不写入记忆';
+        if (hint) hint.textContent = '记忆已关闭：不召回，也不写入';
+    }
+}
+
 function handleKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -829,13 +867,17 @@ async function handleFileSelect(input) {
         return;
     }
 
-    currentFile = file;
-
     const fileId = 'proc-' + Date.now();
+    const uploadSessionId = String(currentSessionId || '');
     addProcessingItem(fileId, file.name);
 
-    uploadFileWithProgress(file, fileId, (status, data) => {
+    uploadFileWithProgress(file, fileId, uploadSessionId, (status, data) => {
+        if (String(currentSessionId || '') !== uploadSessionId) {
+            return;
+        }
         if (status === 'success') {
+            currentFile = file;
+            currentFileSessionId = uploadSessionId;
             updateProcessingStatus(fileId, 'done', '处理完成');
             showAttachedFile(file.name, fileId);
         } else if (status === 'processing') {
@@ -1027,6 +1069,14 @@ async function sendMessage() {
         return;
     }
 
+    if (currentFile && currentFileSessionId !== String(currentSessionId || '')) {
+        clearUiAttachments();
+        showToast('该文件属于另一个对话，请在当前对话重新上传', 'warning');
+        return;
+    }
+
+    const requestSessionId = String(currentSessionId || '');
+
     _lockInput();
     resetMemoryInspector('recalling');
 
@@ -1042,17 +1092,29 @@ async function sendMessage() {
     attached.innerHTML = '';
     attached.classList.add('hidden');
     currentFile = null;
+    currentFileSessionId = null;
 
     try {
+        const queryMode = currentMode === 'quick'
+            ? { mode: 'naive', enableThinking: false, enableRerank: false }
+            : currentMode === 'deep'
+                ? { mode: 'mix', enableThinking: true, enableRerank: true }
+                : { mode: 'local', enableThinking: false, enableRerank: true };
         const response = await fetch('/api/v1/query/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 question: message || '请分析上传的文件',
                 memory_mode: 'session',
-                ui_mode: currentMode,
-                session_id: currentSessionId,
-                remember_turn: rememberTurn
+                mode: queryMode.mode,
+                enable_thinking: queryMode.enableThinking,
+                enable_rerank: queryMode.enableRerank,
+                session_id: requestSessionId,
+                remember_turn: rememberTurn,
+                use_memory: runControls.memory,
+                use_conversation_context: runControls.context,
+                use_llm_cache: runControls.cache,
+                use_self_evolution: runControls.evolution
             })
         });
 
@@ -1336,11 +1398,11 @@ async function clearChat() {
 }
 
 // Override upload behavior: keep file in "processing" until backend document status is done.
-function uploadFileWithProgress(file, fileId, onStatusChange) {
+function uploadFileWithProgress(file, fileId, uploadSessionId, onStatusChange) {
     const formData = new FormData();
     formData.append('files', file);
-    if (currentSessionId) {
-        formData.append('session_id', currentSessionId);
+    if (uploadSessionId) {
+        formData.append('session_id', uploadSessionId);
     }
 
     let uploadProgress = 0;
@@ -1379,9 +1441,9 @@ function uploadFileWithProgress(file, fileId, onStatusChange) {
         }
 
         const backgroundProcessing = !!(data && (data.background_processing === true || data.status === 'processing'));
-        if (backgroundProcessing && currentSessionId) {
+        if (backgroundProcessing && uploadSessionId) {
             updateProcessingStatus(fileId, 'processing', 'Background parsing...', 95);
-            waitForFileProcessed(currentSessionId, file.name).then((result) => {
+            waitForFileProcessed(uploadSessionId, file.name).then((result) => {
                 if (result.ok) {
                     updateProcessingStatus(fileId, 'done', 'Processing completed', 100);
                     onStatusChange('success', data || {});

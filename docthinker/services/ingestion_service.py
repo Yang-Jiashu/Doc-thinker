@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional, Callable, Awaitable, Any, List
 
 
@@ -16,15 +18,32 @@ class IngestionService:
         if not getattr(rag, "graphcore", None):
             await rag._ensure_graphcore_initialized()
 
-    async def _insert_text(self, rag: Any, text: str, file_path: str | None = None) -> None:
+    @staticmethod
+    def _session_document_id(session_id: str, content: bytes) -> str:
+        digest = hashlib.sha256()
+        digest.update(str(session_id).strip().encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(content)
+        return f"doc-session-{digest.hexdigest()}"
+
+    async def _insert_text(
+        self,
+        rag: Any,
+        text: str,
+        *,
+        document_id: str,
+        file_path: str | None = None,
+    ) -> None:
         await self._ensure_ready(rag)
         graphcore = rag.graphcore
         if hasattr(graphcore, "ainsert"):
             try:
                 if file_path:
-                    await graphcore.ainsert(text, file_paths=file_path)
+                    await graphcore.ainsert(
+                        text, ids=document_id, file_paths=file_path
+                    )
                 else:
-                    await graphcore.ainsert(text)
+                    await graphcore.ainsert(text, ids=document_id)
             except TypeError:
                 await graphcore.ainsert(text)
         else:
@@ -55,10 +74,23 @@ class IngestionService:
     async def ingest_text(
         self, text: str, session_id: Optional[str] = None, file_path: str | None = None,
     ) -> None:
-        """Ingest text into a session graph."""
-        await self._insert_text(self.rag_global, text, file_path=file_path)
+        """Ingest text into the target session graph only.
+
+        GraphCore de-duplicates documents by content hash within the running
+        process.  Inserting into the global graph before the session graph can
+        make the session insert look like a duplicate, leaving the session KG
+        empty while the global ``_system`` graph receives the entities.
+        """
         target_rag = await self._resolve_target_rag(session_id)
-        await self._insert_text(target_rag, text, file_path=file_path)
+        document_id = self._session_document_id(
+            str(session_id), text.encode("utf-8")
+        )
+        await self._insert_text(
+            target_rag,
+            text,
+            document_id=document_id,
+            file_path=file_path,
+        )
 
     async def ingest_folder(self, folder_path: str, session_id: Optional[str] = None) -> None:
         """Ingest folder into a session graph."""
@@ -69,4 +101,13 @@ class IngestionService:
         """Ingest files into a session graph."""
         target_rag = await self._resolve_target_rag(session_id)
         for file_path in file_paths:
-            await target_rag.process_document_complete(file_path)
+            path = Path(file_path)
+            document_id = self._session_document_id(
+                str(session_id), path.read_bytes()
+            )
+            try:
+                await target_rag.process_document_complete(
+                    file_path, doc_id=document_id
+                )
+            except TypeError:
+                await target_rag.process_document_complete(file_path)

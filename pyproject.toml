@@ -10,17 +10,18 @@ authors = [
 ]
 description = "Doc Thinker: document parsing, graph reasoning, and orchestration"
 readme = "README.md"
-license = { text = "MIT" }
+license = { text = "PolyForm-Shield-1.0.0" }
 requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    "License :: Other/Proprietary License",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
+    "aiohttp>=3.9.0",
     "huggingface_hub",
     "mineru[core]",
     "shapely>=2.0.0",
@@ -74,3 +75,6 @@ version = {attr = "docthinker.__version__"}
 
 [tool.ruff]
 target-version = "py310"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

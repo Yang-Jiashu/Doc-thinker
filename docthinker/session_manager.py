@@ -437,6 +437,29 @@ class SessionManager:
             "talk_file": str(talk_file),
         }
 
+    @staticmethod
+    def _has_legacy_graphcore_data(working_dir: Path) -> bool:
+        """Return whether a session already uses the pre-workspace file layout."""
+        markers = (
+            "graph_chunk_entity_relation.graphml",
+            "kv_store_full_docs.json",
+            "kv_store_text_chunks.json",
+            "kv_store_doc_status.json",
+            "vdb_entities.json",
+            "vdb_relationships.json",
+        )
+        return any((working_dir / marker).exists() for marker in markers)
+
+    @classmethod
+    def _graphcore_workspace_for_session(
+        cls, session_id: str, working_dir: Path
+    ) -> str:
+        """Namespace new GraphCore stores without hiding existing session data."""
+        if cls._has_legacy_graphcore_data(working_dir):
+            return ""
+        safe_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", session_id).strip("_")
+        return f"session_{safe_id or 'unknown'}"
+
     def _ensure_session_dirs(self, metadata: Dict[str, Any]) -> None:
         for key in ["path", "data_dir", "content_dir", "talk_dir", "code_dir", "knowledge_dir"]:
             p = metadata.get(key)
@@ -860,7 +883,18 @@ class SessionManager:
                 setattr(session_config, key, value)
 
         session_config.working_dir = session["path"]
-        rag = DocThinker(config=session_config, graphcore_kwargs=graphcore_kwargs or {})
+        session_graphcore_kwargs = dict(graphcore_kwargs or {})
+        # A caller must not be able to redirect a session RAG into another
+        # session's directory. New sessions also receive a storage workspace,
+        # which isolates shared backends and every GraphCore cache namespace.
+        session_graphcore_kwargs.pop("working_dir", None)
+        session_graphcore_kwargs["workspace"] = self._graphcore_workspace_for_session(
+            session_id, Path(session["path"])
+        )
+        rag = DocThinker(
+            config=session_config,
+            graphcore_kwargs=session_graphcore_kwargs,
+        )
         with self._session_rag_lock:
             self._session_rag_cache[session_id] = rag
         return rag

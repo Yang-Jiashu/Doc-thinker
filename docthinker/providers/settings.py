@@ -12,6 +12,7 @@ class AppSettings(BaseModel):
     llm_model: str
     llm_models: list[str] = Field(default_factory=list)
     llm_router_max_concurrency: int = 32
+    llm_temperature: float = 0.1
     vlm_model: str
 
     keyword_llm_model: str = "qwen-turbo"
@@ -57,6 +58,7 @@ def load_settings() -> AppSettings:
         llm_model=llm_model,
         llm_models=llm_models,
         llm_router_max_concurrency=int(os.getenv("LLM_ROUTER_MAX_CONCURRENCY") or 32),
+        llm_temperature=float(os.getenv("LLM_TEMPERATURE") or 0.1),
         vlm_model=os.getenv("VLM_MODEL") or "qwen-vl-max",
         keyword_llm_model=os.getenv("KEYWORD_LLM_MODEL") or "qwen-turbo",
         entity_extraction_llm_model=os.getenv("ENTITY_EXTRACTION_LLM_MODEL") or "qwen-turbo",
@@ -88,4 +90,3 @@ def load_settings() -> AppSettings:
         workdir=os.getenv("RAG_WORKDIR") or _DEFAULT_WORKDIR,
         timeout_seconds=int(os.getenv("TIMEOUT") or 3600),
     )
-
