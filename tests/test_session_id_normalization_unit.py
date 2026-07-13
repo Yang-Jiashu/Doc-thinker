@@ -1,12 +1,14 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from docthinker.session_manager import SessionManager
 
 
 class SessionIdNormalizationUnitTest(unittest.TestCase):
-    def test_short_hash_id_is_normalized(self):
+    @patch.object(SessionManager, "_find_legacy_rag_root", return_value=None)
+    def test_short_hash_id_is_normalized(self, _legacy_root):
         with tempfile.TemporaryDirectory() as tmp:
             base_storage = Path(tmp) / "_system"
             data_root = Path(tmp) / "data"
@@ -33,6 +35,29 @@ class SessionIdNormalizationUnitTest(unittest.TestCase):
             history = sm.get_history("#00001")
             self.assertEqual(1, len(history))
             self.assertEqual("user", history[0]["role"])
+
+    @patch.object(SessionManager, "_find_legacy_rag_root", return_value=None)
+    def test_restart_preserves_numbered_session_ids_with_gaps(self, _legacy_root):
+        with tempfile.TemporaryDirectory() as tmp:
+            base_storage = Path(tmp) / "_system"
+            data_root = Path(tmp) / "data"
+            sm = SessionManager(
+                base_storage_path=str(base_storage),
+                data_root_path=str(data_root),
+            )
+            first = sm.create_session("first")["id"]
+            second = sm.create_session("second")["id"]
+            third = sm.create_session("third")["id"]
+            self.assertEqual(("#00001", "#00002", "#00003"), (first, second, third))
+            self.assertTrue(sm.delete_session(second))
+
+            reopened = SessionManager(
+                base_storage_path=str(base_storage),
+                data_root_path=str(data_root),
+            )
+            self.assertIsNotNone(reopened.get_session(first))
+            self.assertIsNotNone(reopened.get_session(third))
+            self.assertIsNone(reopened.get_session(second))
 
 
 if __name__ == "__main__":

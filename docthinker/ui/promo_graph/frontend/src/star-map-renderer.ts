@@ -539,6 +539,13 @@ export class StarMapRenderer {
     this.viewChangedCallback?.();
   }
 
+  orbitBy(deltaAzimuth: number): void {
+    this.orbitAzimuth = (this.orbitAzimuth + deltaAzimuth) % (Math.PI * 2);
+    this.applyCameraOrbit();
+    this.labelsDirty = true;
+    this.viewChangedCallback?.();
+  }
+
   centerOnNode(nodeIndex: number, minimumRatio = 2.1): void {
     const position = this.getNodeWorldPosition(nodeIndex);
     this.orbitTarget.set(position.x, position.y, position.z);

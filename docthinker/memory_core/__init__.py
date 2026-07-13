@@ -20,12 +20,15 @@ from .protocols import (
     ExpandedKnowledgeBackend,
     GraphPromotionBackend,
     LongHorizonMemoryBackend,
+    VersionedLongHorizonMemoryBackend,
     MemoryPolicy,
 )
+from .sqlite_backend import SQLiteLongHorizonBackend
 
 __all__ = [
     "AgentMemoryCore",
     "InMemoryLongHorizonBackend",
+    "SQLiteLongHorizonBackend",
     "RecallBundle",
     "MemoryTrace",
     "get_default_long_horizon_backend",
@@ -36,5 +39,6 @@ __all__ = [
     "ExpandedKnowledgeBackend",
     "GraphPromotionBackend",
     "LongHorizonMemoryBackend",
+    "VersionedLongHorizonMemoryBackend",
     "MemoryPolicy",
 ]

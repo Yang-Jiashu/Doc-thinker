@@ -36,8 +36,8 @@ export class GestureController {
   private suspended = false;
   private lastInferenceAt = 0;
   private lastVideoTime = -1;
-  private previousRightPinch = false;
-  private smoothedRightPoint: GesturePoint | null = null;
+  private previousPinch: Record<"left" | "right", boolean> = { left: false, right: false };
+  private smoothedPoint: Record<"left" | "right", GesturePoint | null> = { left: null, right: null };
   private dragAnchors = new Map<number, { x: number; y: number; z: number }>();
 
   constructor(
@@ -120,6 +120,8 @@ export class GestureController {
     this.layer.dataset.state = "idle";
     this.cursor.style.opacity = "0";
     this.dragAnchors.clear();
+    this.previousPinch = { left: false, right: false };
+    this.smoothedPoint = { left: null, right: null };
   }
 
   dispose(): void {
@@ -140,17 +142,19 @@ export class GestureController {
     }
     const metrics = hands.flatMap((landmarks, index) => {
       const side = sides[index];
-      const extracted = extractGestureMetrics(landmarks, side === "right" && this.previousRightPinch);
-      return extracted ? [toScreenMetrics(extracted, width, height, side)] : [];
+      const extracted = extractGestureMetrics(landmarks, this.previousPinch[side]);
+      if (!extracted) return [];
+      const screen = toScreenMetrics(extracted, width, height, side);
+      this.smoothedPoint[side] = smoothGesturePoint(this.smoothedPoint[side], screen.point);
+      screen.point = this.smoothedPoint[side];
+      this.previousPinch[side] = screen.pinch;
+      return [screen];
     });
-    const right = metrics.find(hand => hand.handedness === "right");
-    if (right) {
-      this.smoothedRightPoint = smoothGesturePoint(this.smoothedRightPoint, right.point);
-      right.point = this.smoothedRightPoint;
-      this.previousRightPinch = right.pinch;
-    } else {
-      this.previousRightPinch = false;
-      this.smoothedRightPoint = null;
+    for (const side of ["left", "right"] as const) {
+      if (!metrics.some(hand => hand.handedness === side)) {
+        this.previousPinch[side] = false;
+        this.smoothedPoint[side] = null;
+      }
     }
     this.stateMachine.process(metrics as ScreenGestureMetrics[], performance.now());
   }
@@ -165,7 +169,7 @@ export class GestureController {
       select: nodeIndex => this.callbacks.onSelect(nodeIndex),
       clearSelection: () => this.callbacks.onClearSelection(),
       fitToGraph: () => this.renderer.fitToGraph(),
-      panBy: (dx, dy) => this.renderer.panBy(dx, dy),
+      orbitBy: deltaAzimuth => this.renderer.orbitBy(deltaAzimuth),
       zoomAt: (point, factor) => this.renderer.zoomAt(point.x, point.y, factor),
       beginNodeDrag: nodeIndex => {
         this.dragAnchors.set(nodeIndex, this.renderer.getNodeWorldPosition(nodeIndex));

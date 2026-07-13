@@ -52,14 +52,16 @@ DocThinker 将对话、文档、检索轨迹、情景经历和知识图谱组织
 | ✅ 已接通 | 分层对话记忆 | Claw working/core/archive 三层记忆 |
 | ✅ 已接通 | 会话级知识图谱 | 每个会话拥有独立文档、图谱、索引和缓存作用域 |
 | ✅ 已接通 | 记忆管理接口 | 支持列出、修改、删除、编辑计划和导出长期记忆 |
+| ✅ 已接通 | SQLite 持久化与版本历史 | 后端重启后保留长期记忆；修改、删除和恢复均留下版本记录 |
+| ✅ 已接通 | 记忆图扩散召回 | 直接命中的记忆作为种子，按关系类型、边权和深度衰减继续召回关联记忆，并输出完整路径 |
+| ✅ 已接通 | 记忆 / 认知分层 | 认知作为独立节点持久化，通过证据边引用原始记忆；记忆变化时相关认知进入待复核状态 |
 | 🧪 实验性 | 离线记忆巩固 | 已有连接、强化、衰减和剪枝算法，尚未接入主 UI/定时任务 |
 | 🧪 实验性 | 归纳抽象 | 已有摘要、相似记忆合并和知识聚类，但尚未形成完整可观察归纳链 |
 | 🧪 实验性 | KG 关系演化 | ECLRR-v4 可生成并审核证据完整的候选关系 |
-| 🧭 后续 | 持久化动态长期记忆 | 默认 Long-Horizon backend 当前是进程级存储，重启会丢失 |
 | 🧭 后续 | 统一三类推理轨迹 | 显式记录演绎、归纳、类比的前提、过程、结论和来源 |
 
 > [!IMPORTANT]
-> 默认 `InMemoryLongHorizonBackend` 用于本地演示和接口验证，不是生产级持久化存储。生产部署应替换为 SQLite、向量数据库或图数据库 backend。
+> 默认长期记忆保存在 `$RAG_WORKDIR/long_horizon_memory.db`。可通过 `LONG_HORIZON_DB_PATH` 修改位置。`InMemoryLongHorizonBackend` 仍保留给插件示例和无持久化测试。
 
 ## 系统如何工作
 
@@ -69,8 +71,10 @@ flowchart LR
     P --> C["Claw<br/>工作 / 核心 / 归档"]
     P --> L["Long-Horizon<br/>偏好 / 规则 / 项目状态"]
     P --> E["Neuro Episodes<br/>过去经历与类比"]
+    P --> O["Cognition<br/>由记忆沉淀的可修正认知"]
     P --> K["GraphCore + Expanded KG<br/>知识、关系与证据"]
-    C & L & E & K --> M["统一记忆上下文"]
+    L & E --> O
+    C & L & E & K & O --> M["统一记忆与认知上下文"]
     M --> A["LLM + 检索生成"]
     A --> W["受策略控制的写回"]
     W --> C
@@ -141,7 +145,7 @@ score = 0.60 × 内容相似度 + 0.25 × 结构相似度 + 0.15 × 显著性
 
 ### 图上的扩散激活
 
-召回可以沿记忆图传播，默认最多三跳。不同关系类型使用不同衰减系数，并记录被共同激活的节点和边，为后续强化提供信号。
+Long-Horizon 召回以最相关记忆为种子，当前最多沿持久化记忆关系传播两跳。不同关系类型使用不同衰减系数，Memory Trace 会记录种子、关系类型、边权和完整路径。Neuro Memory 仍保留独立的情景扩散机制。
 
 ### 离线巩固（实验性）
 
@@ -326,7 +330,13 @@ PDF 处理支持以下配置：
 | | `/api/v1/memory/long-horizon` | GET | 列出长期记忆 |
 | | `/api/v1/memory/long-horizon/edit-plan` | POST | 将编辑指令映射到候选记忆 |
 | | `/api/v1/memory/long-horizon/{id}` | PATCH / DELETE | 更新 / 删除长期记忆 |
+| | `/api/v1/memory/long-horizon/{id}/revisions` | GET | 查看不可变版本历史 |
+| | `/api/v1/memory/long-horizon/{id}/restore/{revision_id}` | POST | 将旧版本恢复为新的有效版本 |
+| | `/api/v1/memory/long-horizon/edges` | GET / POST | 查看 / 写入记忆关系和权重 |
 | | `/api/v1/memory/long-horizon/export` | GET | 导出审计索引 |
+| | `/api/v1/memory/cognitions` | GET / POST | 列出 / 创建独立认知节点及其记忆证据 |
+| | `/api/v1/memory/cognitions/{id}` | PATCH | 修正、失效或重新激活认知，不覆盖证据记忆 |
+| | `/api/v1/memory/cognitions/{id}/revisions` | GET | 查看认知自身的演化版本 |
 | 设置 | `/api/v1/settings` | GET / POST | 运行时配置 |
 
 </details>
@@ -335,7 +345,7 @@ PDF 处理支持以下配置：
 
 | 目录 | 说明 |
 |---|---|
-| `docthinker/memory_core/` | 统一记忆门面、protocols、策略和 Long-Horizon 默认实现 |
+| `docthinker/memory_core/` | 统一记忆门面、图扩散召回、独立认知层、SQLite 后端与版本历史 |
 | `claw/` | working/core/archive 分层对话记忆 |
 | `neuro_memory/` | episode、类比检索、扩散激活和实验性离线巩固 |
 | `docthinker/kg_expansion/` | 候选知识、聚类、使用记录与晋升 |

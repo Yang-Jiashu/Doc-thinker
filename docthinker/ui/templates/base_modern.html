@@ -33,6 +33,7 @@
     </script>
 
     <style>
+        html { font-size: 80%; }
         * { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 
         body {
@@ -149,7 +150,7 @@
         .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
         .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
         .text-2xl { font-size: 1.5rem; line-height: 2rem; }
-        .text-\[11px\] { font-size: 11px; }
+        .text-\[11px\] { font-size: 8.8px; }
         .p-2 { padding: 0.5rem; }
         .p-3 { padding: 0.75rem; }
         .p-4 { padding: 1rem; }
@@ -276,19 +277,15 @@
 
         .brand-lockup {
             display: grid;
-            grid-template-columns: 64px minmax(0, 1fr);
+            grid-template-columns: 46px minmax(0, 1fr);
             align-items: center;
-            gap: 12px;
-            padding: 9px;
-            border: 1px solid var(--dt-line);
-            border-radius: 20px;
-            background: linear-gradient(180deg, #FFFFFF 0%, #FAF8F5 100%);
-            box-shadow: 0 4px 24px var(--dt-shadow);
+            gap: 10px;
+            padding: 0;
         }
         .brand-mark {
-            width: 64px;
-            height: 64px;
-            border-radius: 18px;
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
             display: grid;
             place-items: center;
             overflow: hidden;
@@ -296,9 +293,9 @@
             border: 1px solid #ecd7bd;
         }
         .brand-mark img {
-            width: 68px;
-            height: 62px;
-            max-width: 68px;
+            width: 50px;
+            height: 46px;
+            max-width: 50px;
             object-fit: contain;
             transform: translateY(2px);
         }
@@ -307,48 +304,48 @@
         }
         .brand-wordmark h1 {
             color: var(--dt-ink);
-            font-size: 18px;
+            font-size: 13.6px;
             line-height: 1.1;
             font-weight: 760;
         }
         .brand-wordmark p {
             color: var(--dt-soft);
-            font-size: 12px;
+            font-size: 8px;
             margin-top: 3px;
         }
         .nav-section-label {
             color: var(--dt-soft);
-            font-size: 11px;
+            font-size: 8.8px;
             font-weight: 700;
             text-transform: uppercase;
             margin: 0 12px 8px;
         }
         .sidebar-item {
-            min-height: 44px;
+            min-height: 40px;
             transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             border: 1px solid transparent;
-            border-radius: 18px;
+            border-radius: 12px;
             color: #4d463e;
             font-weight: 550;
         }
         .sidebar-item:hover {
             background: #fbede6;
             color: #8f4329;
-            transform: translateX(3px);
+            transform: translateX(2px);
         }
         .sidebar-item.active {
             background: #fbede6;
             color: #8f4329;
             border-color: #efcfc0;
-            box-shadow: inset 3px 0 0 var(--dt-copper), 0 4px 18px rgba(217, 119, 87, 0.08);
+            box-shadow: inset 2px 0 0 var(--dt-copper);
         }
         .sidebar-item i {
-            width: 26px;
-            height: 26px;
+            width: 22px;
+            height: 22px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
+            border-radius: 7px;
             color: currentColor;
             background: rgba(255, 254, 250, 0.64);
         }
@@ -363,7 +360,7 @@
             background: var(--dt-surface);
             color: #5f584f;
             padding: 0 12px;
-            font-size: 14px;
+            font-size: 11.2px;
             font-weight: 550;
             transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
@@ -388,7 +385,7 @@
             color: var(--dt-copper-dark);
             background: transparent;
             padding: 0 8px;
-            font-size: 12px;
+            font-size: 9.6px;
             font-weight: 650;
             transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
@@ -489,31 +486,31 @@
 </head>
 <body class="text-[#292520] h-screen overflow-hidden">
     <div class="flex h-full">
-        <aside class="w-64 bg-[#fffefa] border-r border-[#ded8cc] flex flex-col h-full">
-            <div class="p-4 border-b border-[#ece5d9]">
+        <aside class="bg-[#fffefa] border-r border-[#ded8cc] flex flex-col h-full" style="width:224px; flex:0 0 224px;">
+            <div class="px-4 py-3 border-b border-[#ece5d9]">
                 <div class="brand-lockup">
                     <div class="brand-mark">
                         <img src="/logo.png" alt="DocThinker" id="docthinker-logo" />
                     </div>
                     <div class="brand-wordmark">
                         <h1>DocThinker</h1>
-                        <p>Agentic memory</p>
+                        <p>Plastic memory runtime</p>
                     </div>
                 </div>
             </div>
 
-            <nav class="flex-1 overflow-y-auto py-4 px-3">
+            <nav class="flex-1 overflow-y-auto py-3 px-2">
                 <div class="space-y-1">
                     <p class="nav-section-label">Workspace</p>
 
                     <a href="/query" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {% if request.endpoint == 'query_page' %}active{% endif %}">
                         <i class="fa-solid fa-comments"></i>
-                        智能对话
+                        对话与记忆
                     </a>
 
                     <a href="/knowledge-graph" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {% if request.endpoint in ['knowledge_graph_page', 'kg_viz_page'] %}active{% endif %}">
                         <i class="fa-solid fa-circle-nodes"></i>
-                        知识图谱
+                        记忆图谱
                     </a>
 
                     <a href="/config" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {% if request.endpoint == 'config_page' %}active{% endif %}">

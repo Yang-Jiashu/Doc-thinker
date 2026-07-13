@@ -1,6 +1,7 @@
 import type { GesturePoint, ScreenGestureMetrics } from "./gesture-metrics";
 
-type GestureAction = "idle" | "node-captured" | "canvas-pan";
+type GestureAction = "idle" | "node-captured" | "canvas-pan" | "orbit-swing" | "zoom-in" | "zoom-out";
+type ZoomMode = "in" | "out";
 
 export interface GestureInputPort {
   pick(point: GesturePoint): number;
@@ -8,7 +9,7 @@ export interface GestureInputPort {
   select(nodeIndex: number): void;
   clearSelection(): void;
   fitToGraph(): void;
-  panBy(dx: number, dy: number): void;
+  orbitBy(deltaAzimuth: number): void;
   zoomAt(point: GesturePoint, factor: number): void;
   beginNodeDrag(nodeIndex: number): void;
   moveNode(nodeIndex: number, point: GesturePoint): void;
@@ -20,19 +21,15 @@ export interface GestureInputPort {
 
 export class GestureStateMachine {
   private port: GestureInputPort;
-  private rightAction: GestureAction = "idle";
   private hoveredNode = -1;
   private hoverSince = 0;
-  private candidateNode = -1;
-  private pinchFrames = 0;
-  private releaseFrames = 0;
-  private cooldownUntil = 0;
-  private capturedNode = -1;
-  private actionPoint: GesturePoint | null = null;
-  private actionMoved = false;
-  private leftPalmPoint: GesturePoint | null = null;
-  private twoPalmSince = 0;
-  private twoPalmResetDone = false;
+  private dwellSelectedNode = -1;
+  private swingPoint: GesturePoint | null = null;
+  private swingAccumulator = 0;
+  private zoomMode: ZoomMode | null = null;
+  private zoomLastAt = 0;
+  private fistSince = 0;
+  private fistResetDone = false;
 
   constructor(port: GestureInputPort) {
     this.port = port;
@@ -41,159 +38,146 @@ export class GestureStateMachine {
   process(hands: ScreenGestureMetrics[], now: number): void {
     const left = hands.find(hand => hand.handedness === "left") ?? null;
     const right = hands.find(hand => hand.handedness === "right") ?? null;
-    if (!left && !right) {
+    const primary = right ?? left;
+    if (!primary) {
       this.port.setGestureActive(false);
-      this.releaseRightAction(false, now);
-      this.clearRightPointer();
-      this.leftPalmPoint = null;
-      this.twoPalmSince = 0;
-      this.twoPalmResetDone = false;
+      this.clearInteractionState();
+      this.resetFistHold();
       return;
     }
 
     this.port.setGestureActive(true);
-    if (this.processTwoPalmReset(left, right, now)) return;
-    this.processLeftPalmZoom(left);
-    this.processRightPointer(right, now);
+    if (this.processSingleHandReset(primary, now)) return;
+    if (this.processHorizontalSwing(primary)) {
+      this.resetZoom();
+      return;
+    }
+
+    if (primary.openPalm && !primary.pinch) {
+      this.processContinuousZoom(primary, "in", now);
+      return;
+    }
+    if (primary.pinch) {
+      this.processContinuousZoom(primary, "out", now);
+      return;
+    }
+
+    this.resetZoom();
+    this.processPointer(primary, now);
   }
 
-  reset(now = performance.now()): void {
-    this.releaseRightAction(false, now);
-    this.clearRightPointer();
-    this.leftPalmPoint = null;
+  reset(): void {
+    this.clearInteractionState();
+    this.resetFistHold();
     this.port.setGestureActive(false);
   }
 
-  private processTwoPalmReset(
-    left: ScreenGestureMetrics | null,
-    right: ScreenGestureMetrics | null,
-    now: number,
-  ): boolean {
-    if (!left?.openPalm || !right?.openPalm) {
-      this.twoPalmSince = 0;
-      this.twoPalmResetDone = false;
+  private processSingleHandReset(hand: ScreenGestureMetrics, now: number): boolean {
+    const closedFist = hand.extendedFingers === 0 && !hand.openPalm;
+    if (!closedFist) {
+      this.resetFistHold();
       return false;
     }
-    this.releaseRightAction(false, now);
-    this.leftPalmPoint = null;
-    this.port.setCursor(right.point, "idle");
-    if (!this.twoPalmSince) this.twoPalmSince = now;
-    if (!this.twoPalmResetDone && now - this.twoPalmSince >= 420) {
+    this.clearHover();
+    this.resetSwing();
+    this.resetZoom();
+    this.port.setCursor(hand.palmPoint, "idle");
+    if (!this.fistSince) this.fistSince = now;
+    if (!this.fistResetDone && now - this.fistSince >= 500) {
       this.port.clearSelection();
       this.port.fitToGraph();
-      this.twoPalmResetDone = true;
+      this.fistResetDone = true;
     }
     return true;
   }
 
-  private processLeftPalmZoom(left: ScreenGestureMetrics | null): void {
-    if (!left?.openPalm || left.pinch) {
-      this.leftPalmPoint = null;
-      return;
-    }
-    if (!this.leftPalmPoint) {
-      this.leftPalmPoint = { ...left.palmPoint };
-      return;
-    }
-    const dy = left.palmPoint.y - this.leftPalmPoint.y;
-    if (Math.abs(dy) >= 2) {
-      this.port.zoomAt(left.palmPoint, Math.exp(-dy / 230));
-      this.leftPalmPoint = { ...left.palmPoint };
-    }
+  private resetFistHold(): void {
+    this.fistSince = 0;
+    this.fistResetDone = false;
   }
 
-  private processRightPointer(right: ScreenGestureMetrics | null, now: number): void {
-    if (!right) {
-      this.releaseRightAction(false, now);
-      this.clearRightPointer();
+  private processContinuousZoom(hand: ScreenGestureMetrics, mode: ZoomMode, now: number): void {
+    this.clearHover();
+    this.port.setCursor(hand.palmPoint, mode === "in" ? "zoom-in" : "zoom-out");
+    if (this.zoomMode !== mode || !this.zoomLastAt) {
+      this.zoomMode = mode;
+      this.zoomLastAt = now;
       return;
     }
-    this.port.setCursor(right.point, this.rightAction);
-    if (!right.pinch || this.rightAction !== "idle") this.updateHover(right.point, now);
-    this.processRightPinch(right, now);
+    const elapsed = Math.max(0, Math.min(now - this.zoomLastAt, 100));
+    this.zoomLastAt = now;
+    if (elapsed <= 0) return;
+    const direction = mode === "in" ? 1 : -1;
+    this.port.zoomAt(hand.palmPoint, Math.exp(direction * elapsed / 1_600));
   }
 
-  private updateHover(point: GesturePoint, now: number): void {
-    if (this.rightAction !== "idle") return;
-    const hovered = this.port.pick(point);
-    if (hovered !== this.hoveredNode) {
-      this.hoveredNode = hovered;
-      this.hoverSince = now;
-      this.candidateNode = -1;
-    }
-    if (hovered >= 0 && now - this.hoverSince >= 140) this.candidateNode = hovered;
-    else if (hovered < 0) this.candidateNode = -1;
-    this.port.hover(this.candidateNode >= 0 ? this.candidateNode : hovered);
+  private resetZoom(): void {
+    this.zoomMode = null;
+    this.zoomLastAt = 0;
   }
 
-  private processRightPinch(metrics: ScreenGestureMetrics, now: number): void {
-    if (now < this.cooldownUntil) return;
-    if (metrics.pinch) {
-      this.pinchFrames += 1;
-      this.releaseFrames = 0;
-    } else {
-      this.releaseFrames += 1;
-      this.pinchFrames = 0;
-    }
-
-    if (!metrics.pinch) {
-      if (this.releaseFrames >= 2 && this.rightAction !== "idle") {
-        this.releaseRightAction(this.rightAction === "node-captured", now);
+  private processPointer(hand: ScreenGestureMetrics, now: number): void {
+    const hovered = this.port.pick(hand.point);
+    this.port.setCursor(hand.point, hovered >= 0 ? "idle" : "orbit-swing");
+    if (hovered >= 0) {
+      if (hovered !== this.hoveredNode) {
+        this.hoveredNode = hovered;
+        this.hoverSince = now;
+        this.dwellSelectedNode = -1;
+      }
+      this.port.hover(hovered);
+      if (this.dwellSelectedNode !== hovered && now - this.hoverSince >= 550) {
+        this.port.select(hovered);
+        this.dwellSelectedNode = hovered;
       }
       return;
     }
-    if (this.pinchFrames < 3) return;
 
-    if (this.rightAction === "idle") {
-      this.actionPoint = { ...metrics.point };
-      this.actionMoved = false;
-      if (this.candidateNode >= 0) {
-        this.rightAction = "node-captured";
-        this.capturedNode = this.candidateNode;
-        this.port.select(this.capturedNode);
-        this.port.beginNodeDrag(this.capturedNode);
-      } else {
-        this.rightAction = "canvas-pan";
-      }
-    }
-
-    if (!this.actionPoint) return;
-    const dx = metrics.point.x - this.actionPoint.x;
-    const dy = metrics.point.y - this.actionPoint.y;
-    if (this.rightAction === "node-captured" && this.capturedNode >= 0) {
-      if (!this.actionMoved && Math.hypot(dx, dy) >= 5) {
-        this.actionMoved = true;
-        this.port.setNodeDragging(true);
-      }
-      if (this.actionMoved) this.port.moveNode(this.capturedNode, metrics.point);
-    } else if (this.rightAction === "canvas-pan" && Math.hypot(dx, dy) >= 1) {
-      this.actionMoved = true;
-      this.port.panBy(dx, dy);
-      this.actionPoint = { ...metrics.point };
-    }
-    this.port.setCursor(metrics.point, this.rightAction);
+    this.clearHover();
   }
 
-  private releaseRightAction(clearSelection: boolean, now: number): void {
-    if (this.rightAction === "node-captured" && this.capturedNode >= 0) {
-      this.port.endNodeDrag(this.capturedNode, this.actionMoved);
-      this.port.setNodeDragging(false);
-      if (clearSelection) this.port.clearSelection();
+  private processHorizontalSwing(hand: ScreenGestureMetrics): boolean {
+    if (!this.swingPoint) {
+      this.swingPoint = { ...hand.palmPoint };
+      this.swingAccumulator = 0;
+      return false;
     }
-    this.rightAction = "idle";
-    this.capturedNode = -1;
-    this.actionPoint = null;
-    this.actionMoved = false;
-    this.pinchFrames = 0;
-    this.releaseFrames = 0;
-    this.cooldownUntil = now + 160;
+    const rawDx = hand.palmPoint.x - this.swingPoint.x;
+    const rawDy = hand.palmPoint.y - this.swingPoint.y;
+    this.swingPoint = { ...hand.palmPoint };
+
+    if (Math.abs(rawDx) < Math.abs(rawDy) * 0.55) {
+      this.swingAccumulator *= 0.5;
+      return false;
+    }
+    this.swingAccumulator = this.swingAccumulator * 0.62 + rawDx;
+    if (Math.abs(this.swingAccumulator) < 1.25) return false;
+
+    const deltaAzimuth = this.swingAccumulator * 0.006;
+    this.swingAccumulator *= 0.18;
+    this.clearHover();
+    this.port.setCursor(hand.palmPoint, "orbit-swing");
+    this.port.orbitBy(deltaAzimuth);
+    return true;
   }
 
-  private clearRightPointer(): void {
+  private clearHover(): void {
+    if (this.hoveredNode >= 0) this.port.hover(-1);
     this.hoveredNode = -1;
     this.hoverSince = 0;
-    this.candidateNode = -1;
-    this.port.hover(-1);
+    this.dwellSelectedNode = -1;
+  }
+
+  private resetSwing(): void {
+    this.swingPoint = null;
+    this.swingAccumulator = 0;
+  }
+
+  private clearInteractionState(): void {
+    this.clearHover();
+    this.resetSwing();
+    this.resetZoom();
+    this.port.setNodeDragging(false);
     this.port.setCursor(null, "idle");
   }
 }

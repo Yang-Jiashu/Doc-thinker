@@ -627,6 +627,7 @@ def text_query():
                 'answer_mode': result.get('answer_mode', ''),
                 'expanded_matches': result.get('expanded_matches', []),
                 'long_horizon_matches': result.get('long_horizon_matches', []),
+                'cognition_matches': result.get('cognition_matches', []),
                 'memory_summaries': result.get('memory_summaries', []),
                 'memory_reasoning': result.get('memory_reasoning', {}),
                 'memory_trace': result.get('memory_trace', {}),

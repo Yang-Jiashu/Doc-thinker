@@ -52,14 +52,16 @@ This README distinguishes production-wired behavior from experimental modules an
 | ✅ Wired | Tiered conversation memory | Claw working/core/archive hierarchy |
 | ✅ Wired | Session-scoped knowledge graph | Each session isolates documents, graph state, indexes, and cache scope |
 | ✅ Wired | Memory management API | List, update, delete, edit-plan, and export long-horizon records |
+| ✅ Wired | SQLite persistence and revisions | Long-term memory survives backend restarts; edits, deletes, and restores create immutable revisions |
+| ✅ Wired | Memory-graph spreading recall | Direct matches become seeds; typed weighted edges retrieve related memories with auditable paths |
+| ✅ Wired | Memory / cognition separation | Cognitions persist as independent nodes that cite evidence memories; changed evidence marks cognition for review |
 | 🧪 Experimental | Offline memory consolidation | Linking, reinforcement, decay, and pruning exist in code but are not wired to the main UI or scheduler |
 | 🧪 Experimental | Inductive abstraction | Summaries, similar-memory merging, and graph clustering exist; a complete observable induction trace does not |
 | 🧪 Experimental | KG relation evolution | ECLRR-v4 can propose and review evidence-complete candidate relations |
-| 🧭 Planned | Persistent plastic long-term memory | The default Long-Horizon backend is process-local and is lost on restart |
 | 🧭 Planned | Unified reasoning traces | Explicit premises, steps, conclusions, and provenance for deduction, induction, and analogy |
 
 > [!IMPORTANT]
-> The default `InMemoryLongHorizonBackend` is intended for local demos and interface validation. Production deployments should replace it with a SQLite, vector-database, or graph-database backend.
+> Long-horizon memory is stored in `$RAG_WORKDIR/long_horizon_memory.db` by default. Set `LONG_HORIZON_DB_PATH` to override it. `InMemoryLongHorizonBackend` remains available for plugin examples and non-persistent tests.
 
 ## How It Works
 
@@ -69,8 +71,10 @@ flowchart LR
     P --> C["Claw<br/>working / core / archive"]
     P --> L["Long-Horizon<br/>preferences / rules / project state"]
     P --> E["Neuro Episodes<br/>past experiences and analogies"]
+    P --> O["Cognition<br/>revisable conclusions derived from memory"]
     P --> K["GraphCore + Expanded KG<br/>knowledge, relations, evidence"]
-    C & L & E & K --> M["Unified memory context"]
+    L & E --> O
+    C & L & E & K & O --> M["Unified memory and cognition context"]
     M --> A["LLM + retrieval generation"]
     A --> W["Policy-controlled writeback"]
     W --> C
@@ -141,7 +145,7 @@ Similar episodes are injected as reasoning guidance, not treated as factual evid
 
 ### Spreading Activation
 
-Recall can propagate through the memory graph for up to three hops. Relation types use different decay factors, while co-activated nodes and edges are recorded as signals for later reinforcement.
+Long-horizon recall uses the strongest direct memory as a seed and currently propagates for up to two hops over durable typed edges. Relation type, edge weight, depth decay, seed id, and the complete path are exposed in Memory Trace. Neuro Memory retains its separate episodic spreading mechanism.
 
 ### Offline Consolidation — Experimental
 
@@ -324,7 +328,13 @@ The corresponding engines and API credentials must be installed and configured. 
 | | `/api/v1/memory/long-horizon` | GET | List long-horizon records |
 | | `/api/v1/memory/long-horizon/edit-plan` | POST | Map edit instructions to candidate memories |
 | | `/api/v1/memory/long-horizon/{id}` | PATCH / DELETE | Update / delete a long-horizon record |
+| | `/api/v1/memory/long-horizon/{id}/revisions` | GET | List immutable revision history |
+| | `/api/v1/memory/long-horizon/{id}/restore/{revision_id}` | POST | Restore an old snapshot as a new active version |
+| | `/api/v1/memory/long-horizon/edges` | GET / POST | List / write durable memory relations and weights |
 | | `/api/v1/memory/long-horizon/export` | GET | Export an audit index |
+| | `/api/v1/memory/cognitions` | GET / POST | List / create cognition nodes with memory evidence |
+| | `/api/v1/memory/cognitions/{id}` | PATCH | Revise or invalidate cognition without overwriting evidence memory |
+| | `/api/v1/memory/cognitions/{id}/revisions` | GET | List cognition evolution history |
 | Settings | `/api/v1/settings` | GET / POST | Runtime configuration |
 
 </details>
@@ -333,7 +343,7 @@ The corresponding engines and API credentials must be installed and configured. 
 
 | Directory | Purpose |
 |---|---|
-| `docthinker/memory_core/` | Unified memory facade, protocols, policies, and default Long-Horizon backend |
+| `docthinker/memory_core/` | Unified facade, graph-spreading recall, separate cognition layer, SQLite storage, and revision history |
 | `claw/` | Working/core/archive tiered conversation memory |
 | `neuro_memory/` | Episodes, analogy retrieval, spreading activation, and experimental offline consolidation |
 | `docthinker/kg_expansion/` | Candidate knowledge, clustering, usage tracking, and promotion |

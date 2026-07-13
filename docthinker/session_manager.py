@@ -306,9 +306,12 @@ class SessionManager:
             if not rows:
                 return
 
-            planned: List[Dict[str, Any]] = []
-            for index, row in enumerate(rows, start=1):
-                row_id = int(row["id"])
+            # Numbered session ids are stable identifiers, not list positions.
+            # Preserve every already-canonical row (including gaps left by
+            # deleted sessions) and allocate numbers only for legacy rows.
+            used_numbers: set[int] = set()
+            parsed_rows: List[tuple[sqlite3.Row, Dict[str, Any], str]] = []
+            for row in rows:
                 name = str(row["name"] or "")
                 try:
                     metadata = json.loads(row["metadata"]) if row["metadata"] else {}
@@ -316,12 +319,34 @@ class SessionManager:
                     metadata = {}
                 if not isinstance(metadata, dict):
                     metadata = {}
-
                 old_sid = str(metadata.get("session_id") or self._extract_session_id_from_name(name))
-                if not old_sid:
-                    old_sid = self._format_session_id(index)
+                parsed_rows.append((row, metadata, old_sid))
+                number = self._parse_session_number(old_sid)
+                canonical_name = f"session_{self._format_session_id(number)}" if number is not None else ""
+                if number is not None and name == canonical_name:
+                    used_numbers.add(number)
 
-                new_sid = self._format_session_id(index)
+            planned: List[Dict[str, Any]] = []
+            next_number = 1
+            for row, metadata, old_sid in parsed_rows:
+                row_id = int(row["id"])
+                name = str(row["name"] or "")
+                old_number = self._parse_session_number(old_sid)
+                canonical_name = (
+                    f"session_{self._format_session_id(old_number)}"
+                    if old_number is not None
+                    else ""
+                )
+                if old_number is not None and name == canonical_name:
+                    continue
+
+                while next_number in used_numbers:
+                    next_number += 1
+                new_sid = self._format_session_id(next_number)
+                used_numbers.add(next_number)
+                next_number += 1
+                if not old_sid:
+                    old_sid = new_sid
                 new_name = f"session_{new_sid}"
                 defaults = self._build_default_paths(new_sid)
                 new_meta = dict(metadata)

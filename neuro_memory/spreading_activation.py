@@ -88,3 +88,59 @@ def top_k_activated(
         if len(result) >= k:
             break
     return result
+
+
+def spreading_activation_traced(
+    graph: MemoryGraphStore,
+    seed_ids: List[str],
+    *,
+    max_hops: int = 3,
+    initial_activation: float = 1.0,
+    decay_per_hop: Optional[Dict[EdgeType, float]] = None,
+    min_activation: float = 1e-4,
+    record_activation: bool = True,
+) -> List[Tuple[str, float, List[str], List[Tuple[str, EdgeType, float]]]]:
+    """
+    带路径追踪的扩散激活。
+    返回 (node_id, activation_score, path_nodes, path_edges) 列表，按分数降序。
+    path_nodes: [seed_id, hop1_node, ..., target_node]
+    path_edges: [(source_id, edge_type, edge_weight), ...]
+    """
+    decay = decay_per_hop or {}
+    activation: Dict[str, float] = defaultdict(float)
+    best_path: Dict[str, Tuple[List[str], List[Tuple[str, EdgeType, float]], float]] = {}
+
+    per_seed = initial_activation / max(1, len(seed_ids))
+    for nid in seed_ids:
+        if graph.has_node(nid):
+            activation[nid] += per_seed
+            best_path[nid] = ([nid], [], per_seed)
+
+    for hop in range(max_hops):
+        next_activation: Dict[str, float] = defaultdict(float)
+        for node_id, score in list(activation.items()):
+            if score < min_activation:
+                continue
+            for target_id, edge in graph.get_neighbors_with_edges(node_id):
+                if record_activation:
+                    graph.record_edge_activation(node_id, target_id, edge.edge_type)
+                decay_factor = decay.get(edge.edge_type) or get_decay_for_edge_type(edge.edge_type)
+                transfer = score * edge.weight * (decay_factor ** (hop + 1))
+                if transfer >= min_activation:
+                    next_activation[target_id] += transfer
+                    cur_path, cur_edges, _ = best_path.get(node_id, ([node_id], [], 0.0))
+                    new_path = cur_path + [target_id]
+                    new_edges = cur_edges + [(node_id, edge.edge_type, edge.weight)]
+                    prev = best_path.get(target_id)
+                    if prev is None or transfer > prev[2]:
+                        best_path[target_id] = (new_path, new_edges, transfer)
+        for nid, delta in next_activation.items():
+            activation[nid] += delta
+
+    out: List[Tuple[str, float, List[str], List[Tuple[str, EdgeType, float]]]] = []
+    for nid, s in activation.items():
+        if s >= min_activation:
+            path_info = best_path.get(nid, ([nid], [], 0.0))
+            out.append((nid, s, path_info[0], path_info[1]))
+    out.sort(key=lambda x: -x[1])
+    return out

@@ -207,6 +207,93 @@ class LongHorizonMemoryBackend(Protocol):
         """Return the most recent write/skip decision."""
 
 
+class VersionedLongHorizonMemoryBackend(LongHorizonMemoryBackend, Protocol):
+    """Optional management plane for durable, versioned long-horizon memory."""
+
+    def list_revisions(
+        self,
+        memory_id: str,
+        session_id: Optional[str] = None,
+        *,
+        limit: int = 100,
+    ) -> List[Dict[str, Any]]:
+        """Return immutable snapshots for one memory, newest first."""
+
+    def restore_revision(
+        self,
+        memory_id: str,
+        revision_id: int,
+        session_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Restore an old snapshot as a new active version."""
+
+    def upsert_edge(
+        self,
+        source_id: str,
+        target_id: str,
+        relation_type: str,
+        *,
+        weight: float = 0.5,
+        evidence: Optional[Dict[str, Any]] = None,
+        status: str = "active",
+    ) -> Dict[str, Any]:
+        """Persist one weighted relation between two memories."""
+
+    def list_edges(
+        self,
+        *,
+        memory_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        status: str = "active",
+        limit: int = 200,
+    ) -> List[Dict[str, Any]]:
+        """Return persisted memory relations."""
+
+    def retrieve_cognitions(
+        self,
+        session_id: Optional[str],
+        query: str,
+        *,
+        scopes: Sequence[str],
+        top_k: int,
+        min_confidence: float,
+        evidence_memory_ids: Sequence[str] = (),
+    ) -> List[Dict[str, Any]]:
+        """Return persisted cognitions without mixing them into source memories."""
+
+    def build_cognition_instruction(
+        self,
+        matches: Sequence[Dict[str, Any]],
+        *,
+        limit: int,
+    ) -> str:
+        """Build an auditable instruction block from recalled cognitions."""
+
+    def create_cognition(
+        self,
+        session_id: Optional[str],
+        statement: str,
+        *,
+        evidence_memory_ids: Sequence[str],
+        cognition_type: str = "induction",
+        scope: str = "session",
+        conditions: Sequence[str] = (),
+        confidence: float = 0.55,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Persist a derived cognition that points back to immutable evidence memories."""
+
+    def list_cognitions(
+        self,
+        session_id: Optional[str] = None,
+        *,
+        scope: Optional[str] = None,
+        status: str = "active",
+        limit: int = 100,
+    ) -> List[Dict[str, Any]]:
+        """List cognition nodes separately from memory nodes."""
+
+
 @dataclass
 class AgentMemoryBackends:
     """Pluggable backend bundle used by :class:`AgentMemoryCore`."""
@@ -234,6 +321,9 @@ class MemoryPolicy:
     long_horizon_top_k: int = 3
     long_horizon_min_confidence: float = 0.35
     long_horizon_instruction_limit: int = 3
+    cognition_top_k: int = 2
+    cognition_min_confidence: float = 0.4
+    cognition_instruction_limit: int = 2
     long_horizon_scopes: Sequence[str] = field(
         default_factory=lambda: ("session", "project", "user")
     )
@@ -247,6 +337,7 @@ class MemoryPolicy:
             "episodic",
             "expanded",
             "long_horizon",
+            "cognition",
             "graph",
             "chat_turn",
         )

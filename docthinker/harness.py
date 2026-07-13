@@ -54,6 +54,7 @@ class QueryRunContext:
     episodic_matches: List[Dict[str, Any]] = field(default_factory=list)
     expanded_matches: List[Dict[str, Any]] = field(default_factory=list)
     long_horizon_matches: List[Dict[str, Any]] = field(default_factory=list)
+    cognition_matches: List[Dict[str, Any]] = field(default_factory=list)
     memory_reasoning: Dict[str, Any] = field(default_factory=dict)
     trace: MemoryTrace = field(default_factory=MemoryTrace)
 
@@ -138,6 +139,7 @@ class QueryHarness:
         context.episodic_matches = recall.episodic_matches
         context.expanded_matches = recall.expanded_matches
         context.long_horizon_matches = recall.long_horizon_matches
+        context.cognition_matches = recall.cognition_matches
         context.memory_reasoning = recall.memory_reasoning
         context.trace = recall.trace
         return context

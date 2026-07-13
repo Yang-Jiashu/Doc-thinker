@@ -1144,6 +1144,159 @@ async def list_long_horizon_memory(
     }
 
 
+@router.get("/memory/long-horizon/edges")
+async def list_long_horizon_memory_edges(
+    session_id: Optional[str] = None,
+    memory_id: Optional[str] = None,
+    status: str = "active",
+    limit: int = 200,
+):
+    """List durable associations between long-horizon memories."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "list_edges"):
+        return {"items": [], "storage": "unsupported"}
+    return {
+        "session_id": session_id,
+        "memory_id": memory_id,
+        "items": backend.list_edges(
+            memory_id=memory_id,
+            session_id=session_id,
+            status=status,
+            limit=limit,
+        ),
+    }
+
+
+@router.post("/memory/long-horizon/edges")
+async def upsert_long_horizon_memory_edge(payload: Dict[str, Any] = Body(default={})):
+    """Create or update one durable memory association."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "upsert_edge"):
+        raise HTTPException(status_code=501, detail="Memory edges are not supported")
+    try:
+        item = backend.upsert_edge(
+            str(payload.get("source_id") or ""),
+            str(payload.get("target_id") or ""),
+            str(payload.get("relation_type") or "related_to"),
+            weight=float(payload.get("weight", 0.5)),
+            evidence=dict(payload.get("evidence") or {}),
+            status=str(payload.get("status") or "active"),
+        )
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"updated": True, "item": item}
+
+
+@router.get("/memory/cognitions")
+async def list_memory_cognitions(
+    session_id: Optional[str] = None,
+    scope: Optional[str] = None,
+    status: str = "active",
+    limit: int = 100,
+):
+    """List derived cognition nodes separately from source memories."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "list_cognitions"):
+        return {"items": [], "storage": "unsupported"}
+    items = backend.list_cognitions(
+        session_id=session_id,
+        scope=scope,
+        status=status,
+        limit=limit,
+    )
+    return {"session_id": session_id, "scope": scope, "status": status, "items": items}
+
+
+@router.post("/memory/cognitions")
+async def create_memory_cognition(payload: Dict[str, Any] = Body(default={})):
+    """Create a cognition whose evidence points to preserved memory nodes."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "create_cognition"):
+        raise HTTPException(status_code=501, detail="Cognition layer is not supported")
+    try:
+        item = backend.create_cognition(
+            payload.get("session_id"),
+            str(payload.get("statement") or ""),
+            evidence_memory_ids=list(payload.get("evidence_memory_ids") or []),
+            cognition_type=str(payload.get("cognition_type") or "induction"),
+            scope=str(payload.get("scope") or "session"),
+            conditions=list(payload.get("conditions") or []),
+            confidence=float(payload.get("confidence", 0.55)),
+            metadata=dict(payload.get("metadata") or {}),
+        )
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"created": True, "item": item}
+
+
+@router.patch("/memory/cognitions/{cognition_id}")
+async def update_memory_cognition(
+    cognition_id: str,
+    payload: Dict[str, Any] = Body(default={}),
+):
+    """Revise or invalidate cognition without mutating its evidence memories."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "update_cognition"):
+        raise HTTPException(status_code=501, detail="Cognition editing is not supported")
+    item = backend.update_cognition(cognition_id, payload)
+    if not item:
+        raise HTTPException(status_code=404, detail=f"Cognition not found or patch empty: {cognition_id}")
+    return {"updated": True, "item": item}
+
+
+@router.get("/memory/cognitions/{cognition_id}/revisions")
+async def list_memory_cognition_revisions(cognition_id: str, limit: int = 100):
+    """Return cognition evolution history independently of memory history."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "list_cognition_revisions"):
+        return {"cognition_id": cognition_id, "items": [], "storage": "unsupported"}
+    items = backend.list_cognition_revisions(cognition_id, limit=limit)
+    if not items:
+        raise HTTPException(status_code=404, detail=f"Cognition not found: {cognition_id}")
+    return {"cognition_id": cognition_id, "items": items}
+
+
+@router.get("/memory/long-horizon/{memory_id}/revisions")
+async def list_long_horizon_memory_revisions(
+    memory_id: str,
+    session_id: Optional[str] = None,
+    limit: int = 100,
+):
+    """List the immutable version history for one memory."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "list_revisions"):
+        return {"memory_id": memory_id, "items": [], "storage": "unsupported"}
+    items = backend.list_revisions(memory_id, session_id=session_id, limit=limit)
+    if not items:
+        current = backend.list_insights(session_id=session_id, limit=1000)
+        if not any(str(item.get("id")) == memory_id for item in current):
+            raise HTTPException(status_code=404, detail=f"Memory not found: {memory_id}")
+    return {"memory_id": memory_id, "items": items}
+
+
+@router.post("/memory/long-horizon/{memory_id}/restore/{revision_id}")
+async def restore_long_horizon_memory_revision(
+    memory_id: str,
+    revision_id: int,
+    session_id: Optional[str] = None,
+):
+    """Restore a prior snapshot as a new active memory version."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "restore_revision"):
+        raise HTTPException(status_code=501, detail="Memory revisions are not supported")
+    restored = backend.restore_revision(
+        memory_id,
+        revision_id,
+        session_id=session_id,
+    )
+    if not restored:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Memory or revision not found: {memory_id}/{revision_id}",
+        )
+    return {"restored": True, "memory_id": memory_id, "item": restored}
+
+
 @router.delete("/memory/long-horizon/{memory_id}")
 async def delete_long_horizon_memory(memory_id: str, session_id: Optional[str] = None):
     """Delete one long-horizon memory record."""

@@ -24,7 +24,7 @@ function fakePort(pickedNode = 7) {
     select: index => events.push(`select:${index}`),
     clearSelection: () => events.push("clear"),
     fitToGraph: () => events.push("fit"),
-    panBy: (dx, dy) => events.push(`pan:${dx},${dy}`),
+    orbitBy: deltaAzimuth => events.push(`orbit:${deltaAzimuth.toFixed(3)}`),
     zoomAt: (_point, factor) => events.push(`zoom:${factor.toFixed(3)}`),
     beginNodeDrag: index => events.push(`begin:${index}`),
     moveNode: (index, point) => events.push(`move:${index}:${point.x},${point.y}`),
@@ -37,61 +37,76 @@ function fakePort(pickedNode = 7) {
 }
 
 describe("GestureStateMachine", () => {
-  it("selects, drags and releases a stable pinched node", () => {
+  it("selects a node after a steady one-finger hover", () => {
     const { port, events } = fakePort(7);
     const machine = new GestureStateMachine(port);
-    machine.process([metrics()], 0);
-    machine.process([metrics()], 150);
-    const pinch = metrics({ pinch: true, pinchDistance: 0.2 });
-    machine.process([pinch], 170);
-    machine.process([pinch], 190);
-    machine.process([pinch], 210);
-    machine.process([metrics({ ...pinch, point: { x: 112, y: 106 } })], 230);
-    machine.process([metrics()], 250);
-    machine.process([metrics()], 270);
-
-    expect(events).toContain("select:7");
-    expect(events).toContain("begin:7");
-    expect(events).toContain("move:7:112,106");
-    expect(events).toContain("end:7:true");
-    expect(events).toContain("clear");
+    machine.process([metrics()], 10);
+    machine.process([metrics()], 570);
+    machine.process([metrics()], 800);
+    expect(events).toContain("hover:7");
+    expect(events.filter(event => event === "select:7")).toHaveLength(1);
   });
 
-  it("pans when pinching empty space", () => {
-    const { port, events } = fakePort(-1);
+  it("prioritizes graph orbit while one hand waves across nodes", () => {
+    const { port, events } = fakePort(7);
     const machine = new GestureStateMachine(port);
-    const pinch = metrics({ pinch: true });
-    machine.process([pinch], 10);
-    machine.process([pinch], 30);
-    machine.process([pinch], 50);
-    machine.process([metrics({ pinch: true, point: { x: 108, y: 95 } })], 70);
-    expect(events).toContain("pan:8,-5");
+    machine.process([metrics({ palmPoint: { x: 100, y: 130 } })], 10);
+    machine.process([metrics({ palmPoint: { x: 116, y: 145 } })], 40);
+    expect(events).toContain("orbit:0.096");
+    expect(events.some(event => event.startsWith("select:"))).toBe(false);
   });
 
-  it("zooms with one open palm and resets with two", () => {
+  it("accumulates slow horizontal movement instead of dropping it frame by frame", () => {
     const { port, events } = fakePort(-1);
     const machine = new GestureStateMachine(port);
-    const leftPalm = metrics({ handedness: "left", openPalm: true, extendedFingers: 4 });
-    const rightPalm = metrics({ handedness: "right", openPalm: true, extendedFingers: 4 });
-    machine.process([leftPalm], 10);
-    machine.process([metrics({ ...leftPalm, palmPoint: { x: 100, y: 105 } })], 40);
-    machine.process([metrics({ ...leftPalm, palmPoint: { x: 100, y: 150 } })], 70);
-    machine.process([leftPalm, rightPalm], 100);
-    machine.process([leftPalm, rightPalm], 530);
-    const zoomFactors = events.filter(event => event.startsWith("zoom:")).map(event => Number(event.split(":")[1]));
-    expect(zoomFactors.some(factor => factor > 1)).toBe(true);
-    expect(zoomFactors.some(factor => factor < 1)).toBe(true);
-    expect(events).toContain("clear");
-    expect(events).toContain("fit");
+    machine.process([metrics({ palmPoint: { x: 100, y: 130 } })], 10);
+    machine.process([metrics({ palmPoint: { x: 100.7, y: 130 } })], 40);
+    machine.process([metrics({ palmPoint: { x: 101.4, y: 130 } })], 70);
+    machine.process([metrics({ palmPoint: { x: 102.1, y: 130 } })], 100);
+    expect(events.some(event => event.startsWith("orbit:"))).toBe(true);
   });
 
-  it("does not zoom when only the right palm moves", () => {
+  it("prioritizes an open-palm wave over the static zoom-in pose", () => {
     const { port, events } = fakePort(-1);
     const machine = new GestureStateMachine(port);
-    const rightPalm = metrics({ handedness: "right", openPalm: true, extendedFingers: 4 });
-    machine.process([rightPalm], 10);
-    machine.process([metrics({ ...rightPalm, palmPoint: { x: 100, y: 80 } })], 40);
+    const palm = metrics({ openPalm: true, extendedFingers: 4, palmPoint: { x: 100, y: 130 } });
+    machine.process([palm], 10);
+    machine.process([metrics({ ...palm, palmPoint: { x: 108, y: 130 } })], 40);
+    expect(events).toContain("orbit:0.048");
     expect(events.some(event => event.startsWith("zoom:"))).toBe(false);
+  });
+
+  it.each(["left", "right"] as const)("zooms in while one %s palm is open", handedness => {
+    const { port, events } = fakePort(-1);
+    const machine = new GestureStateMachine(port);
+    const palm = metrics({ handedness, openPalm: true, extendedFingers: 4 });
+    machine.process([palm], 10);
+    machine.process([palm], 110);
+    const factors = events.filter(event => event.startsWith("zoom:")).map(event => Number(event.split(":")[1]));
+    expect(factors.every(factor => factor > 1)).toBe(true);
+    expect(factors.length).toBeGreaterThan(0);
+  });
+
+  it.each(["left", "right"] as const)("zooms out while one %s hand pinches", handedness => {
+    const { port, events } = fakePort(7);
+    const machine = new GestureStateMachine(port);
+    const pinch = metrics({ handedness, pinch: true, pinchDistance: 0.2 });
+    machine.process([pinch], 10);
+    machine.process([pinch], 110);
+    const factors = events.filter(event => event.startsWith("zoom:")).map(event => Number(event.split(":")[1]));
+    expect(factors.every(factor => factor < 1)).toBe(true);
+    expect(events.some(event => event.startsWith("begin:"))).toBe(false);
+  });
+
+  it.each(["left", "right"] as const)("resets after holding one %s fist", handedness => {
+    const { port, events } = fakePort(-1);
+    const machine = new GestureStateMachine(port);
+    const fist = metrics({ handedness, pinch: false, openPalm: false, extendedFingers: 0 });
+    machine.process([fist], 10);
+    machine.process([fist], 520);
+    machine.process([fist], 800);
+    expect(events.filter(event => event === "clear")).toHaveLength(1);
+    expect(events.filter(event => event === "fit")).toHaveLength(1);
   });
 
   it("releases hover and interaction when no hand is visible", () => {

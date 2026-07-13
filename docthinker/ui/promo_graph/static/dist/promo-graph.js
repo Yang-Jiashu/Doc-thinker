@@ -5196,75 +5196,86 @@ async function nu() {
 //#region frontend/src/gesture/gesture-state-machine.ts
 var ru = class {
 	port;
-	rightAction = "idle";
 	hoveredNode = -1;
 	hoverSince = 0;
-	candidateNode = -1;
-	pinchFrames = 0;
-	releaseFrames = 0;
-	cooldownUntil = 0;
-	capturedNode = -1;
-	actionPoint = null;
-	actionMoved = !1;
-	leftPalmPoint = null;
-	twoPalmSince = 0;
-	twoPalmResetDone = !1;
+	dwellSelectedNode = -1;
+	swingPoint = null;
+	swingAccumulator = 0;
+	zoomMode = null;
+	zoomLastAt = 0;
+	fistSince = 0;
+	fistResetDone = !1;
 	constructor(e) {
 		this.port = e;
 	}
 	process(e, t) {
-		let n = e.find((e) => e.handedness === "left") ?? null, r = e.find((e) => e.handedness === "right") ?? null;
-		if (!n && !r) {
-			this.port.setGestureActive(!1), this.releaseRightAction(!1, t), this.clearRightPointer(), this.leftPalmPoint = null, this.twoPalmSince = 0, this.twoPalmResetDone = !1;
+		let n = e.find((e) => e.handedness === "left") ?? null, r = e.find((e) => e.handedness === "right") ?? null ?? n;
+		if (!r) {
+			this.port.setGestureActive(!1), this.clearInteractionState(), this.resetFistHold();
 			return;
 		}
-		this.port.setGestureActive(!0), !this.processTwoPalmReset(n, r, t) && (this.processLeftPalmZoom(n), this.processRightPointer(r, t));
+		if (this.port.setGestureActive(!0), !this.processSingleHandReset(r, t)) {
+			if (this.processHorizontalSwing(r)) {
+				this.resetZoom();
+				return;
+			}
+			if (r.openPalm && !r.pinch) {
+				this.processContinuousZoom(r, "in", t);
+				return;
+			}
+			if (r.pinch) {
+				this.processContinuousZoom(r, "out", t);
+				return;
+			}
+			this.resetZoom(), this.processPointer(r, t);
+		}
 	}
-	reset(e = performance.now()) {
-		this.releaseRightAction(!1, e), this.clearRightPointer(), this.leftPalmPoint = null, this.port.setGestureActive(!1);
+	reset() {
+		this.clearInteractionState(), this.resetFistHold(), this.port.setGestureActive(!1);
 	}
-	processTwoPalmReset(e, t, n) {
-		return !e?.openPalm || !t?.openPalm ? (this.twoPalmSince = 0, this.twoPalmResetDone = !1, !1) : (this.releaseRightAction(!1, n), this.leftPalmPoint = null, this.port.setCursor(t.point, "idle"), this.twoPalmSince ||= n, !this.twoPalmResetDone && n - this.twoPalmSince >= 420 && (this.port.clearSelection(), this.port.fitToGraph(), this.twoPalmResetDone = !0), !0);
+	processSingleHandReset(e, t) {
+		return e.extendedFingers === 0 && !e.openPalm ? (this.clearHover(), this.resetSwing(), this.resetZoom(), this.port.setCursor(e.palmPoint, "idle"), this.fistSince ||= t, !this.fistResetDone && t - this.fistSince >= 500 && (this.port.clearSelection(), this.port.fitToGraph(), this.fistResetDone = !0), !0) : (this.resetFistHold(), !1);
 	}
-	processLeftPalmZoom(e) {
-		if (!e?.openPalm || e.pinch) {
-			this.leftPalmPoint = null;
+	resetFistHold() {
+		this.fistSince = 0, this.fistResetDone = !1;
+	}
+	processContinuousZoom(e, t, n) {
+		if (this.clearHover(), this.port.setCursor(e.palmPoint, t === "in" ? "zoom-in" : "zoom-out"), this.zoomMode !== t || !this.zoomLastAt) {
+			this.zoomMode = t, this.zoomLastAt = n;
 			return;
 		}
-		if (!this.leftPalmPoint) {
-			this.leftPalmPoint = { ...e.palmPoint };
+		let r = Math.max(0, Math.min(n - this.zoomLastAt, 100));
+		if (this.zoomLastAt = n, r <= 0) return;
+		let i = t === "in" ? 1 : -1;
+		this.port.zoomAt(e.palmPoint, Math.exp(i * r / 1600));
+	}
+	resetZoom() {
+		this.zoomMode = null, this.zoomLastAt = 0;
+	}
+	processPointer(e, t) {
+		let n = this.port.pick(e.point);
+		if (this.port.setCursor(e.point, n >= 0 ? "idle" : "orbit-swing"), n >= 0) {
+			n !== this.hoveredNode && (this.hoveredNode = n, this.hoverSince = t, this.dwellSelectedNode = -1), this.port.hover(n), this.dwellSelectedNode !== n && t - this.hoverSince >= 550 && (this.port.select(n), this.dwellSelectedNode = n);
 			return;
 		}
-		let t = e.palmPoint.y - this.leftPalmPoint.y;
-		Math.abs(t) >= 2 && (this.port.zoomAt(e.palmPoint, Math.exp(-t / 230)), this.leftPalmPoint = { ...e.palmPoint });
+		this.clearHover();
 	}
-	processRightPointer(e, t) {
-		if (!e) {
-			this.releaseRightAction(!1, t), this.clearRightPointer();
-			return;
-		}
-		this.port.setCursor(e.point, this.rightAction), (!e.pinch || this.rightAction !== "idle") && this.updateHover(e.point, t), this.processRightPinch(e, t);
+	processHorizontalSwing(e) {
+		if (!this.swingPoint) return this.swingPoint = { ...e.palmPoint }, this.swingAccumulator = 0, !1;
+		let t = e.palmPoint.x - this.swingPoint.x, n = e.palmPoint.y - this.swingPoint.y;
+		if (this.swingPoint = { ...e.palmPoint }, Math.abs(t) < Math.abs(n) * .55) return this.swingAccumulator *= .5, !1;
+		if (this.swingAccumulator = this.swingAccumulator * .62 + t, Math.abs(this.swingAccumulator) < 1.25) return !1;
+		let r = this.swingAccumulator * .006;
+		return this.swingAccumulator *= .18, this.clearHover(), this.port.setCursor(e.palmPoint, "orbit-swing"), this.port.orbitBy(r), !0;
 	}
-	updateHover(e, t) {
-		if (this.rightAction !== "idle") return;
-		let n = this.port.pick(e);
-		n !== this.hoveredNode && (this.hoveredNode = n, this.hoverSince = t, this.candidateNode = -1), n >= 0 && t - this.hoverSince >= 140 ? this.candidateNode = n : n < 0 && (this.candidateNode = -1), this.port.hover(this.candidateNode >= 0 ? this.candidateNode : n);
+	clearHover() {
+		this.hoveredNode >= 0 && this.port.hover(-1), this.hoveredNode = -1, this.hoverSince = 0, this.dwellSelectedNode = -1;
 	}
-	processRightPinch(e, t) {
-		if (t < this.cooldownUntil) return;
-		if (e.pinch ? (this.pinchFrames += 1, this.releaseFrames = 0) : (this.releaseFrames += 1, this.pinchFrames = 0), !e.pinch) {
-			this.releaseFrames >= 2 && this.rightAction !== "idle" && this.releaseRightAction(this.rightAction === "node-captured", t);
-			return;
-		}
-		if (this.pinchFrames < 3 || (this.rightAction === "idle" && (this.actionPoint = { ...e.point }, this.actionMoved = !1, this.candidateNode >= 0 ? (this.rightAction = "node-captured", this.capturedNode = this.candidateNode, this.port.select(this.capturedNode), this.port.beginNodeDrag(this.capturedNode)) : this.rightAction = "canvas-pan"), !this.actionPoint)) return;
-		let n = e.point.x - this.actionPoint.x, r = e.point.y - this.actionPoint.y;
-		this.rightAction === "node-captured" && this.capturedNode >= 0 ? (!this.actionMoved && Math.hypot(n, r) >= 5 && (this.actionMoved = !0, this.port.setNodeDragging(!0)), this.actionMoved && this.port.moveNode(this.capturedNode, e.point)) : this.rightAction === "canvas-pan" && Math.hypot(n, r) >= 1 && (this.actionMoved = !0, this.port.panBy(n, r), this.actionPoint = { ...e.point }), this.port.setCursor(e.point, this.rightAction);
+	resetSwing() {
+		this.swingPoint = null, this.swingAccumulator = 0;
 	}
-	releaseRightAction(e, t) {
-		this.rightAction === "node-captured" && this.capturedNode >= 0 && (this.port.endNodeDrag(this.capturedNode, this.actionMoved), this.port.setNodeDragging(!1), e && this.port.clearSelection()), this.rightAction = "idle", this.capturedNode = -1, this.actionPoint = null, this.actionMoved = !1, this.pinchFrames = 0, this.releaseFrames = 0, this.cooldownUntil = t + 160;
-	}
-	clearRightPointer() {
-		this.hoveredNode = -1, this.hoverSince = 0, this.candidateNode = -1, this.port.hover(-1), this.port.setCursor(null, "idle");
+	clearInteractionState() {
+		this.clearHover(), this.resetSwing(), this.resetZoom(), this.port.setNodeDragging(!1), this.port.setCursor(null, "idle");
 	}
 }, iu = class {
 	stage;
@@ -5280,8 +5291,14 @@ var ru = class {
 	suspended = !1;
 	lastInferenceAt = 0;
 	lastVideoTime = -1;
-	previousRightPinch = !1;
-	smoothedRightPoint = null;
+	previousPinch = {
+		left: !1,
+		right: !1
+	};
+	smoothedPoint = {
+		left: null,
+		right: null
+	};
 	dragAnchors = /* @__PURE__ */ new Map();
 	constructor(e, t, n, r, i, a) {
 		this.stage = e, this.layer = t, this.video = n, this.cursor = r, this.renderer = i, this.callbacks = a, this.stateMachine = new ru(this.createInputPort());
@@ -5323,7 +5340,13 @@ var ru = class {
 		}), e && this.stateMachine.reset();
 	}
 	stop() {
-		this.enabled = !1, this.stateMachine.reset(), this.stream?.getTracks().forEach((e) => e.stop()), this.stream = null, this.video.pause(), this.video.srcObject = null, this.landmarker?.close(), this.landmarker = null, this.layer.hidden = !0, this.layer.dataset.state = "idle", this.cursor.style.opacity = "0", this.dragAnchors.clear();
+		this.enabled = !1, this.stateMachine.reset(), this.stream?.getTracks().forEach((e) => e.stop()), this.stream = null, this.video.pause(), this.video.srcObject = null, this.landmarker?.close(), this.landmarker = null, this.layer.hidden = !0, this.layer.dataset.state = "idle", this.cursor.style.opacity = "0", this.dragAnchors.clear(), this.previousPinch = {
+			left: !1,
+			right: !1
+		}, this.smoothedPoint = {
+			left: null,
+			right: null
+		};
 	}
 	dispose() {
 		this.stop();
@@ -5339,10 +5362,13 @@ var ru = class {
 		let n = this.stage.clientWidth, r = this.stage.clientHeight, i = e.map((e) => 1 - (e[8]?.x ?? .5)), a = e.map((e, n) => de(t[n]?.[0]?.categoryName, i[n]));
 		e.length >= 2 && new Set(a).size < 2 && (a = i.map((e) => de(void 0, e)));
 		let o = e.flatMap((e, t) => {
-			let i = a[t], o = pe(e, i === "right" && this.previousRightPinch);
-			return o ? [me(o, n, r, i)] : [];
-		}), s = o.find((e) => e.handedness === "right");
-		s ? (this.smoothedRightPoint = he(this.smoothedRightPoint, s.point), s.point = this.smoothedRightPoint, this.previousRightPinch = s.pinch) : (this.previousRightPinch = !1, this.smoothedRightPoint = null), this.stateMachine.process(o, performance.now());
+			let i = a[t], o = pe(e, this.previousPinch[i]);
+			if (!o) return [];
+			let s = me(o, n, r, i);
+			return this.smoothedPoint[i] = he(this.smoothedPoint[i], s.point), s.point = this.smoothedPoint[i], this.previousPinch[i] = s.pinch, [s];
+		});
+		for (let e of ["left", "right"]) o.some((t) => t.handedness === e) || (this.previousPinch[e] = !1, this.smoothedPoint[e] = null);
+		this.stateMachine.process(o, performance.now());
 	}
 	createInputPort() {
 		return {
@@ -5353,7 +5379,7 @@ var ru = class {
 			select: (e) => this.callbacks.onSelect(e),
 			clearSelection: () => this.callbacks.onClearSelection(),
 			fitToGraph: () => this.renderer.fitToGraph(),
-			panBy: (e, t) => this.renderer.panBy(e, t),
+			orbitBy: (e) => this.renderer.orbitBy(e),
 			zoomAt: (e, t) => this.renderer.zoomAt(e.x, e.y, t),
 			beginNodeDrag: (e) => {
 				this.dragAnchors.set(e, this.renderer.getNodeWorldPosition(e)), this.callbacks.onNodeAttractionStart(e);
@@ -17108,6 +17134,9 @@ var xb = "\n  attribute vec3 aColor;\n  attribute float aSize;\n  attribute floa
 		this.camera.updateMatrixWorld();
 		let n = new J().setFromMatrixColumn(this.camera.matrixWorld, 0), r = new J().setFromMatrixColumn(this.camera.matrixWorld, 1), i = n.multiplyScalar(-e / this.camera.zoom).add(r.multiplyScalar(t / this.camera.zoom));
 		this.orbitTarget.add(i), this.camera.position.add(i), this.labelsDirty = !0, this.viewChangedCallback?.();
+	}
+	orbitBy(e) {
+		this.orbitAzimuth = (this.orbitAzimuth + e) % (Math.PI * 2), this.applyCameraOrbit(), this.labelsDirty = !0, this.viewChangedCallback?.();
 	}
 	centerOnNode(e, t = 2.1) {
 		let n = this.getNodeWorldPosition(e);

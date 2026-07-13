@@ -287,6 +287,22 @@ select:focus-visible,
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.36);
 }
 
+.gesture-guide {
+  position: absolute;
+  right: 18px;
+  bottom: 158px;
+  width: 176px;
+  padding: 7px 9px;
+  border: 1px solid rgba(173, 216, 235, 0.2);
+  border-radius: 6px;
+  background: rgba(5, 7, 13, 0.78);
+  color: rgba(226, 238, 246, 0.84);
+  font-size: 11px;
+  line-height: 1.55;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
 .gesture-cursor {
   position: absolute;
   width: 16px;
@@ -304,6 +320,24 @@ select:focus-visible,
 .gesture-cursor[data-mode="node-captured"],
 .gesture-cursor[data-mode="canvas-pan"] {
   transform: scale(0.76);
+}
+
+.gesture-cursor[data-mode="orbit-swing"] {
+  border-color: #8ea7ff;
+  background: rgba(142, 167, 255, 0.2);
+  border-radius: 35%;
+}
+
+.gesture-cursor[data-mode="zoom-in"] {
+  border-color: #72f1b8;
+  background: rgba(114, 241, 184, 0.2);
+  transform: scale(1.35);
+}
+
+.gesture-cursor[data-mode="zoom-out"] {
+  border-color: #ffb86c;
+  background: rgba(255, 184, 108, 0.2);
+  transform: scale(0.68);
 }
 
 .star-map-canvas {
@@ -653,6 +687,13 @@ select:focus-visible,
     bottom: 58px;
     width: 136px;
     height: 102px;
+  }
+
+  .gesture-guide {
+    right: 12px;
+    bottom: 166px;
+    width: 136px;
+    font-size: 10px;
   }
 
   .node-panel {
