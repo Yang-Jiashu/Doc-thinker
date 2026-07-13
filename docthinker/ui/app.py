@@ -80,6 +80,10 @@ except ImportError as e:
     app.config['SECRET_KEY'] = 'dev-secret-key'
 
 # 开发时禁用页面缓存，确保模板更新后立即生效
+from docthinker.ui.promo_graph import promo_graph_bp
+
+app.register_blueprint(promo_graph_bp)
+
 @app.after_request
 def _no_cache_html(response):
     if response.content_type and "text/html" in response.content_type:
@@ -279,6 +283,7 @@ def session_files_proxy(session_id):
 def kg_data_proxy():
     import requests as req_lib
     session_id = request.args.get('session_id', '')
+    scope = request.args.get('scope', 'summary')
     if not session_id:
         return jsonify({
             'nodes': [],
@@ -287,7 +292,11 @@ def kg_data_proxy():
         }), 400
     backend_url = f"http://127.0.0.1:8000{api_config.api_prefix}/knowledge-graph/data"
     try:
-        resp = req_lib.get(backend_url, params={'session_id': session_id}, timeout=30)
+        resp = req_lib.get(
+            backend_url,
+            params={'session_id': session_id, 'scope': scope},
+            timeout=120 if scope == 'full' else 30,
+        )
         if resp.status_code == 404:
             return jsonify({
                 'nodes': [],
@@ -307,6 +316,74 @@ def kg_data_proxy():
         }), 200
     except Exception as e:
         return jsonify({'nodes': [], 'edges': [], 'metadata': {'error': str(e)}}), 200
+
+
+@app.route(f'{api_config.api_prefix}/knowledge-graph/entity-chunks', methods=['GET'])
+def kg_entity_chunks_proxy():
+    """Proxy entity evidence without loading chunk text into the graph payload."""
+    import requests as req_lib
+
+    session_id = request.args.get('session_id', '')
+    entity_id = request.args.get('entity_id', '')
+    max_chunks = request.args.get('max_chunks', '20')
+    if not session_id or not entity_id:
+        return jsonify({'error': 'session_id and entity_id are required'}), 400
+
+    backend_url = f"http://127.0.0.1:8000{api_config.api_prefix}/knowledge-graph/entity-chunks"
+    try:
+        resp = req_lib.get(
+            backend_url,
+            params={
+                'session_id': session_id,
+                'entity_id': entity_id,
+                'max_chunks': max_chunks,
+            },
+            timeout=120,
+        )
+        try:
+            body = resp.json()
+        except Exception:
+            body = {'error': f'Backend returned non-JSON (HTTP {resp.status_code})'}
+        return jsonify(body), resp.status_code
+    except req_lib.exceptions.ConnectionError:
+        return jsonify({'error': 'Unable to connect to the backend on port 8000'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route(f'{api_config.api_prefix}/knowledge-graph/edge-chunks', methods=['GET'])
+def kg_edge_chunks_proxy():
+    """Proxy relation evidence without adding chunk text to the full graph payload."""
+    import requests as req_lib
+
+    session_id = request.args.get('session_id', '')
+    source_id = request.args.get('source_id')
+    edge_id = request.args.get('edge_id', '')
+    max_chunks = request.args.get('max_chunks', '20')
+    if not session_id or source_id is None:
+        return jsonify({'error': 'session_id and source_id are required'}), 400
+
+    backend_url = f"http://127.0.0.1:8000{api_config.api_prefix}/knowledge-graph/edge-chunks"
+    try:
+        resp = req_lib.get(
+            backend_url,
+            params={
+                'session_id': session_id,
+                'source_id': source_id,
+                'edge_id': edge_id,
+                'max_chunks': max_chunks,
+            },
+            timeout=120,
+        )
+        try:
+            body = resp.json()
+        except Exception:
+            body = {'error': f'Backend returned non-JSON (HTTP {resp.status_code})'}
+        return jsonify(body), resp.status_code
+    except req_lib.exceptions.ConnectionError:
+        return jsonify({'error': 'Unable to connect to the backend on port 8000'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route(f'{api_config.api_prefix}/knowledge-graph/expand', methods=['POST'])
 def kg_expand_proxy():
@@ -550,6 +627,7 @@ def text_query():
                 'answer_mode': result.get('answer_mode', ''),
                 'expanded_matches': result.get('expanded_matches', []),
                 'long_horizon_matches': result.get('long_horizon_matches', []),
+                'cognition_matches': result.get('cognition_matches', []),
                 'memory_summaries': result.get('memory_summaries', []),
                 'memory_reasoning': result.get('memory_reasoning', {}),
                 'memory_trace': result.get('memory_trace', {}),

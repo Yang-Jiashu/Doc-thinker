@@ -58,6 +58,8 @@ class MemoryTrace:
     episodic_hits: int = 0
     expanded_hits: int = 0
     long_horizon_hits: int = 0
+    cognition_hits: int = 0
+    graph_expanded_hits: int = 0
     memory_context_injected: bool = False
     retrieval_instruction_applied: bool = False
     recall_plan: Dict[str, Any] = field(default_factory=dict)
@@ -73,6 +75,8 @@ class MemoryTrace:
         lines.append(f"episodic_hits: {self.episodic_hits}")
         lines.append(f"expanded_hits: {self.expanded_hits}")
         lines.append(f"long_horizon_hits: {self.long_horizon_hits}")
+        lines.append(f"cognition_hits: {self.cognition_hits}")
+        lines.append(f"graph_expanded_hits: {self.graph_expanded_hits}")
         if self.recall_plan:
             lines.append(f"recall_plan: {self.recall_plan.get('question_type', 'general')}")
         if self.memory_reasoning:
@@ -95,6 +99,8 @@ class MemoryTrace:
                 "episodic_hits": self.episodic_hits,
                 "expanded_hits": self.expanded_hits,
                 "long_horizon_hits": self.long_horizon_hits,
+                "cognition_hits": self.cognition_hits,
+                "graph_expanded_hits": self.graph_expanded_hits,
                 "context_injected": self.memory_context_injected,
                 "retrieval_instruction_applied": self.retrieval_instruction_applied,
                 "plan": dict(self.recall_plan or {}),
@@ -115,6 +121,7 @@ class RecallBundle:
     episodic_matches: List[Dict[str, Any]] = field(default_factory=list)
     expanded_matches: List[Dict[str, Any]] = field(default_factory=list)
     long_horizon_matches: List[Dict[str, Any]] = field(default_factory=list)
+    cognition_matches: List[Dict[str, Any]] = field(default_factory=list)
     memory_reasoning: Dict[str, Any] = field(default_factory=dict)
     trace: MemoryTrace = field(default_factory=MemoryTrace)
 
@@ -719,10 +726,19 @@ class InMemoryLongHorizonBackend:
         }
 
 
-_DEFAULT_LONG_HORIZON_BACKEND = InMemoryLongHorizonBackend()
+_DEFAULT_LONG_HORIZON_BACKEND: Optional[Any] = None
+_DEFAULT_LONG_HORIZON_BACKEND_LOCK = threading.Lock()
 
 
-def get_default_long_horizon_backend() -> InMemoryLongHorizonBackend:
+def get_default_long_horizon_backend() -> Any:
+    """Return the process singleton backed by a durable SQLite database."""
+    global _DEFAULT_LONG_HORIZON_BACKEND
+    if _DEFAULT_LONG_HORIZON_BACKEND is None:
+        with _DEFAULT_LONG_HORIZON_BACKEND_LOCK:
+            if _DEFAULT_LONG_HORIZON_BACKEND is None:
+                from .sqlite_backend import SQLiteLongHorizonBackend
+
+                _DEFAULT_LONG_HORIZON_BACKEND = SQLiteLongHorizonBackend()
     return _DEFAULT_LONG_HORIZON_BACKEND
 
 
@@ -871,6 +887,7 @@ class AgentMemoryCore:
         episodic_matches: List[Dict[str, Any]] = []
         expanded_matches: List[Dict[str, Any]] = []
         long_horizon_matches: List[Dict[str, Any]] = []
+        cognition_matches: List[Dict[str, Any]] = []
         memory_reasoning: Dict[str, Any] = {}
 
         if skip_memory:
@@ -881,6 +898,7 @@ class AgentMemoryCore:
                 episodic_matches=episodic_matches,
                 expanded_matches=expanded_matches,
                 long_horizon_matches=long_horizon_matches,
+                cognition_matches=cognition_matches,
                 memory_reasoning=memory_reasoning,
                 trace=trace,
             )
@@ -935,11 +953,73 @@ class AgentMemoryCore:
                         "type": "long_horizon_recall",
                         "count": len(long_horizon_matches),
                     })
+                    graph_matches = [
+                        item for item in long_horizon_matches
+                        if str(item.get("recall_origin") or "") == "graph"
+                    ]
+                    if graph_matches:
+                        trace.graph_expanded_hits = len(graph_matches)
+                        trace.events.append({
+                            "type": "memory_graph_recall",
+                            "count": len(graph_matches),
+                            "paths": [
+                                {
+                                    "memory_id": item.get("id"),
+                                    "seed_memory_id": item.get("seed_memory_id"),
+                                    "graph_path": item.get("graph_path", []),
+                                }
+                                for item in graph_matches[:5]
+                            ],
+                        })
                     trace.events.append({
                         "type": "memory_reasoning",
                         "question_type": memory_reasoning.get("question_type"),
                         "conclusions": memory_reasoning.get("conclusions", []),
                     })
+
+                if (
+                    self.policy.layer_enabled("cognition")
+                    and hasattr(self.backends.long_horizon, "retrieve_cognitions")
+                ):
+                    cognition_matches = self.backends.long_horizon.retrieve_cognitions(
+                        session_id,
+                        query,
+                        scopes=self.policy.long_horizon_scopes,
+                        top_k=self.policy.cognition_top_k,
+                        min_confidence=self.policy.cognition_min_confidence,
+                        evidence_memory_ids=[
+                            str(item.get("id")) for item in long_horizon_matches
+                            if item.get("id")
+                        ],
+                    )
+                    if cognition_matches:
+                        cognition_instruction = self.backends.long_horizon.build_cognition_instruction(
+                            cognition_matches,
+                            limit=self.policy.cognition_instruction_limit,
+                        )
+                        merged_instruction = self._merge_instructions(
+                            merged_instruction,
+                            cognition_instruction,
+                        )
+                        memory_summaries.append({
+                            "source": "cognition",
+                            "kind": "derived_cognition",
+                            "count": len(cognition_matches),
+                        })
+                        trace.memory_context_injected = True
+                        trace.cognition_hits = len(cognition_matches)
+                        trace.events.append({
+                            "type": "cognition_recall",
+                            "count": len(cognition_matches),
+                            "items": [
+                                {
+                                    "id": item.get("id"),
+                                    "cognition_type": item.get("cognition_type"),
+                                    "evidence_memory_ids": item.get("evidence_memory_ids", []),
+                                }
+                                for item in cognition_matches[:5]
+                            ],
+                        })
             except Exception as exc:
                 _log.warning("[recall] long-horizon recall failed: %s", exc)
 
@@ -1033,6 +1113,7 @@ class AgentMemoryCore:
         trace.episodic_hits = len(episodic_matches)
         trace.expanded_hits = len(expanded_matches)
         trace.long_horizon_hits = len(long_horizon_matches)
+        trace.cognition_hits = len(cognition_matches)
         trace.retrieval_instruction_applied = bool(merged_instruction)
         return RecallBundle(
             retrieval_instruction=merged_instruction,
@@ -1040,6 +1121,7 @@ class AgentMemoryCore:
             episodic_matches=episodic_matches,
             expanded_matches=expanded_matches,
             long_horizon_matches=long_horizon_matches,
+            cognition_matches=cognition_matches,
             memory_reasoning=memory_reasoning,
             trace=trace,
         )

@@ -92,6 +92,18 @@ except Exception:  # pragma: no cover - optional dependency
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env", override=False)
 
 
+def _query_cache_scope(
+    hashing_kv: BaseKVStorage | None,
+    global_config: dict[str, Any],
+    context: str = "",
+) -> str:
+    """Bind cached query output to one store and one retrieved context."""
+    workspace = str(getattr(hashing_kv, "workspace", "") or "")
+    working_dir = str(global_config.get("working_dir") or "")
+    context_id = compute_mdhash_id(str(context or ""), prefix="ctx-")
+    return f"{workspace}|{working_dir}|{context_id}"
+
+
 def _truncate_entity_identifier(
     identifier: str, limit: int, chunk_key: str, identifier_role: str
 ) -> str:
@@ -3216,6 +3228,19 @@ async def kg_query(
 
     _t_llm = _time.time()
     args_hash = compute_args_hash(
+        _query_cache_scope(
+            hashing_kv,
+            global_config,
+            json.dumps(
+                {
+                    "context": context_result.context,
+                    "history": query_param.conversation_history,
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+                default=str,
+            ),
+        ),
         query_param.mode,
         query,
         query_param.response_type,
@@ -3400,6 +3425,7 @@ async def extract_keywords_only(
         return hl, ll
 
     args_hash = compute_args_hash(
+        _query_cache_scope(hashing_kv, global_config),
         param.mode,
         text,
     )
@@ -4900,6 +4926,11 @@ async def _get_edge_data(
     def _relation_key(item: dict) -> str:
         if "relation_key" in item:
             return item["relation_key"]
+        if item.get("relation_id"):
+            return str(item["relation_id"])
+        edge_data = item.get("edge_data")
+        if isinstance(edge_data, dict) and edge_data.get("relation_id"):
+            return str(edge_data["relation_id"])
         src = item.get("src_id")
         tgt = item.get("tgt_id")
         return f"{src}->{tgt}"
@@ -4923,11 +4954,30 @@ async def _get_edge_data(
     edge_datas = []
     for cand in combined_candidates:
         pair = (cand.get("src_id"), cand.get("tgt_id"))
-        edge_props = cand.get("edge_data") or edge_data_dict.get(pair)
+        if (
+            cand.get("relation_id")
+            and str(cand.get("review_status") or "").strip().lower() == "promoted"
+        ):
+            edge_props = {
+                key: value
+                for key, value in cand.items()
+                if key
+                not in {
+                    "distance",
+                    "created_at",
+                    "relation_key",
+                    "id",
+                    "__id__",
+                    "__created_at__",
+                }
+            }
+        else:
+            edge_props = cand.get("edge_data") or edge_data_dict.get(pair)
         if edge_props is None:
             continue
+        edge_props = dict(edge_props)
         if "weight" not in edge_props:
-            edge_props["weight"] = edge_props.get("weight", 1.0)
+            edge_props["weight"] = 1.0
         combined = {
             "src_id": pair[0],
             "tgt_id": pair[1],
@@ -5016,7 +5066,9 @@ async def _find_related_text_unit_from_relations(
             )
             if chunks:
                 # Build relation identifier
-                if "src_tgt" in relation:
+                if relation.get("relation_id"):
+                    rel_key = str(relation["relation_id"])
+                elif "src_tgt" in relation:
                     rel_key = tuple(sorted(relation["src_tgt"]))
                 else:
                     rel_key = tuple(
@@ -5156,7 +5208,7 @@ async def _find_related_text_unit_from_relations(
         )
 
     logger.debug(
-        f"KG related chunks: {len(entity_chunks)} from entitys, {len(selected_chunk_ids)} from relations"
+        f"KG related chunks: {len(entity_chunks or [])} from entitys, {len(selected_chunk_ids)} from relations"
     )
 
     if not selected_chunk_ids:
@@ -5389,6 +5441,19 @@ async def naive_query(
 
     # Handle cache
     args_hash = compute_args_hash(
+        _query_cache_scope(
+            hashing_kv,
+            global_config,
+            json.dumps(
+                {
+                    "context": context_content,
+                    "history": query_param.conversation_history,
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+                default=str,
+            ),
+        ),
         query_param.mode,
         query,
         query_param.response_type,

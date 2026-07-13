@@ -1,0 +1,7 @@
+node_modules/
+test-results/
+playwright-report/
+coverage/
+.vite/
+!static/dist/
+!static/dist/**

@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import tempfile
 import time
 from pathlib import Path
@@ -25,6 +26,48 @@ FAST_QA_TIMEOUT_SECONDS = 30
 SESSION_QUERY_TIMEOUT_SECONDS = 180
 FALLBACK_LLM_TIMEOUT_SECONDS = 60
 
+_NO_CONTEXT_MARKERS = (
+    "[no-context]",
+    "sorry, i'm not able to provide an answer to that question",
+)
+
+
+def _needs_conversation_fallback(answer: Any) -> bool:
+    text = str(answer or "").strip().lower()
+    return not text or any(marker in text for marker in _NO_CONTEXT_MARKERS)
+
+
+def _build_conversation_fallback_prompt(question: str, run_context: Any) -> str:
+    history = list(getattr(run_context, "conversation_history", []) or [])[-6:]
+    # The current user message is stored before the harness loads history.
+    if history and history[-1].get("role") == "user" and history[-1].get("content") == question:
+        history = history[:-1]
+    history_text = "\n".join(
+        f"{str(item.get('role') or 'user')}: {str(item.get('content') or '')}"
+        for item in history
+        if isinstance(item, dict) and str(item.get("content") or "").strip()
+    )
+    memory_instruction = str(getattr(run_context, "retrieval_instruction", "") or "").strip()
+    return (
+        "你是 DocThinker，一个具有可控长期记忆的智能助手。\n"
+        "当前没有检索到文档或知识图谱证据，但这不代表不能回答。"
+        "请根据用户当前输入、已有对话和已召回记忆正常交流。\n"
+        "如果用户要求记住某项偏好或事实，请简洁确认；不要声称引用了不存在的文档。\n\n"
+        f"已召回记忆或运行指令：\n{memory_instruction or '无'}\n\n"
+        f"近期对话：\n{history_text or '无'}\n\n"
+        f"用户当前输入：{question}\n"
+        "请直接给出清晰、自然的中文回答。"
+    )
+
+
+async def _conversation_fallback_answer(question: str, run_context: Any) -> str:
+    prompt = _build_conversation_fallback_prompt(question, run_context)
+    response = await asyncio.wait_for(
+        state.rag_instance.llm_model_func(prompt),
+        timeout=FALLBACK_LLM_TIMEOUT_SECONDS,
+    )
+    return str(response or "").strip()
+
 def _looks_like_file_question(question: str) -> bool:
     q = (question or "").strip().lower()
     if not q:
@@ -47,6 +90,17 @@ def _looks_like_file_question(question: str) -> bool:
         "pdf",
     ]
     return any(k in q for k in keywords)
+
+
+def _is_identity_query(question: str) -> bool:
+    text = str(question or "").strip().lower()
+    if not text or len(text) >= 40:
+        return False
+    compact = re.sub(r"[\s,.!?，。！？、]+", "", text)
+    chinese_phrases = ("你好", "你是谁", "你叫什么", "你叫什么名字")
+    if compact in chinese_phrases:
+        return True
+    return bool(re.fullmatch(r"(?:hello|hi|hey|who are you|what(?:'s| is) your name)", text))
 
 
 def _is_chat_turn_ingest_enabled() -> bool:
@@ -489,9 +543,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         raise HTTPException(status_code=400, detail="session_id is required; global knowledge is disabled")
 
     session_rag = await _get_session_rag_or_raise(request.session_id)
-    identity_keywords = ["who are you", "your name", "hello", "hi"]
-    question_lower = (request.question or "").lower()
-    is_identity_query = any(k in question_lower for k in identity_keywords) and len(request.question) < 40
+    is_identity_query = _is_identity_query(request.question)
 
     try:
         state.session_manager.add_message(request.session_id, "user", request.question)
@@ -546,6 +598,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         expanded_matches = run_context.expanded_matches
         episodic_matches = run_context.episodic_matches
         long_horizon_matches = run_context.long_horizon_matches
+        cognition_matches = run_context.cognition_matches
         merged_instruction = run_context.retrieval_instruction
         memory_summaries = run_context.memory_summaries
         memory_reasoning = run_context.memory_reasoning
@@ -559,6 +612,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
             "expanded_matches": expanded_matches[:min(2, len(expanded_matches))],
             "episodic_matches": episodic_matches[:min(3, len(episodic_matches))],
             "long_horizon_matches": long_horizon_matches[:min(3, len(long_horizon_matches))],
+            "cognition_matches": cognition_matches[:min(3, len(cognition_matches))],
             "memory_summaries": memory_summaries,
             "memory_reasoning": memory_reasoning,
             "memory_trace": run_context.trace.to_schema(),
@@ -600,19 +654,15 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
 
                 first_chunk_time = None
                 if result is None:
-                    _log.warning(f"[T+{_elapsed()}s] aquery_stream returned None, falling back to aquery")
-                    fallback = await asyncio.wait_for(
-                        session_rag.aquery(
-                            query=request.question,
-                            mode=request.mode,
-                            vlm_enhanced=False,
-                            **query_options,
-                        ),
-                        timeout=SESSION_QUERY_TIMEOUT_SECONDS,
-                    )
-                    full_answer = fallback or ""
-                    if full_answer:
-                        yield yield_chunk(full_answer)
+                    _log.warning(f"[T+{_elapsed()}s] aquery_stream returned None, using conversation fallback")
+                    fallback = await _conversation_fallback_answer(request.question, run_context)
+                    full_answer = fallback or "我已经收到这条信息。"
+                    yield yield_chunk(full_answer)
+                elif isinstance(result, str) and _needs_conversation_fallback(result):
+                    _log.info(f"[T+{_elapsed()}s] no retrieval context; using conversation fallback")
+                    fallback = await _conversation_fallback_answer(request.question, run_context)
+                    full_answer = fallback or "我已经收到这条信息。"
+                    yield yield_chunk(full_answer)
                 elif isinstance(result, str):
                     full_answer = result
                     yield yield_chunk(result)
@@ -625,6 +675,11 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
                         full_answer += chunk
                         yield yield_chunk(chunk)
                     _log.info(f"[T+{_elapsed()}s] stream complete ({len(full_answer)} chars)")
+
+                # Some model bindings expose a no-context response through an iterator.
+                # We cannot retract streamed bytes, but avoid persisting/enriching it as memory.
+                if _needs_conversation_fallback(full_answer) and not isinstance(result, str):
+                    _log.warning("stream iterator emitted a no-context response")
 
         except asyncio.TimeoutError:
             _log.warning(f"[T+{_elapsed()}s] TIMEOUT in aquery_stream")
@@ -690,9 +745,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
         "session" if QueryControls.from_request(request).use_memory else "off"
     )
 
-    identity_keywords = ["who are you", "your name", "hello", "hi"]
-    question_lower = (request.question or "").lower()
-    is_identity_query = any(k in question_lower for k in identity_keywords) and len(request.question) < 40
+    is_identity_query = _is_identity_query(request.question)
 
     try:
         state.session_manager.add_message(request.session_id, "user", request.question)
@@ -736,6 +789,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
     expanded_matches = run_context.expanded_matches
     episodic_matches = run_context.episodic_matches
     long_horizon_matches = run_context.long_horizon_matches
+    cognition_matches = run_context.cognition_matches
     merged_instruction = run_context.retrieval_instruction
     memory_summaries = run_context.memory_summaries
     memory_reasoning = run_context.memory_reasoning
@@ -854,6 +908,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             "expanded_matches": expanded_matches[:min(2, len(expanded_matches))],
             "episodic_matches": episodic_matches[:min(3, len(episodic_matches))],
             "long_horizon_matches": long_horizon_matches[:min(3, len(long_horizon_matches))],
+            "cognition_matches": cognition_matches[:min(3, len(cognition_matches))],
             "memory_trace": run_context.trace.to_schema(),
             "run_controls": run_context.controls.to_schema(),
             "memory_reasoning": memory_reasoning,
