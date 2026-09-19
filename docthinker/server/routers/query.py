@@ -543,6 +543,13 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
             request=request,
             skip_memory=is_identity_query,
         )
+        await harness.enrich_graph_reasoning(
+            context=run_context,
+            graphcore=session_rag.graphcore,
+            question=request.question,
+            min_candidate_confidence=request.min_discovered_edge_confidence,
+            llm_func=session_rag.llm_model_func,
+        )
         expanded_matches = run_context.expanded_matches
         episodic_matches = run_context.episodic_matches
         long_horizon_matches = run_context.long_horizon_matches
@@ -563,6 +570,8 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
             "memory_reasoning": memory_reasoning,
             "memory_trace": run_context.trace.to_schema(),
             "run_controls": run_context.controls.to_schema(),
+            "question_policy": run_context.question_policy.to_schema(),
+            "graph_reasoning": run_context.graph_reasoning,
             "retrieval_instruction_applied": bool(merged_instruction),
             "mode": request.mode,
         })
@@ -733,6 +742,13 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
         request=request,
         skip_memory=is_identity_query,
     )
+    await harness.enrich_graph_reasoning(
+        context=run_context,
+        graphcore=session_rag.graphcore,
+        question=request.question,
+        min_candidate_confidence=request.min_discovered_edge_confidence,
+        llm_func=session_rag.llm_model_func,
+    )
     expanded_matches = run_context.expanded_matches
     episodic_matches = run_context.episodic_matches
     long_horizon_matches = run_context.long_horizon_matches
@@ -856,6 +872,8 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             "long_horizon_matches": long_horizon_matches[:min(3, len(long_horizon_matches))],
             "memory_trace": run_context.trace.to_schema(),
             "run_controls": run_context.controls.to_schema(),
+            "question_policy": run_context.question_policy.to_schema(),
+            "graph_reasoning": run_context.graph_reasoning,
             "memory_reasoning": memory_reasoning,
             "retrieval_instruction_applied": bool(merged_instruction),
             "memory_summaries": memory_summaries,

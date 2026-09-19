@@ -303,8 +303,16 @@ flowchart TB
 
 Green nodes are the thin Harness and experiment controls, blue nodes show
 session isolation, and red nodes mark the self-evolution area where future
-work will move from isolated edge discovery to evidence-grounded path
-completion.
+work is constrained before it can affect an answer.
+
+Question-aware self-evolution supports five request modes through
+`evolution_mode`: `off`, `auto`, `faithful`, `path`, and `explore`. In `auto`
+mode, exact document questions default to the source graph, causal questions
+use evidence-constrained bidirectional beam search and query-local gap repair,
+and open-ended questions use personalised PageRank plus MMR diversity. Gap
+repair accepts a generated hop only when its source, target, and verbatim quote
+are present in the declared source chunk; repaired paths remain query-local and
+are not written back as authoritative knowledge.
 
 ---
 

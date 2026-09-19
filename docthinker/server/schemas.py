@@ -1,4 +1,4 @@
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -25,6 +25,7 @@ class QueryRequest(BaseModel):
     use_conversation_context: bool = True
     use_llm_cache: bool = True
     use_self_evolution: bool = True
+    evolution_mode: Literal["off", "auto", "faithful", "path", "explore"] = "auto"
     retrieval_instruction: Optional[str] = None
     enable_thinking: bool = False
     enable_expanded_matching: bool = True

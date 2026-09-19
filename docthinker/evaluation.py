@@ -214,3 +214,80 @@ def compare_answers(
     margin = deltas["balanced_score"] or 0.0
     preferred = "B" if margin > 0.01 else "A" if margin < -0.01 else "tie"
     return {"answer_a": score_a, "answer_b": score_b, "delta_b_minus_a": deltas, "preferred": preferred}
+
+
+def score_reasoning_paths(
+    *,
+    expected_chain: Iterable[str],
+    paths: Iterable[Dict[str, Any]],
+) -> Dict[str, float]:
+    """Score ordered chain coverage, supported hops, and candidate-edge usage."""
+    expected = [str(item).strip() for item in expected_chain if str(item).strip()]
+    expected_hops = set(zip(expected, expected[1:]))
+
+    def lcs_length(left: List[str], right: List[str]) -> int:
+        previous = [0] * (len(right) + 1)
+        for left_item in left:
+            current = [0]
+            for index, right_item in enumerate(right, 1):
+                if left_item == right_item:
+                    current.append(previous[index - 1] + 1)
+                else:
+                    current.append(max(current[-1], previous[index]))
+            previous = current
+        return previous[-1]
+
+    best = {
+        "ordered_node_coverage": 0.0,
+        "expected_hop_coverage": 0.0,
+        "endpoint_coverage": 0.0,
+        "grounded_hop_rate": 0.0,
+        "candidate_edge_rate": 0.0,
+        "path_score": 0.0,
+    }
+    for raw_path in paths:
+        nodes = [str(item) for item in (raw_path.get("nodes") or [])]
+        hops = [item for item in (raw_path.get("hops") or []) if isinstance(item, dict)]
+        actual_hops = {
+            (str(item.get("source") or ""), str(item.get("target") or ""))
+            for item in hops
+        }
+        ordered = lcs_length(expected, nodes) / len(expected) if expected else 0.0
+        hop_coverage = (
+            len(expected_hops & actual_hops) / len(expected_hops)
+            if expected_hops
+            else 0.0
+        )
+        endpoint = (
+            float(bool(nodes) and nodes[0] == expected[0])
+            + float(bool(nodes) and nodes[-1] == expected[-1])
+        ) / 2 if expected else 0.0
+        grounded = (
+            sum(bool(item.get("source_id")) for item in hops) / len(hops)
+            if hops
+            else 0.0
+        )
+        candidate_rate = (
+            sum(bool(item.get("candidate")) for item in hops) / len(hops)
+            if hops
+            else 0.0
+        )
+        metrics = {
+            "ordered_node_coverage": ordered,
+            "expected_hop_coverage": hop_coverage,
+            "endpoint_coverage": endpoint,
+            "grounded_hop_rate": grounded,
+            "candidate_edge_rate": candidate_rate,
+            "path_score": float(raw_path.get("score") or 0.0),
+        }
+        if (
+            metrics["expected_hop_coverage"],
+            metrics["ordered_node_coverage"],
+            metrics["path_score"],
+        ) > (
+            best["expected_hop_coverage"],
+            best["ordered_node_coverage"],
+            best["path_score"],
+        ):
+            best = metrics
+    return {key: round(value, 4) for key, value in best.items()}

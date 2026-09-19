@@ -346,6 +346,13 @@
                 <button onclick="toggleRunControl('context')" id="control-context" class="dt-mini-button" title="关闭历史对话注入，仍保留界面聊天记录">上下文：开</button>
                 <button onclick="toggleRunControl('cache')" id="control-cache" class="dt-mini-button" title="本轮绕过 LLM 缓存读取和写入">缓存：开</button>
                 <button onclick="toggleRunControl('evolution')" id="control-evolution" class="dt-mini-button" title="关闭补边和扩展节点参与查询">自进化：开</button>
+                <select id="evolution-mode" class="dt-mini-button bg-[#fffefa]" title="选择自进化关系参与回答的策略">
+                    <option value="auto">策略：自动</option>
+                    <option value="faithful">策略：原文忠实</option>
+                    <option value="path">策略：严格路径</option>
+                    <option value="explore">策略：开放探索</option>
+                    <option value="off">策略：关闭</option>
+                </select>
             </div>
 
             <div id="attached-files" class="hidden flex flex-wrap gap-2 mb-3"></div>
@@ -577,6 +584,8 @@ function renderMemoryInspector(metaPatch = {}) {
     const expanded = Array.isArray(meta.expanded_matches) ? meta.expanded_matches : [];
     const longHorizon = Array.isArray(meta.long_horizon_matches) ? meta.long_horizon_matches : [];
     const sources = Array.isArray(meta.sources) ? meta.sources : [];
+    const questionPolicy = meta.question_policy || {};
+    const graphReasoning = meta.graph_reasoning || {};
 
     const empty = document.getElementById('memory-empty');
     const content = document.getElementById('memory-content');
@@ -584,7 +593,8 @@ function renderMemoryInspector(metaPatch = {}) {
     if (empty) empty.classList.add('hidden');
     if (content) content.classList.remove('hidden');
     if (modeEl) {
-        modeEl.textContent = meta.mode || meta.answer_mode || 'session';
+        const baseMode = meta.mode || meta.answer_mode || 'session';
+        modeEl.textContent = questionPolicy.mode ? `${baseMode} · ${questionPolicy.mode}` : baseMode;
         modeEl.className = 'text-[11px] px-2 py-1 rounded-full bg-[#fbede6] text-[#8f4329]';
     }
 
@@ -596,10 +606,13 @@ function renderMemoryInspector(metaPatch = {}) {
 
     const timeline = document.getElementById('memory-timeline');
     if (timeline) {
-        if (events.length === 0) {
+        const policyEvent = questionPolicy.mode
+            ? `<div class="memory-timeline-item">问题策略：${escapeHtml(questionPolicy.mode)} · 图推理${graphReasoning.applied ? '已应用' : '未应用'}</div>`
+            : '';
+        if (events.length === 0 && !policyEvent) {
             timeline.innerHTML = '<p class="text-xs text-[#9b9287]">本轮没有记忆事件。</p>';
         } else {
-            timeline.innerHTML = events.map((event) => (
+            timeline.innerHTML = policyEvent + events.map((event) => (
                 `<div class="memory-timeline-item">${escapeHtml(summarizeTraceEvent(event))}</div>`
             )).join('');
         }
@@ -1092,7 +1105,8 @@ async function sendMessage() {
                 use_memory: runControls.memory,
                 use_conversation_context: runControls.context,
                 use_llm_cache: runControls.cache,
-                use_self_evolution: runControls.evolution
+                use_self_evolution: runControls.evolution,
+                evolution_mode: document.getElementById('evolution-mode')?.value || 'auto'
             })
         });
 

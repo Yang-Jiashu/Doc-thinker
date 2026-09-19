@@ -23,6 +23,25 @@ class _MemoryCore:
         )
 
 
+class _Graph:
+    async def get_all_nodes(self):
+        return [{"id": "A"}, {"id": "B"}]
+
+    async def get_all_edges(self):
+        return [{
+            "source": "A",
+            "target": "B",
+            "keywords": "导致",
+            "description": "A导致B",
+            "source_id": "chunk-a",
+        }]
+
+
+class _GraphCore:
+    chunk_entity_relation_graph = _Graph()
+    text_chunks = None
+
+
 def _request(**overrides):
     values = {
         "question": "why",
@@ -99,9 +118,24 @@ class QueryHarnessUnitTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(1, len(memory.calls))
         self.assertTrue(memory.calls[0]["enable_expanded_matching"])
         self.assertEqual(1, len(context.conversation_history))
-        self.assertTrue(options["include_discovered_edges"])
+        self.assertFalse(options["include_discovered_edges"])
         self.assertTrue(options["use_llm_cache"])
         self.assertTrue(harness.should_enrich(context))
+
+    async def test_only_explore_mode_opens_broad_discovered_edge_pool(self):
+        memory = _MemoryCore()
+        harness = QueryHarness(
+            memory_core_factory=lambda: memory,
+            history_loader=lambda _sid: [],
+        )
+        request = _request(
+            question="还可能有哪些潜在影响？",
+            evolution_mode="explore",
+        )
+
+        context = await harness.prepare(request=request)
+
+        self.assertTrue(context.graph_query_options(request)["include_discovered_edges"])
 
     async def test_self_evolution_master_switch_disables_expanded_matching(self):
         memory = _MemoryCore()
@@ -113,6 +147,28 @@ class QueryHarnessUnitTest(unittest.IsolatedAsyncioTestCase):
         await harness.prepare(request=_request(use_self_evolution=False))
 
         self.assertFalse(memory.calls[0]["enable_expanded_matching"])
+
+    async def test_path_policy_adds_verified_graph_instruction(self):
+        memory = _MemoryCore()
+        harness = QueryHarness(
+            memory_core_factory=lambda: memory,
+            history_loader=lambda _sid: [],
+        )
+        request = _request(
+            question="A为什么导致B？",
+            evolution_mode="path",
+        )
+        context = await harness.prepare(request=request)
+
+        await harness.enrich_graph_reasoning(
+            context=context,
+            graphcore=_GraphCore(),
+            question=request.question,
+        )
+
+        self.assertTrue(context.graph_reasoning["applied"])
+        self.assertEqual("path", context.question_policy.mode)
+        self.assertIn("A → B", context.retrieval_instruction)
 
 
 if __name__ == "__main__":
