@@ -1,0 +1,107 @@
+.promo-chooser-overlay {
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(4, 10, 9, 0.66);
+    backdrop-filter: blur(8px);
+    font-family: Inter, "Microsoft YaHei", system-ui, sans-serif;
+}
+
+.promo-chooser-dialog {
+    width: min(620px, 100%);
+    padding: 22px;
+    border: 1px solid rgba(226, 238, 236, 0.2);
+    border-radius: 7px;
+    color: #f5fbfa;
+    background: #071412;
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.34);
+}
+
+.promo-chooser-dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.promo-chooser-dialog-head h2 {
+    margin: 0;
+    color: #f5fbfa;
+    font-family: inherit;
+    font-size: 18px;
+    letter-spacing: 0;
+}
+
+.promo-chooser-close {
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 50%;
+    color: rgba(226, 238, 236, 0.62);
+    background: transparent;
+    cursor: pointer;
+}
+
+.promo-chooser-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.promo-chooser-choice {
+    min-height: 150px;
+    padding: 18px;
+    border: 1px solid rgba(226, 238, 236, 0.16);
+    border-radius: 5px;
+    color: #f5fbfa;
+    background: rgba(255, 255, 255, 0.025);
+    text-align: left;
+    cursor: pointer;
+}
+
+.promo-chooser-choice:hover,
+.promo-chooser-choice:focus-visible {
+    border-color: #13dfcf;
+    outline: none;
+    background: rgba(19, 223, 207, 0.06);
+}
+
+.promo-chooser-choice small,
+.promo-chooser-choice strong,
+.promo-chooser-choice span {
+    display: block;
+    letter-spacing: 0;
+}
+
+.promo-chooser-choice small {
+    color: rgba(226, 238, 236, 0.42);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 9px;
+}
+
+.promo-chooser-choice strong {
+    margin-top: 28px;
+    font-size: 16px;
+}
+
+.promo-chooser-choice span {
+    margin-top: 7px;
+    color: rgba(226, 238, 236, 0.62);
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.promo-chooser-choice.is-promo strong {
+    color: #13dfcf;
+}
+
+@media (max-width: 560px) {
+    .promo-chooser-grid {
+        grid-template-columns: 1fr;
+    }
+}

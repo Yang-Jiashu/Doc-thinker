@@ -272,13 +272,14 @@ class DocThinker(QueryMixin, ProcessorMixin, BatchMixin):
                 if not self.doc_parser.check_installation():
                     error_msg = (
                         f"Parser '{self.config.parser}' is not properly installed. "
-                        "Please install it using 'pip install' or 'uv pip install'."
+                        "PDF/Doc parsing may fail until it is installed, but pure text "
+                        "ingestion can continue."
                     )
-                    self.logger.error(error_msg)
-                    return {"success": False, "error": error_msg}
-
-                self._parser_installation_checked = True
-                self.logger.info(f"Parser '{self.config.parser}' installation verified")
+                    self.logger.warning(error_msg)
+                    self._parser_installation_checked = True
+                else:
+                    self._parser_installation_checked = True
+                    self.logger.info(f"Parser '{self.config.parser}' installation verified")
 
             if self.graphcore is not None:
                 # GraphCore was pre-provided, but we need to ensure it's properly initialized

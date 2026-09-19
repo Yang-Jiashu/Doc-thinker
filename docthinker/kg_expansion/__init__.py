@@ -1,4 +1,4 @@
-"""KG expansion: density clustering + two-part LLM expansion + edge discovery."""
+"""KG expansion: density clustering + two-part LLM expansion + path edge discovery."""
 
 from .expander import KGExpander
 from .clustering import (
@@ -9,7 +9,11 @@ from .clustering import (
     load_cluster_summaries,
 )
 from .manager import ExpandedNodeManager, extract_entities_from_text
-from .edge_discovery import discover_edges, DiscoveredEdge
+from .path_edge_discovery import (
+    PathDiscoveryConfig,
+    PathDiscoveredEdge,
+    discover_path_edges,
+)
 
 __all__ = [
     "KGExpander",
@@ -20,6 +24,7 @@ __all__ = [
     "ClusterSummary",
     "save_cluster_summaries",
     "load_cluster_summaries",
-    "discover_edges",
-    "DiscoveredEdge",
+    "PathDiscoveryConfig",
+    "PathDiscoveredEdge",
+    "discover_path_edges",
 ]

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>选择知识图谱体验 - DocThinker</title>
+    <link rel="stylesheet" href="{{ url_for('promo_graph.static', filename='promo_graph.css') }}">
+</head>
+<body class="promo-chooser-page">
+    <canvas id="chooser-particles" aria-hidden="true"></canvas>
+    <a class="chooser-back" href="/knowledge-graph" aria-label="返回知识图谱">&larr; 返回图谱</a>
+    <main class="chooser-shell">
+        <header class="chooser-heading">
+            <span>DocThinker Graph Lab</span>
+            <h1>选择知识图谱体验</h1>
+            <p>经典图谱用于开发调试，GPU 星图用于全量关系浏览与展示。</p>
+        </header>
+        <section class="chooser-options" aria-label="知识图谱体验">
+            <a class="chooser-option" href="/knowledge-graph?gesture=classic">
+                <small>01 / CLASSIC</small>
+                <strong>经典图谱</strong>
+                <p>保留原有调试面板、节点信息和经典手势控制。</p>
+                <span>进入体验 &rarr;</span>
+            </a>
+            <a class="chooser-option is-promo" href="/promo-graph">
+                <small>02 / GPU STAR MAP</small>
+                <strong>知识星图</strong>
+                <p>全量二维 GPU 图谱，缩放时逐级呈现节点文字与证据。</p>
+                <span>进入体验 &rarr;</span>
+            </a>
+        </section>
+    </main>
+    <script src="{{ url_for('promo_graph.static', filename='chooser.js') }}"></script>
+</body>
+</html>

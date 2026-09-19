@@ -13,7 +13,8 @@ The package currently re-exports the memory core shipped in `docthinker`:
 - `MemoryPolicy`
 - backend protocols for conversation, episodic, long-horizon insight memory,
   expanded KG, graph promotion, and chat-turn ingestion
-- `InMemoryLongHorizonBackend` as a default process-local implementation
+- `SQLiteLongHorizonBackend` as DocThinker's durable default implementation
+- `InMemoryLongHorizonBackend` for lightweight plugin examples and tests
 - `RecallBundle` and `MemoryTrace`
 
 ## Install

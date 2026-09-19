@@ -1,0 +1,88 @@
+:root {
+    color-scheme: dark;
+    font-family: Inter, "Microsoft YaHei", system-ui, sans-serif;
+    color: #f3f7fb;
+    background: #05070d;
+}
+
+* { box-sizing: border-box; letter-spacing: 0; }
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+.promo-chooser-page {
+    background: #05070d;
+}
+
+#chooser-particles {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: .48;
+}
+
+.chooser-back {
+    position: fixed;
+    z-index: 2;
+    top: 22px;
+    left: 24px;
+    color: #aab9c8;
+    text-decoration: none;
+}
+
+.chooser-back:focus-visible,
+.chooser-option:focus-visible {
+    outline: 2px solid #65e7f2;
+    outline-offset: 3px;
+}
+
+.chooser-shell {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    align-content: center;
+    width: min(900px, calc(100% - 32px));
+    min-height: 100%;
+    margin: auto;
+    padding: 72px 0 40px;
+}
+
+.chooser-heading { max-width: 660px; }
+.chooser-heading > span { color: #65e7f2; font-size: 12px; font-weight: 700; }
+.chooser-heading h1 { margin: 10px 0 0; font-size: clamp(32px, 5vw, 58px); line-height: 1.08; }
+.chooser-heading p { margin: 16px 0 0; color: #aab9c8; line-height: 1.7; }
+
+.chooser-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 38px;
+}
+
+.chooser-option {
+    min-height: 220px;
+    padding: 24px;
+    border: 1px solid rgba(188, 213, 232, .18);
+    border-radius: 7px;
+    color: #f3f7fb;
+    background: rgba(10, 14, 23, .9);
+    text-decoration: none;
+}
+
+.chooser-option:hover { border-color: rgba(101, 231, 242, .5); background: #0d1420; }
+.chooser-option small { color: #7f91a4; font-weight: 700; }
+.chooser-option strong { display: block; margin-top: 38px; font-size: 22px; }
+.chooser-option p { min-height: 52px; margin: 10px 0 24px; color: #aab9c8; line-height: 1.6; }
+.chooser-option > span { color: #c7f8fb; font-size: 13px; }
+.chooser-option.is-promo { border-color: rgba(101, 231, 242, .32); }
+
+@media (max-width: 680px) {
+    .chooser-options { grid-template-columns: 1fr; }
+    .chooser-option { min-height: 180px; }
+    .chooser-option strong { margin-top: 24px; }
+}

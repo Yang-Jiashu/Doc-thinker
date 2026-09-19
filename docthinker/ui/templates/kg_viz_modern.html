@@ -18,11 +18,24 @@
     .kg-shell {
         background: linear-gradient(180deg, #FAF8F5 0%, #F7F1EA 100%);
     }
-    .node circle { cursor: pointer; transition: all 0.2s; }
-    .node:hover circle { filter: saturate(1.1) brightness(1.04); stroke-width: 2.5; }
-    .link { stroke: #9d9488; stroke-opacity: 0.34; cursor: pointer; }
-    .link:hover { stroke: var(--dt-copper); stroke-opacity: 1; stroke-width: 2.5; }
-    .node-label { font-size: 10px; fill: #fff; pointer-events: none; text-anchor: middle; dominant-baseline: central; font-weight: 500; }
+    .node circle { cursor: pointer; transition: stroke 0.18s ease, filter 0.18s ease, opacity 0.18s ease; }
+    .node:hover circle { filter: saturate(1.08) brightness(1.05); stroke-width: 2.4; }
+    .link {
+        stroke: #8f877d;
+        stroke-opacity: 0.2;
+        cursor: pointer;
+        transition: stroke 0.18s ease, stroke-opacity 0.18s ease, stroke-width 0.18s ease;
+    }
+    .link:hover { stroke: var(--dt-copper); stroke-opacity: 0.88; stroke-width: 1.8; }
+    .node-label {
+        font-size: 8.5px;
+        fill: #fff;
+        pointer-events: none;
+        text-anchor: middle;
+        dominant-baseline: central;
+        font-weight: 600;
+        letter-spacing: 0;
+    }
     .level-3 { fill: #8a5f87; }
     .level-2 { fill: var(--dt-lake); }
     .level-1 { fill: var(--dt-sage); }
@@ -40,6 +53,11 @@
         stroke-opacity: 1 !important;
         stroke-width: 3.5px !important;
         filter: drop-shadow(0 0 8px rgba(184, 92, 56, 0.28));
+    }
+    .gesture-hover circle {
+        stroke: #22c55e !important;
+        stroke-width: 2.8px !important;
+        filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.3));
     }
     .detail-section { border-left: 3px solid #e2e8f0; padding-left: 12px; margin-bottom: 12px; }
     .detail-section.edge-detail { border-left-color: var(--dt-lake); }
@@ -225,6 +243,101 @@
         color: #5f2e1f;
         background: #f6ded2;
     }
+    .kg-segmented {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 4px;
+        padding: 4px;
+        border-radius: 12px;
+        border: 1px solid #e7dfd1;
+        background: rgba(255, 254, 250, 0.78);
+    }
+    .kg-segment-button {
+        min-width: 0;
+        min-height: 34px;
+        border-radius: 8px;
+        color: #766f66;
+        font-size: 12px;
+        font-weight: 650;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    }
+    .kg-segment-button:hover {
+        color: var(--dt-copper);
+        background: #fbf2eb;
+    }
+    .kg-segment-button.active {
+        color: #fffefa;
+        background: var(--dt-copper);
+        box-shadow: 0 6px 14px rgba(184, 92, 56, 0.18);
+    }
+    .gesture-layer {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 25;
+    }
+    .gesture-video {
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        width: 176px;
+        height: 132px;
+        object-fit: cover;
+        transform: scaleX(-1);
+        border-radius: 8px;
+        border: 1px solid rgba(222, 216, 204, 0.9);
+        box-shadow: 0 10px 28px rgba(55, 46, 36, 0.18);
+        background: #292520;
+    }
+    .gesture-cursor {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        margin-left: -8px;
+        margin-top: -8px;
+        border-radius: 999px;
+        border: 2px solid #22c55e;
+        background: rgba(34, 197, 94, 0.16);
+        box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.09);
+        opacity: 0;
+        transition: opacity 0.12s ease, transform 0.08s linear;
+    }
+    .gesture-hud {
+        position: absolute;
+        left: 18px;
+        bottom: 18px;
+        max-width: min(420px, calc(100% - 230px));
+        border-radius: 8px;
+        border: 1px solid rgba(222, 216, 204, 0.9);
+        background: rgba(255, 254, 250, 0.9);
+        box-shadow: 0 10px 26px rgba(55, 46, 36, 0.12);
+        padding: 8px 10px;
+        color: #292520;
+        font-size: 12px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .gesture-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #22c55e;
+        box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.12);
+        flex: 0 0 auto;
+    }
+    .gesture-target {
+        color: var(--dt-copper);
+        font-weight: 700;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
     .kg-kicker {
         color: var(--dt-copper);
         letter-spacing: 0;
@@ -258,8 +371,15 @@
     <div class="flex flex-wrap gap-2 items-center">
         <select id="kg-session-selector" class="input-field px-2 sm:px-3 py-2 rounded-lg text-sm min-w-[140px] sm:min-w-[260px]" onchange="handleKgSessionSwitch(this.value)"></select>
 
+        <button id="promo-graph-btn" onclick="openPromoGraph()" class="kg-control-button px-3 sm:px-4 text-sm" title="打开图谱二">
+            <i class="fa-solid fa-diagram-project"></i>图谱二
+        </button>
+
         <button id="expand-btn" onclick="expandGraph()" class="kg-control-button kg-control-accent px-3 sm:px-4 text-sm" title="LLM 知识扩展">
             <i class="fa-solid fa-wand-magic-sparkles"></i>扩展
+        </button>
+        <button id="gesture-btn" onclick="openGestureExperienceChooser()" class="kg-control-button px-3 sm:px-4 text-sm" title="摄像头手势控制">
+            <i class="fa-solid fa-hand"></i>手势
         </button>
         <button onclick="resetHighlight()" class="kg-control-button dt-icon-button hidden sm:inline-flex" title="取消聚焦"><i class="fa-solid fa-eye-slash"></i></button>
         <button onclick="resetZoom()" class="kg-control-button dt-icon-button hidden sm:inline-flex" title="重置视图"><i class="fa-solid fa-expand"></i></button>
@@ -272,6 +392,15 @@
 <div class="flex-1 flex overflow-hidden">
     <div class="flex-1 relative kg-shell">
         <div id="graph-container" class="absolute inset-0"></div>
+        <div id="gesture-layer" class="gesture-layer hidden">
+            <video id="gesture-video" class="gesture-video" autoplay playsinline muted></video>
+            <div id="gesture-cursor" class="gesture-cursor"></div>
+            <div class="gesture-hud">
+                <span class="gesture-dot"></span>
+                <span id="gesture-mode">手势待机</span>
+                <span id="gesture-target" class="gesture-target"></span>
+            </div>
+        </div>
         
         <div class="kg-toolbar kg-panel p-3 space-y-3">
             <div>
@@ -281,6 +410,21 @@
                         class="input-field pl-9 pr-3 py-2 rounded-lg text-sm w-full bg-[#fffefa] border-[#ded8cc] text-[#292520] placeholder:text-[#9b9287]"
                         oninput="searchNodes(this.value)">
                 </label>
+            </div>
+
+            <div>
+                <p class="kg-soft-label font-semibold uppercase mb-2">拓扑</p>
+                <div class="kg-segmented" role="group" aria-label="图谱拓扑布局">
+                    <button id="layout-semantic" class="kg-segment-button active" onclick="setGraphLayoutMode('semantic')" title="分布式语义联结网络">
+                        <i class="fa-solid fa-share-nodes"></i><span>语义</span>
+                    </button>
+                    <button id="layout-clustered" class="kg-segment-button" onclick="setGraphLayoutMode('clustered')" title="多中心簇状拓扑">
+                        <i class="fa-solid fa-layer-group"></i><span>簇群</span>
+                    </button>
+                    <button id="layout-centralized" class="kg-segment-button" onclick="setGraphLayoutMode('centralized')" title="单中心辐聚结构">
+                        <i class="fa-solid fa-bullseye"></i><span>辐聚</span>
+                    </button>
+                </div>
             </div>
             
             <div>
@@ -474,31 +618,88 @@
                 <i class="fa-solid fa-crosshairs"></i>
                 聚焦节点
             </button>
+            <section id="detail-node-chunks" class="mt-4 space-y-2" style="display:none;">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-semibold text-[#292520]">&#26469;&#28304; chunk &#25991;&#26412;</h4>
+                    <span id="detail-chunks-count" class="text-[11px] text-[#9b9287]">0</span>
+                </div>
+                <div id="detail-chunks-list" class="space-y-2"></div>
+            </section>
         </div>
     </div>
 </div>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
-let svg, g, simulation, node, link;
+let svg, g, simulation, node, link, graphZoom;
 let currentTransform = d3.zoomIdentity;
 let graphData = { nodes: [], links: [] };
+const GRAPH_NODE_RADIUS = 13;
+const MAX_RENDER_NODES = 50;
 let selectedNode = null;
 let selectedEdgeId = null;
 let visibleLevels = { 1: true, 2: true, 3: true, expanded: true };
 let currentSessionId = '';
 let focusedNodeId = null;
 let currentGraphView = 'semantic';
+let graphLayoutMode = 'semantic';
 let dashboardExpandedNodes = [];
 let naturalMemoryEditPlan = { candidates: [], graph: { nodes: [], edges: [] } };
+let gestureLandmarker = null;
+let gestureVisionModule = null;
+let gestureStream = null;
+let gestureAnimationFrame = null;
+let gestureLastVideoTime = -1;
+let gestureEnabled = false;
+let gestureState = createGestureState();
 
-window.onload = initGraph;
+function createGestureState() {
+    return {
+        action: 'idle',
+        actionNode: null,
+        actionTransform: null,
+        actionPoint: null,
+        actionNodeStart: null,
+        actionBaseScale: 1,
+        actionStartedAt: 0,
+        actionMoved: false,
+        hoverNode: null,
+        hoverSince: 0,
+        candidateNode: null,
+        candidateSince: 0,
+        capturedNode: null,
+        pinchFrames: 0,
+        releaseFrames: 0,
+        cooldownUntil: 0,
+        palmZoomSince: 0,
+        palmZoomPoint: null,
+        palmZoomBaseScale: 1,
+        twoPalmSince: 0,
+        twoPalmResetDone: false,
+        smoothedPoint: null,
+        lastPinch: false,
+        lastFrameAt: 0
+    };
+}
+
+window.onload = async () => {
+    await initGraph();
+    if (new URLSearchParams(window.location.search).get('gesture') === 'classic') {
+        window.history.replaceState({}, '', window.location.pathname);
+        await startGestureControl();
+    }
+};
 
 function getKgApiPrefix() {
     return (window.KG_API_PREFIX || '/api/v1').replace(/\/$/, '');
 }
 function getStoredSessionId() { try { return localStorage.getItem('current_session_id') || ''; } catch (_) { return ''; } }
 function setStoredSessionId(sid) { try { if (sid) localStorage.setItem('current_session_id', String(sid)); } catch (_) {} }
+
+function openPromoGraph() {
+    const query = currentSessionId ? `?session_id=${encodeURIComponent(currentSessionId)}` : '';
+    window.location.href = `/promo-graph${query}`;
+}
 
 async function fetchSessions() {
     try {
@@ -553,19 +754,37 @@ async function initGraph() {
     const container = document.getElementById('graph-container');
     const w = container.clientWidth, h = container.clientHeight;
     svg = d3.select('#graph-container').append('svg').attr('width', w).attr('height', h);
-    const zoom = d3.zoom().scaleExtent([0.05, 6]).on('zoom', e => { currentTransform = e.transform; g.attr('transform', e.transform); });
-    svg.call(zoom);
+    graphZoom = d3.zoom().scaleExtent([0.05, 6]).on('zoom', e => { currentTransform = e.transform; g.attr('transform', e.transform); });
+    svg.call(graphZoom);
     svg.on('click', function(e) { if (e.target === this || e.target.tagName === 'svg') resetHighlight(); });
     g = svg.append('g');
+    updateLayoutModeButtons();
     await ensureKgSessionReady();
     await loadRealData();
     await loadDashboardData();
-    window.addEventListener('resize', () => { svg.attr('width', container.clientWidth).attr('height', container.clientHeight); });
+    window.addEventListener('resize', () => {
+        svg.attr('width', container.clientWidth).attr('height', container.clientHeight);
+        renderGraph();
+    });
 }
 
 function switchGraphView(viewType) {
     currentGraphView = viewType;
     loadRealData();
+}
+
+function updateLayoutModeButtons() {
+    ['semantic', 'clustered', 'centralized'].forEach(mode => {
+        const btn = document.getElementById(`layout-${mode}`);
+        if (btn) btn.classList.toggle('active', graphLayoutMode === mode);
+    });
+}
+
+function setGraphLayoutMode(mode) {
+    if (!['semantic', 'clustered', 'centralized'].includes(mode)) return;
+    graphLayoutMode = mode;
+    updateLayoutModeButtons();
+    renderGraph();
 }
 
 async function loadRealData() {
@@ -1070,115 +1289,481 @@ function focusTopExpandedNode() {
     focusDashboardNode(dashboardExpandedNodes[0].entity);
 }
 
-function nodeRadius(d) {
-    const degree = (d.connections ? d.connections.length : 0);
-    // Base 14, scales with degree (weight); level adds a small bonus
-    return Math.min(14 + Math.sqrt(degree) * 5 + d.level * 2, 50);
+function nodeRadius() {
+    return GRAPH_NODE_RADIUS;
 }
 
-function truncName(name, maxLen) {
-    if (!name) return '';
-    return name.length <= maxLen ? name : name.slice(0, maxLen - 1) + '…';
+function nodeDegree(d) {
+    return d?.connections?.length || d?.degree || 0;
+}
+
+function edgeSourceId(edge) {
+    return typeof edge.source === 'object' ? edge.source.id : edge.source;
+}
+
+function edgeTargetId(edge) {
+    return typeof edge.target === 'object' ? edge.target.id : edge.target;
+}
+
+function isExpandedNode(d) {
+    return !!(d?.is_expanded || d?.is_expanded === 1 || d?.is_expanded === '1' || d?.color === '#FFD700');
+}
+
+function truncName(name, maxLen = 4) {
+    const text = String(name || '').trim();
+    if (!text) return '';
+    if (text.length <= maxLen) return text;
+    return text.slice(0, Math.max(1, maxLen - 1)) + '…';
+}
+
+function nodeLabelText(d) {
+    return truncName(d.name || d.id, 4);
+}
+
+function fittedNodeLabelText(d) {
+    const text = String(d?.name || d?.id || '').trim();
+    if (!text) return '';
+    const maxLen = 4;
+    return text.length <= maxLen ? text : text.slice(0, maxLen - 1) + '\u2026';
+}
+
+function nodeLabelFontSize(d) {
+    const length = fittedNodeLabelText(d).length;
+    if (length >= 4) return 5.8;
+    if (length === 3) return 6.8;
+    return 8.2;
+}
+
+function nodeLabelNeedsFit(d) {
+    return fittedNodeLabelText(d).length >= 3;
+}
+
+function nodeLabelFitWidth(d) {
+    return Math.max(12, nodeRadius(d) * 1.62);
+}
+
+function nodeFill(d) {
+    if (isExpandedNode(d)) return '#d6aa3d';
+    if (d.is_image_node) return '#866bba';
+    if (d.level === 3) return '#8a5f87';
+    if (d.level === 2) return '#4b6f8f';
+    return '#54746b';
+}
+
+function nodeStroke(d) {
+    if (isExpandedNode(d)) return '#8f6721';
+    if (d.is_image_node) return '#5b46a0';
+    return 'rgba(255, 254, 250, 0.92)';
+}
+
+function edgeBaseStroke(d) {
+    return d.is_discovered ? '#b85c38' : '#8f877d';
+}
+
+function edgeBaseOpacity(d) {
+    return d.is_discovered ? 0.42 : 0.2;
+}
+
+function edgeBaseWidth(d) {
+    return d.is_discovered ? 1.35 : 0.85;
+}
+
+function stableHash(value) {
+    let hash = 0;
+    const text = String(value || '');
+    for (let i = 0; i < text.length; i += 1) {
+        hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+    }
+    return Math.abs(hash);
+}
+
+// Layout is presentation-only: it assigns viewport x/y and never writes back to KG data.
+function graphLayoutBounds(width, height) {
+    const leftPad = Math.min(320, Math.max(112, width * 0.2));
+    const pad = 56;
+    return {
+        left: leftPad,
+        right: Math.max(leftPad + 160, width - pad),
+        top: pad,
+        bottom: Math.max(pad + 160, height - pad),
+        cx: leftPad + (Math.max(leftPad + 160, width - pad) - leftPad) / 2,
+        cy: height / 2
+    };
+}
+
+function setNodePolarPosition(d, cx, cy, radius, angle) {
+    d.x = cx + Math.cos(angle) * radius;
+    d.y = cy + Math.sin(angle) * radius;
+    d.layoutX = d.x;
+    d.layoutY = d.y;
+}
+
+function buildVisibleAdjacency(nodes, links) {
+    const adjacency = new Map(nodes.map(d => [d.id, []]));
+    links.forEach(l => {
+        const src = edgeSourceId(l);
+        const tgt = edgeTargetId(l);
+        if (adjacency.has(src)) adjacency.get(src).push(tgt);
+        if (adjacency.has(tgt)) adjacency.get(tgt).push(src);
+    });
+    return adjacency;
+}
+
+function chooseLayoutCenter(nodes) {
+    if (selectedNode) {
+        const selected = nodes.find(d => d.id === selectedNode.id);
+        if (selected) return selected;
+    }
+    return [...nodes].sort((a, b) =>
+        nodeDegree(b) - nodeDegree(a) ||
+        String(a.name || a.id).localeCompare(String(b.name || b.id), 'zh-CN')
+    )[0];
+}
+
+function applyCentralizedLayout(nodes, links, width, height) {
+    const bounds = graphLayoutBounds(width, height);
+    const center = chooseLayoutCenter(nodes);
+    if (!center) return;
+    const adjacency = buildVisibleAdjacency(nodes, links);
+    const depth = new Map([[center.id, 0]]);
+    let frontier = [center.id];
+    for (let level = 1; frontier.length && level <= 6; level += 1) {
+        const next = [];
+        frontier.forEach(id => {
+            (adjacency.get(id) || []).forEach(other => {
+                if (!depth.has(other)) {
+                    depth.set(other, level);
+                    next.push(other);
+                }
+            });
+        });
+        frontier = next;
+    }
+    const rings = new Map();
+    nodes.forEach(d => {
+        const level = depth.has(d.id) ? depth.get(d.id) : 5;
+        if (!rings.has(level)) rings.set(level, []);
+        rings.get(level).push(d);
+    });
+    center.x = bounds.cx;
+    center.y = bounds.cy;
+    center.layoutX = center.x;
+    center.layoutY = center.y;
+    [...rings.entries()].forEach(([level, items]) => {
+        if (level === 0) return;
+        items.sort((a, b) => stableHash(a.id) - stableHash(b.id));
+        const ringRadius = Math.min(
+            Math.min(bounds.right - bounds.left, bounds.bottom - bounds.top) * 0.5,
+            110 + level * 92
+        );
+        const offset = (stableHash(`${graphLayoutMode}-${level}`) % 360) * Math.PI / 180;
+        items.forEach((d, idx) => {
+            const angle = offset + idx / Math.max(1, items.length) * Math.PI * 2;
+            setNodePolarPosition(d, bounds.cx, bounds.cy, ringRadius, angle);
+        });
+    });
+}
+
+function clusterKey(d) {
+    return d.type || d.source_id || `level-${d.level || 2}`;
+}
+
+function applyClusteredLayout(nodes, links, width, height) {
+    const bounds = graphLayoutBounds(width, height);
+    const groups = d3.group(nodes, clusterKey);
+    const clusters = [...groups.entries()]
+        .map(([key, items]) => ({ key, items: items.sort((a, b) => stableHash(a.id) - stableHash(b.id)) }))
+        .sort((a, b) => b.items.length - a.items.length);
+    const outerRadius = Math.min(bounds.right - bounds.left, bounds.bottom - bounds.top) * 0.42;
+    clusters.forEach((cluster, cidx) => {
+        const angle = -Math.PI / 2 + cidx / Math.max(1, clusters.length) * Math.PI * 2;
+        const cx = clusters.length === 1 ? bounds.cx : bounds.cx + Math.cos(angle) * outerRadius;
+        const cy = clusters.length === 1 ? bounds.cy : bounds.cy + Math.sin(angle) * outerRadius * 0.72;
+        const innerRadius = Math.max(56, Math.min(132, 32 + cluster.items.length * 5));
+        cluster.items.forEach((d, idx) => {
+            if (idx === 0) {
+                d.x = cx;
+                d.y = cy;
+                d.layoutX = d.x;
+                d.layoutY = d.y;
+                return;
+            }
+            const localAngle = idx / Math.max(1, cluster.items.length - 1) * Math.PI * 2 + cidx * 0.41;
+            const localRing = innerRadius + Math.floor(idx / 10) * 44;
+            setNodePolarPosition(d, cx, cy, localRing, localAngle);
+        });
+    });
+}
+
+function applySemanticLayout(nodes, links, width, height) {
+    const bounds = graphLayoutBounds(width, height);
+    const hubs = [...nodes]
+        .sort((a, b) => nodeDegree(b) - nodeDegree(a) || stableHash(a.id) - stableHash(b.id))
+        .slice(0, Math.min(6, Math.max(1, Math.ceil(Math.sqrt(nodes.length) / 2))));
+    const hubIds = new Set(hubs.map(d => d.id));
+    const hubRadius = Math.min(bounds.right - bounds.left, bounds.bottom - bounds.top) * 0.3;
+    hubs.forEach((d, idx) => {
+        const angle = -Math.PI / 2 + idx / Math.max(1, hubs.length) * Math.PI * 2;
+        setNodePolarPosition(d, bounds.cx, bounds.cy, hubs.length === 1 ? 0 : hubRadius, angle);
+    });
+
+    const assignments = new Map(hubs.map(h => [h.id, []]));
+    const fallbackHub = id => hubs[stableHash(id) % hubs.length];
+    nodes.filter(d => !hubIds.has(d.id)).forEach(d => {
+        const connectedHub = (d.connections || []).map(id => hubs.find(h => h.id === id)).find(Boolean);
+        const hub = connectedHub || fallbackHub(d.id);
+        assignments.get(hub.id).push(d);
+    });
+
+    hubs.forEach((hub, hidx) => {
+        const items = assignments.get(hub.id) || [];
+        items.sort((a, b) => stableHash(a.id) - stableHash(b.id));
+        items.forEach((d, idx) => {
+            const angle = idx / Math.max(1, items.length) * Math.PI * 2 + hidx * 0.33;
+            const ring = 104 + Math.floor(idx / 12) * 64 + (stableHash(d.id) % 28);
+            setNodePolarPosition(d, hub.x, hub.y, ring, angle);
+        });
+    });
+}
+
+function computeGraphLayout(nodes, links, mode, width, height) {
+    if (!nodes.length) return;
+    nodes.forEach(d => {
+        d.fx = null;
+        d.fy = null;
+    });
+    if (mode === 'centralized') applyCentralizedLayout(nodes, links, width, height);
+    else if (mode === 'clustered') applyClusteredLayout(nodes, links, width, height);
+    else applySemanticLayout(nodes, links, width, height);
+}
+
+// Run a bounded, synchronous relaxation pass, then stop to avoid continuous force-layout cost.
+function relaxGraphLayout(nodes, links, width, height) {
+    if (simulation) simulation.stop();
+    const bounds = graphLayoutBounds(width, height);
+    simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(d => d.id).distance(d => d.is_discovered ? 150 : 185).strength(0.026))
+        .force('charge', d3.forceManyBody().strength(-180).distanceMax(620))
+        .force('collide', d3.forceCollide().radius(GRAPH_NODE_RADIUS + 32).iterations(3))
+        .force('x', d3.forceX(d => d.layoutX || bounds.cx).strength(0.052))
+        .force('y', d3.forceY(d => d.layoutY || bounds.cy).strength(0.052))
+        .force('bound-x', d3.forceX(bounds.cx).strength(0.004))
+        .force('bound-y', d3.forceY(bounds.cy).strength(0.004))
+        .alpha(0.82)
+        .stop();
+    for (let i = 0; i < 95; i += 1) simulation.tick();
+    nodes.forEach(d => {
+        d.x = clamp(d.x, bounds.left, bounds.right);
+        d.y = clamp(d.y, bounds.top, bounds.bottom);
+    });
+    simulation.stop();
+}
+
+function startGraphForceLayout(nodes, links, width, height) {
+    if (simulation) simulation.stop();
+    const bounds = graphLayoutBounds(width, height);
+    const nodeCount = nodes.length;
+    const linkDistance = nodeCount > 120 ? 220 : 185;
+    const chargeStrength = nodeCount > 120 ? -260 : -210;
+    simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(d => d.id).distance(d => d.is_discovered ? linkDistance * 0.9 : linkDistance).strength(0.022))
+        .force('charge', d3.forceManyBody().strength(chargeStrength).distanceMax(680))
+        .force('collide', d3.forceCollide().radius(GRAPH_NODE_RADIUS + 34).iterations(3))
+        .force('x', d3.forceX(d => d.layoutX || bounds.cx).strength(0.022))
+        .force('y', d3.forceY(d => d.layoutY || bounds.cy).strength(0.022))
+        .force('center-soft-x', d3.forceX(bounds.cx).strength(0.003))
+        .force('center-soft-y', d3.forceY(bounds.cy).strength(0.003))
+        .alpha(0.9)
+        .alphaDecay(0.006)
+        .velocityDecay(0.36)
+        .on('tick', () => {
+            nodes.forEach(d => {
+                d.x = clamp(d.x, bounds.left, bounds.right);
+                d.y = clamp(d.y, bounds.top, bounds.bottom);
+            });
+            updateGraphPositions();
+        });
+}
+
+function updateGraphPositions() {
+    if (link) {
+        link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+    }
+    if (node) node.attr('transform', d => `translate(${d.x},${d.y})`);
+}
+
+function renderedGraphNodes() {
+    const items = [];
+    if (!node) return items;
+    node.each(d => {
+        if (d && Number.isFinite(d.x) && Number.isFinite(d.y)) items.push(d);
+    });
+    return items;
+}
+
+function renderedGraphLinks() {
+    const items = [];
+    if (!link) return items;
+    link.each(d => { if (d) items.push(d); });
+    return items;
+}
+
+function clearLocalFocusPins() {
+    renderedGraphNodes().forEach(d => {
+        if (d.__localFocusPinned) {
+            d.fx = null;
+            d.fy = null;
+            delete d.__localFocusPinned;
+        }
+    });
+}
+
+function localSelectionAttractionForce(centerNode, neighborIds, strength = 0.22) {
+    let nodes = [];
+    function force(alpha) {
+        if (!centerNode) return;
+        for (const d of nodes) {
+            if (!neighborIds.has(d.id)) continue;
+            d.vx += (centerNode.x - d.x) * strength * alpha;
+            d.vy += (centerNode.y - d.y) * strength * alpha;
+        }
+    }
+    force.initialize = nextNodes => { nodes = nextNodes || []; };
+    return force;
+}
+
+function resumeRenderedGraphForceLayout() {
+    const nodes = renderedGraphNodes();
+    if (!nodes.length) return;
+    const links = renderedGraphLinks();
+    const container = document.getElementById('graph-container');
+    startGraphForceLayout(nodes, links, container.clientWidth, container.clientHeight);
+}
+
+function startSelectedNodeAttraction(centerNode) {
+    if (!centerNode || !node || !link) return;
+    clearLocalFocusPins();
+    if (simulation) simulation.stop();
+
+    const nodes = renderedGraphNodes();
+    const links = renderedGraphLinks();
+    const bounds = graphLayoutBounds(
+        document.getElementById('graph-container').clientWidth,
+        document.getElementById('graph-container').clientHeight
+    );
+    const centerId = centerNode.id;
+    const neighborIds = new Set();
+    links.forEach(l => {
+        const sid = edgeSourceId(l);
+        const tid = edgeTargetId(l);
+        if (sid === centerId) neighborIds.add(tid);
+        if (tid === centerId) neighborIds.add(sid);
+    });
+
+    centerNode.fx = centerNode.x;
+    centerNode.fy = centerNode.y;
+    centerNode.__localFocusPinned = true;
+
+    simulation = d3.forceSimulation(nodes)
+        .force('focus-link', d3.forceLink(links).id(d => d.id)
+            .distance(l => {
+                const sid = edgeSourceId(l);
+                const tid = edgeTargetId(l);
+                return (sid === centerId || tid === centerId) ? 88 : 170;
+            })
+            .strength(l => {
+                const sid = edgeSourceId(l);
+                const tid = edgeTargetId(l);
+                return (sid === centerId || tid === centerId) ? 0.34 : 0.012;
+            }))
+        .force('charge', d3.forceManyBody()
+            .strength(d => d.id === centerId ? -80 : (neighborIds.has(d.id) ? -230 : -60))
+            .distanceMax(360))
+        .force('collide', d3.forceCollide()
+            .radius(d => d.id === centerId || neighborIds.has(d.id) ? GRAPH_NODE_RADIUS + 28 : GRAPH_NODE_RADIUS + 18)
+            .iterations(3))
+        .force('local-attract', localSelectionAttractionForce(centerNode, neighborIds, 0.24))
+        .force('neighbor-x', d3.forceX(d => neighborIds.has(d.id) ? centerNode.x : (d.layoutX || d.x || bounds.cx))
+            .strength(d => neighborIds.has(d.id) ? 0.025 : 0.025))
+        .force('neighbor-y', d3.forceY(d => neighborIds.has(d.id) ? centerNode.y : (d.layoutY || d.y || bounds.cy))
+            .strength(d => neighborIds.has(d.id) ? 0.025 : 0.025))
+        .force('bound-x', d3.forceX(bounds.cx).strength(0.002))
+        .force('bound-y', d3.forceY(bounds.cy).strength(0.002))
+        .alpha(0.78)
+        .alphaDecay(0.018)
+        .velocityDecay(0.42)
+        .on('tick', () => {
+            nodes.forEach(d => {
+                d.x = clamp(d.x, bounds.left, bounds.right);
+                d.y = clamp(d.y, bounds.top, bounds.bottom);
+            });
+            updateGraphPositions();
+        });
 }
 
 function renderGraph() {
+    if (simulation) simulation.stop();
     g.selectAll('*').remove();
     focusedNodeId = null;
 
-    const MAX_RENDER_NODES = 150;
-    const isExpanded = n => !!(n.is_expanded || n.is_expanded === 1 || n.is_expanded === '1' || n.color === '#FFD700');
     let visibleNodes = graphData.nodes.filter(n => {
-        if (isExpanded(n)) return !!visibleLevels.expanded;
+        if (isExpandedNode(n)) return !!visibleLevels.expanded;
         return !!visibleLevels[n.level];
     });
     if (visibleNodes.length > MAX_RENDER_NODES) {
-        visibleNodes.sort((a, b) => (b.connections?.length || 0) - (a.connections?.length || 0));
+        visibleNodes.sort((a, b) => nodeDegree(b) - nodeDegree(a));
         visibleNodes = visibleNodes.slice(0, MAX_RENDER_NODES);
     }
     const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
     const visibleLinks = graphData.links.filter(l =>
-        visibleNodeIds.has(typeof l.source === 'object' ? l.source.id : l.source) &&
-        visibleNodeIds.has(typeof l.target === 'object' ? l.target.id : l.target)
+        visibleNodeIds.has(edgeSourceId(l)) &&
+        visibleNodeIds.has(edgeTargetId(l))
     );
 
     const container = document.getElementById('graph-container');
     const width = container.clientWidth;
     const height = container.clientHeight;
-    const pad = 60;
+    computeGraphLayout(visibleNodes, visibleLinks, graphLayoutMode, width, height);
+    relaxGraphLayout(visibleNodes, visibleLinks, width, height);
 
-    const panelW = 400;
-    const effectiveW = width - panelW;
-    const nodeCount = visibleNodes.length;
-    const chargeStrength = nodeCount > 100 ? -200 : -350;
-    const linkDist = nodeCount > 100 ? 80 : 120;
-
-    simulation = d3.forceSimulation(visibleNodes)
-        .force('link', d3.forceLink(visibleLinks).id(d => d.id).distance(linkDist))
-        .force('charge', d3.forceManyBody().strength(chargeStrength).distanceMax(300))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collide', d3.forceCollide().radius(d => nodeRadius(d) + 4).iterations(1))
-        .force('x', d3.forceX(width / 2).strength(0.06))
-        .force('y', d3.forceY(height / 2).strength(0.06))
-        .alphaDecay(0.03)
-        .velocityDecay(0.4);
-
-    // --- Edges (lines + labels, clickable) ---
     const linkGroup = g.append('g').attr('class', 'links');
     link = linkGroup.selectAll('.link').data(visibleLinks)
         .enter().append('line').attr('class', 'link')
-        .attr('stroke', d => d.is_discovered ? '#ef4444' : null)
-        .attr('stroke-width', d => d.is_discovered ? 2 : 1)
-        .attr('stroke-dasharray', d => d.is_discovered ? '6,3' : null)
+        .attr('stroke', edgeBaseStroke)
+        .attr('stroke-width', edgeBaseWidth)
+        .attr('stroke-opacity', edgeBaseOpacity)
+        .attr('stroke-dasharray', d => d.is_discovered ? '4,5' : null)
         .on('click', (e, d) => selectEdge(d));
 
-    // --- Nodes (circle + label INSIDE) ---
     node = g.append('g').selectAll('g').data(visibleNodes)
         .enter().append('g').attr('class', 'node')
         .call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
         .on('click', (e, d) => { e.stopPropagation(); selectNode(d); });
 
     node.append('circle')
-        .attr('r', d => nodeRadius(d))
-        .attr('class', d => {
-            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
-            if (isE) return 'level-expanded';
-            if (d.is_image_node) return 'level-image';
-            return `level-${d.level}`;
-        })
-        .attr('fill', d => {
-            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
-            if (isE) return '#FFD700';
-            return null;
-        })
-        .attr('stroke', d => {
-            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
-            return isE ? '#B8860B' : (d.is_image_node ? '#6d28d9' : '#fff');
-        })
-        .attr('stroke-width', d => {
-            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
-            return isE ? 2 : (d.is_image_node ? 2 : 1.5);
-        });
+        .attr('r', GRAPH_NODE_RADIUS)
+        .attr('fill', nodeFill)
+        .attr('stroke', nodeStroke)
+        .attr('stroke-width', d => isExpandedNode(d) || d.is_image_node ? 1.8 : 1.25);
 
-    // Label inside the circle — always truncate to 4 chars max
+    node.append('title').text(d => d.name || d.id);
+
     node.append('text').attr('class', 'node-label')
-        .attr('dy', '0.35em')
-        .text(d => truncName(d.name, 4))
-        .style('fill', d => {
-            const isE = !!(d.is_expanded || d.is_expanded === 1 || d.is_expanded === '1');
-            return isE ? '#7c2d12' : '#fff';
-        });
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('dy', '0.04em')
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'central')
+        .attr('alignment-baseline', 'middle')
+        .attr('textLength', d => nodeLabelNeedsFit(d) ? nodeLabelFitWidth(d) : null)
+        .attr('lengthAdjust', d => nodeLabelNeedsFit(d) ? 'spacingAndGlyphs' : null)
+        .text(fittedNodeLabelText)
+        .style('font-size', d => nodeLabelFontSize(d) + 'px')
+        .style('fill', d => isExpandedNode(d) ? '#5f2e1f' : '#fffefa');
 
-    // Constrain nodes within viewport bounds on each tick
-    simulation.on('tick', () => {
-        visibleNodes.forEach(d => {
-            const r = nodeRadius(d);
-            d.x = Math.max(pad + r, Math.min(width - pad - r, d.x));
-            d.y = Math.max(pad + r, Math.min(height - pad - r, d.y));
-        });
-        link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
-            .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
-        node.attr('transform', d => `translate(${d.x},${d.y})`);
-    });
+    updateGraphPositions();
+    startGraphForceLayout(visibleNodes, visibleLinks, width, height);
 }
 
 /* ───────── BFS hop-level calculation ───────── */
@@ -1205,6 +1790,125 @@ function computeHopLevels(startId, maxHops) {
 }
 
 /* ───────── Node click: focus + hop levels ───────── */
+function clearNodeChunkDetails() {
+    const section = document.getElementById('detail-node-chunks');
+    const list = document.getElementById('detail-chunks-list');
+    const count = document.getElementById('detail-chunks-count');
+    if (section) section.style.display = 'none';
+    if (list) list.innerHTML = '';
+    if (count) count.textContent = '0';
+}
+
+function renderNodeChunkLoading() {
+    const section = document.getElementById('detail-node-chunks');
+    const list = document.getElementById('detail-chunks-list');
+    const count = document.getElementById('detail-chunks-count');
+    if (!section || !list || !count) return;
+    section.style.display = '';
+    count.textContent = 'loading';
+    list.innerHTML = '';
+    const item = document.createElement('div');
+    item.className = 'p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0] text-xs text-[#766f66]';
+    item.textContent = '\u6b63\u5728\u52a0\u8f7d\u6765\u6e90 chunk...';
+    list.appendChild(item);
+}
+
+function renderNodeChunks(payload) {
+    const section = document.getElementById('detail-node-chunks');
+    const list = document.getElementById('detail-chunks-list');
+    const count = document.getElementById('detail-chunks-count');
+    if (!section || !list || !count) return;
+    const chunks = Array.isArray(payload?.chunks) ? payload.chunks : [];
+    const sourceIds = Array.isArray(payload?.source_ids) ? payload.source_ids : [];
+    list.innerHTML = '';
+    section.style.display = '';
+    count.textContent = String(chunks.length || sourceIds.length);
+
+    if (!chunks.length) {
+        const empty = document.createElement('div');
+        empty.className = 'p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0] text-xs text-[#766f66]';
+        empty.textContent = sourceIds.length
+            ? '\u8be5\u8282\u70b9\u6709 chunk_id\uff0c\u4f46\u672a\u627e\u5230\u5bf9\u5e94\u7684 text chunk \u5185\u5bb9\u3002'
+            : '\u8be5\u8282\u70b9\u6682\u65e0\u53ef\u8ffd\u6eaf\u7684\u6765\u6e90 chunk\u3002';
+        list.appendChild(empty);
+        return;
+    }
+
+    chunks.forEach((chunk, idx) => {
+        const card = document.createElement('article');
+        card.className = 'p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0]';
+
+        const header = document.createElement('div');
+        header.className = 'flex items-start justify-between gap-2 mb-2';
+
+        const idWrap = document.createElement('div');
+        idWrap.className = 'min-w-0';
+        const label = document.createElement('div');
+        label.className = 'text-[11px] text-[#9b9287] mb-1';
+        label.textContent = 'chunk ' + (idx + 1);
+        const idText = document.createElement('div');
+        idText.className = 'font-mono text-[11px] leading-4 font-semibold text-[#4b6f8f] whitespace-nowrap overflow-x-auto max-w-full';
+        idText.textContent = chunk.chunk_id || '-';
+        idWrap.appendChild(label);
+        idWrap.appendChild(idText);
+
+        const meta = document.createElement('span');
+        meta.className = 'shrink-0 text-[11px] text-[#9b9287]';
+        meta.textContent = chunk.missing ? '\u672a\u627e\u5230' : (chunk.tokens ? String(chunk.tokens) + ' tokens' : '');
+
+        header.appendChild(idWrap);
+        header.appendChild(meta);
+        card.appendChild(header);
+
+        if (chunk.file_path) {
+            const file = document.createElement('div');
+            file.className = 'mb-2 text-[11px] text-[#766f66] break-all';
+            file.textContent = '\u6765\u6e90\u6587\u4ef6\uff1a' + chunk.file_path;
+            card.appendChild(file);
+        }
+
+        const content = document.createElement('div');
+        content.className = 'text-xs leading-5 text-[#5f584f] whitespace-pre-wrap break-words';
+        content.textContent = chunk.content || (chunk.missing ? '\u672a\u627e\u5230\u8be5 chunk \u7684\u6587\u672c\u5185\u5bb9\u3002' : '');
+        card.appendChild(content);
+
+        list.appendChild(card);
+    });
+}
+
+async function loadNodeChunksForDetail(d) {
+    if (!currentSessionId || !d?.id) {
+        clearNodeChunkDetails();
+        return;
+    }
+    const requestedNodeId = d.id;
+    renderNodeChunkLoading();
+    try {
+        const url = getKgApiPrefix()
+            + '/knowledge-graph/entity-chunks?session_id=' + encodeURIComponent(currentSessionId)
+            + '&entity_id=' + encodeURIComponent(requestedNodeId)
+            + '&max_chunks=20';
+        const resp = await fetch(url);
+        const payload = await resp.json();
+        if (!selectedNode || selectedNode.id !== requestedNodeId) return;
+        if (!resp.ok) throw new Error(payload?.detail || ('HTTP ' + resp.status));
+        renderNodeChunks(payload);
+    } catch (err) {
+        if (!selectedNode || selectedNode.id !== requestedNodeId) return;
+        const section = document.getElementById('detail-node-chunks');
+        const list = document.getElementById('detail-chunks-list');
+        const count = document.getElementById('detail-chunks-count');
+        if (!section || !list || !count) return;
+        section.style.display = '';
+        count.textContent = 'error';
+        list.innerHTML = '';
+        const item = document.createElement('div');
+        item.className = 'p-3 bg-[#fff7f5] rounded-lg border border-[#ead3cf] text-xs text-[#b85c38]';
+        item.textContent = '\u52a0\u8f7d\u6765\u6e90 chunk \u5931\u8d25\uff1a' + (err.message || err);
+        list.appendChild(item);
+    }
+}
+
 function selectNode(d) {
     selectedNode = d;
     selectedEdgeId = null;
@@ -1308,21 +2012,26 @@ function selectNode(d) {
             const sid = typeof l.source === 'object' ? l.source.id : l.source;
             const tid = typeof l.target === 'object' ? l.target.id : l.target;
             if (sid === d.id || tid === d.id) return '#b85c38';
-            return l.is_discovered ? '#ef4444' : null;
+            return edgeBaseStroke(l);
         }).attr('stroke-width', l => {
             const sid = typeof l.source === 'object' ? l.source.id : l.source;
             const tid = typeof l.target === 'object' ? l.target.id : l.target;
             if (sid === d.id || tid === d.id) return 2.5;
-            return l.is_discovered ? 2 : 1;
+            return edgeBaseWidth(l);
         }).attr('stroke-opacity', l => {
             const sid = typeof l.source === 'object' ? l.source.id : l.source;
             const tid = typeof l.target === 'object' ? l.target.id : l.target;
-            return (sid === d.id || tid === d.id) ? 1 : 0.06;
+            return (sid === d.id || tid === d.id) ? 0.92 : 0.055;
         });
     }
+    loadNodeChunksForDetail(d);
+    startSelectedNodeAttraction(d);
 }
 
 function selectEdge(d) {
+    clearLocalFocusPins();
+    resumeRenderedGraphForceLayout();
+    clearNodeChunkDetails();
     const srcId = typeof d.source === 'object' ? d.source.id : d.source;
     const tgtId = typeof d.target === 'object' ? d.target.id : d.target;
     const srcName = typeof d.source === 'object' ? (d.source.name || d.source.id) : d.source;
@@ -1361,24 +2070,26 @@ function selectEdge(d) {
             .attr('opacity', n => (n.id === srcId || n.id === tgtId) ? 1 : 0.14);
     }
     if (link) {
-        const defaultStroke = l => l.is_discovered ? '#ef4444' : null;
         link.classed('selected-edge', l => edgeIdentity(l) === selectedEdgeId)
-            .attr('stroke', l => (edgeIdentity(l) === selectedEdgeId) ? '#b85c38' : defaultStroke(l))
-            .attr('stroke-width', l => (edgeIdentity(l) === selectedEdgeId) ? 3.5 : (l.is_discovered ? 2 : 1))
-            .attr('stroke-opacity', l => (edgeIdentity(l) === selectedEdgeId) ? 1 : 0.1);
+            .attr('stroke', l => (edgeIdentity(l) === selectedEdgeId) ? '#b85c38' : edgeBaseStroke(l))
+            .attr('stroke-width', l => (edgeIdentity(l) === selectedEdgeId) ? 2.4 : edgeBaseWidth(l))
+            .attr('stroke-opacity', l => (edgeIdentity(l) === selectedEdgeId) ? 0.95 : 0.08);
     }
 }
 
 function resetHighlight() {
+    clearLocalFocusPins();
+    clearNodeChunkDetails();
     if (link) {
         link.classed('nl-edge-highlight', false)
             .classed('selected-edge', false)
-            .attr('stroke', l => l.is_discovered ? '#ef4444' : null)
-            .attr('stroke-width', l => l.is_discovered ? 2 : 1)
-            .attr('stroke-opacity', 0.6);
+            .attr('stroke', edgeBaseStroke)
+            .attr('stroke-width', edgeBaseWidth)
+            .attr('stroke-opacity', edgeBaseOpacity);
     }
     if (node) {
         node.classed('nl-node-highlight', false)
+            .classed('gesture-hover', false)
             .classed('selected-node', false)
             .attr('opacity', 1);
     }
@@ -1386,6 +2097,7 @@ function resetHighlight() {
     selectedNode = null;
     selectedEdgeId = null;
     closePanel();
+    resumeRenderedGraphForceLayout();
 }
 
 function closePanel() {
@@ -1409,11 +2121,559 @@ document.addEventListener('keydown', e => {
     }
 });
 
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function gestureEls() {
+    return {
+        layer: document.getElementById('gesture-layer'),
+        video: document.getElementById('gesture-video'),
+        cursor: document.getElementById('gesture-cursor'),
+        mode: document.getElementById('gesture-mode'),
+        target: document.getElementById('gesture-target'),
+        button: document.getElementById('gesture-btn')
+    };
+}
+
+function setGestureStatus(modeText, targetText = '') {
+    const els = gestureEls();
+    if (els.mode) els.mode.textContent = modeText;
+    if (els.target) els.target.textContent = targetText;
+}
+
+function setGestureButtonActive(active) {
+    const btn = gestureEls().button;
+    if (!btn) return;
+    btn.classList.toggle('kg-control-primary', active);
+    btn.innerHTML = active
+        ? '<i class="fa-solid fa-hand"></i>手势中'
+        : '<i class="fa-solid fa-hand"></i>手势';
+}
+
+async function toggleGestureControl() {
+    if (gestureEnabled) {
+        stopGestureControl();
+        return;
+    }
+    await startGestureControl();
+}
+
+async function startGestureControl() {
+    const els = gestureEls();
+    if (!els.layer || !els.video) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast('当前浏览器不支持摄像头访问', 'error');
+        return;
+    }
+
+    try {
+        gestureEnabled = true;
+        gestureState = createGestureState();
+        await ensureGestureLandmarker();
+
+        gestureStream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+                facingMode: 'user',
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                frameRate: { ideal: 30, max: 30 }
+            },
+        });
+        els.video.srcObject = gestureStream;
+        await els.video.play();
+        els.layer.classList.remove('hidden');
+        setGestureButtonActive(true);
+        setGestureStatus('摄像头启动中');
+        gestureLastVideoTime = -1;
+        gestureAnimationFrame = requestAnimationFrame(runGestureFrame);
+        setGestureStatus('手势已启用');
+    } catch (err) {
+        gestureEnabled = false;
+        setGestureButtonActive(false);
+        els.layer.classList.add('hidden');
+        showToast('无法启动摄像头: ' + err.message, 'error');
+    }
+}
+
+function stopGestureControl() {
+    const els = gestureEls();
+    gestureEnabled = false;
+    releaseGestureDrag();
+    if (gestureAnimationFrame) {
+        cancelAnimationFrame(gestureAnimationFrame);
+        gestureAnimationFrame = null;
+    }
+    if (gestureStream) {
+        gestureStream.getTracks().forEach(track => track.stop());
+        gestureStream = null;
+    }
+    if (els.video) {
+        els.video.pause();
+        els.video.srcObject = null;
+    }
+    if (els.cursor) els.cursor.style.opacity = 0;
+    if (node) node.classed('gesture-hover', false);
+    if (els.layer) els.layer.classList.add('hidden');
+    setGestureButtonActive(false);
+    setGestureStatus('手势待机');
+}
+
+window.addEventListener('beforeunload', stopGestureControl);
+
+async function ensureGestureLandmarker() {
+    if (gestureLandmarker) return gestureLandmarker;
+    const tasksUrl = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs';
+    const wasmUrl = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm';
+    const modelUrl = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+
+    gestureVisionModule = gestureVisionModule || await import(tasksUrl);
+    const { FilesetResolver, HandLandmarker } = gestureVisionModule;
+    const vision = await FilesetResolver.forVisionTasks(wasmUrl);
+    const baseOptions = {
+        modelAssetPath: modelUrl,
+        delegate: 'GPU'
+    };
+    const options = {
+        baseOptions,
+        runningMode: 'VIDEO',
+        numHands: 2,
+        minHandDetectionConfidence: 0.68,
+        minHandPresenceConfidence: 0.68,
+        minTrackingConfidence: 0.68
+    };
+
+    try {
+        gestureLandmarker = await HandLandmarker.createFromOptions(vision, options);
+    } catch (gpuErr) {
+        gestureLandmarker = await HandLandmarker.createFromOptions(vision, {
+            ...options,
+            baseOptions: { modelAssetPath: modelUrl, delegate: 'CPU' }
+        });
+    }
+    return gestureLandmarker;
+}
+
+function runGestureFrame() {
+    if (!gestureEnabled) return;
+    const video = gestureEls().video;
+    if (gestureLandmarker && video && video.readyState >= 2) {
+        try {
+            if (video.currentTime !== gestureLastVideoTime) {
+                gestureLastVideoTime = video.currentTime;
+                const results = gestureLandmarker.detectForVideo(video, performance.now());
+                handleGestureResults(results);
+            }
+        } catch (err) {
+            console.warn('HandLandmarker frame failed:', err);
+        }
+    }
+    gestureAnimationFrame = requestAnimationFrame(runGestureFrame);
+}
+
+function landmarkDistance(a, b) {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    const dz = (a.z || 0) - (b.z || 0);
+    return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+function extractGestureMetrics(landmarks, previousPinch = false) {
+    const container = document.getElementById('graph-container');
+    const palmSize = Math.max(landmarkDistance(landmarks[0], landmarks[9]), 0.035);
+    const pinchDistance = landmarkDistance(landmarks[4], landmarks[8]) / palmSize;
+    const pinch = previousPinch ? pinchDistance < 0.34 : pinchDistance < 0.24;
+    const wrist = landmarks[0];
+    const fingerTipIds = [8, 12, 16, 20];
+    const fingerPipIds = [6, 10, 14, 18];
+    const fingerExtended = fingerTipIds.map((tipId, idx) => {
+        const tipDistance = landmarkDistance(landmarks[tipId], wrist);
+        const pipDistance = landmarkDistance(landmarks[fingerPipIds[idx]], wrist);
+        return tipDistance > pipDistance * 1.08;
+    });
+    const extendedFingers = fingerExtended.filter(Boolean).length;
+    const thumbTip = landmarks[4];
+    const indexTip = landmarks[8];
+    const palmCenter = [0, 5, 9, 13, 17].reduce((acc, idx) => {
+        acc.x += landmarks[idx].x;
+        acc.y += landmarks[idx].y;
+        return acc;
+    }, { x: 0, y: 0 });
+    palmCenter.x /= 5;
+    palmCenter.y /= 5;
+    const openPalm = !pinch && extendedFingers >= 4;
+
+    return {
+        point: {
+            x: (1 - indexTip.x) * container.clientWidth,
+            y: indexTip.y * container.clientHeight
+        },
+        thumbPoint: {
+            x: (1 - thumbTip.x) * container.clientWidth,
+            y: thumbTip.y * container.clientHeight
+        },
+        palmPoint: {
+            x: (1 - palmCenter.x) * container.clientWidth,
+            y: palmCenter.y * container.clientHeight
+        },
+        pinch,
+        pinchDistance,
+        extendedFingers,
+        openPalm,
+        palmSize
+    };
+}
+
+function handleGestureResults(results) {
+    if (!gestureEnabled) return;
+    const hands = results.landmarks || [];
+    if (!hands.length) {
+        setGestureStatus('未检测到手');
+        gestureState.palmZoomSince = 0;
+        gestureState.palmZoomPoint = null;
+        gestureState.twoPalmSince = 0;
+        gestureState.twoPalmResetDone = false;
+        releaseGestureAction();
+        const els = gestureEls();
+        if (els.cursor) els.cursor.style.opacity = 0;
+        if (node) node.classed('gesture-hover', false);
+        return;
+    }
+
+    const now = performance.now();
+    if (now - gestureState.lastFrameAt < 28) return;
+    gestureState.lastFrameAt = now;
+
+    const metrics = extractGestureMetrics(hands[0], gestureState.lastPinch);
+    metrics.point = smoothGesturePoint(metrics.point);
+    if (metrics.thumbPoint) {
+        metrics.pinchPoint = {
+            x: (metrics.point.x + metrics.thumbPoint.x) / 2,
+            y: (metrics.point.y + metrics.thumbPoint.y) / 2
+        };
+    }
+    updateGestureCursor(metrics);
+    if (processGestureTwoPalmReset(hands, metrics)) return;
+    if (processGesturePalmZoom(metrics)) return;
+    if (!metrics.pinch || gestureState.action !== 'idle') updateGestureHover(metrics.point);
+    processGesturePinch(metrics);
+}
+
+function updateGestureCursor(metrics) {
+    const els = gestureEls();
+    if (!els.cursor) return;
+    els.cursor.style.opacity = 1;
+    els.cursor.style.left = `${metrics.point.x}px`;
+    els.cursor.style.top = `${metrics.point.y}px`;
+    els.cursor.style.transform = metrics.openPalm ? 'scale(1.05)' : (metrics.pinch ? 'scale(0.72)' : 'scale(1)');
+}
+
+function processGestureTwoPalmReset(hands, primaryMetrics) {
+    if (!['idle', 'palm-zoom'].includes(gestureState.action)) {
+        gestureState.twoPalmSince = 0;
+        gestureState.twoPalmResetDone = false;
+        return false;
+    }
+
+    if (hands.length < 2) {
+        gestureState.twoPalmSince = 0;
+        gestureState.twoPalmResetDone = false;
+        return false;
+    }
+
+    const secondMetrics = extractGestureMetrics(hands[1], false);
+    if (!primaryMetrics.openPalm || !secondMetrics.openPalm) {
+        gestureState.twoPalmSince = 0;
+        gestureState.twoPalmResetDone = false;
+        return false;
+    }
+
+    const now = performance.now();
+    releaseGestureAction({ keepHover: true });
+    if (!gestureState.twoPalmSince) gestureState.twoPalmSince = now;
+    const elapsed = now - gestureState.twoPalmSince;
+    if (elapsed < 420) {
+        setGestureStatus('双手掌保持，恢复全局图谱', `${Math.max(0, Math.ceil((420 - elapsed) / 100) / 10)}s`);
+        return true;
+    }
+
+    if (!gestureState.twoPalmResetDone) {
+        const hadFocus = !!selectedNode || !!selectedEdgeId || !!focusedNodeId;
+        resetHighlight();
+        gestureState.twoPalmResetDone = true;
+        setGestureStatus('已恢复全局图谱');
+        if (hadFocus) showToast('已恢复全局图谱', 'success');
+    }
+    return true;
+}
+
+function processGesturePalmZoom(metrics) {
+    if (!['idle', 'palm-zoom'].includes(gestureState.action)) return false;
+    if (gestureState.candidateNode) return false;
+    if (!metrics.openPalm || !metrics.palmPoint || metrics.pinch) {
+        if (gestureState.action === 'palm-zoom') releaseGestureAction({ keepHover: true });
+        gestureState.palmZoomSince = 0;
+        gestureState.palmZoomPoint = null;
+        gestureState.palmZoomBaseScale = 1;
+        return false;
+    }
+
+    const now = performance.now();
+    if (!gestureState.palmZoomSince || gestureState.action !== 'palm-zoom') {
+        gestureState.action = 'palm-zoom';
+        gestureState.palmZoomSince = now;
+        gestureState.palmZoomPoint = { ...metrics.palmPoint };
+        gestureState.palmZoomBaseScale = currentTransform.k || 1;
+        setGestureStatus('张开手掌，上移放大，下移缩小');
+        return true;
+    }
+
+    const dy = metrics.palmPoint.y - gestureState.palmZoomPoint.y;
+    if (Math.abs(dy) < 18) {
+        setGestureStatus('张开手掌，上移放大，下移缩小');
+        return true;
+    }
+
+    const nextScale = clamp(gestureState.palmZoomBaseScale * Math.exp(-dy / 230), 0.05, 6);
+    applyZoomAt(metrics.palmPoint, nextScale);
+    setGestureStatus(dy < 0 ? '手掌上移，放大图谱' : '手掌下移，缩小图谱', `${Math.round(nextScale * 100)}%`);
+    return true;
+}
+
+function visibleGestureNodes() {
+    const items = [];
+    if (!node) return items;
+    node.each(function(d) {
+        if (d && Number.isFinite(d.x) && Number.isFinite(d.y)) {
+            items.push({
+                node: d,
+                sx: currentTransform.applyX(d.x),
+                sy: currentTransform.applyY(d.y)
+            });
+        }
+    });
+    return items;
+}
+
+function gestureHitRadius(extraRadius = 0) {
+    const zoom = currentTransform?.k || 1;
+    return Math.max(22, Math.min(36, GRAPH_NODE_RADIUS + 15 / Math.sqrt(zoom))) + extraRadius;
+}
+
+function findNearestGestureNode(point, extraRadius = 0) {
+    if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
+    const entries = visibleGestureNodes();
+    if (!entries.length) return null;
+    const radius = gestureHitRadius(extraRadius);
+    const tree = d3.quadtree()
+        .x(d => d.sx)
+        .y(d => d.sy)
+        .addAll(entries);
+    const nearest = tree.find(point.x, point.y, radius);
+    return nearest ? nearest.node : null;
+}
+
+function updateGestureHover(point, options = {}) {
+    if (gestureState.action !== 'idle') return gestureState.hoverNode;
+    const hovered = findNearestGestureNode(point);
+    const now = performance.now();
+    if (hovered?.id !== gestureState.hoverNode?.id) {
+        gestureState.hoverNode = hovered;
+        gestureState.hoverSince = now;
+        gestureState.candidateNode = null;
+        gestureState.candidateSince = 0;
+    }
+    if (hovered && now - gestureState.hoverSince >= 140) {
+        gestureState.candidateNode = hovered;
+        gestureState.candidateSince = gestureState.hoverSince;
+    } else if (!hovered) {
+        gestureState.candidateNode = null;
+        gestureState.candidateSince = 0;
+    }
+    if (node) {
+        node.classed('gesture-hover', d =>
+            (gestureState.candidateNode && d.id === gestureState.candidateNode.id) ||
+            (!gestureState.candidateNode && hovered && d.id === hovered.id)
+        );
+    }
+    const targetName = gestureState.candidateNode
+        ? (gestureState.candidateNode.name || gestureState.candidateNode.id)
+        : (hovered ? (hovered.name || hovered.id) : '');
+    if (!options.silent && gestureState.action === 'idle') setGestureStatus('食指移动选择', targetName);
+    return hovered;
+}
+
+function processStableGesturePinch(metrics) {
+    const now = performance.now();
+    if (now < gestureState.cooldownUntil) {
+        gestureState.lastPinch = metrics.pinch;
+        return;
+    }
+
+    if (metrics.pinch) {
+        gestureState.pinchFrames += 1;
+        gestureState.releaseFrames = 0;
+    } else {
+        gestureState.releaseFrames += 1;
+        gestureState.pinchFrames = 0;
+    }
+
+    if (!metrics.pinch) {
+        if (gestureState.releaseFrames >= 2 && gestureState.action !== 'idle') {
+            releaseGestureAction({ clearPinchSelection: !!gestureState.capturedNode, cooldownMs: 160 });
+        }
+        gestureState.lastPinch = false;
+        return;
+    }
+
+    if (gestureState.pinchFrames < 3) {
+        gestureState.lastPinch = true;
+        return;
+    }
+
+    if (gestureState.action === 'idle') {
+        if (gestureState.candidateNode) captureGestureNode(gestureState.candidateNode, metrics.point);
+        else startGestureCanvasPan(metrics.point);
+    }
+
+    if (gestureState.action === 'node-captured' && gestureState.capturedNode) {
+        updateCapturedNodeDrag(metrics.point);
+    } else if (gestureState.action === 'canvas-pan') {
+        panCanvasFromGesture(metrics.point);
+    }
+
+    gestureState.lastPinch = true;
+}
+
+function captureGestureNode(target, point) {
+    selectNode(target);
+    gestureState.action = 'node-captured';
+    gestureState.actionNode = target;
+    gestureState.capturedNode = target;
+    gestureState.actionPoint = { ...point };
+    gestureState.actionNodeStart = { x: target.x || 0, y: target.y || 0 };
+    gestureState.actionStartedAt = performance.now();
+    gestureState.actionMoved = false;
+    target.fx = target.x;
+    target.fy = target.y;
+    setGestureStatus('已捕获节点，保持捏合可拖拽', target.name || target.id);
+}
+
+function updateCapturedNodeDrag(point) {
+    if (!gestureState.capturedNode || !gestureState.actionPoint) return;
+    const dx = point.x - gestureState.actionPoint.x;
+    const dy = point.y - gestureState.actionPoint.y;
+    if (!gestureState.actionMoved && Math.sqrt(dx * dx + dy * dy) < 5) {
+        setGestureStatus('保持捏合选中节点', gestureState.capturedNode.name || gestureState.capturedNode.id);
+        return;
+    }
+    gestureState.actionMoved = true;
+    dragGestureNode(gestureState.capturedNode, point);
+    setGestureStatus('拖拽节点', gestureState.capturedNode.name || gestureState.capturedNode.id);
+}
+
+function startGestureCanvasPan(point) {
+    gestureState.action = 'canvas-pan';
+    gestureState.actionNode = null;
+    gestureState.capturedNode = null;
+    gestureState.actionPoint = { ...point };
+    gestureState.actionTransform = currentTransform;
+    gestureState.actionStartedAt = performance.now();
+    gestureState.actionMoved = false;
+    setGestureStatus('捏合空白处移动图谱');
+}
+
+function processGesturePinch(metrics) {
+    return processStableGesturePinch(metrics);
+}
+
+
+function panCanvasFromGesture(point) {
+    if (!svg || !graphZoom || !gestureState.actionTransform || !gestureState.actionPoint) return;
+    gestureState.actionMoved = true;
+    const dx = point.x - gestureState.actionPoint.x;
+    const dy = point.y - gestureState.actionPoint.y;
+    const base = gestureState.actionTransform;
+    const next = d3.zoomIdentity
+        .translate(base.x + dx, base.y + dy)
+        .scale(base.k || 1);
+    svg.call(graphZoom.transform, next);
+    setGestureStatus('捏合空白处移动图谱');
+}
+
+function applyZoomAt(point, nextScale) {
+    if (!svg || !graphZoom || !currentTransform) return;
+    const currentScale = currentTransform.k || 1;
+    const k = clamp(nextScale, 0.05, 6);
+    const ratio = k / currentScale;
+    const x = point.x - (point.x - currentTransform.x) * ratio;
+    const y = point.y - (point.y - currentTransform.y) * ratio;
+    svg.call(graphZoom.transform, d3.zoomIdentity.translate(x, y).scale(k));
+}
+
+function smoothGesturePoint(point) {
+    if (!gestureState.smoothedPoint) {
+        gestureState.smoothedPoint = { ...point };
+        return point;
+    }
+    const alpha = 0.34;
+    gestureState.smoothedPoint = {
+        x: gestureState.smoothedPoint.x * (1 - alpha) + point.x * alpha,
+        y: gestureState.smoothedPoint.y * (1 - alpha) + point.y * alpha
+    };
+    return gestureState.smoothedPoint;
+}
+
+function dragGestureNode(d, point) {
+    if (!d || !currentTransform) return;
+    const gx = currentTransform.invertX(point.x);
+    const gy = currentTransform.invertY(point.y);
+    d.fx = gx;
+    d.fy = gy;
+    d.x = gx;
+    d.y = gy;
+    updateGraphPositions();
+}
+
+function releaseGestureAction(options = {}) {
+    const heldNode = gestureState.capturedNode || gestureState.actionNode;
+    const shouldClearPinchSelection = options.clearPinchSelection && heldNode;
+    if (heldNode) {
+        heldNode.fx = null;
+        heldNode.fy = null;
+    }
+    if (shouldClearPinchSelection) resetHighlight();
+    gestureState.action = 'idle';
+    gestureState.actionNode = null;
+    gestureState.capturedNode = null;
+    gestureState.actionPoint = null;
+    gestureState.actionTransform = null;
+    gestureState.actionNodeStart = null;
+    gestureState.actionBaseScale = 1;
+    gestureState.actionStartedAt = 0;
+    gestureState.actionMoved = false;
+    gestureState.palmZoomSince = 0;
+    gestureState.palmZoomPoint = null;
+    gestureState.palmZoomBaseScale = 1;
+    gestureState.lastPinch = false;
+    gestureState.pinchFrames = 0;
+    gestureState.releaseFrames = 0;
+    gestureState.cooldownUntil = performance.now() + (options.cooldownMs || 0);
+    gestureState.candidateNode = null;
+    gestureState.candidateSince = 0;
+    if (!options.keepHover) gestureState.hoverNode = null;
+}
+
+function releaseGestureDrag() {
+    releaseGestureAction();
+}
+
 function focusNode() {
     if (!selectedNode) return;
     const container = document.getElementById('graph-container');
     svg.transition().duration(750).call(
-        d3.zoom().transform,
+        graphZoom.transform,
         d3.zoomIdentity.translate(container.clientWidth / 2, container.clientHeight / 2).scale(1.5)
             .translate(-selectedNode.x, -selectedNode.y)
     );
@@ -1453,7 +2713,7 @@ function searchNodes(query) {
 }
 
 function resetZoom() {
-    svg.transition().duration(750).call(d3.zoom().transform, d3.zoomIdentity);
+    svg.transition().duration(750).call(graphZoom.transform, d3.zoomIdentity);
 }
 
 function refreshGraph() {
@@ -1508,15 +2768,22 @@ async function expandGraph() {
 }
 
 function dragstarted(e, d) {
-    if (!e.active) simulation.alphaTarget(0.15).restart();
+    if (!e.active && simulation) simulation.alphaTarget(0.08).restart();
     d.fx = d.x; d.fy = d.y;
 }
 function dragged(e, d) {
     d.fx = e.x; d.fy = e.y;
+    d.x = e.x; d.y = e.y;
+    updateGraphPositions();
 }
 function dragended(e, d) {
-    if (!e.active) simulation.alphaTarget(0);
+    if (!e.active && simulation) simulation.alphaTarget(0);
     d.fx = null; d.fy = null;
 }
+</script>
+<script
+    src="{{ url_for('promo_graph.static', filename='gesture_chooser.js') }}"
+    data-promo-url="{{ url_for('promo_graph.experience') }}"
+    data-stylesheet-url="{{ url_for('promo_graph.static', filename='gesture_chooser.css') }}">
 </script>
 {% endblock %}

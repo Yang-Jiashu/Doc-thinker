@@ -200,7 +200,7 @@ async def _get_llm_model_func() -> Any:
         prompt: str,
         system_prompt: str | None = None,
         history_messages: List[dict] | None = None,
-        **_: Any,
+        **kwargs: Any,
     ) -> str:
         messages = []
         if system_prompt:
@@ -211,7 +211,7 @@ async def _get_llm_model_func() -> Any:
 
         resp = await model_router.chat_completion(
             messages=messages,
-            max_tokens=2048,
+            max_tokens=int(kwargs.get("max_tokens", 2048) or 2048),
             stream=False,
             temperature=state.settings.llm_temperature,
         )

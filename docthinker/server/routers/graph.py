@@ -1,3 +1,6 @@
+import asyncio
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -17,6 +20,13 @@ _log = logging.getLogger("docthinker.graph")
 
 
 router = APIRouter()
+
+_ECLRR_RUN_TASKS: Dict[str, asyncio.Task] = {}
+_ECLRR_RUN_STATUS: Dict[str, Dict[str, Any]] = {}
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _get_memory_engine_or_raise(session_id: Optional[str]):
@@ -41,7 +51,14 @@ async def _get_session_rag_or_raise(session_id: Optional[str]):
         )
         session_rag.llm_model_func = state.rag_instance.llm_model_func
         session_rag.embedding_func = state.rag_instance.embedding_func
-        await session_rag._ensure_graphcore_initialized()
+        init_result = await session_rag._ensure_graphcore_initialized()
+        if session_rag.graphcore is None:
+            detail = (
+                init_result.get("error")
+                if isinstance(init_result, dict)
+                else "unknown initialization failure"
+            )
+            raise RuntimeError(f"GraphCore initialization failed: {detail}")
         return session_rag
     except HTTPException:
         raise
@@ -212,8 +229,35 @@ async def get_all_graph_stats():
     return result
 
 
+def _select_graph_nodes(
+    nodes_data: List[Dict[str, Any]],
+    edge_degree: Dict[str, int],
+    *,
+    scope: str = "summary",
+    max_nodes: int = 200,
+) -> List[Dict[str, Any]]:
+    """Select graph nodes without changing the classic graph's default cap."""
+    normalized_scope = str(scope or "summary").strip().lower()
+    if normalized_scope == "full":
+        return list(nodes_data)
+
+    expanded_nodes = [n for n in nodes_data if _is_expanded_node(n)]
+    other_nodes = sorted(
+        [n for n in nodes_data if not _is_expanded_node(n)],
+        key=lambda n: edge_degree.get(
+            str(n.get("id") or n.get("entity_id") or ""), 0
+        ),
+        reverse=True,
+    )
+    budget = max(0, max_nodes - len(expanded_nodes))
+    return expanded_nodes + other_nodes[:budget]
+
+
 @router.get("/knowledge-graph/data")
-async def get_graph_data(session_id: Optional[str] = None):
+async def get_graph_data(
+    session_id: Optional[str] = None,
+    scope: str = "summary",
+):
     if not state.rag_instance or not state.session_manager:
         raise HTTPException(status_code=500, detail="Service not initialized")
 
@@ -239,8 +283,6 @@ async def get_graph_data(session_id: Optional[str] = None):
 
         nodes = []
         edges = []
-        max_nodes = 200
-
         # Sort non-expanded nodes by degree (most connected first) so the
         # 200-node cap keeps the most important entities visible.
         edge_degree: Dict[str, int] = {}
@@ -249,14 +291,11 @@ async def get_graph_data(session_id: Optional[str] = None):
                 nid = e.get(k, "")
                 edge_degree[nid] = edge_degree.get(nid, 0) + 1
 
-        expanded_nodes = [n for n in nodes_data if _is_expanded_node(n)]
-        other_nodes = sorted(
-            [n for n in nodes_data if not _is_expanded_node(n)],
-            key=lambda n: edge_degree.get(n.get("id") or n.get("entity_id") or "", 0),
-            reverse=True,
+        nodes_to_use = _select_graph_nodes(
+            nodes_data,
+            edge_degree,
+            scope=scope,
         )
-        budget = max(0, max_nodes - len(expanded_nodes))
-        nodes_to_use = expanded_nodes + other_nodes[:budget]
         for node_info in nodes_to_use:
             node_id = node_info.get("id") or node_info.get("entity_id") or ""
             if not node_id:
@@ -281,35 +320,24 @@ async def get_graph_data(session_id: Optional[str] = None):
             )
 
         node_ids = set(n["id"] for n in nodes)
-        for edge_info in edges_data:
-            u = edge_info["source"]
-            v = edge_info["target"]
-            if u in node_ids and v in node_ids:
-                is_discovered = str(edge_info.get("is_discovered", "0")) == "1"
-                edges.append(
-                    {
-                        "id": f"{u}-{v}",
-                        "source": u,
-                        "target": v,
-                        "label": edge_info.get("keywords", "related"),
-                        "description": edge_info.get("description", ""),
-                        "weight": edge_info.get("weight", 1.0),
-                        "source_id": edge_info.get("source_id", ""),
-                        "color": "#ef4444" if is_discovered else "#95a5a6",
-                        "width": 2 if is_discovered else 1,
-                        "is_discovered": is_discovered,
-                    }
-                )
+        for edge_index, edge_info in enumerate(edges_data):
+            for edge in _expand_graph_edge_records(edge_info, edge_index):
+                if edge["source"] in node_ids and edge["target"] in node_ids:
+                    edges.append(edge)
 
         expanded_in_response = sum(1 for x in nodes if x.get("is_expanded"))
         image_nodes_in_response = sum(1 for x in nodes if x.get("is_image_node"))
         discovered_edges_count = sum(1 for x in edges if x.get("is_discovered"))
+        promoted_edges_count = sum(1 for x in edges if x.get("is_promoted"))
         meta = {
             "total_nodes": len(nodes_data),
             "total_edges": len(edges_data),
             "discovered_edges": discovered_edges_count,
+            "promoted_edges": promoted_edges_count,
             "session_id": session_id,
             "nodes_returned": len(nodes),
+            "edges_returned": len(edges),
+            "truncated": len(nodes) < len(nodes_data),
             "expanded_in_response": expanded_in_response,
             "image_nodes_in_response": image_nodes_in_response,
         }
@@ -322,6 +350,329 @@ async def get_graph_data(session_id: Optional[str] = None):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to extract graph data: {str(e)}")
+
+
+def _split_chunk_source_ids(raw: Any) -> List[str]:
+    seen = set()
+    chunk_ids: List[str] = []
+    for item in str(raw or "").split("<SEP>"):
+        chunk_id = item.strip()
+        if chunk_id and chunk_id not in seen:
+            seen.add(chunk_id)
+            chunk_ids.append(chunk_id)
+    return chunk_ids
+
+
+def _limit_chunk_source_ids(source_ids: List[str], max_chunks: int) -> List[str]:
+    """Use zero for all chunks while preserving the existing positive cap."""
+    requested_max = int(max_chunks)
+    if requested_max <= 0:
+        return list(source_ids)
+    return list(source_ids[: min(requested_max, 80)])
+
+
+def _json_list(value: Any) -> List[Dict[str, Any]]:
+    if isinstance(value, list):
+        return [dict(item) for item in value if isinstance(item, dict)]
+    if not value:
+        return []
+    try:
+        parsed = json.loads(str(value))
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return []
+    if not isinstance(parsed, list):
+        return []
+    return [dict(item) for item in parsed if isinstance(item, dict)]
+
+
+def _is_eclrr_v4_promoted(edge: Dict[str, Any]) -> bool:
+    return (
+        str(edge.get("review_status") or "").strip().lower() == "promoted"
+        and str(edge.get("provenance") or "").strip().lower() == "eclrr_v4"
+        and str(edge.get("algorithm_version") or "").strip().lower() == "eclrr_v4"
+    )
+
+
+def _graph_edge_response(
+    edge: Dict[str, Any],
+    source: str,
+    target: str,
+    *,
+    fallback_id: str,
+) -> Dict[str, Any]:
+    promoted = _is_eclrr_v4_promoted(edge)
+    discovered = str(edge.get("is_discovered", "0")) in {"1", "true", "True"}
+    relation_id = str(
+        edge.get("relation_id") or edge.get("canonical_key") or ""
+    ).strip()
+    return {
+        "id": relation_id or fallback_id,
+        "source": str(edge.get("source") or edge.get("src_id") or source),
+        "target": str(edge.get("target") or edge.get("tgt_id") or target),
+        "label": edge.get("relation") or edge.get("keywords") or edge.get("label") or "related",
+        "relation": edge.get("relation") or edge.get("keywords") or edge.get("label") or "related",
+        "relation_family": edge.get("relation_family", ""),
+        "direction": edge.get("direction", ""),
+        "description": edge.get("description", ""),
+        "weight": edge.get("weight", 1.0),
+        "source_id": edge.get("source_id", ""),
+        "is_discovered": discovered,
+        "is_promoted": promoted,
+        "edge_kind": "eclrr_v4" if promoted else "original",
+        "color": "#ef4444" if discovered else "#95a5a6",
+        "width": 2 if discovered else 1,
+        "review_status": edge.get("review_status", ""),
+        "query_eligible": edge.get("query_eligible", ""),
+        "provenance": edge.get("provenance", ""),
+        "algorithm_version": edge.get("algorithm_version", ""),
+        "relation_id": relation_id,
+        "canonical_key": edge.get("canonical_key", ""),
+        "path_used": edge.get("path_used", ""),
+        "supporting_paths": edge.get("supporting_paths", ""),
+        "evidence_chain": edge.get("evidence_chain", ""),
+        "evidence_chunk_ids": edge.get("evidence_chunk_ids", ""),
+        "judge_scores": edge.get("judge_scores", ""),
+        "decision_score": edge.get("decision_score", ""),
+    }
+
+
+def _expand_graph_edge_records(edge: Dict[str, Any], index: int) -> List[Dict[str, Any]]:
+    """Expose one physical fact edge plus any independently selectable ECLRR relations."""
+    source = str(edge.get("source") or edge.get("src_id") or "").strip()
+    target = str(edge.get("target") or edge.get("tgt_id") or "").strip()
+    if not source or not target:
+        return []
+
+    physical = _graph_edge_response(
+        edge,
+        source,
+        target,
+        fallback_id=f"edge-{index}-{source}-{target}",
+    )
+    records = [physical]
+    physical_identity = str(edge.get("relation_id") or edge.get("canonical_key") or "")
+    for nested_index, relation in enumerate(_json_list(edge.get("eclrr_relations"))):
+        if not _is_eclrr_v4_promoted(relation):
+            continue
+        nested_identity = str(relation.get("relation_id") or relation.get("canonical_key") or "")
+        if nested_identity and nested_identity == physical_identity:
+            continue
+        records.append(
+            _graph_edge_response(
+                relation,
+                source,
+                target,
+                fallback_id=f"edge-{index}-eclrr-{nested_index}",
+            )
+        )
+    return records
+
+
+async def _load_source_chunks(
+    graphcore: Any,
+    source_id: Any,
+    max_chunks: int,
+) -> tuple[List[str], List[Dict[str, Any]]]:
+    source_ids = _limit_chunk_source_ids(_split_chunk_source_ids(source_id), max_chunks)
+    if not source_ids or not getattr(graphcore, "text_chunks", None):
+        return source_ids, []
+
+    chunk_data_list = await graphcore.text_chunks.get_by_ids(source_ids)
+    chunks: List[Dict[str, Any]] = []
+    for chunk_id, data in zip(source_ids, chunk_data_list):
+        if not data:
+            chunks.append({"chunk_id": chunk_id, "content": "", "missing": True})
+            continue
+        chunks.append(
+            {
+                "chunk_id": chunk_id,
+                "content": str(data.get("content") or data.get("text") or ""),
+                "file_path": data.get("file_path") or data.get("full_doc_id") or "",
+                "tokens": data.get("tokens"),
+                "chunk_order_index": data.get("chunk_order_index"),
+            }
+        )
+    return source_ids, chunks
+
+
+@router.get("/knowledge-graph/entity-chunks")
+async def get_entity_chunks(
+    session_id: Optional[str] = None,
+    entity_id: Optional[str] = None,
+    max_chunks: int = 20,
+):
+    """Return source chunk ids and chunk text for one graph entity."""
+    session_rag = await _get_session_rag_or_raise(session_id)
+    if not entity_id:
+        raise HTTPException(status_code=400, detail="entity_id is required")
+
+    try:
+        if not session_rag.graphcore:
+            await session_rag._ensure_graphcore_initialized()
+        graphcore = session_rag.graphcore
+        graph = graphcore.chunk_entity_relation_graph
+        node_info = await graph.get_node(entity_id)
+        if not node_info:
+            return {"entity_id": entity_id, "source_ids": [], "chunks": []}
+
+        source_ids, chunks = await _load_source_chunks(
+            graphcore,
+            node_info.get("source_id", ""),
+            max_chunks,
+        )
+        return {"entity_id": entity_id, "source_ids": source_ids, "chunks": chunks}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load entity chunks: {str(e)}")
+
+
+@router.get("/knowledge-graph/edge-chunks")
+async def get_edge_chunks(
+    session_id: Optional[str] = None,
+    source_id: Optional[str] = None,
+    edge_id: Optional[str] = None,
+    max_chunks: int = 20,
+):
+    """Return the exact source chunks carried by one displayed graph relation."""
+    session_rag = await _get_session_rag_or_raise(session_id)
+    if source_id is None:
+        raise HTTPException(status_code=400, detail="source_id is required")
+    try:
+        if not session_rag.graphcore:
+            await session_rag._ensure_graphcore_initialized()
+        source_ids, chunks = await _load_source_chunks(
+            session_rag.graphcore,
+            source_id,
+            max_chunks,
+        )
+        return {"edge_id": edge_id or "", "source_ids": source_ids, "chunks": chunks}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load edge chunks: {str(e)}")
+
+
+async def _run_eclrr_for_session(session_id: str, max_new_edges: int) -> None:
+    status = _ECLRR_RUN_STATUS[session_id]
+    try:
+        session_rag = await _get_session_rag_or_raise(session_id)
+        graphcore = session_rag.graphcore
+        if graphcore is None:
+            await session_rag._ensure_graphcore_initialized()
+            graphcore = session_rag.graphcore
+        if graphcore is None:
+            raise RuntimeError("GraphCore initialization failed")
+        graph = graphcore.chunk_entity_relation_graph
+        nodes = await graph.get_all_nodes()
+        if len(nodes) < 4:
+            raise RuntimeError("At least four graph nodes are required")
+        llm_fn = getattr(session_rag, "llm_model_func", None)
+        if not llm_fn:
+            raise RuntimeError("LLM function is not configured")
+
+        session = state.session_manager.get_session(session_id) if state.session_manager else None
+        metadata = (session or {}).get("metadata") or {}
+        knowledge_dir = metadata.get("knowledge_dir") or (session or {}).get("knowledge_dir")
+        from docthinker.kg_expansion.eclrr_v4 import ECLRRConfig, run_eclrr_v4
+
+        result = await run_eclrr_v4(
+            graph=graph,
+            text_chunks=graphcore.text_chunks,
+            generator_func=llm_fn,
+            judge_func=llm_fn,
+            relationships_vdb=graphcore.relationships_vdb,
+            config=ECLRRConfig(
+                max_review_items=min(128, max(60, max_new_edges * 4)),
+                max_promotions=max_new_edges,
+                artifact_dir=(
+                    str(Path(knowledge_dir) / "eclrr_v4_runs")
+                    if knowledge_dir
+                    else None
+                ),
+            ),
+        )
+        status.update(
+            {
+                "status": "completed",
+                "finished_at": _utc_now(),
+                "reviewed": len(result.review_items),
+                "proposed": len(result.proposals),
+                "accepted": len(result.committed),
+                "rejected": result.metrics.get("no_op", 0),
+                "create": result.metrics.get("create", 0),
+                "refine": result.metrics.get("refine", 0),
+                "write_failures": len(result.metrics.get("write_failures", {})),
+                "relations": [
+                    {
+                        "id": item.relation_id,
+                        "source": item.source,
+                        "target": item.target,
+                        "relation": item.relation,
+                        "action": item.action,
+                    }
+                    for item in result.committed
+                ],
+            }
+        )
+    except Exception as exc:
+        _log.exception("ECLRR-v4 manual run failed for session %s", session_id)
+        status.update(
+            {
+                "status": "failed",
+                "finished_at": _utc_now(),
+                "error": f"{type(exc).__name__}: {exc}",
+            }
+        )
+    finally:
+        _ECLRR_RUN_TASKS.pop(session_id, None)
+
+
+@router.post("/knowledge-graph/eclrr-v4/run")
+async def start_eclrr_v4(payload: Dict[str, Any] = Body(default={})):
+    session_id = str(payload.get("session_id") or "").strip()
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id is required")
+    try:
+        requested_limit = int(payload.get("max_new_edges", 40))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="max_new_edges must be an integer")
+    max_new_edges = min(40, max(1, requested_limit))
+
+    running = _ECLRR_RUN_TASKS.get(session_id)
+    if running and not running.done():
+        return _ECLRR_RUN_STATUS[session_id]
+
+    await _get_session_rag_or_raise(session_id)
+    status = {
+        "session_id": session_id,
+        "status": "running",
+        "max_new_edges": max_new_edges,
+        "started_at": _utc_now(),
+        "reviewed": 0,
+        "proposed": 0,
+        "accepted": 0,
+        "rejected": 0,
+    }
+    _ECLRR_RUN_STATUS[session_id] = status
+    _ECLRR_RUN_TASKS[session_id] = asyncio.create_task(
+        _run_eclrr_for_session(session_id, max_new_edges)
+    )
+    return status
+
+
+@router.get("/knowledge-graph/eclrr-v4/status")
+async def get_eclrr_v4_status(session_id: Optional[str] = None):
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id is required")
+    return _ECLRR_RUN_STATUS.get(
+        session_id,
+        {
+            "session_id": session_id,
+            "status": "idle",
+            "max_new_edges": 40,
+            "reviewed": 0,
+            "proposed": 0,
+            "accepted": 0,
+            "rejected": 0,
+        },
+    )
 
 
 @router.get("/knowledge-graph/image/{session_id}/{filename}")
@@ -791,6 +1142,159 @@ async def list_long_horizon_memory(
         "items": backend.list_insights(session_id=session_id, scope=scope, limit=limit),
         "last_write_decision": backend.last_write_decision(),
     }
+
+
+@router.get("/memory/long-horizon/edges")
+async def list_long_horizon_memory_edges(
+    session_id: Optional[str] = None,
+    memory_id: Optional[str] = None,
+    status: str = "active",
+    limit: int = 200,
+):
+    """List durable associations between long-horizon memories."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "list_edges"):
+        return {"items": [], "storage": "unsupported"}
+    return {
+        "session_id": session_id,
+        "memory_id": memory_id,
+        "items": backend.list_edges(
+            memory_id=memory_id,
+            session_id=session_id,
+            status=status,
+            limit=limit,
+        ),
+    }
+
+
+@router.post("/memory/long-horizon/edges")
+async def upsert_long_horizon_memory_edge(payload: Dict[str, Any] = Body(default={})):
+    """Create or update one durable memory association."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "upsert_edge"):
+        raise HTTPException(status_code=501, detail="Memory edges are not supported")
+    try:
+        item = backend.upsert_edge(
+            str(payload.get("source_id") or ""),
+            str(payload.get("target_id") or ""),
+            str(payload.get("relation_type") or "related_to"),
+            weight=float(payload.get("weight", 0.5)),
+            evidence=dict(payload.get("evidence") or {}),
+            status=str(payload.get("status") or "active"),
+        )
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"updated": True, "item": item}
+
+
+@router.get("/memory/cognitions")
+async def list_memory_cognitions(
+    session_id: Optional[str] = None,
+    scope: Optional[str] = None,
+    status: str = "active",
+    limit: int = 100,
+):
+    """List derived cognition nodes separately from source memories."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "list_cognitions"):
+        return {"items": [], "storage": "unsupported"}
+    items = backend.list_cognitions(
+        session_id=session_id,
+        scope=scope,
+        status=status,
+        limit=limit,
+    )
+    return {"session_id": session_id, "scope": scope, "status": status, "items": items}
+
+
+@router.post("/memory/cognitions")
+async def create_memory_cognition(payload: Dict[str, Any] = Body(default={})):
+    """Create a cognition whose evidence points to preserved memory nodes."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "create_cognition"):
+        raise HTTPException(status_code=501, detail="Cognition layer is not supported")
+    try:
+        item = backend.create_cognition(
+            payload.get("session_id"),
+            str(payload.get("statement") or ""),
+            evidence_memory_ids=list(payload.get("evidence_memory_ids") or []),
+            cognition_type=str(payload.get("cognition_type") or "induction"),
+            scope=str(payload.get("scope") or "session"),
+            conditions=list(payload.get("conditions") or []),
+            confidence=float(payload.get("confidence", 0.55)),
+            metadata=dict(payload.get("metadata") or {}),
+        )
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"created": True, "item": item}
+
+
+@router.patch("/memory/cognitions/{cognition_id}")
+async def update_memory_cognition(
+    cognition_id: str,
+    payload: Dict[str, Any] = Body(default={}),
+):
+    """Revise or invalidate cognition without mutating its evidence memories."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "update_cognition"):
+        raise HTTPException(status_code=501, detail="Cognition editing is not supported")
+    item = backend.update_cognition(cognition_id, payload)
+    if not item:
+        raise HTTPException(status_code=404, detail=f"Cognition not found or patch empty: {cognition_id}")
+    return {"updated": True, "item": item}
+
+
+@router.get("/memory/cognitions/{cognition_id}/revisions")
+async def list_memory_cognition_revisions(cognition_id: str, limit: int = 100):
+    """Return cognition evolution history independently of memory history."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "list_cognition_revisions"):
+        return {"cognition_id": cognition_id, "items": [], "storage": "unsupported"}
+    items = backend.list_cognition_revisions(cognition_id, limit=limit)
+    if not items:
+        raise HTTPException(status_code=404, detail=f"Cognition not found: {cognition_id}")
+    return {"cognition_id": cognition_id, "items": items}
+
+
+@router.get("/memory/long-horizon/{memory_id}/revisions")
+async def list_long_horizon_memory_revisions(
+    memory_id: str,
+    session_id: Optional[str] = None,
+    limit: int = 100,
+):
+    """List the immutable version history for one memory."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "list_revisions"):
+        return {"memory_id": memory_id, "items": [], "storage": "unsupported"}
+    items = backend.list_revisions(memory_id, session_id=session_id, limit=limit)
+    if not items:
+        current = backend.list_insights(session_id=session_id, limit=1000)
+        if not any(str(item.get("id")) == memory_id for item in current):
+            raise HTTPException(status_code=404, detail=f"Memory not found: {memory_id}")
+    return {"memory_id": memory_id, "items": items}
+
+
+@router.post("/memory/long-horizon/{memory_id}/restore/{revision_id}")
+async def restore_long_horizon_memory_revision(
+    memory_id: str,
+    revision_id: int,
+    session_id: Optional[str] = None,
+):
+    """Restore a prior snapshot as a new active memory version."""
+    backend = get_default_long_horizon_backend()
+    if not hasattr(backend, "restore_revision"):
+        raise HTTPException(status_code=501, detail="Memory revisions are not supported")
+    restored = backend.restore_revision(
+        memory_id,
+        revision_id,
+        session_id=session_id,
+    )
+    if not restored:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Memory or revision not found: {memory_id}/{revision_id}",
+        )
+    return {"restored": True, "memory_id": memory_id, "item": restored}
 
 
 @router.delete("/memory/long-horizon/{memory_id}")

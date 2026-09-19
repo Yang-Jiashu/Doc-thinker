@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#05070d">
+    <title>知识星图 - DocThinker</title>
+    <link rel="stylesheet" href="{{ url_for('promo_graph.static', filename='dist/promo-graph.css') }}">
+</head>
+<body>
+    <div id="promo-app" class="promo-app" data-api-prefix="{{ api_prefix }}">
+        <header class="app-bar">
+            <a class="icon-button" href="/knowledge-graph" title="返回经典图谱" aria-label="返回经典图谱">
+                <i data-lucide="arrow-left"></i>
+            </a>
+            <div class="brand-lockup" aria-label="DocThinker 知识星图">
+                <span class="brand-mark" aria-hidden="true"></span>
+                <div><strong>DocThinker</strong><span>知识星图</span></div>
+            </div>
+            <label class="session-field">
+                <span class="sr-only">选择会话</span>
+                <select id="session-select" aria-label="选择会话"></select>
+            </label>
+            <div class="search-shell">
+                <i data-lucide="search" aria-hidden="true"></i>
+                <input id="node-search" type="search" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-results" placeholder="搜索节点">
+                <div id="search-results" class="search-results" role="listbox" hidden></div>
+            </div>
+            <div class="app-actions">
+                <button id="zoom-out" class="icon-button" type="button" title="缩小" aria-label="缩小"><i data-lucide="zoom-out"></i></button>
+                <button id="fit-graph" class="icon-button" type="button" title="适配全图" aria-label="适配全图"><i data-lucide="maximize-2"></i></button>
+                <button id="zoom-in" class="icon-button" type="button" title="放大" aria-label="放大"><i data-lucide="zoom-in"></i></button>
+                <button id="run-eclrr" class="icon-button" type="button" title="运行 ECLRR-v4 自进化，最多生成 40 条新边" aria-label="运行 ECLRR-v4 自进化，最多生成 40 条新边"><i data-lucide="sparkles"></i></button>
+                <button id="toggle-panel" class="icon-button" type="button" title="节点详情" aria-label="切换节点详情" aria-expanded="false"><i data-lucide="panel-right"></i></button>
+                <button id="toggle-auto-rotation" class="icon-button" type="button" title="自动旋转已开启" aria-label="自动旋转已开启" aria-pressed="true"><i data-lucide="rotate-cw"></i></button>
+                <button id="toggle-gesture" class="icon-button" type="button" title="开启手势控制" aria-label="开启手势控制" aria-pressed="false"><i data-lucide="hand"></i></button>
+            </div>
+        </header>
+
+        <main id="star-map-stage" class="star-map-stage" aria-label="GPU 二维知识星图"></main>
+
+        <div id="gesture-layer" class="gesture-layer" data-state="idle" hidden>
+            <video id="gesture-video" class="gesture-video" autoplay playsinline muted aria-label="手势识别摄像头画面"></video>
+            <div class="gesture-guide" aria-hidden="true">左右挥手摆动 · 悬停选节点<br>张开手掌放大 · 捏合缩小</div>
+            <span id="gesture-cursor" class="gesture-cursor" aria-hidden="true"></span>
+        </div>
+
+        <div class="graph-hud" aria-live="polite">
+            <span class="status-dot" aria-hidden="true"></span>
+            <strong id="graph-status">准备加载</strong>
+            <span id="graph-counts">0 节点 · 0 关系</span>
+            <span id="zoom-status">1.00×</span>
+        </div>
+
+        <aside id="node-panel" class="node-panel" aria-label="图谱详情" hidden>
+            <header class="panel-header">
+                <div><span data-detail-kind>FOCUSED NODE</span><h1 data-detail-title>节点详情</h1></div>
+                <button id="close-panel" class="icon-button" type="button" title="关闭详情" aria-label="关闭详情"><i data-lucide="x"></i></button>
+            </header>
+            <div class="panel-scroll">
+                <p class="detail-meta" data-detail-meta></p>
+                <section class="detail-section" aria-labelledby="description-heading">
+                    <h2 id="description-heading" data-description-heading>节点描述</h2>
+                    <p class="detail-description" data-detail-description></p>
+                </section>
+                <section class="detail-section relation-evidence" data-relation-evidence hidden aria-labelledby="evidence-heading">
+                    <div class="section-heading"><h2 id="evidence-heading">关系证据链</h2><span data-evidence-status></span></div>
+                    <div class="evidence-list" data-evidence-list></div>
+                </section>
+                <section class="detail-section" aria-labelledby="source-heading">
+                    <div class="section-heading"><h2 id="source-heading">来源 chunk</h2></div>
+                    <div class="source-id-list" data-source-ids></div>
+                </section>
+                <section class="detail-section" aria-labelledby="content-heading">
+                    <div class="section-heading"><h2 id="content-heading">原文内容</h2><span data-chunk-status></span></div>
+                    <div class="chunk-list" data-chunks></div>
+                </section>
+            </div>
+        </aside>
+
+        <div id="loading-state" class="loading-state" role="status">
+            <span class="loading-star" aria-hidden="true"></span>
+            <div><strong>正在组织知识星图</strong><span id="loading-detail">读取会话数据</span></div>
+        </div>
+        <div id="error-state" class="error-state" role="alert" hidden>
+            <i data-lucide="triangle-alert" aria-hidden="true"></i>
+            <div><strong>图谱暂时无法显示</strong><span id="error-message"></span></div>
+            <button id="retry-load" type="button">重试</button>
+        </div>
+    </div>
+    <script type="module" src="{{ url_for('promo_graph.static', filename='dist/promo-graph.js') }}"></script>
+</body>
+</html>
