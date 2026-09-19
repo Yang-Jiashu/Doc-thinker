@@ -80,7 +80,7 @@ For a controlled comparison, keep the document snapshot, model, question and exp
 
 `score_reasoning_paths` reports node/hop coverage, continuity and citation presence. `verified_quote_hop_rate` requires independently supplied `source_chunks` and only tests quote inclusion, not entailment. A path or keyword coverage score alone does not establish answer correctness. Unit tests use synthetic evidence and model doubles; real-dataset quality and token savings still require an A/B run.
 
-Run the same test dependency set as CI from a clean Python environment:
+Run the complete test dependency set, including optional FAISS storage checks, from a clean Python environment:
 
 ```sh
 python -m pip install -e ".[all,test]"
