@@ -520,32 +520,8 @@ def query_stream():
         data = request.get_json() or {}
         
         backend_url = "http://127.0.0.1:8000/api/v1/query/stream"
-        ui_mode = str(data.get('ui_mode', 'standard') or 'standard').lower()
-        mode_map = {
-            "standard": "local",
-            "deep": "mix",
-            "quick": "naive",
-        }
-        
-        payload = {
-            "question": data.get('question', data.get('text', '')),
-            "memory_mode": data.get('memory_mode', 'session'),
-            "use_memory": bool(data.get("use_memory", True)),
-            "use_conversation_context": bool(data.get("use_conversation_context", True)),
-            "use_llm_cache": bool(data.get("use_llm_cache", True)),
-            "use_self_evolution": bool(data.get("use_self_evolution", True)),
-            "evolution_mode": str(data.get("evolution_mode", "auto")),
-            "mode": mode_map.get(ui_mode, "local"),
-            "enable_thinking": ui_mode == "deep",
-            "enable_rerank": ui_mode != "quick",
-            "enable_expanded_matching": bool(data.get("use_self_evolution", True)) and ui_mode == "deep",
-            "include_discovered_edges": bool(data.get("include_discovered_edges", False)) and bool(data.get("use_self_evolution", True)),
-            "enable_image_asset_activation": ui_mode == "deep",
-            "remember_turn": bool(data.get("remember_turn", True)),
-            "memory_excluded_layers": data.get("memory_excluded_layers", []),
-            "memory_write_scope": data.get("memory_write_scope"),
-            "session_id": data.get('session_id')
-        }
+        from docthinker.ui.query_payload import build_query_payload
+        payload = build_query_payload(data)
 
         # Make streaming request to backend
         req = requests.post(backend_url, json=payload, stream=True, timeout=300)
@@ -589,32 +565,8 @@ def text_query():
         
         # Try to connect to backend
         backend_url = "http://127.0.0.1:8000/api/v1/query"
-        ui_mode = str(data.get('ui_mode', 'standard') or 'standard').lower()
-        mode_map = {
-            "standard": "local",
-            "deep": "mix",
-            "quick": "naive",
-        }
-        
-        payload = {
-            "question": data.get('question', data.get('text', '')),
-            "memory_mode": data.get('memory_mode', 'session'),
-            "use_memory": bool(data.get("use_memory", True)),
-            "use_conversation_context": bool(data.get("use_conversation_context", True)),
-            "use_llm_cache": bool(data.get("use_llm_cache", True)),
-            "use_self_evolution": bool(data.get("use_self_evolution", True)),
-            "evolution_mode": str(data.get("evolution_mode", "auto")),
-            "mode": mode_map.get(ui_mode, "local"),
-            "enable_thinking": ui_mode == "deep",
-            "enable_rerank": ui_mode != "quick",
-            "enable_expanded_matching": bool(data.get("use_self_evolution", True)) and ui_mode == "deep",
-            "include_discovered_edges": bool(data.get("include_discovered_edges", False)) and bool(data.get("use_self_evolution", True)),
-            "enable_image_asset_activation": ui_mode == "deep",
-            "remember_turn": bool(data.get("remember_turn", True)),
-            "memory_excluded_layers": data.get("memory_excluded_layers", []),
-            "memory_write_scope": data.get("memory_write_scope"),
-            "session_id": data.get('session_id')
-        }
+        from docthinker.ui.query_payload import build_query_payload
+        payload = build_query_payload(data)
 
         response = requests.post(backend_url, json=payload, timeout=300)
         
@@ -633,6 +585,10 @@ def text_query():
                 'memory_summaries': result.get('memory_summaries', []),
                 'memory_reasoning': result.get('memory_reasoning', {}),
                 'memory_trace': result.get('memory_trace', {}),
+                'run_controls': result.get('run_controls', {}),
+                'question_policy': result.get('question_policy', {}),
+                'graph_reasoning': result.get('graph_reasoning', {}),
+                'context_budget': result.get('context_budget', {}),
             })
         else:
             return jsonify({

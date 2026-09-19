@@ -556,6 +556,18 @@
                         <button onclick="toggleRunControl('context')" id="control-context" class="dt-mini-button" title="关闭历史对话注入，仍保留界面聊天记录">上下文：开</button>
                         <button onclick="toggleRunControl('cache')" id="control-cache" class="dt-mini-button" title="本轮绕过 LLM 缓存读取和写入">缓存：开</button>
                         <button onclick="toggleRunControl('evolution')" id="control-evolution" class="dt-mini-button" title="关闭补边和扩展节点参与查询">自进化：开</button>
+                        <label class="dt-mini-button">回答依据
+                            <select id="evolution-mode" aria-label="回答依据">
+                                <option value="auto">自动判断</option>
+                                <option value="faithful">忠实原文</option>
+                                <option value="path">查找推理路径</option>
+                                <option value="explore">探索关联</option>
+                                <option value="off">关闭进化知识</option>
+                            </select>
+                        </label>
+                        <label class="dt-mini-button"><input id="adaptive-context" type="checkbox" checked> 精简上下文</label>
+                        <label class="dt-mini-button" title="路径不足时最多增加一次模型调用；结果仍需核对原文"><input id="path-completion" type="checkbox"> 允许模型补链</label>
+                        <label class="dt-mini-button" title="仅允许通过审核的推导关系参与；默认关闭"><input id="include-discovered" type="checkbox"> 使用已审核补边</label>
                     </div>
                 </details>
             </div>
@@ -798,10 +810,15 @@ function renderMemoryInspector(metaPatch = {}) {
         const policyEvent = questionPolicy.mode
             ? `<div class="memory-timeline-item">问题策略：${escapeHtml(questionPolicy.mode)} · 图推理${graphReasoning.applied ? '已应用' : '未应用'}</div>`
             : '';
+        const budget = meta.context_budget || {};
+        const limits = budget.retrieval_limits || {};
+        const budgetEvent = limits.chunk_top_k
+            ? `<div class="memory-timeline-item">本轮最多 ${escapeHtml(limits.chunk_top_k)} 个片段 · ${escapeHtml(limits.max_relations)} 条关系${budget.instruction_truncated ? ' · 附加上下文已截短' : ''}</div>`
+            : '';
         if (events.length === 0 && !policyEvent) {
             timeline.innerHTML = '<p class="text-xs text-[#9b9287]">本轮没有记忆事件。</p>';
         } else {
-            timeline.innerHTML = policyEvent + events.map((event) => (
+            timeline.innerHTML = policyEvent + budgetEvent + events.map((event) => (
                 `<div class="memory-timeline-item">${escapeHtml(summarizeTraceEvent(event))}</div>`
             )).join('');
         }
@@ -1392,7 +1409,10 @@ async function sendMessage() {
                 use_conversation_context: runControls.context,
                 use_llm_cache: runControls.cache,
                 use_self_evolution: runControls.evolution,
-                evolution_mode: document.getElementById('evolution-mode')?.value || 'auto'
+                evolution_mode: document.getElementById('evolution-mode')?.value || 'auto',
+                adaptive_context: document.getElementById('adaptive-context')?.checked ?? true,
+                enable_path_completion: document.getElementById('path-completion')?.checked ?? false,
+                include_discovered_edges: document.getElementById('include-discovered')?.checked ?? false
             })
         });
 

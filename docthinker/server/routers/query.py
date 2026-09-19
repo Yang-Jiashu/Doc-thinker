@@ -11,9 +11,10 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import StreamingResponse
 
-from docthinker.kg_expansion import ExpandedNodeManager
 from docthinker.harness import QueryControls, QueryHarness
+from docthinker.kg_expansion import ExpandedNodeManager
 from docthinker.memory_core import AgentMemoryCore
+
 from ..memory import get_session_claw_manager, get_session_memory_engine
 from ..schemas import MultiDocumentQueryRequest, QueryRequest
 from ..state import state
@@ -37,9 +38,13 @@ def _needs_conversation_fallback(answer: Any) -> bool:
     return not text or any(marker in text for marker in _NO_CONTEXT_MARKERS)
 
 
+def _is_context_budget_failure(answer: Any) -> bool:
+    return str(answer or "").startswith("上下文预算不足，")
+
+
 def _build_conversation_fallback_prompt(question: str, run_context: Any) -> str:
     history = list(getattr(run_context, "conversation_history", []) or [])[-6:]
-    # The current user message is stored before the harness loads history.
+    # Compatibility for callers that still supply the current turn in history.
     if history and history[-1].get("role") == "user" and history[-1].get("content") == question:
         history = history[:-1]
     history_text = "\n".join(
@@ -51,7 +56,8 @@ def _build_conversation_fallback_prompt(question: str, run_context: Any) -> str:
     return (
         "你是 DocThinker，一个具有可控长期记忆的智能助手。\n"
         "当前没有检索到文档或知识图谱证据，但这不代表不能回答。"
-        "请根据用户当前输入、已有对话和已召回记忆正常交流。\n"
+        "请根据用户当前输入、已有对话和已召回记忆正常交流。"
+        "关于既往对话、偏好和事实，只能依据实际提供的内容；信息不足时说明缺口，不要编造。\n"
         "如果用户要求记住某项偏好或事实，请简洁确认；不要声称引用了不存在的文档。\n\n"
         f"已召回记忆或运行指令：\n{memory_instruction or '无'}\n\n"
         f"近期对话：\n{history_text or '无'}\n\n"
@@ -61,12 +67,35 @@ def _build_conversation_fallback_prompt(question: str, run_context: Any) -> str:
 
 
 async def _conversation_fallback_answer(question: str, run_context: Any) -> str:
+    if _requires_document_evidence(question, run_context):
+        return "当前没有检索到足够的原文证据，无法确认这个结论。请检查文档是否已处理完成，或补充相关资料。"
     prompt = _build_conversation_fallback_prompt(question, run_context)
     response = await asyncio.wait_for(
         state.rag_instance.llm_model_func(prompt),
         timeout=FALLBACK_LLM_TIMEOUT_SECONDS,
     )
     return str(response or "").strip()
+
+
+def _requires_document_evidence(question: str, run_context: Any) -> bool:
+    text = question.lower()
+    document_reference = any(term in text for term in (
+        "原文", "文档", "文件", "附件", "资料中", "表格", "pdf", "document", "according to the source",
+    ))
+    conversation_reference = any(term in text for term in (
+        "刚才", "之前的对话", "聊天记录", "对话记录", "我们聊", "我的偏好", "之前确定", "记忆", "our conversation", "our discussion", "my preferences",
+    ))
+    if conversation_reference and not document_reference:
+        # Memory/history are the sources for these questions; missing document
+        # retrieval must not disable the project's ordinary memory workflow.
+        return False
+    if getattr(run_context, "require_document_evidence", False):
+        return True
+    policy = run_context.question_policy
+    return policy.mode == "path" or (
+        policy.mode == "faithful"
+        and (policy.reason == "explicit_override" or policy.reason.startswith("keyword_route:") or document_reference)
+    )
 
 def _looks_like_file_question(question: str) -> bool:
     q = (question or "").strip().lower()
@@ -545,6 +574,8 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
     session_rag = await _get_session_rag_or_raise(request.session_id)
     is_identity_query = _is_identity_query(request.question)
 
+    prior_history = _get_recent_conversation_history(request.session_id) if request.use_conversation_context else []
+
     try:
         state.session_manager.add_message(request.session_id, "user", request.question)
     except Exception as exc:
@@ -594,14 +625,17 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         run_context = await harness.prepare(
             request=request,
             skip_memory=is_identity_query,
+            tokenizer=getattr(session_rag.graphcore, "tokenizer", None),
+            conversation_history=prior_history,
         )
-        await harness.enrich_graph_reasoning(
-            context=run_context,
-            graphcore=session_rag.graphcore,
-            question=request.question,
-            min_candidate_confidence=request.min_discovered_edge_confidence,
-            llm_func=session_rag.llm_model_func,
-        )
+        if not is_identity_query:
+            await harness.enrich_graph_reasoning(
+                context=run_context,
+                graphcore=session_rag.graphcore,
+                question=request.question,
+                min_candidate_confidence=request.min_discovered_edge_confidence,
+                llm_func=session_rag.llm_model_func,
+            )
         expanded_matches = run_context.expanded_matches
         episodic_matches = run_context.episodic_matches
         long_horizon_matches = run_context.long_horizon_matches
@@ -626,6 +660,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
             "run_controls": run_context.controls.to_schema(),
             "question_policy": run_context.question_policy.to_schema(),
             "graph_reasoning": run_context.graph_reasoning,
+            "context_budget": run_context.budget_trace,
             "retrieval_instruction_applied": bool(merged_instruction),
             "mode": request.mode,
         })
@@ -634,6 +669,8 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
 
         # Phase 2: Generation (keyword extraction + retrieval + LLM)
         full_answer = ""
+        answer_complete = False
+        evidence_missing = False
         _t_gen = time.time()
         try:
             if is_identity_query:
@@ -663,11 +700,13 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
 
                 first_chunk_time = None
                 if result is None:
+                    evidence_missing = _requires_document_evidence(request.question, run_context)
                     _log.warning(f"[T+{_elapsed()}s] aquery_stream returned None, using conversation fallback")
                     fallback = await _conversation_fallback_answer(request.question, run_context)
                     full_answer = fallback or "我已经收到这条信息。"
                     yield yield_chunk(full_answer)
                 elif isinstance(result, str) and _needs_conversation_fallback(result):
+                    evidence_missing = _requires_document_evidence(request.question, run_context)
                     _log.info(f"[T+{_elapsed()}s] no retrieval context; using conversation fallback")
                     fallback = await _conversation_fallback_answer(request.question, run_context)
                     full_answer = fallback or "我已经收到这条信息。"
@@ -689,6 +728,11 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
                 # We cannot retract streamed bytes, but avoid persisting/enriching it as memory.
                 if _needs_conversation_fallback(full_answer) and not isinstance(result, str):
                     _log.warning("stream iterator emitted a no-context response")
+            answer_complete = (
+                not _needs_conversation_fallback(full_answer)
+                and not evidence_missing
+                and not _is_context_budget_failure(full_answer)
+            )
 
         except asyncio.TimeoutError:
             _log.warning(f"[T+{_elapsed()}s] TIMEOUT in aquery_stream")
@@ -705,7 +749,10 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
             evidence = session_rag.get_last_query_evidence()
             sources = _build_sources_from_details({}, evidence)
 
-        yield yield_meta({"sources": sources})
+        final_meta = {"sources": sources}
+        if _is_context_budget_failure(full_answer):
+            final_meta["answer_mode"] = "context_budget_exceeded"
+        yield yield_meta(final_meta)
         _log.info(f"[T+{_elapsed()}s] query_stream TOTAL")
 
         # Save chat history (lightweight, keep synchronous)
@@ -719,6 +766,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         # warm-cache preparation for the next query.
         if (
             full_answer
+            and answer_complete
             and not is_identity_query
             and harness.should_enrich(run_context)
         ):
@@ -755,6 +803,8 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
     )
 
     is_identity_query = _is_identity_query(request.question)
+
+    prior_history = _get_recent_conversation_history(request.session_id) if request.use_conversation_context else []
 
     try:
         state.session_manager.add_message(request.session_id, "user", request.question)
@@ -794,14 +844,17 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
     run_context = await harness.prepare(
         request=request,
         skip_memory=is_identity_query,
+        tokenizer=getattr(session_rag.graphcore, "tokenizer", None),
+        conversation_history=prior_history,
     )
-    await harness.enrich_graph_reasoning(
-        context=run_context,
-        graphcore=session_rag.graphcore,
-        question=request.question,
-        min_candidate_confidence=request.min_discovered_edge_confidence,
-        llm_func=session_rag.llm_model_func,
-    )
+    if not is_identity_query:
+        await harness.enrich_graph_reasoning(
+            context=run_context,
+            graphcore=session_rag.graphcore,
+            question=request.question,
+            min_candidate_confidence=request.min_discovered_edge_confidence,
+            llm_func=session_rag.llm_model_func,
+        )
     expanded_matches = run_context.expanded_matches
     episodic_matches = run_context.episodic_matches
     long_horizon_matches = run_context.long_horizon_matches
@@ -824,19 +877,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             answer = llm_resp if llm_resp else "I can help with text, multimodal carriers, memory, and knowledge retrieval."
             answer_mode = "identity"
 
-        elif request.session_id and _looks_like_file_question(request.question):
-            try:
-                fast_answer, fast_meta = await asyncio.wait_for(_try_fast_qa(request), timeout=FAST_QA_TIMEOUT_SECONDS)
-            except asyncio.TimeoutError:
-                fast_answer, fast_meta = None, None
-            if fast_answer:
-                answer = fast_answer
-                answer_mode = "fast_qa"
-                thinking_process = "fast_qa"
-                sources = (
-                    [{"content": f"document: {fast_meta.get('file', '')}", "confidence": 0.6}] if fast_meta else []
-                )
-
+        evidence_missing = False
         if not answer:
             try:
                 answer = await asyncio.wait_for(
@@ -858,28 +899,16 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             if hasattr(session_rag, "get_last_query_evidence"):
                 sources = _build_sources_from_details({}, session_rag.get_last_query_evidence())
 
+        if not is_identity_query and _needs_conversation_fallback(answer):
+            evidence_missing = _requires_document_evidence(request.question, run_context)
+            answer = await _conversation_fallback_answer(request.question, run_context)
+            answer_mode = "insufficient_evidence" if evidence_missing else "conversation"
         if not answer:
             answer = "抱歉，我暂时没有检索到足够信息。"
-
-        negative_responses = ["i don't know", "不知道", "没找到", "sorry", "抱歉", "无法回答"]
-        if (
-            not is_identity_query
-            and any(n in (answer or "").lower() for n in negative_responses)
-            and len(answer or "") < 120
-        ):
-            fallback_prompt = (
-                f"用户问题: {request.question}\n"
-                "请给出一个清晰、可执行的回答；若信息不足，请说明缺口并给出下一步建议。"
-            )
-            try:
-                llm_resp = await asyncio.wait_for(
-                    state.rag_instance.llm_model_func(fallback_prompt),
-                    timeout=FALLBACK_LLM_TIMEOUT_SECONDS,
-                )
-            except asyncio.TimeoutError:
-                llm_resp = None
-            if llm_resp:
-                answer = llm_resp
+            evidence_missing = True
+        if _is_context_budget_failure(answer):
+            evidence_missing = True
+            answer_mode = "context_budget_exceeded"
 
         try:
             state.session_manager.add_message(request.session_id, "assistant", answer)
@@ -889,6 +918,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
         # All heavy post-query work in background
         if (
             answer
+            and not evidence_missing
             and not is_identity_query
             and harness.should_enrich(run_context)
         ):
@@ -929,6 +959,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             "run_controls": run_context.controls.to_schema(),
             "question_policy": run_context.question_policy.to_schema(),
             "graph_reasoning": run_context.graph_reasoning,
+            "context_budget": run_context.budget_trace,
             "memory_reasoning": memory_reasoning,
             "retrieval_instruction_applied": bool(merged_instruction),
             "memory_summaries": memory_summaries,

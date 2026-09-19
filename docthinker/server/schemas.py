@@ -1,4 +1,5 @@
-from typing import Dict, List, Any, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -26,6 +27,10 @@ class QueryRequest(BaseModel):
     use_llm_cache: bool = True
     use_self_evolution: bool = True
     evolution_mode: Literal["off", "auto", "faithful", "path", "explore"] = "auto"
+    adaptive_context: bool = True
+    enable_path_completion: bool = False
+    max_history_tokens: int = Field(default=1200, ge=0, le=8000)
+    max_auxiliary_tokens: int = Field(default=2000, ge=256, le=8000)
     retrieval_instruction: Optional[str] = None
     enable_thinking: bool = False
     enable_expanded_matching: bool = True

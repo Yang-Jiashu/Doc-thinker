@@ -6,7 +6,6 @@ import math
 import re
 from typing import Any, Dict, Iterable, List, Optional
 
-
 _TOKEN_RE = re.compile(
     r"[A-Za-z][A-Za-z0-9_+./-]*|\d+(?:\.\d+)?|[\u4e00-\u9fff]+"
 )
@@ -220,8 +219,14 @@ def score_reasoning_paths(
     *,
     expected_chain: Iterable[str],
     paths: Iterable[Dict[str, Any]],
+    source_chunks: Optional[Dict[str, str]] = None,
 ) -> Dict[str, float]:
-    """Score ordered chain coverage, supported hops, and candidate-edge usage."""
+    """Measure ordered structure and citation coverage, not semantic truth.
+
+    Citation presence is only a provenance proxy. Literal quotes are independently
+    verified only against caller-supplied source_chunks; neither metric proves
+    that the cited text entails a hop's relation or causal direction.
+    """
     expected = [str(item).strip() for item in expected_chain if str(item).strip()]
     expected_hops = set(zip(expected, expected[1:]))
 
@@ -241,17 +246,27 @@ def score_reasoning_paths(
         "ordered_node_coverage": 0.0,
         "expected_hop_coverage": 0.0,
         "endpoint_coverage": 0.0,
-        "grounded_hop_rate": 0.0,
+        "citation_hop_rate": 0.0,
+        "verified_quote_hop_rate": 0.0,
+        "continuous_hop_rate": 0.0,
         "candidate_edge_rate": 0.0,
         "path_score": 0.0,
     }
     for raw_path in paths:
         nodes = [str(item) for item in (raw_path.get("nodes") or [])]
         hops = [item for item in (raw_path.get("hops") or []) if isinstance(item, dict)]
-        actual_hops = {
+        declared_hops = [
             (str(item.get("source") or ""), str(item.get("target") or ""))
             for item in hops
+        ]
+        consecutive = list(zip(nodes, nodes[1:]))
+        actual_hops = {
+            pair for index, pair in enumerate(declared_hops)
+            if index < len(consecutive) and pair == consecutive[index]
         }
+        continuous = sum(
+            left == right for left, right in zip(declared_hops, consecutive)
+        ) / max(1, len(declared_hops), len(consecutive))
         ordered = lcs_length(expected, nodes) / len(expected) if expected else 0.0
         hop_coverage = (
             len(expected_hops & actual_hops) / len(expected_hops)
@@ -262,23 +277,48 @@ def score_reasoning_paths(
             float(bool(nodes) and nodes[0] == expected[0])
             + float(bool(nodes) and nodes[-1] == expected[-1])
         ) / 2 if expected else 0.0
-        grounded = (
-            sum(bool(item.get("source_id")) for item in hops) / len(hops)
+        cited = (
+            sum(bool(str(item.get("source_id") or "").strip()) for item in hops) / len(hops)
             if hops
             else 0.0
         )
         candidate_rate = (
-            sum(bool(item.get("candidate")) for item in hops) / len(hops)
+            sum(str(item.get("candidate", "")).lower() in {"true", "1"} for item in hops) / len(hops)
             if hops
             else 0.0
         )
+        verified_quotes = 0
+        for hop in hops:
+            refs = hop.get("evidence") or []
+            if not isinstance(refs, list):
+                continue
+            declared_sources = {
+                value.strip() for value in str(hop.get("source_id") or "").split("<SEP>")
+                if value.strip()
+            }
+            if any(
+                isinstance(ref, dict)
+                and str(ref.get("chunk_id")) in declared_sources
+                and str(ref.get("quote") or "").strip()
+                and str(ref.get("quote")) in (source_chunks or {}).get(str(ref.get("chunk_id")), "")
+                for ref in refs
+            ):
+                verified_quotes += 1
+        try:
+            path_score = float(raw_path.get("score") or 0.0)
+        except (TypeError, ValueError):
+            path_score = 0.0
+        if not math.isfinite(path_score):
+            path_score = 0.0
         metrics = {
             "ordered_node_coverage": ordered,
             "expected_hop_coverage": hop_coverage,
             "endpoint_coverage": endpoint,
-            "grounded_hop_rate": grounded,
+            "citation_hop_rate": cited,
+            "verified_quote_hop_rate": verified_quotes / len(hops) if hops else 0.0,
+            "continuous_hop_rate": continuous,
             "candidate_edge_rate": candidate_rate,
-            "path_score": float(raw_path.get("score") or 0.0),
+            "path_score": path_score,
         }
         if (
             metrics["expected_hop_coverage"],

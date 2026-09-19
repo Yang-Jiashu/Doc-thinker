@@ -7,11 +7,13 @@ allowed for a run, keeping those decisions out of HTTP routers.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import asyncio
 import inspect
+from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
 from docthinker.memory_core.core import MemoryTrace
+from docthinker.query_budget import ContextBudget, retrieval_limits
 from docthinker.reasoning_policy import (
     QuestionPolicy,
     classify_question,
@@ -39,9 +41,7 @@ class QueryControls:
                 getattr(request, "use_conversation_context", True)
             ),
             use_llm_cache=bool(getattr(request, "use_llm_cache", True)),
-            use_self_evolution=bool(
-                getattr(request, "use_self_evolution", True)
-            ),
+            use_self_evolution=bool(getattr(request, "use_self_evolution", True)),
             remember_turn=bool(getattr(request, "remember_turn", True)),
         )
 
@@ -58,6 +58,12 @@ class QueryControls:
 @dataclass
 class QueryRunContext:
     controls: QueryControls
+    budget: ContextBudget = field(default_factory=ContextBudget)
+    budget_trace: Dict[str, Any] = field(default_factory=dict)
+    allow_path_completion: bool = False
+    allow_graph_candidates: bool = False
+    max_path_candidates: int = 0
+    require_document_evidence: bool = False
     question_policy: QuestionPolicy = field(
         default_factory=lambda: QuestionPolicy("faithful", 1.0, "default")
     )
@@ -79,16 +85,12 @@ class QueryRunContext:
         use_discovered_pool = self.question_policy.mode == "explore"
         return {
             "enable_rerank": request.enable_rerank,
-            "top_k": request.top_k,
-            "chunk_top_k": request.chunk_top_k,
-            "max_relation_tokens": request.max_relation_tokens,
-            "max_total_tokens": request.max_total_tokens,
+            **retrieval_limits(request, self.question_policy.mode),
             "include_discovered_edges": bool(
                 self.controls.use_self_evolution
                 and use_discovered_pool
+                and request.include_discovered_edges
             ),
-            "max_relations": request.max_relations,
-            "max_discovered_relations": request.max_discovered_relations,
             "min_discovered_edge_confidence": request.min_discovered_edge_confidence,
             "require_discovered_evidence": request.require_discovered_evidence,
             "enable_image_asset_activation": request.enable_image_asset_activation,
@@ -97,6 +99,8 @@ class QueryRunContext:
             "user_prompt": self.retrieval_instruction or None,
             "conversation_history": self.conversation_history,
             "use_llm_cache": self.controls.use_llm_cache,
+            # API writes are owned by after_response, not the legacy SDK log.
+            "record_knowledge": False,
         }
 
 
@@ -117,10 +121,46 @@ class QueryHarness:
         *,
         request: Any,
         skip_memory: bool = False,
+        tokenizer: Any = None,
+        conversation_history: Optional[List[Dict[str, str]]] = None,
     ) -> QueryRunContext:
         controls = QueryControls.from_request(request)
+        requested_policy = classify_question(
+            request.question,
+            requested_mode=getattr(request, "evolution_mode", "auto"),
+        )
         context = QueryRunContext(
             controls=controls,
+            require_document_evidence=bool(
+                requested_policy.mode == "path"
+                or (
+                    requested_policy.mode == "faithful"
+                    and (
+                        requested_policy.reason == "explicit_override"
+                        or requested_policy.reason.startswith("keyword_route:")
+                    )
+                )
+            ),
+            budget=ContextBudget(
+                history_tokens=min(
+                    getattr(request, "max_history_tokens", 1200),
+                    request.max_total_tokens // 8,
+                ),
+                instruction_tokens=min(
+                    getattr(request, "max_auxiliary_tokens", 2000),
+                    request.max_total_tokens // 4,
+                ),
+                tokenizer=tokenizer,
+            ),
+            allow_path_completion=bool(
+                getattr(request, "enable_path_completion", False)
+            ),
+            allow_graph_candidates=bool(
+                controls.use_self_evolution
+                and request.include_discovered_edges
+                and request.max_discovered_relations > 0
+            ),
+            max_path_candidates=min(2, request.max_discovered_relations),
             question_policy=classify_question(
                 request.question,
                 requested_mode=getattr(request, "evolution_mode", "auto"),
@@ -130,17 +170,40 @@ class QueryHarness:
         )
 
         if controls.use_conversation_context:
-            context.conversation_history = self._history_loader(request.session_id)
+            history = (
+                conversation_history
+                if conversation_history is not None
+                else self._history_loader(request.session_id)
+            )
+            context.conversation_history = context.budget.history(history)
+
+        context.budget_trace = {
+            "counter": "tokenizer"
+            if tokenizer is not None
+            else "utf8_bytes_upper_bound",
+            "retrieval_limits": retrieval_limits(request, context.question_policy.mode),
+            "history_tokens": sum(
+                context.budget.count(item["content"]) + 8
+                for item in context.conversation_history
+            ),
+            "history_limit": context.budget.history_tokens,
+            "instruction_limit": context.budget.instruction_tokens,
+        }
 
         if not controls.use_memory or skip_memory:
             context.trace.memory_mode = "off"
             context.trace.retrieval_instruction_applied = bool(
                 context.retrieval_instruction
             )
-            context.trace.events.append({
-                "type": "memory_skipped",
-                "reason": "request_disabled" if not controls.use_memory else "identity_query",
-            })
+            context.trace.events.append(
+                {
+                    "type": "memory_skipped",
+                    "reason": "request_disabled"
+                    if not controls.use_memory
+                    else "identity_query",
+                }
+            )
+            self._bound_instruction(context)
             return context
 
         recall = await self._memory_core_factory().recall(
@@ -150,7 +213,13 @@ class QueryHarness:
             mode=request.mode,
             enable_thinking=request.enable_thinking,
             enable_expanded_matching=bool(
-                controls.use_self_evolution and request.enable_expanded_matching
+                controls.use_self_evolution
+                and context.question_policy.mode == "explore"
+                and request.enable_expanded_matching
+            ),
+            enable_cognition=bool(
+                controls.use_self_evolution
+                and context.question_policy.mode == "explore"
             ),
             expanded_top_k=request.expanded_top_k,
             expanded_min_score=request.expanded_min_score,
@@ -164,9 +233,42 @@ class QueryHarness:
         context.cognition_matches = recall.cognition_matches
         context.memory_reasoning = recall.memory_reasoning
         context.trace = recall.trace
+        self._bound_instruction(context)
         return context
 
-    async def enrich_graph_reasoning(
+    @staticmethod
+    def _bound_instruction(context: QueryRunContext) -> None:
+        before = context.budget.count(context.retrieval_instruction)
+        context.retrieval_instruction = context.budget.clip(
+            context.retrieval_instruction,
+            context.budget.instruction_tokens,
+        )
+        context.budget_trace.update(
+            {
+                "instruction_tokens": context.budget.count(
+                    context.retrieval_instruction
+                ),
+                "instruction_truncated": before > context.budget.instruction_tokens,
+            }
+        )
+
+    async def enrich_graph_reasoning(self, **kwargs: Any) -> None:
+        """Optional enrichment has a deadline and cannot break normal retrieval."""
+        context = kwargs["context"]
+        try:
+            await asyncio.wait_for(self._enrich_graph_reasoning(**kwargs), timeout=30)
+        except Exception as exc:
+            context.graph_reasoning = {
+                "policy": context.question_policy.to_schema(),
+                "applied": False,
+                "diagnostic": {
+                    "reason": "timeout"
+                    if isinstance(exc, asyncio.TimeoutError)
+                    else "graph_unavailable"
+                },
+            }
+
+    async def _enrich_graph_reasoning(
         self,
         *,
         context: QueryRunContext,
@@ -185,14 +287,13 @@ class QueryHarness:
         if mode == "faithful" or graph is None:
             return
 
-        nodes = graph.get_all_nodes()
-        edges = graph.get_all_edges()
-        if inspect.isawaitable(nodes):
-            nodes = await nodes
-        if inspect.isawaitable(edges):
-            edges = await edges
-        node_list = list(nodes or [])
-        edge_list = list(edges or [])
+        node_list, edge_list = await asyncio.wait_for(
+            self._load_local_graph(graphcore, question),
+            timeout=8,
+        )
+        if not node_list:
+            context.graph_reasoning["diagnostic"] = {"reason": "no_local_graph_seeds"}
+            return
 
         instruction = ""
         if mode == "path":
@@ -200,10 +301,15 @@ class QueryHarness:
                 question,
                 node_list,
                 edge_list,
-                allow_candidates=context.controls.use_self_evolution,
+                allow_candidates=context.allow_graph_candidates,
+                max_candidate_edges=context.max_path_candidates,
                 min_candidate_confidence=min_candidate_confidence,
             )
-            if not paths and len(diagnostic.get("anchors") or []) >= 2:
+            if (
+                not paths
+                and context.allow_path_completion
+                and len(diagnostic.get("anchors") or []) >= 2
+            ):
                 chunks = await self._load_gap_evidence_chunks(
                     graphcore,
                     node_list,
@@ -217,17 +323,34 @@ class QueryHarness:
                     chunks=chunks,
                     llm_func=llm_func,
                     min_confidence=min_candidate_confidence,
+                    max_input_chars=6000,
+                    max_output_tokens=1200,
+                    timeout_seconds=18,
                 )
                 diagnostic["completion"] = completion_diagnostic
                 if completed is not None:
                     paths = [completed]
                     diagnostic["reason"] = "query_local_path_completion"
+            elif not paths:
+                diagnostic["completion"] = {
+                    "reason": "disabled"
+                    if not context.allow_path_completion
+                    else "insufficient_anchors"
+                }
             instruction = format_path_instruction(paths, diagnostic)
-            context.graph_reasoning.update({
-                "paths": [path.to_schema() for path in paths],
-                "diagnostic": diagnostic,
-            })
+            context.graph_reasoning.update(
+                {
+                    "paths": [path.to_schema() for path in paths],
+                    "diagnostic": diagnostic,
+                }
+            )
         elif mode == "explore":
+            if not context.allow_graph_candidates:
+                from docthinker.retrieval_policy import is_inferred_relation
+
+                edge_list = [
+                    edge for edge in edge_list if not is_inferred_relation(edge)
+                ]
             exploration = exploratory_pagerank(
                 question,
                 node_list,
@@ -238,11 +361,60 @@ class QueryHarness:
             context.graph_reasoning["exploration"] = exploration
 
         if instruction:
-            context.retrieval_instruction = self._merge_instruction(
-                context.retrieval_instruction,
-                instruction,
+            merged = self._merge_instruction(context.retrieval_instruction, instruction)
+            # Keep a path whole: never truncate its final hops to fit a prompt.
+            if context.budget.count(merged) <= context.budget.instruction_tokens:
+                context.retrieval_instruction = merged
+                context.graph_reasoning["applied"] = True
+                context.budget_trace["instruction_tokens"] = context.budget.count(
+                    merged
+                )
+            else:
+                context.graph_reasoning["skip_reason"] = "instruction_budget"
+
+    @staticmethod
+    async def _load_local_graph(graphcore: Any, question: str) -> tuple[list, list]:
+        """Vector seeds and bounded adjacency expansion, without full-graph scans."""
+        graph = graphcore.chunk_entity_relation_graph
+        index = getattr(graphcore, "entities_vdb", None)
+        if index is None:
+            return [], []
+        hits = await index.query(question, top_k=8)
+        frontier = list(
+            dict.fromkeys(
+                str(hit.get("entity_name") or "")
+                for hit in hits
+                if hit.get("entity_name")
             )
-            context.graph_reasoning["applied"] = True
+        )[:8]
+        node_ids = set(frontier)
+        pairs: dict[tuple, dict] = {}
+        for _ in range(4):
+            if not frontier:
+                break
+            neighborhoods = await graph.get_nodes_edges_batch(frontier)
+            next_frontier = []
+            for name in frontier:
+                for source, target in sorted(neighborhoods.get(name) or []):
+                    if len(pairs) >= 256:
+                        break
+                    new_nodes = {source, target} - node_ids
+                    if len(node_ids) + len(new_nodes) > 96:
+                        continue
+                    pairs[(source, target)] = {"src": source, "tgt": target}
+                    next_frontier.extend(sorted(new_nodes))
+                    node_ids.update(new_nodes)
+            frontier = next_frontier
+        nodes = await graph.get_nodes_batch(sorted(node_ids))
+        edges = await graph.get_edges_batch(list(pairs.values()))
+        return (
+            [{**data, "id": name} for name, data in nodes.items() if data],
+            [
+                {**data, "source": source, "target": target}
+                for (source, target), data in edges.items()
+                if data
+            ],
+        )
 
     @staticmethod
     async def _load_gap_evidence_chunks(

@@ -7,7 +7,7 @@ import inspect
 import os
 import time
 import warnings
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from functools import partial
 from typing import (
@@ -68,6 +68,7 @@ from .kg.shared_storage import (
     get_default_workspace,
     set_default_workspace,
     get_namespace_lock,
+    get_storage_workspace,
 )
 
 from .base import (
@@ -729,6 +730,13 @@ class GraphCore:
 
         self._storages_status = StoragesStatus.CREATED
 
+    @property
+    def pipeline_workspace(self) -> str:
+        """Share local pipeline state only with instances of the same store."""
+        if self.doc_status_storage == "JsonDocStatusStorage":
+            return get_storage_workspace(self.working_dir, self.workspace)
+        return self.workspace
+
     async def initialize_storages(self):
         """Storage initialization must be called one by one to prevent deadlock"""
         if self._storages_status == StoragesStatus.CREATED:
@@ -746,7 +754,7 @@ class GraphCore:
             # Auto-initialize pipeline_status for this workspace
             from graphcore.coregraph.kg.shared_storage import initialize_pipeline_status
 
-            await initialize_pipeline_status(workspace=self.workspace)
+            await initialize_pipeline_status(workspace=self.pipeline_workspace)
 
             for storage in (
                 self.full_docs,
@@ -1696,10 +1704,10 @@ class GraphCore:
 
         # Get pipeline status shared data and lock
         pipeline_status = await get_namespace_data(
-            "pipeline_status", workspace=self.workspace
+            "pipeline_status", workspace=self.pipeline_workspace
         )
         pipeline_status_lock = get_namespace_lock(
-            "pipeline_status", workspace=self.workspace
+            "pipeline_status", workspace=self.pipeline_workspace
         )
 
         # Check if another process is already processing the queue
@@ -2803,25 +2811,11 @@ class GraphCore:
         global_config = asdict(self)
 
         # Create a copy of param to avoid modifying the original
-        data_param = QueryParam(
-            mode=param.mode,
+        data_param = replace(
+            param,
             only_need_context=True,  # Skip LLM generation, only get context and data
             only_need_prompt=False,
-            response_type=param.response_type,
             stream=False,  # Data retrieval doesn't need streaming
-            use_llm_cache=param.use_llm_cache,
-            top_k=param.top_k,
-            chunk_top_k=param.chunk_top_k,
-            max_entity_tokens=param.max_entity_tokens,
-            max_relation_tokens=param.max_relation_tokens,
-            max_total_tokens=param.max_total_tokens,
-            hl_keywords=param.hl_keywords,
-            ll_keywords=param.ll_keywords,
-            conversation_history=param.conversation_history,
-            history_turns=param.history_turns,
-            model_func=param.model_func,
-            user_prompt=param.user_prompt,
-            enable_rerank=param.enable_rerank,
         )
 
         query_result = None
@@ -2894,7 +2888,8 @@ class GraphCore:
             else:
                 logger.warning("[aquery_data] No data section found in query result")
 
-        await self._query_done()
+        if param.use_llm_cache:
+            await self._query_done()
         return final_data
 
     async def aquery_llm(
@@ -2987,7 +2982,8 @@ class GraphCore:
             else:
                 raise ValueError(f"Unknown mode {param.mode}")
 
-            await self._query_done()
+            if param.use_llm_cache:
+                await self._query_done()
 
             # Check if query_result is None
             if query_result is None:
@@ -3059,7 +3055,8 @@ class GraphCore:
         return loop.run_until_complete(self.aquery_llm(query, param, system_prompt))
 
     async def _query_done(self):
-        await self.llm_response_cache.index_done_callback()
+        if self.llm_response_cache is not None:
+            await self.llm_response_cache.index_done_callback()
 
     async def aclear_cache(self) -> None:
         """Clear all cache data from the LLM response cache storage.
@@ -3210,10 +3207,10 @@ class GraphCore:
         """
         # Get pipeline status shared data and lock for validation
         pipeline_status = await get_namespace_data(
-            "pipeline_status", workspace=self.workspace
+            "pipeline_status", workspace=self.pipeline_workspace
         )
         pipeline_status_lock = get_namespace_lock(
-            "pipeline_status", workspace=self.workspace
+            "pipeline_status", workspace=self.pipeline_workspace
         )
 
         # Track whether WE acquired the pipeline

@@ -268,8 +268,10 @@ See [`docs/MEMORY_PLUGIN_GUIDE.md`](docs/MEMORY_PLUGIN_GUIDE.md) for backend int
 | UI mode | GraphCore mapping | Current strategy |
 |---|---|---|
 | Quick | `naive` | Lightweight retrieval with reranking disabled |
-| Standard | `local` | Session KG retrieval + reranking; falls back to general chat without document context |
-| Deep Memory | `mix` | KG + vector retrieval, Claw, episodic analogy, expanded nodes, and post-response writeback |
+| Standard | `local` | Session KG retrieval + reranking; ordinary chat can use history/memory when document retrieval is empty |
+| Deep Memory | `mix` | KG + vector retrieval, Claw and episodic analogy; derived knowledge and writeback obey per-query controls |
+
+The query Harness now separates faithful, path and exploratory questions, bounds auxiliary context, and keeps extra LLM path completion **off by default**. Explicit graph-candidate opt-out is honored throughout retrieval. Local stores and pipeline state are isolated by their actual directory, including legacy sessions with an empty workspace. See [query controls, architecture, budgets and A/B examples](docs/QUERY_RUNTIME.md).
 
 PDF processing supports:
 
