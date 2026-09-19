@@ -79,3 +79,10 @@ For an original-source baseline, use this body with `POST /api/v1/query` (or `/q
 For a controlled comparison, keep the document snapshot, model, question and explicit budgets fixed; use `adaptive_context=false` if comparing algorithms at identical retrieval limits. Change one feature at a time. Record actual provider tokens, latency, cited-source support, missing key points, and unsupported claims separately. Exclude failed ingestion and pending-processing answers from answer-quality scores.
 
 `score_reasoning_paths` reports node/hop coverage, continuity and citation presence. `verified_quote_hop_rate` requires independently supplied `source_chunks` and only tests quote inclusion, not entailment. A path or keyword coverage score alone does not establish answer correctness. Unit tests use synthetic evidence and model doubles; real-dataset quality and token savings still require an A/B run.
+
+Run the same test dependency set as CI from a clean Python environment:
+
+```sh
+python -m pip install -e ".[all,test]"
+python -m pytest tests/ -q --ignore=tests/debug_db.py
+```
