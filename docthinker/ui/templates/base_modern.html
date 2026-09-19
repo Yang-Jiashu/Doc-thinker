@@ -35,8 +35,10 @@
     <style>
         html { font-size: 80%; }
         * { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        *, *::before, *::after { box-sizing: border-box; }
 
         body {
+            margin: 0;
             background: #FAF8F5;
             line-height: 1.65;
         }
@@ -480,14 +482,43 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        body.h-screen { height: 100vh; height: 100dvh; }
+        body > .app-shell { display: flex; height: 100%; min-width: 0; min-height: 0; }
+        .app-shell > .app-sidebar { display: flex; flex-direction: column; width: 224px; height: 100%; flex: 0 0 224px; }
+        .app-shell > .app-main { display: flex; flex-direction: column; flex: 1 1 0%; height: 100%; min-width: 0; min-height: 0; overflow: hidden; }
+        .app-sidebar a:focus-visible { outline: 2px solid #54746b; outline-offset: 2px; }
+        @media (max-width: 900px) {
+            body > .app-shell { flex-direction: column; }
+            .app-shell > .app-sidebar {
+                width: 100%; height: auto; min-height: 58px; flex: 0 0 auto;
+                flex-direction: row; align-items: center; gap: 8px; padding: 5px 10px;
+                border-right: 0; border-bottom: 1px solid #ded8cc;
+            }
+            .app-sidebar .app-brand { padding: 0; border-bottom: 0; flex: 0 0 34px; }
+            .app-sidebar .brand-lockup { display: block; }
+            .app-sidebar .brand-mark, .app-sidebar .brand-mark img {
+                width: 32px; height: 32px; max-width: 32px; max-height: 32px;
+            }
+            .app-sidebar .brand-wordmark, .app-sidebar .nav-section-label { display: none; }
+            .app-sidebar nav { min-width: 0; overflow: visible; padding: 0; }
+            .app-sidebar .app-nav-items { display: flex; align-items: center; gap: 4px; }
+            .app-sidebar .app-nav-items > * + * { margin-top: 0; }
+            .app-sidebar .sidebar-item {
+                flex: 1 1 auto; justify-content: center; gap: 5px;
+                min-height: 44px; padding: 8px 7px; font-size: 12px; line-height: 1.4;
+                white-space: nowrap;
+            }
+            .app-sidebar .sidebar-item i { width: 17px; height: 20px; font-size: 13px; }
+            .app-shell > .app-main { width: 100%; height: auto; flex: 1 1 0%; }
+        }
     </style>
 
     {% block extra_css %}{% endblock %}
 </head>
 <body class="text-[#292520] h-screen overflow-hidden">
-    <div class="flex h-full">
-        <aside class="bg-[#fffefa] border-r border-[#ded8cc] flex flex-col h-full" style="width:224px; flex:0 0 224px;">
-            <div class="px-4 py-3 border-b border-[#ece5d9]">
+    <div class="app-shell">
+        <aside class="app-sidebar bg-[#fffefa] border-r border-[#ded8cc]">
+            <div class="app-brand px-4 py-3 border-b border-[#ece5d9]">
                 <div class="brand-lockup">
                     <div class="brand-mark">
                         <img src="/logo.png" alt="DocThinker" id="docthinker-logo" />
@@ -499,21 +530,21 @@
                 </div>
             </div>
 
-            <nav class="flex-1 overflow-y-auto py-3 px-2">
-                <div class="space-y-1">
+            <nav class="flex-1 overflow-y-auto py-3 px-2" aria-label="主导航">
+                <div class="app-nav-items space-y-1">
                     <p class="nav-section-label">Workspace</p>
 
-                    <a href="/query" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {% if request.endpoint == 'query_page' %}active{% endif %}">
+                    <a href="/query" {% if request.endpoint == 'query_page' %}aria-current="page"{% endif %} class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {% if request.endpoint == 'query_page' %}active{% endif %}">
                         <i class="fa-solid fa-comments"></i>
                         对话与记忆
                     </a>
 
-                    <a href="/knowledge-graph" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {% if request.endpoint in ['knowledge_graph_page', 'kg_viz_page'] %}active{% endif %}">
+                    <a href="/knowledge-graph" {% if request.endpoint in ['knowledge_graph_page', 'kg_viz_page'] %}aria-current="page"{% endif %} class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {% if request.endpoint in ['knowledge_graph_page', 'kg_viz_page'] %}active{% endif %}">
                         <i class="fa-solid fa-circle-nodes"></i>
                         记忆图谱
                     </a>
 
-                    <a href="/config" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {% if request.endpoint == 'config_page' %}active{% endif %}">
+                    <a href="/config" {% if request.endpoint == 'config_page' %}aria-current="page"{% endif %} class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {% if request.endpoint == 'config_page' %}active{% endif %}">
                         <i class="fa-solid fa-gear"></i>
                         设置
                     </a>
@@ -521,7 +552,7 @@
             </nav>
         </aside>
 
-        <main class="flex-1 flex flex-col h-full overflow-hidden bg-[#fbfaf7]">
+        <main class="app-main bg-[#fbfaf7]">
             {% block content %}{% endblock %}
         </main>
     </div>

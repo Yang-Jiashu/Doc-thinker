@@ -5,7 +5,7 @@ them:
 - Claw provides conversational working/core/archive memory.
 - Neuro memory provides episodic analogies and activation traces.
 - Expanded KG nodes provide evolving semantic hypotheses.
-- GraphCore receives promoted expansion nodes after repeated use.
+- Repeated use updates candidate activity, not source-graph truth.
 """
 
 from __future__ import annotations

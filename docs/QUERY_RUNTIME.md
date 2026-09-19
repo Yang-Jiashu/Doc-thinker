@@ -86,3 +86,21 @@ Run the complete test dependency set, including optional FAISS storage checks, f
 python -m pip install -e ".[all,test]"
 python -m pytest tests/ -q --ignore=tests/debug_db.py
 ```
+
+## UI validation without a model service
+
+```sh
+PYTHONPATH=. python tests/ui_preview.py
+```
+
+Open `http://127.0.0.1:5055/query`. This local-only fixture intercepts API requests,
+returns labeled sample sessions and a simulated stream, and does not write user
+data or call a model. The prompt `模拟失败` exercises the HTTP error state. It is
+for interaction checks, not a live answer-quality demonstration.
+
+The optional real-browser CSS regression uses an already installed Chromium;
+it never downloads one. Set `DOCTHINKER_BROWSER_BIN=/path/to/chromium` when running
+`python -m pytest tests/test_query_ui_controls_unit.py -q`. It checks 390, 768,
+and 1280 pixel widths, including late utility-style loading. Without a browser,
+only that optional test is skipped; template and JavaScript checks still run
+(JavaScript checks require Node.js).

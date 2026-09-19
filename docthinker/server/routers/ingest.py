@@ -4,7 +4,7 @@ import logging
 import re
 import shutil
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from hashlib import md5
 from pathlib import Path
 from typing import List, Optional, Any, Dict, Iterable
@@ -229,11 +229,7 @@ async def _background_path_edge_discovery(sid: str) -> None:
 
 
 async def _background_self_study(sid: str) -> None:
-    """Run KG self-study loop in the background after ingestion.
-
-    The self-study loop lets the LLM autonomously quiz and densify the KG,
-    improving retrieval quality before user queries arrive.
-    """
+    """Generate reviewable self-study candidates without modifying source facts."""
     try:
         if not state.session_manager or not state.rag_instance:
             return
@@ -285,35 +281,30 @@ async def _background_self_study(sid: str) -> None:
                 return {"entities": [], "relations": [], "chunks": []}
 
         async def kg_write_func(operations: dict):
-            proposed_edges = operations.get("new_edges", [])
-            if proposed_edges:
-                self_study_audit.parent.mkdir(parents=True, exist_ok=True)
-                record = {
-                    "timestamp": datetime.utcnow().isoformat() + "Z",
-                    "session_id": sid,
-                    "review_status": "audit_only",
-                    "new_edges": proposed_edges,
-                }
-                with self_study_audit.open("a", encoding="utf-8") as handle:
-                    handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
-
-            graph_changed = False
-            for upd in operations.get("entity_updates", []):
-                entity_name = upd.get("entity", "")
-                if not entity_name:
-                    continue
-                if upd.get("action") == "enrich_description":
-                    node = await graph.get_node(entity_name)
-                    if node:
-                        old_desc = node.get("description", "")
-                        new_content = upd.get("new_content", "")
-                        if new_content and new_content not in old_desc:
-                            node["description"] = f"{old_desc} | {new_content}"
-                            await graph.upsert_node(entity_name, node)
-                            graph_changed = True
-
-            if graph_changed:
-                await graph.index_done_callback(force_save=True)
+            # Model-written descriptions are hypotheses just like new edges.
+            # Keep all synthesis output outside the source graph and vector
+            # indexes until an evidence review explicitly approves it. Existing
+            # descriptions and earlier audit records are never rewritten here.
+            candidate_fields = (
+                "new_edges", "entity_updates", "summary_nodes", "contradiction_flags",
+            )
+            candidates = {
+                key: operations.get(key, []) for key in candidate_fields
+                if operations.get(key)
+            }
+            if not candidates:
+                return
+            self_study_audit.parent.mkdir(parents=True, exist_ok=True)
+            record = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "session_id": sid,
+                "provenance": "self_study",
+                "review_status": "audit_only",
+                "query_eligible": False,
+                **candidates,
+            }
+            with self_study_audit.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
         async def kg_read_nodes():
             return await graph.get_all_nodes()
@@ -339,8 +330,8 @@ async def _background_self_study(sid: str) -> None:
 
         result = await orchestrator.run_session()
         _log.info(
-            "[self_study:bg] session %s — %d rounds, %d new edges, "
-            "%d updates, %d experiences in %.1fs",
+            "[self_study:bg] session %s — %d rounds, %d edge candidates, "
+            "%d entity-update candidates, %d experiences in %.1fs (audit only)",
             sid, len(result.rounds), result.total_new_edges,
             result.total_entity_updates, result.total_experiences,
             result.elapsed_seconds,

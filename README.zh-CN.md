@@ -1,364 +1,142 @@
 <div align="center">
 
-<img src="docs/assets/banner.png" alt="DocThinker Banner" width="820" />
+<img src="docs/assets/banner.png" alt="DocThinker" width="820" />
 
 # DocThinker
 
-**Plastic Memory Runtime · 动态可编辑记忆 · 证据驱动知识演化**
+**让 Agent 记得住、查得到，也能知道自己凭什么回答。**
 
-*记忆不只是被保存，也会在使用中被召回、修正、关联和重组。*
+文档问答 · 可编辑长期记忆 · 有证据边界的知识演化
 
-[![Paper](https://img.shields.io/badge/arXiv-2603.05551-b31b1b.svg)](https://arxiv.org/pdf/2603.05551)
-[![License: PolyForm Shield 1.0.0](https://img.shields.io/badge/License-PolyForm_Shield_1.0.0-orange.svg)](LICENSE)
-[![Demo](https://img.shields.io/badge/Demo-Local_UI-orange)](http://localhost:5000)
-[![Memory](https://img.shields.io/badge/Memory-Plastic_Runtime-4F7C70)](#-动态记忆运行时)
-[![GraphCore](https://img.shields.io/badge/GraphCore-Evidence_KG-8B5CF6)](#-会话级知识图谱与证据演化)
+[English](README.md) · [快速开始](#快速开始) · [架构](docs/ARCHITECTURE.md) · [评测](docs/SELF_EVOLUTION_EVALUATION.md)
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Flask](https://img.shields.io/badge/Flask-UI-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![NetworkX](https://img.shields.io/badge/NetworkX-KG-4C72B0)](https://networkx.org/)
-[![FAISS](https://img.shields.io/badge/FAISS-Vector-3B5998?logo=meta&logoColor=white)](https://github.com/facebookresearch/faiss)
-
-[English](README.md) | [中文](README.zh-CN.md)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB)](pyproject.toml)
+[![CI](https://github.com/Yang-Jiashu/Doc-thinker/actions/workflows/ci.yml/badge.svg)](https://github.com/Yang-Jiashu/Doc-thinker/actions/workflows/ci.yml)
+[![Paper](https://img.shields.io/badge/arXiv-2603.05551-b31b1b)](https://arxiv.org/abs/2603.05551)
+[![License](https://img.shields.io/badge/License-PolyForm_Shield-orange)](LICENSE)
 
 </div>
 
----
+## 能做什么
 
-## 为什么是 DocThinker？
+DocThinker 为文档研究和长程 Agent 提供可观察的记忆与检索运行时。**文档是证据，记忆是辅助信息，模型生成的关联是候选——三者不能混为一谈。**
 
-大多数 Agent Memory 的工作方式是“写入一条记录，再把相似记录检索回来”。DocThinker 关注的是下一步：**记忆写入后还能继续变化吗？**
+| 你想做的事 | 系统如何处理 |
+|---|---|
+| 按原文回答 | 检索原始证据；缺证据时说明缺口，不靠补边凑答案 |
+| 理清多步关系 | 在有限图邻域中寻找有方向、连续的路径，展示来源；连通不等于因果成立 |
+| 探索新思路 | 用图排序与去冗余选择关联线索，保留其“假设”身份 |
+| 记住规则和偏好 | 长期记忆可查看、编辑、删除和版本恢复，并通过独立开关控制 |
+| 做对照实验 | 分别关闭记忆、聊天上下文、LLM 缓存、自进化，并查看本轮策略与预算 |
 
-DocThinker 将对话、文档、检索轨迹、情景经历和知识图谱组织成多层记忆。它不仅让 Agent 跨回合记住信息，还允许用户观察、修正和删除长期状态，并为离线阶段的记忆关联、强化、衰减与剪枝提供实验算法。
+> 这是研究与开发框架，不是已经证明能持续自我提升的 RSI 系统。已有上传后后台学习；情景记忆的“夜间巩固”仍是独立实验流程。知识增长需要独立评测，才能说明能力是否提高。
 
-当前项目的两个核心方向是：
-
-1. **可控的动态记忆：**记忆不是只追加的黑盒。长期规则和偏好可以被召回、更新、覆盖、删除与审计。
-2. **类脑离线巩固：**系统在回答之外分配额外计算，根据内容相似、结构相似、显著性和图关系重新连接经历；强化有效连接，并让弱连接逐渐衰减。这部分目前是实验模块，尚未完整接入主 Web 流程。
-
-文档推理与知识图谱是记忆的重要来源和证据底座，但不是项目的唯一定位。
-
-## 能力状态
-
-我们明确区分已经接通的产品能力、实验模块和后续方向。
-
-| 状态 | 能力 | 当前说明 |
-|---|---|---|
-| ✅ 已接通 | 跨回合长期规则、偏好与项目状态 | 可在关闭普通聊天上下文后独立召回 |
-| ✅ 已接通 | 记忆更新与对照实验 | 新规则可以替代旧规则；可关闭记忆验证增益 |
-| ✅ 已接通 | Memory Trace | 展示召回计划、长期状态、情景匹配、候选知识和证据来源 |
-| ✅ 已接通 | 情景类比检索 | 深度模式按内容、结构和显著性检索过去经历 |
-| ✅ 已接通 | 分层对话记忆 | Claw working/core/archive 三层记忆 |
-| ✅ 已接通 | 会话级知识图谱 | 每个会话拥有独立文档、图谱、索引和缓存作用域 |
-| ✅ 已接通 | 记忆管理接口 | 支持列出、修改、删除、编辑计划和导出长期记忆 |
-| ✅ 已接通 | SQLite 持久化与版本历史 | 后端重启后保留长期记忆；修改、删除和恢复均留下版本记录 |
-| ✅ 已接通 | 记忆图扩散召回 | 直接命中的记忆作为种子，按关系类型、边权和深度衰减继续召回关联记忆，并输出完整路径 |
-| ✅ 已接通 | 记忆 / 认知分层 | 认知作为独立节点持久化，通过证据边引用原始记忆；记忆变化时相关认知进入待复核状态 |
-| 🧪 实验性 | 离线记忆巩固 | 已有连接、强化、衰减和剪枝算法，尚未接入主 UI/定时任务 |
-| 🧪 实验性 | 归纳抽象 | 已有摘要、相似记忆合并和知识聚类，但尚未形成完整可观察归纳链 |
-| 🧪 实验性 | KG 关系演化 | ECLRR-v4 可生成并审核证据完整的候选关系 |
-| 🧭 后续 | 统一三类推理轨迹 | 显式记录演绎、归纳、类比的前提、过程、结论和来源 |
-
-> [!IMPORTANT]
-> 默认长期记忆保存在 `$RAG_WORKDIR/long_horizon_memory.db`。可通过 `LONG_HORIZON_DB_PATH` 修改位置。`InMemoryLongHorizonBackend` 仍保留给插件示例和无持久化测试。
-
-## 系统如何工作
+## 一张图看懂
 
 ```mermaid
-flowchart LR
-    Q["用户问题"] --> P["Recall Plan<br/>决定调用哪些记忆"]
-    P --> C["Claw<br/>工作 / 核心 / 归档"]
-    P --> L["Long-Horizon<br/>偏好 / 规则 / 项目状态"]
-    P --> E["Neuro Episodes<br/>过去经历与类比"]
-    P --> O["Cognition<br/>由记忆沉淀的可修正认知"]
-    P --> K["GraphCore + Expanded KG<br/>知识、关系与证据"]
-    L & E --> O
-    C & L & E & K & O --> M["统一记忆与认知上下文"]
-    M --> A["LLM + 检索生成"]
-    A --> W["受策略控制的写回"]
-    W --> C
-    W --> L
-    W --> E
-    W --> K
-    E -.实验性离线计算.-> S["连接 / 强化 / 衰减 / 剪枝"]
-    S -.重组情景图.-> E
+flowchart TD
+    U["上传文档"] --> I["解析 / 分块 / 提取"]
+    I --> S["会话证据库：原文 + 图谱 + 向量"]
+    Q["提问 + 四个开关"] --> H["Harness：选策略、控预算"]
+    H --> R["按需召回：证据 / 记忆 / 关联路径"]
+    S --> R
+    M["可编辑记忆"] --> R
+    R --> A["LLM 组织答案 + 证据轨迹"]
+    A --> W["完整回答后，按开关写回"]
+    W --> M
+    I -.上传后后台学习.-> C["候选关系 / 自学习审计"]
+    C -.ECLRR 审核通过的关系.-> S
+    C -.人工选择待测改动.-> E["独立留出集 A/B 验收"]
+    E -.仅建议，不自动部署.-> V["复核 / 拒绝 / 补测"]
 ```
 
-在线问答闭环由 `AgentMemoryCore` 统一协调：
+骨架由程序负责：隔离、筛选、路径、预算、验收。LLM 负责语义提取、回答表达和可选候选生成。不是每一步都调用 LLM。
 
-1. 根据请求开关和查询类型生成召回计划。
-2. 从启用的记忆层召回候选信息。
-3. 将候选记忆、图谱证据和文档上下文合并为生成指令。
-4. 生成回答，并记录本轮记忆路径。
-5. 根据写入策略沉淀情景经历、长期状态和候选知识。
+## 快速开始
 
-<div align="center">
-<img src="docs/assets/agentic_memory_architecture.png" alt="DocThinker agentic memory framework architecture" width="920" />
-<p><b>图 1.</b> AgentMemoryCore、可插拔 backend、GraphCore、检索生成与回答后写回闭环。</p>
-</div>
-
-## 🧠 动态记忆运行时
-
-### 1. AgentMemoryCore
-
-`docthinker.memory_core.AgentMemoryCore` 是统一记忆门面。外部 Agent 可以通过 backend protocols 接入自己的：
-
-- conversation memory；
-- episodic memory；
-- long-horizon insight memory；
-- expanded KG hypotheses；
-- graph promotion；
-- 可选 chat-turn ingestion。
-
-`MemoryPolicy` 控制启用哪些层、每层召回数量以及是否允许写入。调用方还可以使用 `remember_turn=false` 或 `memory_excluded_layers`，避免敏感或临时信息进入指定记忆层。
-
-### 2. 四类在线记忆
-
-| 记忆层 | 默认实现 | 主要作用 |
-|---|---|---|
-| 对话记忆 | Claw | 保留近期对话、核心摘要与冷层语义归档 |
-| 情景记忆 | Neuro Memory | 保存一次经历的摘要、概念、实体、关系和结构，用于类比 |
-| 长期状态 | Long-Horizon backend | 保存偏好、规则、反馈、项目状态和可复用经验 |
-| 语义/候选知识 | GraphCore + Expanded KG | 保存文档事实、证据关系和待验证假设 |
-
-### 3. 可观察、可操作的记忆
-
-Query 页面提供本轮 Memory Trace；KG dashboard 提供长期记忆的查看、自然语言编辑计划、确认更新、删除与导出。这样可以区分“模型自己猜到”与“系统确实调用了某条记忆”。
-
-<div align="center">
-  <img src="docs/assets/memory_kg_observability_demo.gif" alt="DocThinker memory and knowledge graph observability demo" width="920" />
-  <p><b>图 2.</b> 记忆路径、长期状态和知识图谱的可观测与管理界面。</p>
-</div>
-
-## 🧬 算法设计
-
-### 情景类比检索
-
-Neuro Memory 将每次经历保存为 episode。当前类比评分组合为：
-
-```text
-score = 0.60 × 内容相似度 + 0.25 × 结构相似度 + 0.15 × 显著性
-```
-
-相似经历作为推理线索注入，不直接当作事实证据。事实结论仍应由文档 chunk 或图谱证据支持。
-
-### 图上的扩散激活
-
-Long-Horizon 召回以最相关记忆为种子，当前最多沿持久化记忆关系传播两跳。不同关系类型使用不同衰减系数，Memory Trace 会记录种子、关系类型、边权和完整路径。Neuro Memory 仍保留独立的情景扩散机制。
-
-### 离线巩固（实验性）
-
-当前代码包含以下离线过程：
-
-1. 从近期经历和高显著性经历中采样。
-2. 按内容与结构相似度寻找候选对。
-3. 可选地判断 `analogous_to` 或 `same_theme` 关系。
-4. 建立双向连接并强化近期激活边。
-5. 对长期未激活的弱边执行衰减，并在低于阈值后剪枝。
-
-这对应一种 memory-side test-time scaling：增加回答之外的计算预算来整理记忆，而不是修改模型权重。**目前需要通过独立脚本调用，尚未作为主产品的“一键睡眠”能力。**
-
-### 三类推理源语的当前边界
-
-| 推理源语 | 当前实现程度 | 实现方式 |
-|---|---|---|
-| 类比 | 较完整 | 内容相似、结构相似、显著性、情景图传播 |
-| 归纳 | 部分实现 | 对话摘要、相似长期状态合并、KG 聚类与主题抽象 |
-| 演绎 | 辅助实现 | 将召回规则作为约束交给 LLM 执行，尚非符号证明引擎 |
-
-## 🧩 会话级知识图谱与证据演化
-
-每个 session 使用独立 GraphCore workspace，并隔离文档状态、解析缓存、向量索引和答案缓存。GraphCore 提供实体、关系、chunk 和向量混合检索；Expanded KG 保存可被使用和晋升的候选知识。
-
-ECLRR-v4 用于发现和审核缺失关系：
-
-1. 仅在原始事实边上执行 3–8 跳关系感知 beam search。
-2. 每一跳通过 `source_id` 回取原文 chunk，并检查引用、位置和方向。
-3. Generator 提出候选关系，独立 Judge 审核。
-4. 确定性 Gate 检查路径连续性、证据、重复和冲突。
-5. 只有通过审核的关系才可写回图谱和向量索引。
-
-<div align="center">
-  <img src="docs/assets/gpu_knowledge_graph_demo.gif" alt="DocThinker semantic-zoom knowledge graph demo" width="920" />
-  <p><b>图 3.</b> 支持语义缩放和证据检查的知识图谱界面。</p>
-</div>
-
-## 🚀 快速开始
-
-### 安装
-
-推荐 Python 3.10 或更高版本。
+推荐 Python 3.11，从仓库以 editable 模式安装。解析依赖较大，首次安装与模型下载可能较慢。
 
 ```bash
 git clone https://github.com/Yang-Jiashu/Doc-thinker.git
 cd Doc-thinker
-
-conda create -n docthinker python=3.11 -y
-conda activate docthinker
-
-pip install -r requirements.txt
-pip install -e .
-cp env.example .env
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[all]"
+cp -n env.example .env
 ```
 
-在 `.env` 中配置使用的 LLM、Embedding 和 VLM 服务。
+编辑 `.env`，使用你实际可访问的服务；不要提交密钥。
 
-### 启动 Web UI
+| 配置 | 要检查什么 |
+|---|---|
+| `LLM_BINDING_HOST`、`LLM_BINDING_API_KEY`、`LLM_MODEL` | 回答模型与兼容的服务地址 |
+| `KEYWORD_LLM_MODEL`、`ENTITY_EXTRACTION_LLM_MODEL` | 同一服务可用的模型；可以与回答模型相同 |
+| `EMBEDDING_BINDING_HOST`、`EMBEDDING_BINDING_API_KEY`、`EMBEDDING_MODEL`、`EMBEDDING_DIM` | 输出维度必须与配置一致 |
+| `VLM_MODEL` | 使用图像 / 多模态处理时可用的视觉模型 |
+| `RAG_WORKDIR` | 默认 `./rag_storage_api`；长期记忆默认保存在其中的 SQLite 文件 |
+
+启动两个终端，先只监听本机：
 
 ```bash
-# 终端 1：FastAPI 后端
-python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000
+# 终端 1：后端
+python -m uvicorn docthinker.server.app:app --host 127.0.0.1 --port 8000
 
-# 终端 2：Flask UI
-python run_ui.py
+# 终端 2：界面，避开 macOS 可能占用的 5000 端口
+UI_HOST=127.0.0.1 UI_PORT=5001 python run_ui.py
 ```
 
-默认打开：
+打开 [对话界面](http://127.0.0.1:5001/query)、[知识图谱与记忆](http://127.0.0.1:5001/knowledge-graph) 或 [API 文档](http://127.0.0.1:8000/docs)。UI 代理默认连接本机 8000 端口。远程部署前需另行配置认证、反向代理与访问控制。
 
-- 对话与记忆：`http://localhost:5000/query`
-- 记忆图谱：`http://localhost:5000/knowledge-graph`
+**第一次使用：**新建会话 → 上传一份 TXT → 等待处理完成 → 选择“忠实原文”提问 → 打开“回答依据”查看证据。确认文本流程后再配置 PDF / 图像处理。启动探测、上传提取和后台学习可能调用模型；查询开关不是全局停用模型的开关。
 
-如果设置了 `UI_PORT`，请使用对应端口。
+## 界面与实验
 
-### Memory Layer API
+回答目标放在主界面：自动、忠实原文、查找路径、探索关联。检索深度与实验参数放在进阶面板，避免把“查得多”误当成“答得更可靠”。
 
-记忆层可以脱离完整 Web App 嵌入第三方项目。下面是接口结构示意；`my_*_store` 需要由宿主项目实现。
+- 四个开关分别控制，互不替代；关闭上下文不等于关闭长期记忆。
+- 精简上下文默认开启；额外 LLM 补链、已审核补边参与默认关闭。
+- “回答依据”展示本轮策略、预算和证据，手机上也可打开。
+- “忠实原文”不使用扩展假设；普通聊天仍可使用已启用的历史和记忆。
 
-```python
-from docthinker.memory_core import AgentMemoryBackends, AgentMemoryCore, MemoryPolicy
+完整参数与可复制请求见 [查询运行指南](docs/QUERY_RUNTIME.md)。
 
-memory = AgentMemoryCore(
-    backends=AgentMemoryBackends(
-        conversation=my_conversation_store,
-        episodic=my_episode_store,
-        expanded=my_candidate_graph,
-        long_horizon=my_long_horizon_store,
-        graph=my_semantic_graph,
-    ),
-    policy=MemoryPolicy(
-        episodic_top_k=3,
-        expanded_top_k=2,
-        long_horizon_top_k=3,
-        enabled_layers=("conversation", "episodic", "expanded", "long_horizon", "graph"),
-    ),
-)
+## 自进化实现到了哪一步？
 
-bundle = await memory.recall(
-    session_id="research-session",
-    query="回答前应该调用哪些过去经验？",
-    enable_thinking=True,
-)
-
-answer = await my_agent.run(
-    "回答前应该调用哪些过去经验？",
-    context=bundle.retrieval_instruction,
-)
-
-await memory.after_response(
-    session_id="research-session",
-    question="回答前应该调用哪些过去经验？",
-    answer=answer,
-    matched_expanded=bundle.expanded_matches,
-)
-```
-
-更多接入细节见 [`docs/MEMORY_PLUGIN_GUIDE.md`](docs/MEMORY_PLUGIN_GUIDE.md)。
-
-## 查询与文档模式
-
-查询 Harness 现在区分“忠实原文、查找路径、探索关联”，限制附加上下文，并默认关闭额外的 LLM 补链。显式关闭补边参与后，各图检索路径都会遵守；本地存储与流水线状态按真实目录隔离，兼容旧会话的空 workspace。高级运行控制里可以切换模式、精简上下文、已审核补边和模型补链。详见[架构、参数、预算与 A/B 测试说明](docs/QUERY_RUNTIME.md)。算法与隔离回归测试不等于真实数据集上的质量提升。
-
-| UI 模式 | GraphCore 映射 | 当前策略 |
-|---|---|---|
-| 快速 | `naive` | 轻量检索，关闭 rerank |
-| 标准 | `local` | 会话 KG 检索 + rerank；普通聊天可使用历史和记忆，文档问答缺证据时说明缺口 |
-| 深度记忆 | `mix` | KG + 向量、Claw、情景类比；派生知识与回答后写回受本轮开关控制 |
-
-PDF 处理支持以下配置：
-
-| 模式 | 引擎 | 适用场景 |
-|---|---|---|
-| `vlm` | 云端 VLM | 图片密集文档 |
-| `auto` | 短文档使用 VLM，长文档使用 MinerU | 通用文档 |
-| `mineru` | MinerU 布局引擎 | 复杂表格和长文档 |
-
-相关引擎需要正确安装并配置 API。项目也支持纯文本摄入。
-
-## 💡 界面示例
-
-<table>
-<tr>
-<td width="50%" valign="top">
-
-> 上传内容并探索自动构建的知识图谱
-
-<img src="docs/assets/usecase_kg.gif" width="100%"/>
-
-</td>
-<td width="50%" valign="top">
-
-> 深度模式：分层记忆、情景类比与图谱检索
-
-<img src="docs/assets/usecase_chat.gif" width="100%"/>
-
-</td>
-</tr>
-</table>
-
-## 📡 API 参考
-
-<details>
-<summary><b>展开主要端点</b></summary>
-
-| 类别 | 端点 | 方法 | 说明 |
-|---|---|---|---|
-| 会话 | `/api/v1/sessions` | GET / POST | 列出 / 创建会话 |
-| | `/api/v1/sessions/{id}` | GET / PUT / DELETE | 查看 / 修改 / 删除会话 |
-| | `/api/v1/sessions/{id}/history` | GET | 聊天历史 |
-| | `/api/v1/sessions/{id}/files` | GET | 已上传文件 |
-| 上传 | `/api/v1/ingest` | POST | 上传 PDF / TXT |
-| | `/api/v1/ingest/stream` | POST | 流式文本上传 |
-| 查询 | `/api/v1/query/stream` | POST | SSE 流式查询 |
-| | `/api/v1/query` | POST | 非流式查询 |
-| | `/api/v1/query/text` | POST | 非流式查询别名 |
-| KG | `/api/v1/knowledge-graph/data` | GET | 可视化节点和边 |
-| | `/api/v1/knowledge-graph/expand` | POST | 触发 KG 扩展 |
-| | `/api/v1/knowledge-graph/eclrr-v4/run` | POST | 运行证据关系精化 |
-| | `/api/v1/knowledge-graph/stats` | GET | KG 统计 |
-| | `/api/v1/knowledge-graph/expanded-nodes` | GET | 扩展节点生命周期 |
-| 记忆 | `/api/v1/memory/stats` | GET | 情景 + Claw 记忆统计 |
-| | `/api/v1/memory/dashboard` | GET | 聚合 KG + 记忆状态 |
-| | `/api/v1/memory/long-horizon` | GET | 列出长期记忆 |
-| | `/api/v1/memory/long-horizon/edit-plan` | POST | 将编辑指令映射到候选记忆 |
-| | `/api/v1/memory/long-horizon/{id}` | PATCH / DELETE | 更新 / 删除长期记忆 |
-| | `/api/v1/memory/long-horizon/{id}/revisions` | GET | 查看不可变版本历史 |
-| | `/api/v1/memory/long-horizon/{id}/restore/{revision_id}` | POST | 将旧版本恢复为新的有效版本 |
-| | `/api/v1/memory/long-horizon/edges` | GET / POST | 查看 / 写入记忆关系和权重 |
-| | `/api/v1/memory/long-horizon/export` | GET | 导出审计索引 |
-| | `/api/v1/memory/cognitions` | GET / POST | 列出 / 创建独立认知节点及其记忆证据 |
-| | `/api/v1/memory/cognitions/{id}` | PATCH | 修正、失效或重新激活认知，不覆盖证据记忆 |
-| | `/api/v1/memory/cognitions/{id}/revisions` | GET | 查看认知自身的演化版本 |
-| 设置 | `/api/v1/settings` | GET / POST | 运行时配置 |
-
-</details>
-
-## 📂 项目结构
-
-| 目录 | 说明 |
+| 状态 | 能力 |
 |---|---|
-| `docthinker/memory_core/` | 统一记忆门面、图扩散召回、独立认知层、SQLite 后端与版本历史 |
-| `claw/` | working/core/archive 分层对话记忆 |
-| `neuro_memory/` | episode、类比检索、扩散激活和实验性离线巩固 |
-| `docthinker/kg_expansion/` | 候选知识、聚类、使用记录与晋升 |
-| `graphcore/` | 知识图谱、向量检索、chunk 和证据关系 |
-| `docthinker/server/` | FastAPI 服务与查询闭环 |
-| `docthinker/ui/` | 对话、记忆路径和知识图谱界面 |
-| `packages/docthinker-memory/` | 可嵌入第三方 Agent 的轻量 package skeleton |
+| 已接通 | 会话隔离、分层记忆、证据检索、查询预算、受控写回与 Memory Trace |
+| 已接通，效果待验证 | 上传后 ECLRR 候选审核；SelfStudy 产物仅保留审计，不覆盖原文节点描述 |
+| 离线工具 | 分题型、兼顾质量与成本的候选验收；只给复核建议，不自动修改线上策略 |
+| 实验模块 | 情景巩固的连接、强化、衰减、剪枝；SEAL / TriGraph 等独立路径 |
+| 尚未形成 | 独立评测驱动的策略晋升、完整版本回滚、持续验证的 RSI 闭环 |
 
-## 📝 引用
+**方向是“越来越会用证据”，而不是“图越来越大”。** 当前架构可作为受控自我改进的基础，但不是完整 RSI。瓶颈和改进顺序见 [架构评估](docs/ARCHITECTURE.md)。
 
-如果 DocThinker 对您的研究有帮助，请引用：
+## 开发与验证
+
+```bash
+python -m pip install -e ".[all,test]"
+python -m pytest tests/ -q --ignore=tests/debug_db.py
+
+# 不调用 LLM；输入格式和独立评分要求见评测指南
+python -m docthinker.evaluation --baseline baseline.json --candidate candidate.json
+```
+
+单元测试使用模拟模型与合成证据，不证明真实回答质量或实际 token 节省。词面评分只用于初筛，不能判断反义、因果成立或真实事实支持。
+
+## 文档导航
+
+| 文档 | 内容 |
+|---|---|
+| [架构与 RSI 边界](docs/ARCHITECTURE.md) | 在线 / 后台职责、效率改进、当前缺口 |
+| [查询运行指南](docs/QUERY_RUNTIME.md) | 模式、开关、预算与 A/B 请求 |
+| [自进化评测](docs/SELF_EVOLUTION_EVALUATION.md) | 留出集、评分标准、离线验收格式 |
+| [记忆集成指南](docs/MEMORY_PLUGIN_GUIDE.md) | 将 `AgentMemoryCore` 接入其他 Agent |
+| [贡献指南](CONTRIBUTING.md) | 开发协作 |
+
+主要入口：`docthinker/harness.py` 管查询策略；`docthinker/memory_core/` 管记忆；`graphcore/` 管证据；`docthinker/server/routers/ingest.py` 管上传后的学习；`docthinker/ui/` 管界面。
+
+## 引用与许可
 
 ```bibtex
 @article{yang2026autothinkrag,
@@ -369,12 +147,4 @@ PDF 处理支持以下配置：
 }
 ```
 
-## 🤝 贡献
-
-欢迎 PR 和 Issue！详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
-## 📜 协议
-
-当前及未来版本采用 [PolyForm Shield License 1.0.0](LICENSE)。该源码可见许可允许在许可范围内使用、研究、修改和分发，但不得用本软件提供与 DocThinker 或许可方相关产品和服务相竞争的产品。超出该范围的商业使用，请联系项目维护者获取商业许可。
-
-此前已按 MIT 发布的历史版本继续适用其原始许可；除非具体文件或版本另有说明，本仓库当前及后续版本适用 PolyForm Shield 1.0.0。
+当前版本采用 [PolyForm Shield License 1.0.0](LICENSE)，使用与分发请遵守许可条款。历史 MIT 版本继续适用其原始许可。

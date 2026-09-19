@@ -387,6 +387,8 @@ class QueryHarness:
                 if hit.get("entity_name")
             )
         )[:8]
+        if not frontier:
+            return [], []
         node_ids = set(frontier)
         pairs: dict[tuple, dict] = {}
         for _ in range(4):
@@ -404,9 +406,25 @@ class QueryHarness:
                     pairs[(source, target)] = {"src": source, "tgt": target}
                     next_frontier.extend(sorted(new_nodes))
                     node_ids.update(new_nodes)
+            if len(pairs) >= 256:
+                break
             frontier = next_frontier
-        nodes = await graph.get_nodes_batch(sorted(node_ids))
-        edges = await graph.get_edges_batch(list(pairs.values()))
+        if pairs:
+            # Both batches address the already selected request-local subgraph.
+            # Remote graph backends can overlap these independent reads.
+            node_read = asyncio.create_task(graph.get_nodes_batch(sorted(node_ids)))
+            edge_read = asyncio.create_task(graph.get_edges_batch(list(pairs.values())))
+            try:
+                nodes, edges = await asyncio.gather(node_read, edge_read)
+            except BaseException:
+                # A failed batch or cancelled request must not leave its sibling
+                # reading storage after this optional stage has returned.
+                node_read.cancel()
+                edge_read.cancel()
+                await asyncio.gather(node_read, edge_read, return_exceptions=True)
+                raise
+        else:
+            nodes, edges = await graph.get_nodes_batch(sorted(node_ids)), {}
         return (
             [{**data, "id": name} for name, data in nodes.items() if data],
             [

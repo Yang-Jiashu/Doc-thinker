@@ -280,10 +280,20 @@ def _edge_quality(edge: Dict[str, Any], question: str) -> float:
     return 0.35 * relevance + 0.30 * grounded + 0.20 * confidence + 0.15 * provenance
 
 
-def _path_score(path_edges: Sequence[Dict[str, Any]], question: str) -> float:
+def _path_score(
+    path_edges: Sequence[Dict[str, Any]],
+    question: str,
+    *,
+    edge_qualities: Dict[int, float] | None = None,
+) -> float:
     if not path_edges:
         return 0.0
-    qualities = [_edge_quality(edge, question) for edge in path_edges]
+    qualities = [
+        edge_qualities[id(edge)]
+        if edge_qualities is not None
+        else _edge_quality(edge, question)
+        for edge in path_edges
+    ]
     candidate_ratio = sum(_candidate_edge(edge) for edge in path_edges) / len(
         path_edges
     )
@@ -565,12 +575,16 @@ def evidence_constrained_paths(
     ]
     adjacency: Dict[str, List[Dict[str, Any]]] = {}
     reverse_adjacency: Dict[str, List[Dict[str, Any]]] = {}
+    # Scores depend only on this question and each immutable edge during search.
+    # Reuse them across both frontiers and path prefixes, without retaining any
+    # data beyond this request or changing the scoring formula.
+    edge_qualities = {id(edge): _edge_quality(edge, question) for edge in eligible}
     for edge in eligible:
         source, target = _edge_endpoints(edge)
         adjacency.setdefault(source, []).append(edge)
         reverse_adjacency.setdefault(target, []).append(edge)
     for values in list(adjacency.values()) + list(reverse_adjacency.values()):
-        values.sort(key=lambda edge: _edge_quality(edge, question), reverse=True)
+        values.sort(key=lambda edge: edge_qualities[id(edge)], reverse=True)
 
     exact_positions = {
         anchor: str(question).lower().find(anchor.lower()) for anchor in anchors
@@ -619,7 +633,9 @@ def evidence_constrained_paths(
                     ):
                         continue
                     next_nodes = path_nodes + [next_node]
-                    score = _path_score(next_edges, question)
+                    score = _path_score(
+                        next_edges, question, edge_qualities=edge_qualities
+                    )
                     expanded.append((next_nodes, next_edges, score))
             expanded.sort(key=lambda item: item[2], reverse=True)
             frontier = expanded[:beam_width]
@@ -658,7 +674,9 @@ def evidence_constrained_paths(
                         _candidate_edge(edge) for edge in combined_edges
                     )
                     candidate_ratio = candidate_count / len(combined_edges)
-                    score = _path_score(combined_edges, question)
+                    score = _path_score(
+                        combined_edges, question, edge_qualities=edge_qualities
+                    )
                     if (
                         candidate_count <= max_candidate_edges
                         and candidate_ratio <= 0.34
@@ -736,6 +754,10 @@ def exploratory_pagerank(
     restart = 1.0 / len(anchors)
     for anchor in anchors:
         scores[anchor] = scores.get(anchor, 0.0) + restart
+    outgoing_weights = {
+        source: sum(weight for _, weight, _ in neighbours)
+        for source, neighbours in adjacency.items()
+    }
     for _ in range(max(1, iterations)):
         updated = {name: 0.0 for name in scores}
         dangling_mass = sum(
@@ -747,7 +769,7 @@ def exploratory_pagerank(
             neighbours = adjacency.get(source, [])
             if not neighbours:
                 continue
-            total_weight = sum(weight for _, weight, _ in neighbours)
+            total_weight = outgoing_weights[source]
             for target, weight, _ in neighbours:
                 updated[target] = (
                     updated.get(target, 0.0) + damping * value * weight / total_weight

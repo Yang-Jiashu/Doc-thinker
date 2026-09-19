@@ -134,6 +134,45 @@ class NetworkXStorage(BaseGraphStorage):
             return list(graph.edges(source_node_id))
         return None
 
+    async def get_nodes_batch(self, node_ids: list[str]) -> dict[str, dict]:
+        """Read one graph snapshot, preserving get_node's attribute references."""
+        if not node_ids:
+            return {}
+        graph = await self._get_graph()
+        result = {}
+        for node_id in node_ids:
+            data = graph.nodes.get(node_id)
+            if data is not None:
+                result[node_id] = data
+        return result
+
+    async def get_edges_batch(
+        self, pairs: list[dict[str, str]]
+    ) -> dict[tuple[str, str], dict]:
+        """Read edge attributes with one reload/lock check for the whole batch."""
+        if not pairs:
+            return {}
+        graph = await self._get_graph()
+        result = {}
+        for pair in pairs:
+            endpoints = (pair["src"], pair["tgt"])
+            data = graph.edges.get(endpoints)
+            if data is not None:
+                result[endpoints] = data
+        return result
+
+    async def get_nodes_edges_batch(
+        self, node_ids: list[str]
+    ) -> dict[str, list[tuple[str, str]]]:
+        """Return the same adjacency lists as individual reads, including misses."""
+        if not node_ids:
+            return {}
+        graph = await self._get_graph()
+        return {
+            node_id: list(graph.edges(node_id)) if graph.has_node(node_id) else []
+            for node_id in node_ids
+        }
+
     async def upsert_node(self, node_id: str, node_data: dict[str, str]) -> None:
         """
         Importance notes:

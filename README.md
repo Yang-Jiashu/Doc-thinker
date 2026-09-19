@@ -1,362 +1,142 @@
 <div align="center">
 
-<img src="docs/assets/banner.png" alt="DocThinker Banner" width="820" />
+<img src="docs/assets/banner.png" alt="DocThinker" width="820" />
 
 # DocThinker
 
-**Plastic Memory Runtime · Editable Long-Term Memory · Evidence-Grounded Knowledge Evolution**
+**An agent should remember, retrieve, and show what its answer rests on.**
 
-*Memory is not only stored. It can be recalled, corrected, connected, and reorganized through use.*
+Document QA · Editable long-term memory · Evidence-bounded knowledge evolution
 
-[![Paper](https://img.shields.io/badge/arXiv-2603.05551-b31b1b.svg)](https://arxiv.org/pdf/2603.05551)
-[![License: PolyForm Shield 1.0.0](https://img.shields.io/badge/License-PolyForm_Shield_1.0.0-orange.svg)](LICENSE)
-[![Demo](https://img.shields.io/badge/Demo-Local_UI-orange)](http://localhost:5000)
-[![Memory](https://img.shields.io/badge/Memory-Plastic_Runtime-4F7C70)](#-plastic-memory-runtime)
-[![GraphCore](https://img.shields.io/badge/GraphCore-Evidence_KG-8B5CF6)](#-session-scoped-knowledge-graphs-and-evidence-evolution)
+[English](README.md) · [中文](README.zh-CN.md) · [Quick start](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [Evaluation](docs/SELF_EVOLUTION_EVALUATION.md)
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Flask](https://img.shields.io/badge/Flask-UI-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![NetworkX](https://img.shields.io/badge/NetworkX-KG-4C72B0)](https://networkx.org/)
-[![FAISS](https://img.shields.io/badge/FAISS-Vector-3B5998?logo=meta&logoColor=white)](https://github.com/facebookresearch/faiss)
-
-[English](README.md) | [中文](README.zh-CN.md)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB)](pyproject.toml)
+[![CI](https://github.com/Yang-Jiashu/Doc-thinker/actions/workflows/ci.yml/badge.svg)](https://github.com/Yang-Jiashu/Doc-thinker/actions/workflows/ci.yml)
+[![Paper](https://img.shields.io/badge/arXiv-2603.05551-b31b1b)](https://arxiv.org/abs/2603.05551)
+[![License](https://img.shields.io/badge/License-PolyForm_Shield-orange)](LICENSE)
 
 </div>
 
----
+## What it does
 
-## Why DocThinker?
+DocThinker is an observable memory and retrieval runtime for document research and long-running agents. **Documents supply evidence; memories supply context; generated associations remain candidates.** These are different kinds of information.
 
-Most agent memory systems write records and retrieve similar records later. DocThinker asks a further question: **what happens to a memory after it is written?**
+| Your task | Runtime behavior |
+|---|---|
+| Answer from a document | Retrieve source evidence; disclose gaps instead of substituting inferred relations |
+| Understand a multi-step relationship | Search a bounded directed neighborhood for continuous paths and sources; connectivity is not proof of causality |
+| Explore related ideas | Rank and diversify graph associations while keeping hypotheses separate from facts |
+| Remember preferences and rules | Inspect, edit, delete, and restore long-term memory independently of ordinary chat history |
+| Run controlled comparisons | Toggle memory, history, LLM cache, and evolution separately; inspect policy and budget traces |
 
-DocThinker organizes conversations, documents, retrieval traces, episodes, and knowledge graphs into a multi-layer memory runtime. It supports cross-turn recall while also making long-term state observable and editable. Experimental offline algorithms can connect related experiences, reinforce useful paths, decay weak links, and prune them over time.
+> This is a research/development framework, not a demonstrated recursive self-improvement (RSI) system. Post-upload learning is wired; episodic overnight consolidation remains a separate experimental workflow. Independent evaluation must establish whether knowledge growth improves capability.
 
-The project has two central directions:
-
-1. **Controllable plastic memory.** Memory is not an append-only black box. Durable rules and preferences can be recalled, updated, replaced, deleted, and audited.
-2. **Brain-inspired offline consolidation.** Additional compute outside answer generation reorganizes episodes using content similarity, structural similarity, salience, and graph relations. This module is experimental and is not yet fully integrated into the main Web workflow.
-
-Document reasoning and knowledge graphs remain important sources of memory and evidence, but they are not the project's only identity.
-
-## Capability Status
-
-This README distinguishes production-wired behavior from experimental modules and planned work.
-
-| Status | Capability | Current behavior |
-|---|---|---|
-| ✅ Wired | Cross-turn rules, preferences, and project state | Can be recalled independently of ordinary chat context |
-| ✅ Wired | Memory update and ablation | New rules can replace old rules; memory can be disabled for comparison |
-| ✅ Wired | Memory Trace | Exposes recall plans, long-horizon state, episodes, candidate knowledge, and evidence |
-| ✅ Wired | Episodic analogy retrieval | Deep mode retrieves experiences by content, structure, and salience |
-| ✅ Wired | Tiered conversation memory | Claw working/core/archive hierarchy |
-| ✅ Wired | Session-scoped knowledge graph | Each session isolates documents, graph state, indexes, and cache scope |
-| ✅ Wired | Memory management API | List, update, delete, edit-plan, and export long-horizon records |
-| ✅ Wired | SQLite persistence and revisions | Long-term memory survives backend restarts; edits, deletes, and restores create immutable revisions |
-| ✅ Wired | Memory-graph spreading recall | Direct matches become seeds; typed weighted edges retrieve related memories with auditable paths |
-| ✅ Wired | Memory / cognition separation | Cognitions persist as independent nodes that cite evidence memories; changed evidence marks cognition for review |
-| 🧪 Experimental | Offline memory consolidation | Linking, reinforcement, decay, and pruning exist in code but are not wired to the main UI or scheduler |
-| 🧪 Experimental | Inductive abstraction | Summaries, similar-memory merging, and graph clustering exist; a complete observable induction trace does not |
-| 🧪 Experimental | KG relation evolution | ECLRR-v4 can propose and review evidence-complete candidate relations |
-| 🧭 Planned | Unified reasoning traces | Explicit premises, steps, conclusions, and provenance for deduction, induction, and analogy |
-
-> [!IMPORTANT]
-> Long-horizon memory is stored in `$RAG_WORKDIR/long_horizon_memory.db` by default. Set `LONG_HORIZON_DB_PATH` to override it. `InMemoryLongHorizonBackend` remains available for plugin examples and non-persistent tests.
-
-## How It Works
+## Architecture at a glance
 
 ```mermaid
-flowchart LR
-    Q["User query"] --> P["Recall Plan<br/>select memory layers"]
-    P --> C["Claw<br/>working / core / archive"]
-    P --> L["Long-Horizon<br/>preferences / rules / project state"]
-    P --> E["Neuro Episodes<br/>past experiences and analogies"]
-    P --> O["Cognition<br/>revisable conclusions derived from memory"]
-    P --> K["GraphCore + Expanded KG<br/>knowledge, relations, evidence"]
-    L & E --> O
-    C & L & E & K & O --> M["Unified memory and cognition context"]
-    M --> A["LLM + retrieval generation"]
-    A --> W["Policy-controlled writeback"]
-    W --> C
-    W --> L
-    W --> E
-    W --> K
-    E -.experimental offline compute.-> S["link / reinforce / decay / prune"]
-    S -.reorganize episode graph.-> E
+flowchart TD
+    U["Upload"] --> I["Parse / chunk / extract"]
+    I --> S["Session evidence: source + graph + vectors"]
+    Q["Question + experiment controls"] --> H["Harness: policy and budget"]
+    H --> R["On-demand evidence / memory / path retrieval"]
+    S --> R
+    M["Editable memory"] --> R
+    R --> A["LLM answer + evidence trace"]
+    A --> W["Controlled writeback after a complete answer"]
+    W --> M
+    I -.post-upload learning.-> C["Candidate relations / SelfStudy audit"]
+    C -.ECLRR-reviewed relations.-> S
+    C -.manually selected changes.-> E["Independent held-out A/B check"]
+    E -.advisory only.-> V["Review / reject / collect more evidence"]
 ```
 
-The online loop is coordinated through `AgentMemoryCore`:
+Code supplies the skeleton: isolation, selection, paths, budgets, and admission checks. Models supply semantic extraction, answer generation, and optional proposals. Not every step needs an LLM call.
 
-1. Build a recall plan from request controls and query intent.
-2. Retrieve candidates from enabled memory layers.
-3. Merge memory, graph evidence, and document context into one generation instruction.
-4. Generate an answer and record the memory path used for that turn.
-5. Write episodes, long-term state, and candidate knowledge back under an explicit memory policy.
+## Quick start
 
-<div align="center">
-<img src="docs/assets/agentic_memory_architecture.png" alt="DocThinker agentic memory framework architecture" width="920" />
-<p><b>Figure 1.</b> AgentMemoryCore, pluggable backends, GraphCore, retrieval/generation, and policy-controlled writeback.</p>
-</div>
-
-## 🧠 Plastic Memory Runtime
-
-### 1. AgentMemoryCore
-
-`docthinker.memory_core.AgentMemoryCore` is the unified memory facade. External agents can implement backend protocols for:
-
-- conversation memory;
-- episodic memory;
-- long-horizon insight memory;
-- expanded KG hypotheses;
-- graph promotion;
-- optional chat-turn ingestion.
-
-`MemoryPolicy` controls active layers, recall breadth, and whether writes are allowed. Hosts can also use `remember_turn=false` or `memory_excluded_layers` to keep sensitive or transient material out of selected memory layers.
-
-### 2. Four Online Memory Layers
-
-| Layer | Default implementation | Purpose |
-|---|---|---|
-| Conversation memory | Claw | Recent dialogue, core summaries, and cold semantic archives |
-| Episodic memory | Neuro Memory | Episode summaries, concepts, entities, relations, and structure for analogy |
-| Long-term state | Long-Horizon backend | Preferences, rules, feedback, project state, and reusable experience |
-| Semantic/candidate knowledge | GraphCore + Expanded KG | Document facts, evidence relations, and hypotheses awaiting validation |
-
-### 3. Observable and Editable Memory
-
-The Query page exposes a turn-level Memory Trace. The KG dashboard supports listing long-horizon records, natural-language edit planning, confirmed updates, deletion, and export. This makes it possible to distinguish an answer that merely looks plausible from one that actually used a stored memory.
-
-<div align="center">
-  <img src="docs/assets/memory_kg_observability_demo.gif" alt="DocThinker memory and knowledge graph observability demo" width="920" />
-  <p><b>Figure 2.</b> Memory traces, long-term state, and knowledge-graph observability and management.</p>
-</div>
-
-## 🧬 Algorithms
-
-### Episodic Analogy Retrieval
-
-Neuro Memory stores each experience as an episode. Its current analogy score combines:
-
-```text
-score = 0.60 × content similarity + 0.25 × structural similarity + 0.15 × salience
-```
-
-Similar episodes are injected as reasoning guidance, not treated as factual evidence. Factual claims should still be grounded in source chunks or graph evidence.
-
-### Spreading Activation
-
-Long-horizon recall uses the strongest direct memory as a seed and currently propagates for up to two hops over durable typed edges. Relation type, edge weight, depth decay, seed id, and the complete path are exposed in Memory Trace. Neuro Memory retains its separate episodic spreading mechanism.
-
-### Offline Consolidation — Experimental
-
-The repository contains an offline process that:
-
-1. Samples recent and high-salience episodes.
-2. Finds candidate pairs using content and structural similarity.
-3. Optionally infers `analogous_to` or `same_theme` relations.
-4. Creates bidirectional links and reinforces recently activated edges.
-5. Decays long-inactive weak edges and prunes those below a threshold.
-
-This is a form of memory-side test-time scaling: it allocates compute outside answer generation to reorganize memory rather than changing model weights. **It currently runs through separate scripts and is not yet a one-click “sleep” feature in the main product.**
-
-### Current Boundary of Three Reasoning Primitives
-
-| Primitive | Current maturity | Implementation |
-|---|---|---|
-| Analogy | Most developed | Content similarity, structural similarity, salience, and episodic graph propagation |
-| Induction | Partial | Conversation summaries, similar-state merging, KG clustering, and theme abstraction |
-| Deduction | Assisted | Recalled rules constrain the LLM; this is not yet a symbolic proof engine |
-
-## 🧩 Session-Scoped Knowledge Graphs and Evidence Evolution
-
-Each session uses an isolated GraphCore workspace for document state, parse caches, vector indexes, and answer-cache scope. GraphCore provides entity, relation, chunk, and hybrid vector retrieval. Expanded KG stores candidate knowledge that may be used and promoted later.
-
-ECLRR-v4 discovers and reviews missing relations:
-
-1. Run relation-aware 3–8 hop beam search over original fact edges only.
-2. Resolve every hop through `source_id` and verify source chunks, quotes, offsets, and direction.
-3. Let a Generator propose a canonical relation and an independent Judge review it.
-4. Apply a deterministic Gate for path continuity, evidence, duplicates, and conflicts.
-5. Write only accepted relations back to the graph and vector index.
-
-<div align="center">
-  <img src="docs/assets/gpu_knowledge_graph_demo.gif" alt="DocThinker semantic-zoom knowledge graph demo" width="920" />
-  <p><b>Figure 3.</b> Semantic-zoom knowledge graph with evidence inspection.</p>
-</div>
-
-## 🚀 Quick Start
-
-### Install
-
-Python 3.10 or newer is recommended.
+Python 3.11 is recommended. Install from a repository checkout in editable mode. Parsing dependencies are substantial; initial installation and model downloads can take a while.
 
 ```bash
 git clone https://github.com/Yang-Jiashu/Doc-thinker.git
 cd Doc-thinker
-
-conda create -n docthinker python=3.11 -y
-conda activate docthinker
-
-pip install -r requirements.txt
-pip install -e .
-cp env.example .env
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[all]"
+cp -n env.example .env
 ```
 
-Configure the LLM, embedding, and VLM services you intend to use in `.env`.
+Edit `.env` with services you can access. Never commit API keys.
 
-### Start the Web UI
+| Settings | Check |
+|---|---|
+| `LLM_BINDING_HOST`, `LLM_BINDING_API_KEY`, `LLM_MODEL` | Answer model and compatible endpoint |
+| `KEYWORD_LLM_MODEL`, `ENTITY_EXTRACTION_LLM_MODEL` | Models available at that endpoint; may match the answer model |
+| `EMBEDDING_BINDING_HOST`, `EMBEDDING_BINDING_API_KEY`, `EMBEDDING_MODEL`, `EMBEDDING_DIM` | Configured dimensions must match embedding output |
+| `VLM_MODEL` | An available vision model when using multimodal processing |
+| `RAG_WORKDIR` | Defaults to `./rag_storage_api`, including the long-horizon SQLite database |
+
+Use two terminals, initially listening only on localhost:
 
 ```bash
-# Terminal 1: FastAPI backend
-python -m uvicorn docthinker.server.app:app --host 0.0.0.0 --port 8000
+# Terminal 1: backend
+python -m uvicorn docthinker.server.app:app --host 127.0.0.1 --port 8000
 
-# Terminal 2: Flask UI
-python run_ui.py
+# Terminal 2: UI (port 5000 may be occupied by macOS)
+UI_HOST=127.0.0.1 UI_PORT=5001 python run_ui.py
 ```
 
-Default pages:
+Open [Chat](http://127.0.0.1:5001/query), [Knowledge & memory](http://127.0.0.1:5001/knowledge-graph), or [API docs](http://127.0.0.1:8000/docs). The UI proxy expects local port 8000. Configure authentication, reverse proxying, and access controls separately before remote deployment.
 
-- Conversation and memory: `http://localhost:5000/query`
-- Memory graph: `http://localhost:5000/knowledge-graph`
+**First run:** create a session → upload one TXT → wait for ingestion → ask in faithful mode → inspect the memory/evidence trace. Start with text before PDF/image processing. Startup probes, extraction, and background learning may call models; query controls do not globally disable model use.
 
-If `UI_PORT` is configured, use that port instead.
+## Interface and experiments
 
-### Memory Layer API
+Answer intent is visible on the main screen: automatic, faithful, path, or exploratory. Retrieval depth and experiment controls are progressively disclosed; retrieving more should not be mistaken for greater reliability.
 
-The memory layer can be embedded without the complete Web app. The following is an interface example; the host project must implement the `my_*_store` objects.
+- Memory, history, cache, and evolution controls are independent. Disabling history does not disable long-term memory.
+- Compact context is enabled by default. Extra LLM path completion and reviewed inferred-relation retrieval are opt-in.
+- The memory trace exposes the current policy, budget, and evidence, including on mobile.
+- Faithful mode excludes expanded hypotheses; ordinary conversation may still use enabled history and memory.
 
-```python
-from docthinker.memory_core import AgentMemoryBackends, AgentMemoryCore, MemoryPolicy
+See the [query runtime guide](docs/QUERY_RUNTIME.md) for parameters and a copyable baseline request.
 
-memory = AgentMemoryCore(
-    backends=AgentMemoryBackends(
-        conversation=my_conversation_store,
-        episodic=my_episode_store,
-        expanded=my_candidate_graph,
-        long_horizon=my_long_horizon_store,
-        graph=my_semantic_graph,
-    ),
-    policy=MemoryPolicy(
-        episodic_top_k=3,
-        expanded_top_k=2,
-        long_horizon_top_k=3,
-        enabled_layers=("conversation", "episodic", "expanded", "long_horizon", "graph"),
-    ),
-)
+## How far does self-improvement go?
 
-question = "Which past experiences should be used before answering?"
-bundle = await memory.recall(
-    session_id="research-session",
-    query=question,
-    enable_thinking=True,
-)
-
-answer = await my_agent.run(question, context=bundle.retrieval_instruction)
-
-await memory.after_response(
-    session_id="research-session",
-    question=question,
-    answer=answer,
-    matched_expanded=bundle.expanded_matches,
-)
-```
-
-See [`docs/MEMORY_PLUGIN_GUIDE.md`](docs/MEMORY_PLUGIN_GUIDE.md) for backend integration details.
-
-## Query and Document Modes
-
-| UI mode | GraphCore mapping | Current strategy |
-|---|---|---|
-| Quick | `naive` | Lightweight retrieval with reranking disabled |
-| Standard | `local` | Session KG retrieval + reranking; ordinary chat can use history/memory when document retrieval is empty |
-| Deep Memory | `mix` | KG + vector retrieval, Claw and episodic analogy; derived knowledge and writeback obey per-query controls |
-
-The query Harness now separates faithful, path and exploratory questions, bounds auxiliary context, and keeps extra LLM path completion **off by default**. Explicit graph-candidate opt-out is honored throughout retrieval. Local stores and pipeline state are isolated by their actual directory, including legacy sessions with an empty workspace. See [query controls, architecture, budgets and A/B examples](docs/QUERY_RUNTIME.md).
-
-PDF processing supports:
-
-| Mode | Engine | Best for |
-|---|---|---|
-| `vlm` | Cloud VLM | Image-heavy documents |
-| `auto` | VLM for short documents, MinerU for long documents | General documents |
-| `mineru` | MinerU layout engine | Long documents and complex tables |
-
-The corresponding engines and API credentials must be installed and configured. Plain-text ingestion is also supported.
-
-## 💡 Interface Examples
-
-<table>
-<tr>
-<td width="50%" valign="top">
-
-> Ingest content and explore an automatically constructed knowledge graph
-
-<img src="docs/assets/usecase_kg.gif" width="100%"/>
-
-</td>
-<td width="50%" valign="top">
-
-> Deep mode with tiered memory, episodic analogy, and graph retrieval
-
-<img src="docs/assets/usecase_chat.gif" width="100%"/>
-
-</td>
-</tr>
-</table>
-
-## 📡 API Reference
-
-<details>
-<summary><b>Expand primary endpoints</b></summary>
-
-| Category | Endpoint | Method | Description |
-|---|---|---|---|
-| Sessions | `/api/v1/sessions` | GET / POST | List / create sessions |
-| | `/api/v1/sessions/{id}` | GET / PUT / DELETE | Read / update / delete a session |
-| | `/api/v1/sessions/{id}/history` | GET | Chat history |
-| | `/api/v1/sessions/{id}/files` | GET | Ingested files |
-| Ingest | `/api/v1/ingest` | POST | Upload PDF / TXT |
-| | `/api/v1/ingest/stream` | POST | Stream raw text |
-| Query | `/api/v1/query/stream` | POST | SSE streaming query |
-| | `/api/v1/query` | POST | Non-streaming query |
-| | `/api/v1/query/text` | POST | Non-streaming alias |
-| KG | `/api/v1/knowledge-graph/data` | GET | Nodes and edges for visualization |
-| | `/api/v1/knowledge-graph/expand` | POST | Trigger KG expansion |
-| | `/api/v1/knowledge-graph/eclrr-v4/run` | POST | Run evidence-based relation refinement |
-| | `/api/v1/knowledge-graph/stats` | GET | KG statistics |
-| | `/api/v1/knowledge-graph/expanded-nodes` | GET | Expanded-node lifecycle state |
-| Memory | `/api/v1/memory/stats` | GET | Episode + Claw memory statistics |
-| | `/api/v1/memory/dashboard` | GET | Aggregated KG + memory state |
-| | `/api/v1/memory/long-horizon` | GET | List long-horizon records |
-| | `/api/v1/memory/long-horizon/edit-plan` | POST | Map edit instructions to candidate memories |
-| | `/api/v1/memory/long-horizon/{id}` | PATCH / DELETE | Update / delete a long-horizon record |
-| | `/api/v1/memory/long-horizon/{id}/revisions` | GET | List immutable revision history |
-| | `/api/v1/memory/long-horizon/{id}/restore/{revision_id}` | POST | Restore an old snapshot as a new active version |
-| | `/api/v1/memory/long-horizon/edges` | GET / POST | List / write durable memory relations and weights |
-| | `/api/v1/memory/long-horizon/export` | GET | Export an audit index |
-| | `/api/v1/memory/cognitions` | GET / POST | List / create cognition nodes with memory evidence |
-| | `/api/v1/memory/cognitions/{id}` | PATCH | Revise or invalidate cognition without overwriting evidence memory |
-| | `/api/v1/memory/cognitions/{id}/revisions` | GET | List cognition evolution history |
-| Settings | `/api/v1/settings` | GET / POST | Runtime configuration |
-
-</details>
-
-## Project Structure
-
-| Directory | Purpose |
+| Status | Capability |
 |---|---|
-| `docthinker/memory_core/` | Unified facade, graph-spreading recall, separate cognition layer, SQLite storage, and revision history |
-| `claw/` | Working/core/archive tiered conversation memory |
-| `neuro_memory/` | Episodes, analogy retrieval, spreading activation, and experimental offline consolidation |
-| `docthinker/kg_expansion/` | Candidate knowledge, clustering, usage tracking, and promotion |
-| `graphcore/` | Knowledge graphs, vector retrieval, chunks, and evidence relations |
-| `docthinker/server/` | FastAPI service and online query loop |
-| `docthinker/ui/` | Conversation, memory traces, and knowledge-graph interfaces |
-| `packages/docthinker-memory/` | Lightweight package skeleton for third-party agents |
+| Wired | Session isolation, layered memory, evidence retrieval, budgets, controlled writeback, and Memory Trace |
+| Wired; efficacy needs evaluation | Post-upload ECLRR review; SelfStudy outputs are audit-only and do not overwrite source node descriptions |
+| Offline tool | Per-question-family candidate checks covering quality and cost; advisory only, no automatic deployment |
+| Experimental | Episodic linking, reinforcement, decay, and pruning; separate SEAL / TriGraph paths |
+| Not yet a complete loop | Independently validated policy adoption, whole-system rollback, and demonstrated RSI |
 
-## 📝 Citation
+The objective is **better use of evidence, not simply a larger graph**. This architecture can support bounded self-improvement experiments but is not complete RSI. See [architecture assessment](docs/ARCHITECTURE.md) for gaps and priorities.
 
-If DocThinker helps your research, please cite:
+## Development and validation
+
+```bash
+python -m pip install -e ".[all,test]"
+python -m pytest tests/ -q --ignore=tests/debug_db.py
+
+# No LLM call. Input format and independent review requirements are in the guide.
+python -m docthinker.evaluation --baseline baseline.json --candidate candidate.json
+```
+
+Unit tests use model doubles and synthetic evidence; they do not establish real answer quality or provider-token savings. Lexical scores are screening proxies, not tests of negation, causality, or factual support.
+
+## Documentation
+
+| Guide | Contents |
+|---|---|
+| [Architecture and RSI boundaries](docs/ARCHITECTURE.md) | Online/background responsibilities, efficiency, remaining gaps |
+| [Query runtime](docs/QUERY_RUNTIME.md) | Modes, controls, budgets, A/B requests |
+| [Self-evolution evaluation](docs/SELF_EVOLUTION_EVALUATION.md) | Held-out data, review rubric, admission input format |
+| [Memory plugin guide](docs/MEMORY_PLUGIN_GUIDE.md) | Embed `AgentMemoryCore` in another agent |
+| [Contributing](CONTRIBUTING.md) | Development workflow |
+
+Main entry points: `docthinker/harness.py` for policy; `docthinker/memory_core/` for memory; `graphcore/` for evidence; `docthinker/server/routers/ingest.py` for post-upload learning; `docthinker/ui/` for interaction.
+
+## Citation and license
 
 ```bibtex
 @article{yang2026autothinkrag,
@@ -367,12 +147,4 @@ If DocThinker helps your research, please cite:
 }
 ```
 
-## 🤝 Contributing
-
-Pull requests and issues are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## 📜 License
-
-Current and future versions use the [PolyForm Shield License 1.0.0](LICENSE). Within its terms, the source may be used, studied, modified, and distributed, but it may not be used to provide a product or service that competes with DocThinker or related products and services of the licensor. Contact the maintainer for commercial licensing beyond those terms.
-
-Historical versions previously released under MIT remain under their original license. Unless a file or version states otherwise, the current repository and future releases use PolyForm Shield 1.0.0.
+Current releases use the [PolyForm Shield License 1.0.0](LICENSE). Previously MIT-licensed releases retain their original license.

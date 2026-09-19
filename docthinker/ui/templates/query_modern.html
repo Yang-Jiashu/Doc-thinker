@@ -403,6 +403,47 @@
         user-select: none;
     }
     .advanced-controls summary::-webkit-details-marker { display: none; }
+    .composer-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+    .answer-policy { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--dt-muted); }
+    .answer-policy select { min-height: 38px; border: 1px solid var(--dt-hairline); border-radius: 10px; background: #fffefa; color: var(--dt-ink); padding: 7px 28px 7px 10px; font: inherit; }
+    .policy-help { color: #686158; font-size: 12px; line-height: 1.6; margin: 0 0 10px; }
+    .composer-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; color: var(--dt-muted); font-size: 11px; }
+    .request-status { display: inline-flex; align-items: center; gap: 6px; }
+    .request-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #aaa094; }
+    .request-status[data-state="busy"]::before { background: var(--dt-copper); animation: dt-pulse 1.5s ease-in-out infinite; }
+    .request-status[data-state="done"]::before { background: var(--dt-sage); }
+    .request-status[data-state="error"] { color: #9a382b; }
+    .request-status[data-state="error"]::before { background: #9a382b; }
+    .advanced-controls summary { min-height: 34px; display: flex; align-items: center; gap: 8px; color: #675e54; font-size: 12px; }
+    .advanced-controls summary::after { content: '+'; margin-left: auto; font-size: 18px; }
+    .advanced-controls[open] summary::after { content: '−'; }
+    .settings-summary { color: #8a8177; font-size: 11px; }
+    .settings-panel { max-height: min(42vh, 360px); overflow-y: auto; padding: 8px 2px 4px; overscroll-behavior: contain; }
+    .settings-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; font-size: 12px; color: #514a41; }
+    .experiment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
+    .experiment-control { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px; border: 1px solid #e5dfd4; border-radius: 12px; background: #fffefa; }
+    .experiment-control strong { display: block; font-size: 12px; font-weight: 600; color: var(--dt-ink); }
+    .experiment-control p { margin-top: 3px; color: var(--dt-muted); font-size: 11px; line-height: 1.5; }
+    .experiment-control button { min-width: 58px; min-height: 36px; flex-shrink: 0; font-size: 12px; }
+    .experiment-control button[aria-checked="true"] { background: #edf4f0; border-color: #b7ccc3; color: #3c6155; }
+    .experiment-control button[aria-checked="false"] { background: #f2eee8; color: #6f665b; }
+    .settings-options { display: grid; gap: 8px; padding: 3px 2px; }
+    .settings-option { display: flex; align-items: flex-start; gap: 9px; font-size: 12px; color: var(--dt-ink); cursor: pointer; line-height: 1.5; }
+    .settings-option input { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--dt-sage); }
+    .settings-option small { display: block; color: var(--dt-muted); font-size: 11px; }
+    .settings-option:has(input:disabled) { opacity: .6; cursor: default; }
+    .query-shell button:focus-visible, .workspace-header button:focus-visible,
+    .query-shell select:focus-visible, .query-shell summary:focus-visible,
+    .query-shell input:focus-visible, .workspace-header select:focus-visible {
+        outline: 2px solid var(--dt-sage); outline-offset: 3px;
+    }
+    .composer-bar:focus-within { border-color: #8ba89d; box-shadow: 0 0 0 3px rgba(84,116,107,.1); }
+    .composer-bar > .absolute { right: 10px; bottom: 10px; }
+    .query-shell, .chat-column, #chat-messages { min-height: 0; }
+    .query-shell button:disabled { cursor: not-allowed; }
+    .budget-summary { font-size: 12px; line-height: 1.7; color: #62594e; }
+    .budget-summary strong { font-weight: 600; color: var(--dt-ink); }
+    .inspector-backdrop { display: none; }
     .memory-inspector {
         width: 328px;
         background: #f6f3ee;
@@ -456,17 +497,42 @@
     }
     @media (max-width: 1024px) {
         .memory-inspector {
-            display: none;
+            position: fixed; inset: 12px 12px 12px auto; width: min(390px, calc(100vw - 24px));
+            z-index: 81; border: 1px solid var(--dt-hairline); border-radius: 18px;
+            box-shadow: 0 22px 70px rgba(41,37,32,.22);
         }
+        .memory-inspector.is-collapsed { display: none; }
+        .inspector-backdrop:not(.hidden) { display: block; position: fixed; inset: 0; background: rgba(41,37,32,.3); z-index: 80; }
     }
     @media (max-width: 720px) {
         .workspace-header { padding: 14px 16px !important; }
+        .workspace-header { flex-wrap: wrap; gap: 10px !important; }
+        .workspace-header > div:last-child { width: 100%; gap: 6px; }
+        .workspace-header > div:last-child select { flex: 1; max-width: none !important; min-width: 0 !important; }
         .workspace-header p:last-child { display: none; }
         .workspace-header .input-field { min-width: 130px !important; max-width: 155px; }
         .chat-stream { padding: 20px 16px; }
         .starter-grid { grid-template-columns: 1fr; }
         .composer-dock { padding: 10px 12px 14px; }
         .memory-write-control #remember-toggle-hint { display: none; }
+        .composer-toolbar { gap: 6px; }
+        .answer-policy { gap: 6px; font-size: 11px; }
+        .answer-policy select { max-width: 155px; padding-right: 18px; }
+        .composer-action { width: 44px; height: 44px; }
+        .workspace-header .dt-header-button { min-width: 44px; min-height: 44px; }
+        .workspace-header .input-field, .answer-policy select { min-height: 44px; }
+        .memory-write-control button, .experiment-control button { min-height: 44px; font-size: 12px; }
+        .mode-card { min-height: 44px; }
+        .advanced-controls summary { min-height: 44px; }
+        .settings-option { min-height: 44px; align-items: center; }
+        .composer-bar textarea { padding-right: 100px !important; font-size: 16px; }
+        .experiment-grid { grid-template-columns: 1fr; }
+        .settings-summary { max-width: 48%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .message-user { max-width: 86% !important; }
+        .chat-stream > .animate-fadeIn > .max-w-2xl { max-width: calc(100% - 44px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .query-shell *, .query-shell *::before { animation: none !important; transition: none !important; }
     }
 </style>
 {% endblock %}
@@ -474,19 +540,19 @@
 {% block content %}
 <header class="workspace-header border-b border-[#ded8cc] px-6 py-3 flex items-center justify-between gap-5 shrink-0">
     <div class="min-w-0">
-        <p class="workspace-eyebrow">Dynamic memory workspace</p>
+        <p class="workspace-eyebrow">DocThinker</p>
         <h2 class="text-lg font-semibold text-[#292520] mt-1">对话与记忆</h2>
-        <p class="text-xs text-[#766f66] mt-0.5 truncate">让每次交互形成可观察、可修正的长期状态</p>
+        <p class="text-xs text-[#766f66] mt-0.5 truncate">读懂资料，保留记忆，查看回答依据</p>
     </div>
     <div class="flex items-center gap-2 shrink-0">
-        <select id="session-selector" class="input-field px-3 py-2 text-sm min-w-[190px]" onchange="handleSessionSwitch(this.value)"></select>
+        <select id="session-selector" aria-label="当前会话" class="input-field px-3 py-2 text-sm min-w-[190px]" onchange="handleSessionSwitch(this.value)"></select>
         <button id="delete-session-button" onclick="deleteCurrentSession()" class="dt-header-button dt-icon-button" title="删除当前会话" aria-label="删除当前会话">
             <i class="fa-solid fa-trash-can"></i>
         </button>
-        <button id="memory-inspector-toggle" onclick="toggleMemoryInspector()" class="memory-inspector-toggle dt-header-button" title="查看本轮调用的记忆和证据" aria-expanded="false">
-            <i class="fa-solid fa-route"></i><span>记忆路径</span><span id="trace-ready-dot" class="trace-ready-dot hidden"></span>
+        <button id="memory-inspector-toggle" onclick="toggleMemoryInspector()" class="memory-inspector-toggle dt-header-button" title="查看本轮记忆、证据和上下文预算" aria-expanded="false" aria-controls="memory-inspector">
+            <i class="fa-solid fa-route"></i><span>回答依据</span><span id="trace-ready-dot" class="trace-ready-dot hidden"></span>
         </button>
-        <button onclick="clearChat()" class="dt-header-button" title="创建新的记忆空间">
+        <button onclick="clearChat()" class="dt-header-button" title="创建新的记忆空间" aria-label="新建会话">
             <i class="fa-solid fa-plus"></i><span class="hidden sm:inline">新会话</span>
         </button>
     </div>
@@ -500,9 +566,9 @@
                     <div class="flex items-start gap-4">
                         <div class="welcome-mark"><i class="fa-solid fa-wave-square"></i></div>
                         <div>
-                            <p class="text-[11px] font-semibold uppercase tracking-[.14em] text-[#54746b]">Plastic memory runtime</p>
-                            <h3 class="text-xl font-semibold text-[#292520] mt-1">记忆不只是被保存，也会在使用中变化。</h3>
-                            <p class="text-sm text-[#766f66] mt-2 leading-6">告诉我一条长期偏好、继续一个项目，或检查本轮回答调用了哪些记忆。右侧会同步展示召回与证据路径。</p>
+                            <p class="text-[11px] font-semibold tracking-[.08em] text-[#54746b]">从一份资料或一个问题开始</p>
+                            <h3 class="text-xl font-semibold text-[#292520] mt-1">这次想弄清楚什么？</h3>
+                            <p class="text-sm text-[#766f66] mt-2 leading-6">上传资料后提问，也可以告诉我需要记住的偏好。回答后，点「回答依据」查看用到的记忆和证据。</p>
                         </div>
                     </div>
                     <div class="starter-grid">
@@ -516,70 +582,77 @@
 
         <div class="composer-dock shrink-0">
             <div class="composer-inner">
-                <div class="flex items-center justify-between gap-3 mb-2">
-                    <div class="mode-segment" aria-label="回答模式">
-                        <button onclick="setMode('quick')" id="mode-quick" class="mode-card text-left" title="轻量检索">
-                            <span class="font-medium text-xs">快速</span><span class="mode-icon"></span><p></p>
-                        </button>
-                        <button onclick="setMode('standard')" id="mode-standard" class="mode-card active text-left" title="记忆与知识联合检索">
-                            <span class="font-medium text-xs">标准</span><span class="mode-icon"></span><p></p>
-                        </button>
-                        <button onclick="setMode('deep')" id="mode-deep" class="mode-card text-left" title="记忆、图谱与证据联合召回">
-                            <span class="font-medium text-xs">深度记忆</span><span class="mode-icon"></span><p></p>
-                        </button>
-                    </div>
+                <div class="composer-toolbar">
+                    <label class="answer-policy" for="evolution-mode">回答方式
+                        <select id="evolution-mode" onchange="updateQueryControls()" aria-describedby="policy-description">
+                            <option value="auto">自动选择</option>
+                            <option value="faithful">忠实原文</option>
+                            <option value="path">梳理推理链</option>
+                            <option value="explore">探索关联</option>
+                            <option value="off">关闭知识扩展</option>
+                        </select>
+                    </label>
                     <div class="memory-write-control">
-                        <button onclick="toggleRememberTurn()" id="remember-toggle" class="dt-mini-button flex items-center gap-2" title="控制本轮是否写入长期、情节和对话记忆">
+                        <button onclick="toggleRememberTurn()" id="remember-toggle" class="dt-mini-button flex items-center gap-2" title="控制本轮是否写入长期、情节和对话记忆" aria-pressed="true">
                             <i id="remember-toggle-icon" class="fa-solid fa-toggle-on text-[#54746b]"></i>
                             <span id="remember-toggle-text">写入记忆</span>
                         </button>
                         <span id="remember-toggle-hint">本轮会被巩固</span>
                     </div>
                 </div>
+                <p id="policy-description" class="policy-help">根据问题选择回答方式；不确定时优先忠实原文。</p>
 
                 <div id="attached-files" class="hidden flex flex-wrap gap-2 mb-2"></div>
                 <div id="processing-list" class="space-y-2 mb-2"></div>
 
                 <div class="relative composer-bar">
-                    <textarea id="message-input" placeholder="告诉 DocThinker 现在发生了什么，或继续之前的任务…" class="w-full px-5 py-4 pr-24 rounded-[24px] resize-none text-[#292520] bg-transparent placeholder:text-[#9b9287] focus:outline-none" rows="2" onkeydown="handleKeyDown(event)"></textarea>
+                    <textarea id="message-input" aria-label="输入问题" aria-describedby="send-keyboard-hint policy-description" placeholder="输入问题，或点击回形针上传资料…" class="w-full px-5 py-4 pr-24 rounded-[24px] resize-none text-[#292520] bg-transparent placeholder:text-[#9b9287] focus:outline-none" rows="2" onkeydown="handleKeyDown(event)"></textarea>
                     <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(this)">
                     <div class="absolute right-3 bottom-3 flex items-center gap-1">
-                        <button onclick="document.getElementById('file-input').click()" class="composer-action text-[#9b9287] hover:text-[#b85c38] hover:bg-[#fbede6]" title="添加记忆来源"><i class="fa-solid fa-paperclip"></i></button>
-                        <button onclick="sendMessage()" class="composer-action btn-primary shadow-sm" title="发送"><i class="fa-solid fa-arrow-up text-sm"></i></button>
+                        <button onclick="document.getElementById('file-input').click()" class="composer-action text-[#9b9287] hover:text-[#b85c38] hover:bg-[#fbede6]" title="上传资料" aria-label="上传资料"><i class="fa-solid fa-paperclip"></i></button>
+                        <button onclick="sendMessage()" class="composer-action btn-primary shadow-sm" title="发送" aria-label="发送问题"><i class="fa-solid fa-arrow-up text-sm"></i></button>
                     </div>
                 </div>
+                <div class="composer-footer">
+                    <span id="request-status" class="request-status" data-state="idle" role="status" aria-live="polite">准备就绪</span>
+                    <span id="send-keyboard-hint">Enter 发送 · Shift + Enter 换行</span>
+                </div>
 
-                <details class="advanced-controls">
-                    <summary><i class="fa-solid fa-sliders mr-1"></i>高级运行控制</summary>
-                    <div class="mt-2 flex flex-wrap gap-2 text-xs" aria-label="实验控制">
-                        <button onclick="toggleRunControl('memory')" id="control-memory" class="dt-mini-button" title="关闭记忆召回和记忆写入">记忆：开</button>
-                        <button onclick="toggleRunControl('context')" id="control-context" class="dt-mini-button" title="关闭历史对话注入，仍保留界面聊天记录">上下文：开</button>
-                        <button onclick="toggleRunControl('cache')" id="control-cache" class="dt-mini-button" title="本轮绕过 LLM 缓存读取和写入">缓存：开</button>
-                        <button onclick="toggleRunControl('evolution')" id="control-evolution" class="dt-mini-button" title="关闭补边和扩展节点参与查询">自进化：开</button>
-                        <label class="dt-mini-button">回答依据
-                            <select id="evolution-mode" aria-label="回答依据">
-                                <option value="auto">自动判断</option>
-                                <option value="faithful">忠实原文</option>
-                                <option value="path">查找推理路径</option>
-                                <option value="explore">探索关联</option>
-                                <option value="off">关闭进化知识</option>
-                            </select>
-                        </label>
-                        <label class="dt-mini-button"><input id="adaptive-context" type="checkbox" checked> 精简上下文</label>
-                        <label class="dt-mini-button" title="路径不足时最多增加一次模型调用；结果仍需核对原文"><input id="path-completion" type="checkbox"> 允许模型补链</label>
-                        <label class="dt-mini-button" title="仅允许通过审核的推导关系参与；默认关闭"><input id="include-discovered" type="checkbox"> 使用已审核补边</label>
+                <details id="query-settings" class="advanced-controls">
+                    <summary><i class="fa-solid fa-sliders" aria-hidden="true"></i>实验与检索设置 <span id="settings-summary" class="settings-summary">默认设置</span></summary>
+                    <div class="settings-panel">
+                        <div class="settings-heading"><span>检索范围</span><button onclick="resetQueryControls()" class="dt-mini-button" type="button">恢复默认</button></div>
+                        <div class="mode-segment" role="group" aria-label="检索范围">
+                            <button onclick="setMode('quick')" id="mode-quick" class="mode-card text-left" aria-pressed="false" title="侧重文本片段，减少检索开销"><span class="font-medium text-xs">快速</span></button>
+                            <button onclick="setMode('standard')" id="mode-standard" class="mode-card active text-left" aria-pressed="true" title="文本与本地知识图谱联合检索"><span class="font-medium text-xs">标准</span></button>
+                            <button onclick="setMode('deep')" id="mode-deep" class="mode-card text-left" aria-pressed="false" title="扩大检索范围，并启用更多记忆召回"><span class="font-medium text-xs">深入检索</span></button>
+                        </div>
+                        <p id="retrieval-description" class="policy-help mt-2">文本与本地知识图谱联合检索，适合日常提问。</p>
+                        <div class="experiment-grid" role="group" aria-label="四个实验开关">
+                            <div class="experiment-control"><div><strong>记忆</strong><p>召回长期信息，并允许记住本轮。</p></div><button onclick="toggleRunControl('memory')" id="control-memory" class="dt-mini-button" role="switch" aria-checked="true" aria-label="记忆">已开启</button></div>
+                            <div class="experiment-control"><div><strong>对话上下文</strong><p>使用近期消息；关闭仍保留聊天记录。</p></div><button onclick="toggleRunControl('context')" id="control-context" class="dt-mini-button" role="switch" aria-checked="true" aria-label="对话上下文">已开启</button></div>
+                            <div class="experiment-control"><div><strong>LLM 缓存</strong><p>复用相同条件下的结果，减少重复调用。</p></div><button onclick="toggleRunControl('cache')" id="control-cache" class="dt-mini-button" role="switch" aria-checked="true" aria-label="LLM 缓存">已开启</button></div>
+                            <div class="experiment-control"><div><strong>自进化知识</strong><p>允许本轮使用扩展知识；不控制后台整理。</p></div><button onclick="toggleRunControl('evolution')" id="control-evolution" class="dt-mini-button" role="switch" aria-checked="true" aria-label="自进化知识">已开启</button></div>
+                        </div>
+                        <div class="settings-options">
+                            <label class="settings-option"><input id="adaptive-context" type="checkbox" checked onchange="updateQueryControls()"><span>精简上下文<small>按问题类型收紧检索上限，减少无关内容。</small></span></label>
+                            <label class="settings-option"><input id="path-completion" type="checkbox" onchange="updateQueryControls()"><span>允许模型补链<small>仅推理链不足时最多额外调用一次模型；仍需原文核对。</small></span></label>
+                            <label class="settings-option"><input id="include-discovered" type="checkbox" onchange="updateQueryControls()"><span>使用已审核补边<small>允许推导关系参与路径或关联探索，默认关闭。</small></span></label>
+                        </div>
+                        <p class="policy-help mt-3 mb-0">设置作用于下一次提问，不会修改已有回答。</p>
                     </div>
                 </details>
             </div>
         </div>
     </div>
 
-    <aside id="memory-inspector" class="memory-inspector is-collapsed shrink-0 overflow-y-auto" aria-hidden="true">
+    <button id="memory-inspector-backdrop" class="inspector-backdrop hidden" onclick="setMemoryInspectorOpen(false)" tabindex="-1" aria-hidden="true"></button>
+    <aside id="memory-inspector" class="memory-inspector is-collapsed shrink-0 overflow-y-auto" aria-hidden="true" aria-labelledby="inspector-title" inert>
         <div class="inspector-header">
             <div class="flex items-center justify-between gap-3">
                 <div>
                     <p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#8a5f87]">Memory trace</p>
-                    <h3 class="text-sm font-semibold text-[#292520] mt-1">本轮记忆路径</h3>
+                    <h3 id="inspector-title" class="text-sm font-semibold text-[#292520] mt-1">本轮回答依据</h3>
                 </div>
                 <div class="flex items-center gap-2">
                     <span id="memory-inspector-mode" class="text-[10px] px-2 py-1 rounded-full bg-[#e8e3d9] text-[#5f584f]">等待提问</span>
@@ -596,6 +669,7 @@
             </div>
 
             <div id="memory-content" class="hidden space-y-3">
+                <section class="memory-section"><h4 class="text-xs font-semibold text-[#292520]">本轮设置与预算</h4><div id="memory-budget" class="budget-summary mt-2">等待本轮检索信息。</div></section>
                 <div class="grid grid-cols-4 gap-2">
                     <div class="memory-metric"><p class="text-[10px] text-[#766f66]">记忆层</p><p id="memory-metric-sources" class="text-lg font-semibold text-[#292520]">0</p></div>
                     <div class="memory-metric"><p class="text-[10px] text-[#766f66]">历史情节</p><p id="memory-metric-episodic" class="text-lg font-semibold text-[#54746b]">0</p></div>
@@ -637,6 +711,8 @@ let processingFilesCount = 0;
 let defaultWelcomeHtml = '';
 let latestMemoryInspector = null;
 let memoryInspectorAutoOpened = false;
+const answerPolicyLabels = { auto: '自动选择', faithful: '忠实原文', path: '梳理推理链', explore: '探索关联', off: '关闭知识扩展' };
+let inspectorReturnFocus = null;
 
 function setMemoryInspectorOpen(open) {
     const inspector = document.getElementById('memory-inspector');
@@ -644,6 +720,22 @@ function setMemoryInspectorOpen(open) {
     if (!inspector) return;
     inspector.classList.toggle('is-collapsed', !open);
     inspector.setAttribute('aria-hidden', String(!open));
+    inspector.inert = !open;
+    const mobile = window.matchMedia('(max-width: 1024px)').matches;
+    const backdrop = document.getElementById('memory-inspector-backdrop');
+    if (backdrop) backdrop.classList.toggle('hidden', !open || !mobile);
+    if (open && mobile) {
+        inspectorReturnFocus = document.activeElement;
+        inspector.setAttribute('role', 'dialog');
+        inspector.setAttribute('aria-modal', 'true');
+        inspector.querySelector('button')?.focus();
+    } else {
+        inspector.removeAttribute('role');
+        inspector.removeAttribute('aria-modal');
+        if (!open && (inspector.contains(document.activeElement) || document.activeElement === backdrop)) {
+            (inspectorReturnFocus || toggle)?.focus();
+        }
+    }
     if (toggle) toggle.setAttribute('aria-expanded', String(open));
 }
 
@@ -721,30 +813,31 @@ function formatScore(value) {
 function summarizeTraceEvent(event) {
     const type = String(event?.type || 'event');
     if (type === 'memory_context') {
-        return `Claw 对话记忆注入，约 ${event.chars || 0} 字符`;
+        return `加入对话摘要，约 ${event.chars || 0} 字符`;
     }
     if (type === 'episodic_recall') {
-        return `Neuro Memory 召回 ${event.count || 0} 条相似 episode`;
+        return `找到 ${event.count || 0} 条相似历史经历`;
     }
     if (type === 'expanded_match') {
-        return `Expanded KG 匹配 ${event.count || 0} 个候选节点`;
+        return `匹配 ${event.count || 0} 条候选知识`;
     }
     if (type === 'recall_plan') {
-        return `Recall Plan: ${event.question_type || 'general'} · ${(event.layers || []).join(' / ')}`;
+        return `检索计划：${event.question_type || 'general'} · ${(event.layers || []).join(' / ')}`;
     }
     if (type === 'long_horizon_recall') {
-        return `Long-horizon Memory 召回 ${event.count || 0} 条长期线索`;
+        return `找到 ${event.count || 0} 条长期记忆`;
     }
     if (type === 'memory_graph_recall') {
-        return `Memory Graph 沿关系边扩散召回 ${event.count || 0} 条记忆`;
+        return `沿已有关系找到 ${event.count || 0} 条相关记忆`;
     }
     if (type === 'cognition_recall') {
-        return `Cognition Layer 召回 ${event.count || 0} 条沉淀认知`;
+        return `找到 ${event.count || 0} 条整理后的认知`;
     }
     if (type === 'memory_reasoning') {
         const conclusions = Array.isArray(event.conclusions) ? event.conclusions.join(' / ') : '';
-        return `Memory Reasoning: ${event.question_type || 'general'}${conclusions ? ' · ' + conclusions : ''}`;
+        return `记忆推理：${event.question_type || 'general'}${conclusions ? ' · ' + conclusions : ''}`;
     }
+    if (type === 'memory_skipped') return '本轮未使用记忆';
     return `${type}: ${JSON.stringify(event)}`;
 }
 
@@ -756,7 +849,7 @@ function resetMemoryInspector(mode = 'idle') {
     const modeEl = document.getElementById('memory-inspector-mode');
     if (empty) empty.classList.remove('hidden');
     if (content) content.classList.add('hidden');
-    if (modeEl) modeEl.textContent = mode;
+    if (modeEl) modeEl.textContent = mode === 'recalling' ? '正在检索' : '等待提问';
     const toggle = document.getElementById('memory-inspector-toggle');
     const dot = document.getElementById('trace-ready-dot');
     if (toggle) toggle.classList.remove('has-trace');
@@ -777,16 +870,17 @@ function renderMemoryInspector(metaPatch = {}) {
     const sources = Array.isArray(meta.sources) ? meta.sources : [];
     const questionPolicy = meta.question_policy || {};
     const graphReasoning = meta.graph_reasoning || {};
+    for (const [id, items] of [['memory-episodic', episodic], ['memory-long-horizon', longHorizon], ['memory-cognitions', cognitions], ['memory-expanded', expanded]]) {
+        document.getElementById(id)?.closest('.memory-section')?.classList.toggle('hidden', items.length === 0);
+    }
     const hasTrace = events.length > 0 || episodic.length > 0 || expanded.length > 0 || longHorizon.length > 0 || cognitions.length > 0 || sources.length > 0;
 
     const toggle = document.getElementById('memory-inspector-toggle');
     const dot = document.getElementById('trace-ready-dot');
     if (toggle) toggle.classList.toggle('has-trace', hasTrace);
     if (dot) dot.classList.toggle('hidden', !hasTrace);
-    if (hasTrace && !memoryInspectorAutoOpened) {
-        memoryInspectorAutoOpened = true;
-        setMemoryInspectorOpen(true);
-    }
+    // Signal that evidence is available without moving focus or shrinking the answer.
+    if (hasTrace) memoryInspectorAutoOpened = true;
 
     const empty = document.getElementById('memory-empty');
     const content = document.getElementById('memory-content');
@@ -795,7 +889,8 @@ function renderMemoryInspector(metaPatch = {}) {
     if (content) content.classList.remove('hidden');
     if (modeEl) {
         const baseMode = meta.mode || meta.answer_mode || 'session';
-        modeEl.textContent = questionPolicy.mode ? `${baseMode} · ${questionPolicy.mode}` : baseMode;
+        const retrievalLabels = { naive: '快速检索', local: '标准检索', mix: '深入检索', session: '会话', identity: '日常对话', conversation: '日常对话', insufficient_evidence: '证据不足', context_budget_exceeded: '预算不足' };
+        modeEl.textContent = questionPolicy.mode ? (answerPolicyLabels[questionPolicy.mode] || questionPolicy.mode) : (retrievalLabels[baseMode] || baseMode);
         modeEl.className = 'text-[11px] px-2 py-1 rounded-full bg-[#fbede6] text-[#8f4329]';
     }
 
@@ -804,11 +899,30 @@ function renderMemoryInspector(metaPatch = {}) {
     document.getElementById('memory-metric-episodic').textContent = recall.episodic_hits ?? episodic.length;
     document.getElementById('memory-metric-expanded').textContent = recall.expanded_hits ?? expanded.length;
     document.getElementById('memory-metric-long').textContent = recall.long_horizon_hits ?? longHorizon.length;
+    const budgetBox = document.getElementById('memory-budget');
+    if (budgetBox) {
+        const budget = meta.context_budget || {};
+        const limits = budget.retrieval_limits || {};
+        const controls = meta.run_controls || {};
+        const controlLabels = { use_memory: '记忆', use_conversation_context: '对话上下文', use_llm_cache: '缓存', use_self_evolution: '自进化知识' };
+        const controlText = Object.entries(controlLabels)
+            .filter(([key]) => typeof controls[key] === 'boolean')
+            .map(([key, label]) => `${label}${controls[key] ? '开' : '关'}`).join(' · ');
+        budgetBox.innerHTML = [
+            questionPolicy.mode ? `<p><strong>${escapeHtml(answerPolicyLabels[questionPolicy.mode] || questionPolicy.mode)}</strong>${graphReasoning.applied ? ' · 已加入图谱推理信息' : ''}</p>` : '',
+            controlText ? `<p>${escapeHtml(controlText)}</p>` : '',
+            Number.isFinite(limits.max_total_tokens) ? `<p>文本输入上限 <strong>${escapeHtml(limits.max_total_tokens.toLocaleString())}</strong> token</p>` : '',
+            Number.isFinite(limits.chunk_top_k) ? `<p>最多 ${escapeHtml(limits.chunk_top_k)} 个片段 · ${escapeHtml(limits.max_relations ?? '—')} 条关系</p>` : '',
+            Number.isFinite(budget.history_tokens) ? `<p>历史消息 ${escapeHtml(budget.history_tokens)} / ${escapeHtml(budget.history_limit ?? '—')} token</p>` : '',
+            Number.isFinite(budget.instruction_tokens) ? `<p>附加信息 ${escapeHtml(budget.instruction_tokens)} / ${escapeHtml(budget.instruction_limit ?? '—')} token${budget.instruction_truncated ? '（已精简）' : ''}</p>` : '',
+            '<p class="text-[11px] text-[#857b6f] mt-2">这里展示文本预算，不是实际费用；图片和输出用量另计。</p>',
+        ].join('');
+    }
 
     const timeline = document.getElementById('memory-timeline');
     if (timeline) {
         const policyEvent = questionPolicy.mode
-            ? `<div class="memory-timeline-item">问题策略：${escapeHtml(questionPolicy.mode)} · 图推理${graphReasoning.applied ? '已应用' : '未应用'}</div>`
+            ? `<div class="memory-timeline-item">回答方式：${escapeHtml(answerPolicyLabels[questionPolicy.mode] || questionPolicy.mode)} · 图推理${graphReasoning.applied ? '已应用' : '未应用'}</div>`
             : '';
         const budget = meta.context_budget || {};
         const limits = budget.retrieval_limits || {};
@@ -1079,62 +1193,116 @@ async function loadHistory(sessionId) {
 }
 
 function setMode(mode) {
+    if (!['quick', 'standard', 'deep'].includes(mode)) return;
     currentMode = mode;
-    document.querySelectorAll('.mode-card').forEach((c) => c.classList.remove('active'));
+    document.querySelectorAll('.mode-card').forEach((c) => {
+        c.classList.remove('active');
+        c.setAttribute('aria-pressed', 'false');
+    });
     const target = document.getElementById(`mode-${mode}`);
-    if (target) target.classList.add('active');
+    if (target) { target.classList.add('active'); target.setAttribute('aria-pressed', 'true'); }
+    updateQueryControls();
+}
+
+function updateQueryControls() {
+    const policy = document.getElementById('evolution-mode')?.value || 'auto';
+    const descriptions = {
+        auto: '根据问题选择回答方式；不确定时优先忠实原文。',
+        faithful: '优先依据原文回答，不把推导关系当作事实。适合查证、摘要和对比。',
+        path: '沿已有证据梳理前因后果；缺少哪一环就明确说明。',
+        explore: '寻找更多相关思路，并区分原文支持与探索性推测。',
+        off: '本轮关闭进化知识参与，保留原始资料检索。',
+    };
+    const description = document.getElementById('policy-description');
+    if (description) description.textContent = !runControls.evolution
+        ? '自进化知识已关闭：不应用新增的路径或关联扩展，仍可使用已开启的记忆。'
+        : descriptions[policy];
+    const retrieval = document.getElementById('retrieval-description');
+    if (retrieval) retrieval.textContent = {
+        quick: '检索侧重文本片段，适合简单查找，减少检索开销。',
+        standard: '文本与本地知识图谱联合检索，适合日常提问。',
+        deep: '扩大检索范围并召回更多记忆，可能需要更长时间。',
+    }[currentMode];
+    for (const [name, enabled] of Object.entries(runControls)) {
+        const button = document.getElementById(`control-${name}`);
+        if (button) {
+            button.textContent = enabled ? '已开启' : '已关闭';
+            button.setAttribute('aria-checked', String(enabled));
+        }
+    }
+    const allowExpansion = runControls.evolution && !['faithful', 'off'].includes(policy);
+    const completion = document.getElementById('path-completion');
+    const discovered = document.getElementById('include-discovered');
+    if (completion) completion.disabled = !allowExpansion || policy === 'explore';
+    if (discovered) discovered.disabled = !allowExpansion;
+    const changed = Object.values(runControls).filter((enabled) => !enabled).length
+        + (currentMode !== 'standard' ? 1 : 0)
+        + (document.getElementById('adaptive-context')?.checked === false ? 1 : 0)
+        + (completion?.checked && !completion.disabled ? 1 : 0)
+        + (discovered?.checked && !discovered.disabled ? 1 : 0);
+    const summary = document.getElementById('settings-summary');
+    if (summary) summary.textContent = changed ? `${changed} 项已调整` : '默认设置';
+    updateRememberControl();
+}
+
+function resetQueryControls() {
+    for (const name of Object.keys(runControls)) runControls[name] = true;
+    rememberTurn = true;
+    document.getElementById('evolution-mode').value = 'auto';
+    document.getElementById('adaptive-context').checked = true;
+    document.getElementById('path-completion').checked = false;
+    document.getElementById('include-discovered').checked = false;
+    setMode('standard');
+}
+
+function setRequestStatus(state, message) {
+    const status = document.getElementById('request-status');
+    if (status) { status.dataset.state = state; status.textContent = message; }
+    document.getElementById('chat-messages')?.setAttribute('aria-busy', String(state === 'busy'));
+}
+
+function getEnabledCheckbox(id) {
+    const input = document.getElementById(id);
+    return Boolean(input?.checked && !input.disabled);
 }
 
 function updateRememberControl(hintOverride = '') {
     const icon = document.getElementById('remember-toggle-icon');
     const text = document.getElementById('remember-toggle-text');
     const hint = document.getElementById('remember-toggle-hint');
+    const button = document.getElementById('remember-toggle');
+    if (button) button.setAttribute('aria-pressed', String(rememberTurn && runControls.memory));
     if (icon) {
         icon.className = rememberTurn
             ? 'fa-solid fa-toggle-on text-[#54746b]'
             : 'fa-solid fa-toggle-off text-[#9b9287]';
     }
-    if (text) text.textContent = rememberTurn ? '写入记忆' : '不写入记忆';
-    if (hint) hint.textContent = hintOverride || (rememberTurn ? '本轮会进入可控记忆巩固' : '本轮只回答，不进入记忆层');
+    if (text) text.textContent = !runControls.memory ? '开启记忆' : (rememberTurn ? '写入记忆' : '不写入记忆');
+    if (hint) hint.textContent = hintOverride || (!runControls.memory ? '不召回，也不写入' : (rememberTurn ? '允许记住本轮' : '本轮只读已有记忆'));
 }
 
 function toggleRememberTurn() {
     if (!runControls.memory) {
         runControls.memory = true;
-        const memoryButton = document.getElementById('control-memory');
-        if (memoryButton) {
-            memoryButton.textContent = '记忆：开';
-            memoryButton.classList.remove('opacity-50');
-        }
         rememberTurn = true;
     } else {
         rememberTurn = !rememberTurn;
     }
-    updateRememberControl();
+    updateQueryControls();
 }
 
 function toggleRunControl(name) {
     if (!(name in runControls)) return;
     runControls[name] = !runControls[name];
-    const labels = {
-        memory: '记忆',
-        context: '上下文',
-        cache: '缓存',
-        evolution: '自进化',
-    };
-    const button = document.getElementById(`control-${name}`);
-    if (button) {
-        button.textContent = `${labels[name]}：${runControls[name] ? '开' : '关'}`;
-        button.classList.toggle('opacity-50', !runControls[name]);
-    }
     if (name === 'memory') {
         rememberTurn = runControls.memory;
         updateRememberControl(runControls.memory ? '' : '记忆已关闭：不召回，也不写入');
     }
+    updateQueryControls();
 }
 
 function handleKeyDown(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) {
         e.preventDefault();
         sendMessage();
     }
@@ -1331,6 +1499,7 @@ function _lockInput() {
     input.disabled = true;
     input.style.opacity = '0.5';
     if (sendBtn) { sendBtn.disabled = true; sendBtn.style.opacity = '0.4'; }
+    setRequestStatus('busy', '正在检索资料与记忆…');
 }
 
 function _unlockInput() {
@@ -1340,7 +1509,8 @@ function _unlockInput() {
     input.disabled = false;
     input.style.opacity = '1';
     if (sendBtn) { sendBtn.disabled = false; sendBtn.style.opacity = '1'; }
-    input.focus();
+    const active = document.activeElement;
+    if (active === document.body || active === input || active === sendBtn) input.focus();
 }
 
 async function sendMessage() {
@@ -1389,9 +1559,10 @@ async function sendMessage() {
     currentFileSessionId = null;
 
     try {
-        const queryMode = currentMode === 'quick'
+        const requestMode = currentMode;
+        const queryMode = requestMode === 'quick'
             ? { mode: 'naive', enableThinking: false, enableRerank: false }
-            : currentMode === 'deep'
+            : requestMode === 'deep'
                 ? { mode: 'mix', enableThinking: true, enableRerank: true }
                 : { mode: 'local', enableThinking: false, enableRerank: true };
         const response = await fetch('/api/v1/query/stream', {
@@ -1411,8 +1582,8 @@ async function sendMessage() {
                 use_self_evolution: runControls.evolution,
                 evolution_mode: document.getElementById('evolution-mode')?.value || 'auto',
                 adaptive_context: document.getElementById('adaptive-context')?.checked ?? true,
-                enable_path_completion: document.getElementById('path-completion')?.checked ?? false,
-                include_discovered_edges: document.getElementById('include-discovered')?.checked ?? false
+                enable_path_completion: getEnabledCheckbox('path-completion'),
+                include_discovered_edges: getEnabledCheckbox('include-discovered')
             })
         });
 
@@ -1423,6 +1594,7 @@ async function sendMessage() {
                 errorMsg = data.response || errorMsg;
             } catch (e) {}
             addMessage(errorMsg, 'bot', true, new Date().toISOString());
+            setRequestStatus('error', '请求未完成，请查看提示后重试');
             _unlockInput();
             return;
         }
@@ -1433,7 +1605,7 @@ async function sendMessage() {
         let metadata = null;
         let responseText = '';
         const thinkStartTime = Date.now();
-        const isDeepMode = (currentMode === 'deep');
+        const isDeepMode = (requestMode === 'deep');
 
         const container = document.getElementById('chat-messages');
         const msgDiv = document.createElement('div');
@@ -1523,6 +1695,7 @@ async function sendMessage() {
                     } else if (parsed.type === 'meta') {
                         metadata = { ...(metadata || {}), ...(parsed.data || {}) };
                         renderMemoryInspector(metadata);
+                        if (!thinkingDone) setRequestStatus('busy', '已收到检索信息，正在组织回答…');
                         if (stepsContainer && metadata.memory_summaries && metadata.memory_summaries.length > 0) {
                             metadata.memory_summaries.forEach(m => {
                                 const step = document.createElement('div');
@@ -1541,6 +1714,7 @@ async function sendMessage() {
                         }
                     } else if (parsed.type === 'chunk') {
                         if (!thinkingDone) {
+                            setRequestStatus('busy', '正在生成回答…');
                             thinkingDone = true;
                             const elapsed = ((Date.now() - thinkStartTime) / 1000).toFixed(1);
                             thinkBlock.classList.remove('thinking');
@@ -1590,10 +1764,20 @@ async function sendMessage() {
             }
         }
 
+        if (!responseText.trim()) {
+            setRequestStatus('error', '没有收到完整回答，请重试');
+        } else if (responseText.startsWith('上下文预算不足')) {
+            setRequestStatus('error', '上下文预算不足，请查看回答中的提示');
+        } else if (responseText.startsWith('抱歉，检索或生成超时') || responseText.startsWith('生成过程发生错误:')) {
+            setRequestStatus('error', '生成未完成，请查看提示后重试');
+        } else {
+            setRequestStatus('done', '回答已完成 · 可查看回答依据');
+        }
         _unlockInput();
 
     } catch (error) {
         _unlockInput();
+        setRequestStatus('error', '连接中断，请重试');
         addMessage('网络错误，请稍后重试。', 'bot', true, new Date().toISOString());
     }
 }
@@ -1683,7 +1867,10 @@ function addMessage(content, role, isError = false, timestamp = null, meta = nul
     }
 
     const stream = getChatStream();
-    if (stream) stream.appendChild(div);
+    if (stream) {
+        stream.querySelector('.welcome-panel')?.remove();
+        stream.appendChild(div);
+    }
     container.scrollTop = container.scrollHeight;
 }
 
@@ -1772,7 +1959,23 @@ function uploadFileWithProgress(file, fileId, uploadSessionId, onStatusChange) {
 document.addEventListener('DOMContentLoaded', async () => {
     const messagesContainer = document.getElementById('chat-messages');
     defaultWelcomeHtml = messagesContainer ? messagesContainer.innerHTML : '';
+    updateQueryControls();
     await ensureSessionReady();
+});
+
+document.addEventListener('keydown', (event) => {
+    const inspector = document.getElementById('memory-inspector');
+    if (!inspector || inspector.classList.contains('is-collapsed')) return;
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        setMemoryInspectorOpen(false);
+    } else if (event.key === 'Tab' && window.matchMedia('(max-width: 1024px)').matches) {
+        const focusable = Array.from(inspector.querySelectorAll('button, a[href], input, select, textarea, [tabindex="0"]')).filter((element) => !element.disabled);
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    }
 });
 </script>
 {% endblock %}
