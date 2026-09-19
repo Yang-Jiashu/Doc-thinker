@@ -292,21 +292,25 @@ def test_invalid_budget_configuration_fails_before_work(value):
 
 
 async def test_provider_usage_is_optional_and_separate_from_estimated_budget():
-    model = AsyncMock(
-        return_value={
+    calls = []
+
+    async def model(prompt, *, max_tokens):
+        calls.append((prompt, max_tokens))
+        return {
             "content": "{}",
             "usage": {"prompt_tokens": 3, "completion_tokens": 2, "total_tokens": 5},
         }
-    )
+
     budget = StudyWorkBudget(
         max_tokens=1000, max_calls=2, output_tokens_per_call=32, timeout_seconds=1
     )
     assert await budget.call(model, "问") == "{}"
-    model.assert_awaited_once_with("问", max_tokens=32)
+    assert calls == [("问", 32)]
     report = budget.report()
     assert report["charged_tokens"] == 35
     assert report["provider_usage"]["total_tokens"] == 5
     assert report["provider_reported_calls"] == 1
+    assert report["output_limit_requested_calls"] == 1
 
 
 async def test_reported_provider_overrun_stops_further_calls():
