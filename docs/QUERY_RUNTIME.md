@@ -98,9 +98,10 @@ returns labeled sample sessions and a simulated stream, and does not write user
 data or call a model. The prompt `模拟失败` exercises the HTTP error state. It is
 for interaction checks, not a live answer-quality demonstration.
 
-The optional real-browser CSS regression uses an already installed Chromium;
-it never downloads one. Set `DOCTHINKER_BROWSER_BIN=/path/to/chromium` when running
+The optional real-browser CSS regression requires explicit opt-in with an
+installed, sandbox-capable Chromium (the local run uses Chromium headless shell);
+it never downloads one or disables its sandbox. Set `DOCTHINKER_BROWSER_BIN=/path/to/chromium` when running
 `python -m pytest tests/test_query_ui_controls_unit.py -q`. It checks 390, 768,
-and 1280 pixel widths, including late utility-style loading. Without a browser,
+and 1280 pixel widths, including late utility-style loading. Without that setting,
 only that optional test is skipped; template and JavaScript checks still run
 (JavaScript checks require Node.js).

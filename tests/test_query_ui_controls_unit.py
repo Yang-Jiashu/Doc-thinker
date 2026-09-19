@@ -43,15 +43,15 @@ def test_shared_shell_keeps_navigation_available_on_small_screens(endpoint):
 def test_shell_survives_late_utility_css_in_real_browser(tmp_path):
     """Exercise CSS cascade/layout, not just the presence of responsive rules.
 
-    Opt in with DOCTHINKER_BROWSER_BIN or use an already installed Chromium.
+    Opt in with DOCTHINKER_BROWSER_BIN in a sandbox-capable environment.
     No browser download, package install, network request, or model call occurs.
     """
-    browser = os.environ.get("DOCTHINKER_BROWSER_BIN") or next(
-        (path for name in ("chromium", "chromium-browser", "google-chrome")
-         if (path := shutil.which(name))), None,
-    )
+    # A browser on PATH is not proof its sandbox is usable (e.g. CI AppArmor
+    # restrictions). Keep this explicit opt-in, and never add --no-sandbox or
+    # suppress launch/layout failures when a browser was explicitly configured.
+    browser = os.environ.get("DOCTHINKER_BROWSER_BIN")
     if not browser:
-        pytest.skip("Optional layout check needs an installed Chromium browser")
+        pytest.skip("Set DOCTHINKER_BROWSER_BIN to run the optional sandboxed layout check")
     environment = Environment(loader=FileSystemLoader(TEMPLATE.parent))
     page = environment.get_template("base_modern.html").render(request={"endpoint": "query_page"})
     page = re.sub(r"<script\b[^>]*>[\s\S]*?</script>", "", page)
