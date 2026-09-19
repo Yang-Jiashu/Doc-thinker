@@ -15,6 +15,7 @@ from docthinker.kg_self_study.orchestrator import (
     SelfStudyOrchestrator,
     StudySessionResult,
 )
+from docthinker.server.background_learning import SessionLearningRunner
 from graphcore.coregraph.kg.json_kv_impl import JsonKVStorage
 from graphcore.coregraph.kg.networkx_impl import NetworkXStorage
 from graphcore.coregraph.kg.shared_storage import (
@@ -91,6 +92,7 @@ async def source_session(tmp_path, monkeypatch):
         chunks=chunks,
         knowledge_dir=knowledge_dir,
         llm=llm,
+        rag=rag,
         service=service,
         manager=manager,
     )
@@ -174,6 +176,92 @@ async def test_self_study_only_appends_candidate_annotations(
     session.llm.assert_not_awaited()
 
 
+async def test_upload_study_reuses_snapshot_without_implicit_query_llm(
+    source_session, monkeypatch
+):
+    session = source_session
+    graph = session.graph
+    node_reads = AsyncMock(wraps=graph.get_all_nodes)
+    edge_reads = AsyncMock(wraps=graph.get_all_edges)
+    monkeypatch.setattr(graph, "get_all_nodes", node_reads)
+    monkeypatch.setattr(graph, "get_all_edges", edge_reads)
+    hidden_query = AsyncMock(side_effect=AssertionError("Do not invoke keyword LLMs"))
+    monkeypatch.setattr(
+        session.rag.graphcore, "aquery_data", hidden_query, raising=False
+    )
+    completed = []
+
+    async def inspect_study(self):
+        assert self.config.audit_only is True
+        assert self.config.max_tokens == 30000
+        for _ in range(3):
+            assert len(await self.kg_read_nodes()) == 5
+            assert await self.kg_read_edges() == []
+            result = await self.kg_query_func("A")
+            assert [item["id"] for item in result["entities"]] == ["A"]
+            assert result["chunks"][0]["chunk_id"] == "chunk-A"
+            assert result["chunks"][0]["content"] == "Original observation about A."
+            completed.append(result)
+        return StudySessionResult()
+
+    monkeypatch.setattr(SelfStudyOrchestrator, "run_session", inspect_study)
+    await ingest_router._background_self_study("#00003")
+    assert len(completed) == 3
+    node_reads.assert_awaited_once()
+    edge_reads.assert_awaited_once()
+    hidden_query.assert_not_awaited()
+    session.llm.assert_not_awaited()
+
+
+async def test_consecutive_uploads_schedule_only_one_learning_rerun(
+    source_session, monkeypatch
+):
+    session = source_session
+    for name in (
+        "_update_local_knowledge_graph",
+        "_update_local_knowledge_base",
+        "_write_session_code_snapshot",
+        "_sync_kg_entity_ids",
+        "_run_density_clustering",
+    ):
+        monkeypatch.setattr(ingest_router, name, AsyncMock())
+    started = asyncio.Event()
+    release = asyncio.Event()
+    runs = []
+
+    async def learning(sid):
+        runs.append(sid)
+        started.set()
+        await release.wait()
+
+    runner = SessionLearningRunner(learning)
+    monkeypatch.setattr(ingest_router.state, "post_upload_learning", runner)
+    try:
+        for index in range(5):
+            background = BackgroundTasks()
+            response = await ingest_router.upload_files(
+                background_tasks=background,
+                files=[
+                    UploadFile(
+                        filename=f"source-{index}.txt", file=io.BytesIO(b"Source")
+                    )
+                ],
+                session_id="#00003",
+            )
+            assert response["success"] is True
+            # Source processing finishes while learning remains blocked.
+            await asyncio.wait_for(background(), 2)
+            await asyncio.wait_for(started.wait(), 2)
+        assert session.service.ingest_text.await_count == 5
+        assert runs == ["#00003"]
+        release.set()
+        await asyncio.wait_for(runner.wait_idle(), 2)
+        assert runs == ["#00003", "#00003"]
+    finally:
+        await runner.shutdown()
+    session.llm.assert_not_awaited()
+
+
 async def test_upload_runs_self_study_without_changing_source_graph(
     source_session, monkeypatch
 ):
@@ -189,15 +277,8 @@ async def test_upload_runs_self_study_without_changing_source_graph(
     ):
         monkeypatch.setattr(ingest_router, name, AsyncMock())
 
-    scheduled = []
-    create_task = asyncio.create_task
-
-    def track_task(coroutine):
-        task = create_task(coroutine)
-        scheduled.append(task)
-        return task
-
-    monkeypatch.setattr(ingest_router.asyncio, "create_task", track_task)
+    runner = SessionLearningRunner(ingest_router._run_post_upload_learning)
+    monkeypatch.setattr(ingest_router.state, "post_upload_learning", runner)
     background = BackgroundTasks()
     response = await ingest_router.upload_files(
         background_tasks=background,
@@ -209,8 +290,11 @@ async def test_upload_runs_self_study_without_changing_source_graph(
         session_id="#00003",
     )
     assert response["success"] is True
-    await background()
-    await asyncio.gather(*scheduled)
+    try:
+        await background()
+        await asyncio.wait_for(runner.wait_idle(), 2)
+    finally:
+        await runner.shutdown()
 
     session.service.ingest_text.assert_awaited_once_with(
         "Original observation about A.",

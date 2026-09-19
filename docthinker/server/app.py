@@ -21,6 +21,7 @@ from docthinker.session_manager import SessionManager
 
 from .state import state
 from .memory import save_all_memory_engines
+from .background_learning import SessionLearningRunner
 
 
 class AsyncModelRouter:
@@ -505,18 +506,27 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         _log.warning("Failed to initialize Auto-Thinking Orchestrator: %s", e)
 
-    yield
+    from .routers.ingest import _run_post_upload_learning
 
-    save_all_memory_engines()
-    for client_attr in ("auto_thinking_vlm_client", "vision_vlm_client"):
-        client = getattr(state, client_attr, None)
-        if client is not None and hasattr(client, "close"):
-            try:
-                await client.close()
-            except Exception:
-                pass
-    if state.rag_instance:
-        await state.rag_instance.finalize_storages()
+    learning_runner = SessionLearningRunner(_run_post_upload_learning)
+    state.post_upload_learning = learning_runner
+    try:
+        yield
+    finally:
+        # Stop tasks while their model clients and graph stores are still alive.
+        await learning_runner.shutdown()
+        if state.post_upload_learning is learning_runner:
+            state.post_upload_learning = None
+        save_all_memory_engines()
+        for client_attr in ("auto_thinking_vlm_client", "vision_vlm_client"):
+            client = getattr(state, client_attr, None)
+            if client is not None and hasattr(client, "close"):
+                try:
+                    await client.close()
+                except Exception:
+                    pass
+        if state.rag_instance:
+            await state.rag_instance.finalize_storages()
 
 
 def create_app() -> FastAPI:

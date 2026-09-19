@@ -1,31 +1,31 @@
 {% extends "base_modern.html" %}
 
-{% block title %}载体上传 - DocThinker{% endblock %}
+{% block title %}上传文档 - DocThinker{% endblock %}
 
 {% block extra_css %}
 <style>
     .upload-box {
-        border: 2px dashed #d8cfc1;
-        background: #fbfaf7;
+        border: 1px dashed #d4d4d4;
+        background: #fafafa;
         transition: all 0.2s;
     }
     .upload-box:hover {
-        border-color: #d7a28b;
-        background: #fbede6;
+        border-color: #737373;
+        background: #f5f5f5;
     }
     .upload-box.dragover {
-        border-color: #b85c38;
-        background: #f6ded2;
+        border-color: #303030;
+        background: #eeeeee;
     }
     
     .progress-bg {
-        background: #e7dfd1;
+        background: #e5e5e5;
         border-radius: 999px;
         height: 8px;
         overflow: hidden;
     }
     .progress-bar {
-        background: linear-gradient(90deg, #b85c38, #54746b);
+        background: #303030;
         height: 100%;
         transition: width 0.3s;
     }
@@ -35,8 +35,8 @@
 {% block content %}
 <!-- Header -->
 <div class="bg-white border-b border-slate-200 px-6 py-4">
-    <h1 class="text-xl font-semibold text-slate-800">载体上传</h1>
-    <p class="text-sm text-slate-500 mt-1">上传纯文本或图文交互载体到记忆空间</p>
+    <h1 class="text-xl font-semibold text-slate-800">上传文档</h1>
+    <p class="text-sm text-slate-500 mt-1">添加文本、PDF 或图片，开始基于资料提问</p>
 </div>
 
 <!-- Content -->
@@ -48,8 +48,8 @@
             <div id="upload-area" class="upload-box rounded-lg p-8 text-center cursor-pointer" onclick="document.getElementById('file-input').click()">
                 <input type="file" id="file-input" multiple style="display: none;" onchange="handleFiles(this.files)">
                 
-                <div class="w-16 h-16 bg-[#fbede6] border border-[#efcfc0] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-[#b85c38]"></i>
+                <div class="w-16 h-16 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-600"></i>
                 </div>
                 
                 <h3 class="text-lg font-medium text-slate-700 mb-2">点击上传文件</h3>
@@ -67,7 +67,7 @@
         
         <!-- Supported Formats -->
         <div class="bg-white rounded-xl border border-slate-200 p-6">
-            <h3 class="text-sm font-semibold text-slate-700 mb-4">支持的输入载体</h3>
+            <h3 class="text-sm font-semibold text-slate-700 mb-4">支持的文件类型</h3>
             <div class="grid grid-cols-4 gap-4">
                 <div class="text-center p-3 bg-slate-50 rounded-lg">
                     <i class="fa-solid fa-file-pdf text-2xl text-red-500 mb-2"></i>

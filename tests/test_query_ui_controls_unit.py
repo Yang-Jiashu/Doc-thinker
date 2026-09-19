@@ -12,6 +12,7 @@ import pytest
 from jinja2 import Environment, FileSystemLoader
 
 TEMPLATE = Path(__file__).parents[1] / "docthinker/ui/templates/query_modern.html"
+STATIC = TEMPLATE.parent.parent / "static"
 
 
 def test_query_template_preserves_accessible_control_bindings():
@@ -25,6 +26,15 @@ def test_query_template_preserves_accessible_control_bindings():
     assert 'aria-describedby="send-keyboard-hint policy-description"' in source
     assert 'aria-labelledby="inspector-title" inert' in source
     assert 'id="request-status"' in source and 'role="status"' in source
+    assert '{% block sidebar_content %}' in source
+    assert 'id="sidebar-session-list"' in source
+    assert 'id="current-session-title"' in source
+    assert 'class="composer-bar"' in source
+    assert 'class="welcome-mark"' not in source
+    assert '<style>' not in source, 'Query theme should have one maintained local stylesheet'
+    css = (STATIC / 'query-workspace.css').read_text()
+    assert 'linear-gradient' not in css
+    assert '.chat-column.is-empty' in css
 
 
 @pytest.mark.parametrize("endpoint", ["query_page", "knowledge_graph_page", "config_page"])
@@ -32,8 +42,12 @@ def test_shared_shell_keeps_navigation_available_on_small_screens(endpoint):
     environment = Environment(loader=FileSystemLoader(TEMPLATE.parent))
     html = environment.get_template("base_modern.html").render(request={"endpoint": endpoint})
     assert 'style="width:224px' not in html
-    assert '@media (max-width: 900px)' in html
-    assert '.app-shell { flex-direction: column; }' in html
+    css = (STATIC / "workspace.css").read_text()
+    assert '@media (max-width: 900px)' in css
+    assert '.app-shell { flex-direction: column; }' in css
+    assert "font-size: 16px" in css
+    assert "linear-gradient" not in css
+    assert "Georgia" not in css
     for path in ("/query", "/knowledge-graph", "/config"):
         assert f'href="{path}"' in html
     assert html.count('aria-current="page"') == 1
@@ -54,13 +68,14 @@ def test_shell_survives_late_utility_css_in_real_browser(tmp_path):
         pytest.skip("Set DOCTHINKER_BROWSER_BIN to run the optional sandboxed layout check")
     environment = Environment(loader=FileSystemLoader(TEMPLATE.parent))
     page = environment.get_template("base_modern.html").render(request={"endpoint": "query_page"})
+    page = page.replace('</head>', '<style>' + (STATIC / 'workspace.css').read_text() + '</style></head>')
     page = re.sub(r"<script\b[^>]*>[\s\S]*?</script>", "", page)
     page = re.sub(r"<(?:link|img)\b[^>]*>", "", page)
     # Reintroduce the former conflicting utility classes deliberately, and load
     # their CSS last, matching the late-injected Tailwind CDN failure mode.
     page = page.replace('class="app-shell"', 'class="app-shell flex h-full"')
-    page = page.replace('class="app-sidebar ', 'class="app-sidebar flex flex-col h-full ')
-    page = page.replace('class="app-main ', 'class="app-main flex flex-col h-full ')
+    page = page.replace('class="app-sidebar"', 'class="app-sidebar flex flex-col h-full"')
+    page = page.replace('class="app-main"', 'class="app-main flex flex-col h-full"')
     page = page.replace("</head>", """<style>
         .flex { display: flex; } .flex-col { flex-direction: column; }
         .h-full { height: 100%; } .flex-1 { flex: 1 1 0%; }
@@ -112,8 +127,8 @@ def test_shell_survives_late_utility_css_in_real_browser(tmp_path):
                        for link in layout["links"]), layout
         else:
             assert layout["direction"] == "column", layout
-            assert layout["sidebar"]["width"] == 224, layout
-            assert layout["main"]["width"] == width - 224, layout
+            assert layout["sidebar"]["width"] == 248, layout
+            assert layout["main"]["width"] == width - 248, layout
 
 
 def test_query_controls_ime_switches_and_mobile_inspector():
@@ -128,14 +143,16 @@ const source = require('node:fs').readFileSync(0, 'utf8');
 new Function(source);
 const elements = new Map();
 const listeners = {};
+const toasts = [];
 let mobile = false;
+let createdCount = 0;
 function element(id) {
     if (elements.has(id)) return elements.get(id);
     const classes = new Set(id === 'memory-inspector' ? ['is-collapsed'] : []);
     const attributes = {};
     const item = {
         id, value: '', checked: false, disabled: false, inert: true,
-        textContent: '', innerHTML: '', className: '', dataset: {}, style: {},
+        textContent: '', innerHTML: '', className: '', dataset: {}, style: {}, children: [],
         classList: {
             add: (...names) => names.forEach(name => classes.add(name)),
             remove: (...names) => names.forEach(name => classes.delete(name)),
@@ -150,7 +167,8 @@ function element(id) {
         querySelector(selector) { return element(selector === '.welcome-panel' ? 'welcome-panel' : 'inspector-close'); },
         querySelectorAll() { return [element('inspector-close')]; },
         closest() { return element(id + '-section'); },
-        appendChild() {},
+        appendChild(child) { item.children.push(child); },
+        addEventListener(event, handler) { item[event] = handler; },
         remove() { item.removed = true; },
         dispatchEvent() {},
     };
@@ -160,11 +178,11 @@ function element(id) {
 const document = {
     body: {}, activeElement: {},
     getElementById: element,
-    createElement: () => element('created-message'),
+    createElement: () => element('created-message-' + (++createdCount)),
     querySelectorAll: () => ['quick', 'standard', 'deep'].map(mode => element('mode-' + mode)),
     addEventListener: (event, handler) => { listeners[event] = handler; },
 };
-const context = vm.createContext({ document, window: { matchMedia: () => ({ matches: mobile }) }, console, Event: class {} });
+const context = vm.createContext({ document, window: { matchMedia: () => ({ matches: mobile }) }, console, showToast: (...args) => toasts.push(args), Event: class {} });
 vm.runInContext(source, context);
 const run = expression => vm.runInContext(expression, context);
 element('evolution-mode').value = 'auto';
@@ -174,10 +192,19 @@ assert.equal(element('settings-summary').textContent, '默认设置');
 run("toggleRunControl('memory')");
 assert.equal(element('control-memory').getAttribute('aria-checked'), 'false');
 assert.equal(run('rememberTurn'), false);
-assert.equal(element('remember-toggle-text').textContent, '开启记忆');
+assert.equal(element('remember-toggle-text').textContent, '不记录记忆');
+assert.equal(element('remember-toggle').disabled, true);
 run('toggleRememberTurn()');
+assert.equal(element('control-memory').getAttribute('aria-checked'), 'false', 'writeback toggle must not silently enable memory retrieval');
+run("toggleRunControl('memory')");
 assert.equal(element('control-memory').getAttribute('aria-checked'), 'true');
 assert.equal(run('rememberTurn'), true);
+assert.equal(element('remember-toggle').disabled, false);
+assert.equal(element('remember-toggle-text').textContent, '记录记忆');
+run('toggleRememberTurn()');
+assert.equal(element('control-memory').getAttribute('aria-checked'), 'true');
+assert.equal(run('rememberTurn'), false);
+assert.equal(element('remember-toggle-text').textContent, '不记录记忆');
 element('path-completion').checked = true;
 element('include-discovered').checked = true;
 element('evolution-mode').value = 'faithful';
@@ -225,6 +252,76 @@ run("addMessage('first message', 'user')");
 assert.equal(element('welcome-panel').removed, true);
 run("defaultWelcomeHtml = '<div>Welcome</div>'; renderWelcome()");
 assert.equal(element('chat-messages').innerHTML, '<div>Welcome</div>');
+assert.ok(element('chat-column').classList.contains('is-empty'));
+
+run("currentSessionId = '#one'; renderSessionSelector([{id:'#one', title:'第一份资料'}, {id:'#two', title:'第二份资料'}], '#one')");
+assert.equal(element('current-session-title').textContent, '第一份资料');
+assert.equal(element('sidebar-session-list').children.length, 2);
+assert.equal(element('sidebar-session-list').children[0].getAttribute('aria-current'), 'page');
+assert.equal(element('sidebar-session-list').children[1].textContent, '第二份资料');
+element('message-input').value = '';
+run("restoreFailedDraft('#one', '失败时保留这个问题')");
+assert.equal(element('message-input').value, '失败时保留这个问题');
+element('message-input').value = '正在编辑的新草稿';
+run("restoreFailedDraft('#one', '旧问题')");
+assert.equal(element('message-input').value, '正在编辑的新草稿');
+run("restoreFailedDraft('#two', '别的会话')");
+assert.equal(element('message-input').value, '正在编辑的新草稿');
+run("_isSending = true; handleSessionSwitch('#two')");
+assert.equal(run('currentSessionId'), '#one');
+assert.equal(element('session-selector').value, '#one');
+assert.ok(toasts.length);
+run("_isSending = false; loadHistory = async () => {}; sessionDrafts.set('#two', '第二份草稿'); handleSessionSwitch('#two')");
+assert.equal(run('currentSessionId'), '#two');
+assert.equal(element('message-input').value, '第二份草稿');
+assert.equal(run("sessionDrafts.get('#one')"), '正在编辑的新草稿');
+const chat = element('chat-messages');
+chat.scrollTop = 100; chat.scrollHeight = 2000;
+run('followLatestMessage = false; scrollChatToLatest()');
+assert.equal(chat.scrollTop, 100, 'new stream chunks must not interrupt reading earlier messages');
+run('scrollChatToLatest(true)');
+assert.equal(chat.scrollTop, 2000);
+"""
+    result = subprocess.run(
+        [node, "-e", driver], input=script, text=True, capture_output=True,
+        check=False, timeout=15,
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_shared_toast_is_text_only_and_cdn_failure_is_nonfatal():
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node.js is required for the UI JavaScript regression")
+    template = (TEMPLATE.parent / "base_modern.html").read_text()
+    assert 'fonts.googleapis.com' not in template
+    script = '\n'.join(re.findall(r'<script>([\s\S]*?)</script>', template))
+    driver = r"""
+const assert = require('node:assert/strict');
+const vm = require('node:vm');
+const source = require('node:fs').readFileSync(0, 'utf8');
+function element(tag) {
+    return {
+        tag, children: [], attributes: {}, textContent: '',
+        appendChild(child) { this.children.push(child); },
+        setAttribute(name, value) { this.attributes[name] = value; },
+        set innerHTML(value) { throw Error('Toast must never interpret HTML'); },
+    };
+}
+const container = element('div');
+const context = vm.createContext({
+    window: {}, // Tailwind CDN is unavailable.
+    document: { createElement: element, getElementById: () => container },
+    setTimeout() {},
+});
+vm.runInContext(source, context);
+context.message = '<img src=x onerror="alert(1)">';
+vm.runInContext("showToast(message, 'error')", context);
+const toast = container.children[0];
+assert.equal(toast.attributes.role, 'alert');
+assert.equal(toast.children[1].tag, 'span');
+assert.equal(toast.children[1].textContent, context.message);
+assert.equal(toast.children[1].children.length, 0);
 """
     result = subprocess.run(
         [node, "-e", driver], input=script, text=True, capture_output=True,

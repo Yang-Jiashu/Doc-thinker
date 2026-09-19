@@ -31,6 +31,26 @@ def preview_api():
         return jsonify(history=[])
     if path.endswith("/files"):
         return jsonify(files=[])
+    if path == "/api/v1/settings" and request.method == "GET":
+        return jsonify(
+            llm_base_url="https://example.invalid/v1",
+            llm_model="preview-model",
+            vlm_model="preview-vision",
+            keyword_llm_model="preview-model",
+            embed_base_url="https://example.invalid/v1",
+            embed_model="preview-embedding",
+            embed_dim=1024,
+            rerank_model="preview-reranker",
+            llm_max_async=4,
+            embedding_max_async=4,
+            max_parallel_insert=2,
+            llm_router_max_concurrency=4,
+            workdir="模拟环境，不读写实际资料",
+        )
+    if path == "/api/v1/knowledge-graph/data":
+        return jsonify(nodes=[], links=[], metadata={"total_nodes": 0})
+    if path == "/api/v1/memory/long-horizon":
+        return jsonify(memories=[])
     if path == "/api/v1/query/stream":
         payload = request.get_json()
         requests_seen.append(payload)
