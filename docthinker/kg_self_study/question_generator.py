@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 from .prompts import (
     BRIDGE_QUESTION_PROMPT,
@@ -19,12 +19,17 @@ from .prompts import (
     SUBGRAPH_ANALYSIS_PROMPT,
     TWO_HOP_INFERENCE_PROMPT,
 )
+from .work_budget import StudyBudgetStop
 
 _log = logging.getLogger("docthinker.kg_self_study.question_gen")
 
 
 def _safe_json_parse(raw: str) -> Any:
     text = raw.strip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
     for start_char, end_char in [("[", "]"), ("{", "}")]:
         start = text.find(start_char)
         end = text.rfind(end_char)
@@ -56,7 +61,7 @@ class QuestionGenerator:
         entities_json = json.dumps(
             [{"name": e.get("id") or e.get("entity_id"),
               "type": e.get("entity_type", "unknown"),
-              "description": (e.get("description") or "")[:200],
+              "description": e.get("description") or "",
               "source_ids": str(e.get("source_id", "")),
               "degree": 0}
              for e in entities],
@@ -66,7 +71,7 @@ class QuestionGenerator:
             [{"source": r.get("source") or r.get("src_id"),
               "target": r.get("target") or r.get("tgt_id"),
               "keywords": r.get("keywords", ""),
-              "description": (r.get("description") or "")[:150],
+              "description": r.get("description") or "",
               "source_id": str(r.get("source_id", "")),
               "is_discovered": r.get("is_discovered", "0")}
              for r in relations],
@@ -81,9 +86,18 @@ class QuestionGenerator:
         try:
             raw = await self.llm_func(prompt)
             analysis = _safe_json_parse(raw)
-            if analysis is None:
-                _log.warning("[question_gen] P1 parse failed, using defaults")
+            if not isinstance(analysis, dict):
+                _log.warning("[question_gen] P1 needs a JSON object, using defaults")
                 analysis = {}
+            for key in (
+                "bridge_candidates", "potential_contradictions", "two_hop_gaps",
+                "same_type_pairs", "weak_edges", "isolated_clusters",
+            ):
+                if key in analysis:
+                    value = analysis[key]
+                    analysis[key] = [item for item in value if isinstance(item, dict)] if isinstance(value, list) else []
+        except StudyBudgetStop:
+            raise
         except Exception as exc:
             _log.error("[question_gen] P1 LLM call failed: %s", exc)
             analysis = {}
@@ -107,12 +121,25 @@ class QuestionGenerator:
             "evidence_chain": self._gen_edge_validation,
         }.get(strategy, self._gen_bridge)
 
-        questions = await generator_fn(analysis, entities, relations)
+        if self.n_questions <= 0:
+            return []
+        questions = self._bounded_questions(await generator_fn(analysis, entities, relations))
+        if len(questions) < self.n_questions:
+            questions.extend(await self._gen_contradiction(analysis))
+        return self._bounded_questions(questions)
 
-        contradiction_qs = await self._gen_contradiction(analysis)
-        questions.extend(contradiction_qs)
-
-        return questions
+    def _bounded_questions(self, questions: List) -> List[Dict]:
+        selected, seen = [], set()
+        for item in questions:
+            if not isinstance(item, dict):
+                continue
+            question = str(item.get("question") or "").strip()
+            if question and question not in seen:
+                seen.add(question)
+                selected.append(item)
+            if len(selected) >= self.n_questions:
+                break
+        return selected
 
     async def _gen_bridge(
         self, analysis: Dict, entities: List[Dict], relations: List[Dict],
@@ -135,7 +162,11 @@ class QuestionGenerator:
 
         all_questions: List[Dict] = []
         for bridge in bridges[:3]:
+            if len(all_questions) >= self.n_questions:
+                break
             b_name = bridge.get("entity", "")
+            if not isinstance(b_name, str):
+                continue
             b_desc = bridge.get("description") or (
                 entity_map.get(b_name, {}).get("description", "")
             )
@@ -143,17 +174,19 @@ class QuestionGenerator:
 
             prompt = BRIDGE_QUESTION_PROMPT.format(
                 bridge_entity=b_name,
-                description=b_desc[:300],
+                description=b_desc,
                 neighbors_from_doc1=", ".join(neighbors[:5]),
                 neighbors_from_doc2=", ".join(neighbors[5:10]),
-                n_questions=self.n_questions,
+                n_questions=self.n_questions - len(all_questions),
             )
 
             try:
                 raw = await self.llm_func(prompt)
                 parsed = _safe_json_parse(raw)
                 if isinstance(parsed, list):
-                    all_questions.extend(parsed)
+                    all_questions = self._bounded_questions(all_questions + parsed)
+            except StudyBudgetStop:
+                raise
             except Exception as exc:
                 _log.warning("[question_gen] bridge gen failed: %s", exc)
 
@@ -174,6 +207,8 @@ class QuestionGenerator:
             raw = await self.llm_func(prompt)
             parsed = _safe_json_parse(raw)
             return parsed if isinstance(parsed, list) else []
+        except StudyBudgetStop:
+            raise
         except Exception as exc:
             _log.warning("[question_gen] two_hop gen failed: %s", exc)
             return []
@@ -193,6 +228,8 @@ class QuestionGenerator:
             raw = await self.llm_func(prompt)
             parsed = _safe_json_parse(raw)
             return parsed if isinstance(parsed, list) else []
+        except StudyBudgetStop:
+            raise
         except Exception as exc:
             _log.warning("[question_gen] comparison gen failed: %s", exc)
             return []
@@ -212,6 +249,8 @@ class QuestionGenerator:
             raw = await self.llm_func(prompt)
             parsed = _safe_json_parse(raw)
             return parsed if isinstance(parsed, list) else []
+        except StudyBudgetStop:
+            raise
         except Exception as exc:
             _log.warning("[question_gen] contradiction gen failed: %s", exc)
             return []
@@ -231,6 +270,8 @@ class QuestionGenerator:
             raw = await self.llm_func(prompt)
             parsed = _safe_json_parse(raw)
             return parsed if isinstance(parsed, list) else []
+        except StudyBudgetStop:
+            raise
         except Exception as exc:
             _log.warning("[question_gen] edge validation gen failed: %s", exc)
             return []
@@ -246,7 +287,7 @@ class QuestionGenerator:
             isolated_clusters_json=json.dumps(isolated[:3], ensure_ascii=False),
             nearest_main_entities_json=json.dumps(
                 [{"name": e.get("id") or e.get("entity_id"),
-                  "description": (e.get("description") or "")[:100]}
+                  "description": e.get("description") or ""}
                  for e in entities[:5]],
                 ensure_ascii=False,
             ),
@@ -256,6 +297,8 @@ class QuestionGenerator:
             raw = await self.llm_func(prompt)
             parsed = _safe_json_parse(raw)
             return parsed if isinstance(parsed, list) else []
+        except StudyBudgetStop:
+            raise
         except Exception as exc:
             _log.warning("[question_gen] component gen failed: %s", exc)
             return []

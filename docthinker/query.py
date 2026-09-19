@@ -44,6 +44,8 @@ class QueryMixin:
         cache_data = {
             "query": query.strip(),
             "mode": mode,
+            "working_dir": str(Path(getattr(self, "working_dir", ".")).resolve()),
+            "workspace": str(getattr(getattr(self, "graphcore", None), "workspace", "")),
         }
 
         # Normalize multimodal content for stable caching
@@ -53,13 +55,23 @@ class QueryMixin:
                 if isinstance(item, dict):
                     normalized_item = {}
                     for key, value in item.items():
-                        # For file paths, use basename to make cache more portable
+                        # Identical filenames in different sessions need not be
+                        # the same asset. Also detect edits at the same path.
                         if key in [
                             "img_path",
                             "image_path",
                             "file_path",
                         ] and isinstance(value, str):
-                            normalized_item[key] = Path(value).name
+                            path = Path(value).expanduser().resolve()
+                            normalized_item[key] = str(path)
+                            try:
+                                digest = hashlib.sha256()
+                                with path.open("rb") as media:
+                                    for block in iter(lambda: media.read(1024 * 1024), b""):
+                                        digest.update(block)
+                                normalized_item[f"{key}_sha256"] = digest.hexdigest()
+                            except OSError:
+                                normalized_item[f"{key}_sha256"] = None
                         # For large content, create a hash instead of storing directly
                         elif (
                             key in ["table_data", "table_body"]
@@ -77,28 +89,16 @@ class QueryMixin:
 
         cache_data["multimodal_content"] = normalized_content
 
-        # Add relevant kwargs to cache data
-        relevant_kwargs = {
-            k: v
-            for k, v in kwargs.items()
-            if k
-            in [
-                "stream",
-                "response_type",
-                "top_k",
-                "max_tokens",
-                "temperature",
-                # "only_need_context",
-                # "only_need_prompt",
-            ]
+        cache_data["options"] = {
+            k: v for k, v in kwargs.items() if k != "use_llm_cache"
         }
-        cache_data.update(relevant_kwargs)
+        cache_data["vision_model"] = str(getattr(self, "vision_model_func", ""))
 
         # Generate hash from the cache data
-        cache_str = json.dumps(cache_data, sort_keys=True, ensure_ascii=False)
+        cache_str = json.dumps(cache_data, sort_keys=True, ensure_ascii=False, default=str)
         cache_hash = hashlib.md5(cache_str.encode()).hexdigest()
 
-        return f"multimodal_query:{cache_hash}"
+        return f"multimodal_query_description:v2:{cache_hash}"
 
     async def aquery(self, query: str, mode: str = "mix", **kwargs) -> str:
         """
@@ -124,6 +124,7 @@ class QueryMixin:
 
         # Reset evidence tracker
         self._last_query_evidence = None
+        record_knowledge = bool(kwargs.pop("record_knowledge", True))
 
         # Query-time image activation controls (consume custom args before QueryParam)
         enable_image_asset_activation = kwargs.pop(
@@ -184,7 +185,7 @@ class QueryMixin:
             result = await self._execute_text_query(query, mode, **kwargs)
         
         # Add query and result to knowledge base
-        if hasattr(self, 'add_knowledge_entry'):
+        if record_knowledge and hasattr(self, 'add_knowledge_entry'):
             # Add question to knowledge base
             question_entry_id = self.add_knowledge_entry(
                 content=query,
@@ -228,6 +229,7 @@ class QueryMixin:
         self._last_query_evidence = None
 
         # Strip non-QueryParam keys before constructing QueryParam
+        kwargs.pop("record_knowledge", None)
         kwargs.pop("enable_image_asset_activation", None)
         kwargs.pop("image_activation_threshold", None)
         kwargs.pop("image_activation_top_k", None)
@@ -314,40 +316,44 @@ class QueryMixin:
 
         use_llm_cache = bool(kwargs.get("use_llm_cache", True))
 
-        # Generate cache key for multimodal query
-        cache_key = self._generate_multimodal_cache_key(
-            query, multimodal_content, mode, **kwargs
+        cache = getattr(self.graphcore, "llm_response_cache", None)
+        cache_enabled = bool(
+            use_llm_cache and cache and cache.global_config.get("enable_llm_cache", True)
         )
+        cache_key = None
+        enhanced_query = None
+        if cache_enabled:
+            cache_key = self._generate_multimodal_cache_key(
+                query, multimodal_content, mode, **kwargs
+            )
+            try:
+                entry = await cache.get_by_id(cache_key)
+                if (
+                    isinstance(entry, dict)
+                    and entry.get("cache_type") == "multimodal_query_description"
+                ):
+                    enhanced_query = entry.get("return")
+            except Exception as exc:
+                self.logger.debug(f"Error accessing multimodal description cache: {exc}")
 
-        # Check cache if available and enabled
-        cached_result = None
-        if (
-            hasattr(self, "graphcore")
-            and self.graphcore
-            and hasattr(self.graphcore, "llm_response_cache")
-            and self.graphcore.llm_response_cache
-        ):
-            if use_llm_cache and self.graphcore.llm_response_cache.global_config.get(
-                "enable_llm_cache", True
-            ):
+        # Cache the expensive media description, not the final answer. Every
+        # request still retrieves current evidence; GraphCore can cache the
+        # answer using its actual prompt, history and policy fingerprint.
+        if not isinstance(enhanced_query, str) or not enhanced_query:
+            enhanced_query = await self._process_multimodal_query_content(
+                query, multimodal_content
+            )
+            if cache_enabled:
                 try:
-                    cached_result = await self.graphcore.llm_response_cache.get_by_id(
-                        cache_key
-                    )
-                    if cached_result and isinstance(cached_result, dict):
-                        result_content = cached_result.get("return")
-                        if result_content:
-                            self.logger.info(
-                                f"Multimodal query cache hit: {cache_key[:16]}..."
-                            )
-                            return result_content
-                except Exception as e:
-                    self.logger.debug(f"Error accessing multimodal query cache: {e}")
-
-        # Process multimodal content to generate enhanced query text
-        enhanced_query = await self._process_multimodal_query_content(
-            query, multimodal_content
-        )
+                    await cache.upsert({
+                        cache_key: {
+                            "return": enhanced_query,
+                            "cache_type": "multimodal_query_description",
+                        }
+                    })
+                    await cache.index_done_callback()
+                except Exception as exc:
+                    self.logger.debug(f"Error saving multimodal description cache: {exc}")
 
         self.logger.info(
             f"Generated enhanced query length: {len(enhanced_query)} characters"
@@ -355,47 +361,6 @@ class QueryMixin:
 
         # Execute enhanced query
         result = await self.aquery(enhanced_query, mode=mode, **kwargs)
-
-        # Save to cache if available and enabled
-        if (
-            hasattr(self, "graphcore")
-            and self.graphcore
-            and hasattr(self.graphcore, "llm_response_cache")
-            and self.graphcore.llm_response_cache
-        ):
-            if use_llm_cache and self.graphcore.llm_response_cache.global_config.get(
-                "enable_llm_cache", True
-            ):
-                try:
-                    # Create cache entry for multimodal query
-                    cache_entry = {
-                        "return": result,
-                        "cache_type": "multimodal_query",
-                        "original_query": query,
-                        "multimodal_content_count": len(multimodal_content),
-                        "mode": mode,
-                    }
-
-                    await self.graphcore.llm_response_cache.upsert(
-                        {cache_key: cache_entry}
-                    )
-                    self.logger.info(
-                        f"Saved multimodal query result to cache: {cache_key[:16]}..."
-                    )
-                except Exception as e:
-                    self.logger.debug(f"Error saving multimodal query to cache: {e}")
-
-        # Ensure cache is persisted to disk
-        if (
-            hasattr(self, "graphcore")
-            and self.graphcore
-            and hasattr(self.graphcore, "llm_response_cache")
-            and self.graphcore.llm_response_cache
-        ):
-            try:
-                await self.graphcore.llm_response_cache.index_done_callback()
-            except Exception as e:
-                self.logger.debug(f"Error persisting multimodal query cache: {e}")
 
         self.logger.info("Multimodal query completed")
         return result
@@ -444,6 +409,15 @@ class QueryMixin:
         # 1. Get original retrieval prompt (without generating final answer)
         query_param = QueryParam(mode=mode, only_need_prompt=True, **kwargs)
         raw_prompt = await self.graphcore.aquery(query, param=query_param)
+
+        if isinstance(raw_prompt, str) and raw_prompt.startswith("上下文预算不足"):
+            self._last_query_evidence = {
+                "raw_prompt": None,
+                "image_paths": [],
+                "activated_image_assets": [],
+                "failure_reason": "context_budget_exceeded",
+            }
+            return raw_prompt
 
         self.logger.debug("Retrieved raw prompt from GraphCore")
 

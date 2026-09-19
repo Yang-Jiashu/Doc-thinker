@@ -5,7 +5,7 @@ them:
 - Claw provides conversational working/core/archive memory.
 - Neuro memory provides episodic analogies and activation traces.
 - Expanded KG nodes provide evolving semantic hypotheses.
-- GraphCore receives promoted expansion nodes after repeated use.
+- Repeated use updates candidate activity, not source-graph truth.
 """
 
 from __future__ import annotations
@@ -875,6 +875,7 @@ class AgentMemoryCore:
         mode: str = "",
         enable_thinking: bool = False,
         enable_expanded_matching: bool = True,
+        enable_cognition: bool = True,
         expanded_top_k: Optional[int] = None,
         expanded_min_score: Optional[float] = None,
         skip_memory: bool = False,
@@ -978,7 +979,8 @@ class AgentMemoryCore:
                     })
 
                 if (
-                    self.policy.layer_enabled("cognition")
+                    enable_cognition
+                    and self.policy.layer_enabled("cognition")
                     and hasattr(self.backends.long_horizon, "retrieve_cognitions")
                 ):
                     cognition_matches = self.backends.long_horizon.retrieve_cognitions(

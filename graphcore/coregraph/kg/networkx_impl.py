@@ -7,6 +7,7 @@ from graphcore.coregraph.utils import logger
 from graphcore.coregraph.base import BaseGraphStorage
 import networkx as nx
 from .shared_storage import (
+    get_storage_workspace,
     get_namespace_lock,
     get_update_flag,
     set_all_update_flags,
@@ -53,6 +54,7 @@ class NetworkXStorage(BaseGraphStorage):
         self._graphml_xml_file = os.path.join(
             workspace_dir, f"graph_{self.namespace}.graphml"
         )
+        self._shared_workspace = get_storage_workspace(working_dir, self.workspace)
         self._storage_lock = None
         self.storage_updated = None
         self._graph = None
@@ -73,11 +75,11 @@ class NetworkXStorage(BaseGraphStorage):
         """Initialize storage data"""
         # Get the update flag for cross-process update notification
         self.storage_updated = await get_update_flag(
-            self.namespace, workspace=self.workspace
+            self.namespace, workspace=self._shared_workspace
         )
         # Get the storage lock for use in other methods
         self._storage_lock = get_namespace_lock(
-            self.namespace, workspace=self.workspace
+            self.namespace, workspace=self._shared_workspace
         )
 
     async def _get_graph(self):
@@ -131,6 +133,45 @@ class NetworkXStorage(BaseGraphStorage):
         if graph.has_node(source_node_id):
             return list(graph.edges(source_node_id))
         return None
+
+    async def get_nodes_batch(self, node_ids: list[str]) -> dict[str, dict]:
+        """Read one graph snapshot, preserving get_node's attribute references."""
+        if not node_ids:
+            return {}
+        graph = await self._get_graph()
+        result = {}
+        for node_id in node_ids:
+            data = graph.nodes.get(node_id)
+            if data is not None:
+                result[node_id] = data
+        return result
+
+    async def get_edges_batch(
+        self, pairs: list[dict[str, str]]
+    ) -> dict[tuple[str, str], dict]:
+        """Read edge attributes with one reload/lock check for the whole batch."""
+        if not pairs:
+            return {}
+        graph = await self._get_graph()
+        result = {}
+        for pair in pairs:
+            endpoints = (pair["src"], pair["tgt"])
+            data = graph.edges.get(endpoints)
+            if data is not None:
+                result[endpoints] = data
+        return result
+
+    async def get_nodes_edges_batch(
+        self, node_ids: list[str]
+    ) -> dict[str, list[tuple[str, str]]]:
+        """Return the same adjacency lists as individual reads, including misses."""
+        if not node_ids:
+            return {}
+        graph = await self._get_graph()
+        return {
+            node_id: list(graph.edges(node_id)) if graph.has_node(node_id) else []
+            for node_id in node_ids
+        }
 
     async def upsert_node(self, node_id: str, node_data: dict[str, str]) -> None:
         """
@@ -530,7 +571,7 @@ class NetworkXStorage(BaseGraphStorage):
                     self._graph, self._graphml_xml_file, self.workspace
                 )
                 # Notify other processes that data has been updated
-                await set_all_update_flags(self.namespace, workspace=self.workspace)
+                await set_all_update_flags(self.namespace, workspace=self._shared_workspace)
                 # Reset own update flag to avoid self-reloading
                 self.storage_updated.value = False
                 return True  # Return success
@@ -561,7 +602,7 @@ class NetworkXStorage(BaseGraphStorage):
                     os.remove(self._graphml_xml_file)
                 self._graph = nx.Graph()
                 # Notify other processes that data has been updated
-                await set_all_update_flags(self.namespace, workspace=self.workspace)
+                await set_all_update_flags(self.namespace, workspace=self._shared_workspace)
                 # Reset own update flag to avoid self-reloading
                 self.storage_updated.value = False
                 logger.info(

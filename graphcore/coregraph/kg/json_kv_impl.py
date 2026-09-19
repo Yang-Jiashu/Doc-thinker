@@ -12,6 +12,7 @@ from graphcore.coregraph.utils import (
 )
 from graphcore.coregraph.exceptions import StorageNotInitializedError
 from .shared_storage import (
+    get_storage_workspace,
     get_namespace_data,
     get_namespace_lock,
     get_data_init_lock,
@@ -37,6 +38,7 @@ class JsonKVStorage(BaseKVStorage):
 
         os.makedirs(workspace_dir, exist_ok=True)
         self._file_name = os.path.join(workspace_dir, f"kv_store_{self.namespace}.json")
+        self._shared_workspace = get_storage_workspace(working_dir, self.workspace)
 
         self._data = None
         self._storage_lock = None
@@ -45,18 +47,18 @@ class JsonKVStorage(BaseKVStorage):
     async def initialize(self):
         """Initialize storage data"""
         self._storage_lock = get_namespace_lock(
-            self.namespace, workspace=self.workspace
+            self.namespace, workspace=self._shared_workspace
         )
         self.storage_updated = await get_update_flag(
-            self.namespace, workspace=self.workspace
+            self.namespace, workspace=self._shared_workspace
         )
         async with get_data_init_lock():
             # check need_init must before get_namespace_data
             need_init = await try_initialize_namespace(
-                self.namespace, workspace=self.workspace
+                self.namespace, workspace=self._shared_workspace
             )
             self._data = await get_namespace_data(
-                self.namespace, workspace=self.workspace
+                self.namespace, workspace=self._shared_workspace
             )
             if need_init:
                 loaded_data = load_json(self._file_name) or {}
@@ -101,7 +103,7 @@ class JsonKVStorage(BaseKVStorage):
                         self._data.clear()
                         self._data.update(cleaned_data)
 
-                await clear_all_update_flags(self.namespace, workspace=self.workspace)
+                await clear_all_update_flags(self.namespace, workspace=self._shared_workspace)
 
     async def get_by_id(self, id: str) -> dict[str, Any] | None:
         async with self._storage_lock:
@@ -174,7 +176,7 @@ class JsonKVStorage(BaseKVStorage):
                 v["_id"] = k
 
             self._data.update(data)
-            await set_all_update_flags(self.namespace, workspace=self.workspace)
+            await set_all_update_flags(self.namespace, workspace=self._shared_workspace)
 
     async def delete(self, ids: list[str]) -> None:
         """Delete specific records from storage by their IDs
@@ -197,7 +199,7 @@ class JsonKVStorage(BaseKVStorage):
                     any_deleted = True
 
             if any_deleted:
-                await set_all_update_flags(self.namespace, workspace=self.workspace)
+                await set_all_update_flags(self.namespace, workspace=self._shared_workspace)
 
     async def is_empty(self) -> bool:
         """Check if the storage is empty
@@ -225,7 +227,7 @@ class JsonKVStorage(BaseKVStorage):
         try:
             async with self._storage_lock:
                 self._data.clear()
-                await set_all_update_flags(self.namespace, workspace=self.workspace)
+                await set_all_update_flags(self.namespace, workspace=self._shared_workspace)
 
             await self.index_done_callback()
             logger.info(

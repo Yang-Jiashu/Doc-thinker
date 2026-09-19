@@ -15,6 +15,7 @@ from graphcore.coregraph.utils import (
 from graphcore.coregraph.base import BaseVectorStorage
 from nano_vectordb import NanoVectorDB
 from .shared_storage import (
+    get_storage_workspace,
     get_namespace_lock,
     get_update_flag,
     set_all_update_flags,
@@ -54,6 +55,7 @@ class NanoVectorDBStorage(BaseVectorStorage):
         self._client_file_name = os.path.join(
             workspace_dir, f"vdb_{self.namespace}.json"
         )
+        self._shared_workspace = get_storage_workspace(working_dir, self.workspace)
 
         self._max_batch_size = self.global_config["embedding_batch_num"]
 
@@ -81,11 +83,11 @@ class NanoVectorDBStorage(BaseVectorStorage):
         """Initialize storage data"""
         # Get the update flag for cross-process update notification
         self.storage_updated = await get_update_flag(
-            self.namespace, workspace=self.workspace
+            self.namespace, workspace=self._shared_workspace
         )
         # Get the storage lock for use in other methods
         self._storage_lock = get_namespace_lock(
-            self.namespace, workspace=self.workspace
+            self.namespace, workspace=self._shared_workspace
         )
 
     async def _get_client(self):
@@ -353,7 +355,7 @@ class NanoVectorDBStorage(BaseVectorStorage):
                 # Save data to disk
                 self._client.save()
                 # Notify other processes that data has been updated
-                await set_all_update_flags(self.namespace, workspace=self.workspace)
+                await set_all_update_flags(self.namespace, workspace=self._shared_workspace)
                 # Reset own update flag to avoid self-reloading
                 self.storage_updated.value = False
                 return True  # Return success
@@ -475,7 +477,7 @@ class NanoVectorDBStorage(BaseVectorStorage):
                 )
 
                 # Notify other processes that data has been updated
-                await set_all_update_flags(self.namespace, workspace=self.workspace)
+                await set_all_update_flags(self.namespace, workspace=self._shared_workspace)
                 # Reset own update flag to avoid self-reloading
                 self.storage_updated.value = False
 

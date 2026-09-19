@@ -1,7 +1,8 @@
 """
 Session-scoped lifecycle manager for LLM-expanded nodes.
 
-Tracks candidate → active → promoted → deprecated lifecycle.
+Tracks candidate → active activity without promoting model output to source facts.
+Historical promoted/deprecated records remain readable without migration.
 Supports token-overlap matching (fast) and embedding-based matching
 (accurate) for query-time expanded-node retrieval.
 """
@@ -30,7 +31,7 @@ def _tokenize(text: str) -> List[str]:
 
 
 def extract_entities_from_text(text: str, max_entities: int = 12) -> List[str]:
-    """Lightweight regex entity extraction for promotion edge building."""
+    """Lightweight regex entity extraction for candidate usage associations."""
     source = str(text or "")
     if not source:
         return []
@@ -58,7 +59,11 @@ def extract_entities_from_text(text: str, max_entities: int = 12) -> List[str]:
 
 
 class ExpandedNodeManager:
-    """Session-scoped lifecycle manager for expanded knowledge nodes."""
+    """Session-scoped activity manager for unverified expanded knowledge.
+
+    Legacy promotion thresholds remain accepted for constructor compatibility;
+    neither frequency nor the persisted ``promotion_score`` proves a fact.
+    """
 
     def __init__(
         self,
@@ -352,11 +357,11 @@ class ExpandedNodeManager:
         matches: Sequence[Dict[str, Any]],
         attached_entities: Optional[Sequence[str]] = None,
     ) -> Dict[str, Any]:
+        """Record answer usage, never independent evidence or graph promotion."""
         self._ensure_loaded()
         answer_text = str(answer or "").lower()
         now = _utc_now_iso()
         used: List[str] = []
-        promoted: List[str] = []
         attached = [str(x).strip() for x in (attached_entities or []) if str(x).strip()]
 
         with self._lock:
@@ -376,8 +381,6 @@ class ExpandedNodeManager:
                         0.4, float(matched.get("score") or 0.4)
                     )
                     item["status"] = self._next_status(item)
-                    if item["status"] == "promoted":
-                        promoted.append(entity)
                     for ent in attached:
                         if ent not in item["attached_entities"]:
                             item["attached_entities"].append(ent)
@@ -388,17 +391,16 @@ class ExpandedNodeManager:
                 item["updated_at"] = now
             self._persist()
 
-        return {"used": used, "promoted": promoted}
+        # Keep the response contract, but do not re-submit historical promoted
+        # records either: a mention cannot authorize an original-graph rewrite.
+        return {"used": used, "promoted": []}
 
     def _next_status(self, item: Dict[str, Any]) -> str:
         score = float(item.get("promotion_score") or 0.0)
-        uses = int(item.get("use_count") or 0)
         current = str(item.get("status") or "candidate")
 
-        if current == "promoted":
-            return "promoted"
-        if uses >= self.promote_use_threshold and score >= self.promote_score_threshold:
-            return "promoted"
+        if current in {"promoted", "deprecated"}:
+            return current
         if score >= 0.6:
             return "active"
         return "candidate"
@@ -416,9 +418,9 @@ class ExpandedNodeManager:
             return ""
 
         lines: List[str] = [
-            "## 扩展知识参考",
-            "系统通过知识图谱自我进化生成了以下扩展知识节点，它们与当前问题高度相关。",
-            "请在回答中优先核对这些知识，如果它们与你的分析一致，请自然地融入回答中。",
+            "## 未验证的扩展知识候选",
+            "以下内容由模型生成，匹配分和历史使用次数只反映相关性或活跃度，不代表事实已验证。",
+            "这些候选只能用于探索线索，不能作为文档原文或已证实事实；采纳前须核对独立原文证据。",
             "",
         ]
         for item in selected:
@@ -436,11 +438,11 @@ class ExpandedNodeManager:
             if edges:
                 edge_strs = [f"{e.get('target', '?')} ({e.get('relation', '?')})" for e in edges[:3]]
                 lines.append(f"- 关联实体: {', '.join(edge_strs)}")
-            lines.append(f"- 匹配置信度: {score:.2f}")
+            lines.append(f"- 检索匹配分（非事实置信度）: {score:.2f}")
             lines.append("")
 
         lines.append("注意：")
         lines.append("1. 只采纳与问题确实相关的节点")
         lines.append("2. 如果某个节点的信息与文档事实矛盾，请忽略并在回答末尾注明")
-        lines.append("3. 被采纳的节点将获得更高权重，未被采纳的将逐渐衰减")
+        lines.append("3. 缺少独立证据时明确标注为假设；回答提及候选不会使其自动成为事实")
         return "\n".join(lines)

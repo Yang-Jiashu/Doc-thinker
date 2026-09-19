@@ -1,4 +1,5 @@
 import os
+from hashlib import sha256
 import sys
 import asyncio
 import multiprocessing as mp
@@ -94,6 +95,20 @@ _storage_keyed_lock: Optional["KeyedUnifiedLock"] = None
 _async_locks: Optional[Dict[str, asyncio.Lock]] = None
 
 _debug_n_locks_acquired: int = 0
+
+
+def get_storage_workspace(working_dir: str, workspace: str = "") -> str:
+    """Scope local stores' shared state to their actual persistence directory.
+
+    ``workspace`` alone is not unique: legacy sessions all use an empty value,
+    and separate data roots can contain the same session name. Keep file paths
+    unchanged while using the resolved directory for in-memory data, locks,
+    and update notifications. Aliases of the same directory still coordinate.
+    """
+    directory = os.path.normcase(
+        os.path.realpath(os.path.join(working_dir, workspace or ""))
+    )
+    return "local:" + sha256(os.fsencode(directory)).hexdigest()
 
 
 def get_final_namespace(namespace: str, workspace: str | None = None):

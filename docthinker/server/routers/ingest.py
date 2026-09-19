@@ -4,7 +4,7 @@ import logging
 import re
 import shutil
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from hashlib import md5
 from pathlib import Path
 from typing import List, Optional, Any, Dict, Iterable
@@ -15,12 +15,25 @@ from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile,
 
 from ..schemas import IngestRequest, SignalIngestRequest
 from ..state import state
+from ..self_study_retrieval import SelfStudySnapshotRetriever
 from docthinker.utils import separate_content
 from graphcore.coregraph.constants import GRAPH_FIELD_SEP
 
 _log = logging.getLogger("docthinker.ingest")
 
 router = APIRouter()
+
+
+async def _run_post_upload_learning(session_id: str) -> None:
+    """Run learning stages serially; failure of one does not suppress the other."""
+    for name, stage in (
+        ("eclrr", _background_path_edge_discovery),
+        ("self_study", _background_self_study),
+    ):
+        try:
+            await stage(session_id)
+        except Exception:
+            _log.exception("[learning] stage %s failed for session %s", name, session_id)
 
 
 def compute_mdhash_id(content: str, prefix: str = "") -> str:
@@ -229,11 +242,7 @@ async def _background_path_edge_discovery(sid: str) -> None:
 
 
 async def _background_self_study(sid: str) -> None:
-    """Run KG self-study loop in the background after ingestion.
-
-    The self-study loop lets the LLM autonomously quiz and densify the KG,
-    improving retrieval quality before user queries arrive.
-    """
+    """Generate reviewable self-study candidates without modifying source facts."""
     try:
         if not state.session_manager or not state.rag_instance:
             return
@@ -273,57 +282,52 @@ async def _background_self_study(sid: str) -> None:
         workdir = getattr(gc, "workspace", None) or "./data/_system"
         self_study_audit = Path(knowledge_dir or workdir) / "self_study_audit.jsonl"
 
+        # Audit-only synthesis cannot change this graph. Reuse one snapshot and
+        # avoid aquery_data's implicit keyword LLM outside the self-study budget.
+        all_edges = await graph.get_all_edges()
+        retriever = await asyncio.to_thread(
+            SelfStudySnapshotRetriever, all_nodes, all_edges, gc.text_chunks
+        )
+
         async def kg_query_func(question: str):
-            try:
-                result = await gc.aquery_data(question)
-                return {
-                    "entities": result.get("entities", []),
-                    "relations": result.get("relations", []),
-                    "chunks": result.get("chunks", []),
-                }
-            except Exception:
-                return {"entities": [], "relations": [], "chunks": []}
+            return await retriever.query(question)
 
         async def kg_write_func(operations: dict):
-            proposed_edges = operations.get("new_edges", [])
-            if proposed_edges:
-                self_study_audit.parent.mkdir(parents=True, exist_ok=True)
-                record = {
-                    "timestamp": datetime.utcnow().isoformat() + "Z",
-                    "session_id": sid,
-                    "review_status": "audit_only",
-                    "new_edges": proposed_edges,
-                }
-                with self_study_audit.open("a", encoding="utf-8") as handle:
-                    handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
-
-            graph_changed = False
-            for upd in operations.get("entity_updates", []):
-                entity_name = upd.get("entity", "")
-                if not entity_name:
-                    continue
-                if upd.get("action") == "enrich_description":
-                    node = await graph.get_node(entity_name)
-                    if node:
-                        old_desc = node.get("description", "")
-                        new_content = upd.get("new_content", "")
-                        if new_content and new_content not in old_desc:
-                            node["description"] = f"{old_desc} | {new_content}"
-                            await graph.upsert_node(entity_name, node)
-                            graph_changed = True
-
-            if graph_changed:
-                await graph.index_done_callback(force_save=True)
+            # Model-written descriptions are hypotheses just like new edges.
+            # Keep all synthesis output outside the source graph and vector
+            # indexes until an evidence review explicitly approves it. Existing
+            # descriptions and earlier audit records are never rewritten here.
+            candidate_fields = (
+                "new_edges", "entity_updates", "summary_nodes", "contradiction_flags",
+            )
+            candidates = {
+                key: operations.get(key, []) for key in candidate_fields
+                if operations.get(key)
+            }
+            if not candidates:
+                return
+            self_study_audit.parent.mkdir(parents=True, exist_ok=True)
+            record = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "session_id": sid,
+                "provenance": "self_study",
+                "review_status": "audit_only",
+                "query_eligible": False,
+                **candidates,
+            }
+            with self_study_audit.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
         async def kg_read_nodes():
-            return await graph.get_all_nodes()
+            return all_nodes
 
         async def kg_read_edges():
-            return await graph.get_all_edges()
+            return all_edges
 
         study_config = SelfStudyConfig(
             max_rounds=3,
             max_tokens=30000,
+            audit_only=True,
             questions_per_round=2,
             experience_store_path=f"{workdir}/experiences_{sid}.json",
         )
@@ -339,11 +343,14 @@ async def _background_self_study(sid: str) -> None:
 
         result = await orchestrator.run_session()
         _log.info(
-            "[self_study:bg] session %s — %d rounds, %d new edges, "
-            "%d updates, %d experiences in %.1fs",
+            "[self_study:bg] session %s — %d rounds, %d edge candidates, "
+            "%d entity-update candidates, %d experiences in %.1fs (audit only); "
+            "stop=%s; llm_usage=%s",
             sid, len(result.rounds), result.total_new_edges,
             result.total_entity_updates, result.total_experiences,
             result.elapsed_seconds,
+            getattr(result, "stopped_reason", "unknown"),
+            json.dumps(getattr(result, "llm_usage", {}), ensure_ascii=False),
         )
 
     except Exception as exc:
@@ -1394,12 +1401,11 @@ async def ingest_files(
 
                 _log.info("[ingest] background processing COMPLETE for session %s", sid)
 
-                # Fire-and-forget: discover latent edges in the background.
-                # This does NOT block the user — they can query immediately.
-                asyncio.create_task(_background_path_edge_discovery(sid))
-
-                # Fire-and-forget: KG self-study loop (test-time scaling on KG)
-                asyncio.create_task(_background_self_study(sid))
+                # Coalesce repeated uploads without awaiting post-upload learning.
+                # The app lifespan owns and cancels the session-keyed runner.
+                runner = state.post_upload_learning
+                if runner is None or not runner.submit(sid):
+                    _log.info("[learning] runner unavailable/stopping; skipped session %s", sid)
 
             except Exception as e:
                 _log.error("[ingest] background processing error: %s", e, exc_info=True)

@@ -33,8 +33,10 @@ flowchart LR
   controls.
 - `ExpandedKnowledgeBackend`: matches candidate KG hypotheses during recall and
   records which candidates were useful in the answer.
-- `GraphPromotionBackend`: promotes repeatedly useful expanded nodes into the
-  authoritative graph.
+- `GraphPromotionBackend`: extension point for independently authorized graph
+  promotion. The bundled GraphCore adapter rejects legacy usage-count promotion:
+  repeated mentions do not establish source evidence. ECLRR has its own gate and
+  writeback path; custom adapters must provide their own evidence checks.
 - `ChatTurnBackend`: optionally forwards Q&A turns into another ingestion
   pipeline.
 

@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import time
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence
 
 from .protocols import ExpandedKnowledgeBackend
+
+_log = logging.getLogger("docthinker.memory_core")
 
 
 def serialize_episode_match(raw: Any) -> Optional[Dict[str, Any]]:
@@ -167,16 +170,15 @@ class ExpandedNodeBackend:
         manager = self._manager(session_id)
         if not manager:
             return []
-        usage = manager.record_response_usage(
+        manager.record_response_usage(
             answer=answer,
             matches=matches,
             attached_entities=list(attached_entities),
         )
-        return [
-            str(name).strip()
-            for name in (usage.get("promoted") or [])
-            if str(name).strip()
-        ]
+        # Older managers may still return a frequency-based promotion list.
+        # Recording usage is allowed; this adapter supplies no source evidence
+        # and must not report such a list as successfully promoted facts.
+        return []
 
     def get_record(self, session_id: Optional[str], name: str) -> Optional[Dict[str, Any]]:
         manager = self._manager(session_id)
@@ -187,7 +189,12 @@ class ExpandedNodeBackend:
 
 
 class GraphCorePromotionBackend:
-    """Promotion adapter that writes accepted expanded nodes into GraphCore."""
+    """Fail-closed compatibility adapter for legacy frequency-based promotion.
+
+    Names, answer associations, and usage scores do not provide independent
+    document evidence. This interface therefore cannot authorize source-graph
+    writes. Verified ECLRR relations use their separate gate/writeback path.
+    """
 
     def __init__(
         self,
@@ -206,84 +213,12 @@ class GraphCorePromotionBackend:
         if not session_id or not promoted_names:
             return []
 
-        session_rag = await self.get_session_rag(session_id)
-        graphcore = getattr(session_rag, "graphcore", None)
-        if graphcore is None:
-            return []
-        graph = graphcore.chunk_entity_relation_graph
-        changed = False
-        written: List[str] = []
-
-        for name in promoted_names:
-            clean_name = str(name).strip()
-            if not clean_name:
-                continue
-            record = expanded_backend.get_record(session_id, clean_name)
-            if not record:
-                continue
-            roots = [
-                str(root).strip()
-                for root in (record.get("root_ids") or [])
-                if str(root).strip()
-            ]
-
-            await graph.upsert_node(
-                clean_name,
-                {
-                    "entity_id": clean_name,
-                    "entity_type": "concept",
-                    "description": record.get("reason") or record.get("description") or clean_name,
-                    "source_id": "promoted_expansion",
-                    "is_expanded": "0",
-                },
-            )
-            changed = True
-            written.append(clean_name)
-
-            for ent in list(answer_entities)[:8]:
-                if not ent or ent == clean_name:
-                    continue
-                await graph.upsert_node(
-                    ent,
-                    {
-                        "entity_id": ent,
-                        "entity_type": "concept",
-                        "description": f"Extracted from answer for expansion node {clean_name}",
-                        "source_id": "answer_entity",
-                    },
-                )
-                await graph.upsert_edge(
-                    clean_name,
-                    ent,
-                    {
-                        "keywords": "co_mentioned",
-                        "description": f"Assistant answer associated {clean_name} with {ent}",
-                        "source_id": "answer_entity",
-                    },
-                )
-                changed = True
-
-            for root in roots[:6]:
-                if not root or root == clean_name:
-                    continue
-                await graph.upsert_edge(
-                    clean_name,
-                    root,
-                    {
-                        "keywords": "expanded_from_root",
-                        "description": f"Promoted expansion node linked to root node {root}",
-                        "source_id": "llm_expansion",
-                    },
-                )
-                changed = True
-
-        if changed and hasattr(graph, "index_done_callback"):
-            try:
-                await graph.index_done_callback(force_save=True)
-            except TypeError:
-                await graph.index_done_callback()
-
-        return written
+        _log.warning(
+            "Skipped frequency-based promotion of %d expanded candidates: "
+            "independently verified source evidence is required",
+            len(promoted_names),
+        )
+        return []
 
 
 class ChatTurnIngestBackend:
