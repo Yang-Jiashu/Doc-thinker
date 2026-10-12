@@ -10,9 +10,10 @@ deliberately injects conflicting utility CSS last.
 ## Browser installation and sandbox
 
 `.github/browser-requirements.txt` pins Playwright 1.63.0, which installs full
-Chromium/Chrome for Testing 153.0.8010.12 (revision 1243). Playwright is only an
-installer and executable locator; its browser-launch defaults are not used.
-The pytest test invokes the executable directly with normal sandbox defaults.
+Chromium/Chrome for Testing 153.0.8010.12 (revision 1243). Playwright installs, locates and drives this exact full browser. Every launch
+explicitly sets `chromium_sandbox=True` (the Playwright default is false).
+The same browser process is used for the sandbox probe and the layout pages;
+contexts set exact CSS viewport sizes independently of native window limits.
 The hosted VM image, browser version and executable/helper SHA-256 digests are
 recorded as CI artifacts. The hosted VM and apt dependencies receive upstream
 updates; this is a versioned browser recipe, not a byte-identical VM image.
@@ -51,7 +52,7 @@ layout assertions are preserved.
 Pytest's nonzero exit status propagates directly to CI. A second check parses
 JUnit XML and requires exactly the three expected passing cases with no skips,
 failures or errors. `sandboxed-browser-layout` artifacts retain the JUnit report,
-sandbox DOM, viewport DOMs and browser stderr for seven days, including on
+sandbox DOM, viewport DOMs/screenshots and browser failure diagnostics for seven days, including on
 failure. Treat this separate job as a required check in branch protection if
 merges must be gated on browser validation.
 

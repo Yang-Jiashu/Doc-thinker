@@ -1,5 +1,4 @@
-# Playwright is used only to install/locate the versioned full Chromium build.
-# Tests launch the executable directly, preserving Chromium's sandbox defaults.
+# Pin the installer and browser driver; tests explicitly enable Chromium's sandbox.
 playwright==1.63.0
 pytest==8.4.2
 pytest-asyncio==1.2.0

@@ -1,13 +1,16 @@
 """Offline regressions for mandatory browser execution and sandbox admission."""
 
-import subprocess
+import sys
+from contextlib import nullcontext
+from types import ModuleType, SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 
 from tests.test_query_ui_controls_unit import (
     _assert_linux_sandbox,
     _configured_browser,
-    _run_browser,
+    sandboxed_browser,
 )
 
 
@@ -53,27 +56,34 @@ def test_sandbox_status_rejects_each_missing_layer(disabled):
         _assert_linux_sandbox(dom)
 
 
+def _mock_playwright(monkeypatch, launch):
+    api = ModuleType("playwright.sync_api")
+    api.sync_playwright = lambda: nullcontext(SimpleNamespace(chromium=SimpleNamespace(launch=launch)))
+    monkeypatch.setitem(sys.modules, "playwright", ModuleType("playwright"))
+    monkeypatch.setitem(sys.modules, "playwright.sync_api", api)
+    monkeypatch.setattr("tests.test_query_ui_controls_unit._configured_browser", lambda: "chromium")
+    monkeypatch.setattr("tests.test_query_ui_controls_unit.os.geteuid", lambda: 1001)
+
+
+def test_browser_driver_explicitly_enables_sandbox_and_closes(monkeypatch):
+    browser = Mock()
+    browser.new_page.return_value.content.return_value = (
+        "Layer 1 Sandbox Namespace PID namespaces Yes "
+        "Network namespaces Yes Seccomp-BPF sandbox Yes"
+    )
+    launch = Mock(return_value=browser)
+    _mock_playwright(monkeypatch, launch)
+    fixture = sandboxed_browser.__wrapped__()
+    assert next(fixture) is browser
+    assert launch.call_args.kwargs["chromium_sandbox"] is True
+    assert not any("sandbox" in arg for arg in launch.call_args.kwargs["args"])
+    fixture.close()
+    browser.close.assert_called_once()
+
+
 def test_browser_launch_failure_propagates_with_diagnostics(monkeypatch, tmp_path):
-    def failed_launch(command, **kwargs):
-        assert not any(flag in command for flag in
-                       ("--no-sandbox", "--disable-setuid-sandbox", "--disable-seccomp-filter-sandbox"))
-        return subprocess.CompletedProcess(command, 1, "", "No usable sandbox!")
-
-    monkeypatch.setattr(subprocess, "run", failed_launch)
+    _mock_playwright(monkeypatch, Mock(side_effect=RuntimeError("No usable sandbox!")))
     monkeypatch.setenv("DOCTHINKER_BROWSER_ARTIFACTS", str(tmp_path / "logs"))
-    with pytest.raises(AssertionError, match="No usable sandbox"):
-        _run_browser("chromium", tmp_path / "profile", 390, "file:///fixture.html", "failure")
-    assert (tmp_path / "logs/failure.stderr.txt").read_text() == "No usable sandbox!"
-
-
-def test_browser_timeout_propagates_with_diagnostics(monkeypatch, tmp_path):
-    def stalled_launch(command, **kwargs):
-        assert "--allow-chrome-scheme-url" in command
-        raise subprocess.TimeoutExpired(command, 30, output=b"partial DOM", stderr=b"stalled")
-
-    monkeypatch.setattr(subprocess, "run", stalled_launch)
-    monkeypatch.setenv("DOCTHINKER_BROWSER_ARTIFACTS", str(tmp_path / "logs"))
-    with pytest.raises(subprocess.TimeoutExpired):
-        _run_browser("chromium", tmp_path / "profile", 1280, "chrome://sandbox", "timeout")
-    assert (tmp_path / "logs/timeout.stderr.txt").read_text() == "stalled"
-    assert (tmp_path / "logs/timeout.html").read_text() == "partial DOM"
+    with pytest.raises(RuntimeError, match="No usable sandbox"):
+        next(sandboxed_browser.__wrapped__())
+    assert (tmp_path / "logs/browser-launch.stderr.txt").read_text() == "No usable sandbox!"

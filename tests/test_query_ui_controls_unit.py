@@ -39,27 +39,6 @@ def _save_browser_output(label, stdout, stderr):
             (output / f"{label}.{suffix}").write_text(value or "", encoding="utf-8")
 
 
-def _run_browser(browser, profile, width, url, label):
-    # Invoke the executable directly: no Playwright launch defaults, shell
-    # wrapper, or sandbox-disabling switches are involved. Modern headless
-    # Chrome requires an explicit opt-in for its internal diagnostics URL.
-    internal_url_flags = ["--allow-chrome-scheme-url"] if url == "chrome://sandbox" else []
-    try:
-        result = subprocess.run(
-            [browser, "--headless", "--disable-gpu", "--no-first-run",
-             "--disable-background-networking", "--force-device-scale-factor=1",
-             f"--user-data-dir={profile}", f"--window-size={width},844",
-             "--virtual-time-budget=1000", *internal_url_flags, "--dump-dom", url],
-            text=True, capture_output=True, check=False, timeout=30,
-        )
-    except subprocess.TimeoutExpired as exc:
-        _save_browser_output(label, exc.stdout, exc.stderr)
-        raise
-    _save_browser_output(label, result.stdout, result.stderr)
-    assert result.returncode == 0, result.stderr
-    return result.stdout
-
-
 def _assert_linux_sandbox(dom):
     # chrome://sandbox reports the renderer's actual sandbox layers. Merely
     # finding a browser, or checking sysctl values, is not sufficient.
@@ -72,14 +51,40 @@ def _assert_linux_sandbox(dom):
 
 
 @pytest.fixture(scope="module")
-def sandboxed_browser(tmp_path_factory):
-    browser = _configured_browser()
+def sandboxed_browser():
+    executable = _configured_browser()
     if sys.platform.startswith("linux"):
         assert os.geteuid() != 0, "Run Chromium as a non-root user with its sandbox enabled"
-        dom = _run_browser(browser, tmp_path_factory.mktemp("sandbox-profile"),
-                           1280, "chrome://sandbox", "sandbox-status")
-        _assert_linux_sandbox(dom)
-    return browser
+    # Imported only after explicit browser admission. Ordinary unit tests do
+    # not need Playwright. Its default disables the sandbox, so enable it here.
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as p:
+        try:
+            browser = p.chromium.launch(
+                executable_path=executable, chromium_sandbox=True, headless=True,
+                args=["--disable-background-networking", "--disable-gpu"], timeout=30000,
+            )
+        except Exception as exc:
+            _save_browser_output("browser-launch", "", str(exc))
+            raise
+        try:
+            if sys.platform.startswith("linux"):
+                page = browser.new_page()
+                try:
+                    page.goto("chrome://sandbox", wait_until="domcontentloaded", timeout=30000)
+                    page.wait_for_selector("#sandbox-status tr", timeout=10000)
+                    dom = page.content()
+                    _save_browser_output("sandbox-status", dom, "")
+                    _assert_linux_sandbox(dom)
+                except Exception as exc:
+                    _save_browser_output("sandbox-status", page.content(), str(exc))
+                    raise
+                finally:
+                    page.close()
+            yield browser
+        finally:
+            browser.close()
 
 
 def test_query_template_preserves_accessible_control_bindings():
@@ -167,11 +172,24 @@ def test_shell_survives_late_utility_css_in_real_browser(tmp_path, sandboxed_bro
     </script></body>""")
     fixture = tmp_path / "responsive-shell.html"
     fixture.write_text(page)
-    dom = _run_browser(sandboxed_browser, tmp_path / "profile", width,
-                       fixture.as_uri(), f"layout-{width}")
-    report = re.search(r'<pre id="layout-report">(.*?)</pre>', dom, re.DOTALL)
-    assert report, dom
-    layout = json.loads(unescape(report.group(1)))
+    context = sandboxed_browser.new_context(
+        viewport={"width": width, "height": 844}, device_scale_factor=1,
+    )
+    page = context.new_page()
+    try:
+        page.goto(fixture.as_uri(), wait_until="load", timeout=30000)
+        report = page.locator("#layout-report")
+        report.wait_for(state="attached", timeout=10000)
+        layout = json.loads(report.text_content())
+        _save_browser_output(f"layout-{width}", page.content(), "")
+        artifacts = os.environ.get("DOCTHINKER_BROWSER_ARTIFACTS")
+        if artifacts:
+            page.screenshot(path=str(Path(artifacts) / f"layout-{width}.png"))
+    except Exception as exc:
+        _save_browser_output(f"layout-{width}", page.content(), str(exc))
+        raise
+    finally:
+        context.close()
     viewport = layout["viewport"]
     assert viewport["width"] == width, layout
     assert layout["scrollWidth"] <= width, layout
