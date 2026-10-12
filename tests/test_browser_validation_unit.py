@@ -64,3 +64,16 @@ def test_browser_launch_failure_propagates_with_diagnostics(monkeypatch, tmp_pat
     with pytest.raises(AssertionError, match="No usable sandbox"):
         _run_browser("chromium", tmp_path / "profile", 390, "file:///fixture.html", "failure")
     assert (tmp_path / "logs/failure.stderr.txt").read_text() == "No usable sandbox!"
+
+
+def test_browser_timeout_propagates_with_diagnostics(monkeypatch, tmp_path):
+    def stalled_launch(command, **kwargs):
+        assert "--allow-chrome-scheme-url" in command
+        raise subprocess.TimeoutExpired(command, 30, output=b"partial DOM", stderr=b"stalled")
+
+    monkeypatch.setattr(subprocess, "run", stalled_launch)
+    monkeypatch.setenv("DOCTHINKER_BROWSER_ARTIFACTS", str(tmp_path / "logs"))
+    with pytest.raises(subprocess.TimeoutExpired):
+        _run_browser("chromium", tmp_path / "profile", 1280, "chrome://sandbox", "timeout")
+    assert (tmp_path / "logs/timeout.stderr.txt").read_text() == "stalled"
+    assert (tmp_path / "logs/timeout.html").read_text() == "partial DOM"

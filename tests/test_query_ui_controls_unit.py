@@ -28,22 +28,34 @@ def _configured_browser():
     return browser
 
 
-def _run_browser(browser, profile, width, url, label):
-    # Invoke the executable directly: no Playwright launch defaults, shell
-    # wrapper, or sandbox-disabling switches are involved.
-    result = subprocess.run(
-        [browser, "--headless", "--disable-gpu", "--no-first-run",
-         "--disable-background-networking", "--force-device-scale-factor=1",
-         f"--user-data-dir={profile}", f"--window-size={width},844",
-         "--virtual-time-budget=1000", "--dump-dom", url],
-        text=True, capture_output=True, check=False, timeout=30,
-    )
+def _save_browser_output(label, stdout, stderr):
     artifacts = os.environ.get("DOCTHINKER_BROWSER_ARTIFACTS")
     if artifacts:
         output = Path(artifacts)
         output.mkdir(parents=True, exist_ok=True)
-        (output / f"{label}.html").write_text(result.stdout, encoding="utf-8")
-        (output / f"{label}.stderr.txt").write_text(result.stderr, encoding="utf-8")
+        for suffix, value in (("html", stdout), ("stderr.txt", stderr)):
+            if isinstance(value, bytes):
+                value = value.decode("utf-8", errors="replace")
+            (output / f"{label}.{suffix}").write_text(value or "", encoding="utf-8")
+
+
+def _run_browser(browser, profile, width, url, label):
+    # Invoke the executable directly: no Playwright launch defaults, shell
+    # wrapper, or sandbox-disabling switches are involved. Modern headless
+    # Chrome requires an explicit opt-in for its internal diagnostics URL.
+    internal_url_flags = ["--allow-chrome-scheme-url"] if url == "chrome://sandbox" else []
+    try:
+        result = subprocess.run(
+            [browser, "--headless", "--disable-gpu", "--no-first-run",
+             "--disable-background-networking", "--force-device-scale-factor=1",
+             f"--user-data-dir={profile}", f"--window-size={width},844",
+             "--virtual-time-budget=1000", *internal_url_flags, "--dump-dom", url],
+            text=True, capture_output=True, check=False, timeout=30,
+        )
+    except subprocess.TimeoutExpired as exc:
+        _save_browser_output(label, exc.stdout, exc.stderr)
+        raise
+    _save_browser_output(label, result.stdout, result.stderr)
     assert result.returncode == 0, result.stderr
     return result.stdout
 
