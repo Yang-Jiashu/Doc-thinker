@@ -33,3 +33,79 @@ jobs:
         # Removed `|| true` so test failures actually fail CI. Pytest's
         # exit code now propagates to the workflow.
         run: pytest tests/ -v --ignore=tests/debug_db.py
+
+  browser-layout:
+    name: Sandboxed browser layout
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      DOCTHINKER_REQUIRE_BROWSER: "1"
+      DOCTHINKER_BROWSER_ARTIFACTS: ${{ github.workspace }}/browser-artifacts
+      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/docthinker-browsers
+      # Ubuntu 24.04 restricts user namespaces for downloaded executables.
+      # Use the runner's existing Chrome SUID helper, as recommended by Chromium.
+      # Keep AppArmor, host sysctls and Chromium's seccomp sandbox intact.
+      CHROME_DEVEL_SANDBOX: /opt/google/chrome/chrome-sandbox
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Check hosted runner sandbox prerequisites
+        run: |
+          mkdir -p browser-artifacts
+          {
+            id
+            uname -a
+            printf 'ImageOS=%s ImageVersion=%s\n' "$ImageOS" "$ImageVersion"
+            stat -c '%u %a %n' "$CHROME_DEVEL_SANDBOX"
+            sha256sum "$CHROME_DEVEL_SANDBOX"
+          } | tee browser-artifacts/runner.txt
+          test "$(id -u)" -ne 0
+          test "$(stat -c '%u:%a' "$CHROME_DEVEL_SANDBOX")" = "0:4755"
+          test -x "$CHROME_DEVEL_SANDBOX"
+      - name: Install pinned full Chromium and layout test dependencies
+        run: |
+          python -m pip install -r .github/browser-requirements.txt
+          python -m playwright install --with-deps --no-shell chromium
+          python - <<'PY'
+          import os
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as p:
+              browser = p.chromium.executable_path
+          with open(os.environ["GITHUB_ENV"], "a") as env:
+              env.write(f"DOCTHINKER_BROWSER_BIN={browser}\n")
+          PY
+      - name: Record browser version and executable digest
+        run: |
+          "$DOCTHINKER_BROWSER_BIN" --version | tee browser-artifacts/browser-version.txt
+          sha256sum "$DOCTHINKER_BROWSER_BIN" | tee browser-artifacts/browser-sha256.txt
+      - name: Run all three real browser viewports with sandbox preflight
+        run: >-
+          python -m pytest
+          tests/test_query_ui_controls_unit.py::test_shell_survives_late_utility_css_in_real_browser
+          -v -rA --junitxml=browser-artifacts/layout.xml
+      - name: Require three executed, passing layout cases
+        run: |
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          cases = ET.parse("browser-artifacts/layout.xml").findall(".//testcase")
+          test = "test_shell_survives_late_utility_css_in_real_browser"
+          expected = {f"{test}[{width}]" for width in (390, 768, 1280)}
+          assert len(cases) == 3 and {case.get("name") for case in cases} == expected, cases
+          assert all(case.find(tag) is None for case in cases
+                     for tag in ("skipped", "failure", "error")), "Browser cases must all pass"
+          print("Verified sandboxed layout checks passed at 390, 768 and 1280px; zero skips")
+          PY
+      - name: Upload browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sandboxed-browser-layout
+          path: browser-artifacts/
+          retention-days: 7

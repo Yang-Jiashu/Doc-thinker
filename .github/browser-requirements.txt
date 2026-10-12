@@ -1,0 +1,6 @@
+# Playwright is used only to install/locate the versioned full Chromium build.
+# Tests launch the executable directly, preserving Chromium's sandbox defaults.
+playwright==1.63.0
+pytest==8.4.2
+pytest-asyncio==1.2.0
+Jinja2==3.1.6
