@@ -10,6 +10,7 @@ from graphcore.coregraph.utils import logger, compute_mdhash_id
 from graphcore.coregraph.base import BaseVectorStorage
 
 from .shared_storage import (
+    get_storage_workspace,
     get_namespace_lock,
     get_update_flag,
     set_all_update_flags,
@@ -53,6 +54,7 @@ class FaissVectorDBStorage(BaseVectorStorage):
             workspace_dir, f"faiss_index_{self.namespace}.index"
         )
         self._meta_file = self._faiss_index_file + ".meta.json"
+        self._shared_workspace = get_storage_workspace(working_dir, self.workspace)
 
         self._max_batch_size = self.global_config["embedding_batch_num"]
         # Embedding dimension (e.g. 768) must match your embedding function
@@ -72,11 +74,11 @@ class FaissVectorDBStorage(BaseVectorStorage):
         """Initialize storage data"""
         # Get the update flag for cross-process update notification
         self.storage_updated = await get_update_flag(
-            self.namespace, workspace=self.workspace
+            self.namespace, workspace=self._shared_workspace
         )
         # Get the storage lock for use in other methods
         self._storage_lock = get_namespace_lock(
-            self.namespace, workspace=self.workspace
+            self.namespace, workspace=self._shared_workspace
         )
 
     async def _get_index(self):
@@ -402,7 +404,7 @@ class FaissVectorDBStorage(BaseVectorStorage):
                 # Save data to disk
                 self._save_faiss_index()
                 # Notify other processes that data has been updated
-                await set_all_update_flags(self.namespace, workspace=self.workspace)
+                await set_all_update_flags(self.namespace, workspace=self._shared_workspace)
                 # Reset own update flag to avoid self-reloading
                 self.storage_updated.value = False
             except Exception as e:
@@ -529,7 +531,7 @@ class FaissVectorDBStorage(BaseVectorStorage):
                 self._load_faiss_index()
 
                 # Notify other processes
-                await set_all_update_flags(self.namespace, workspace=self.workspace)
+                await set_all_update_flags(self.namespace, workspace=self._shared_workspace)
                 self.storage_updated.value = False
 
                 logger.info(

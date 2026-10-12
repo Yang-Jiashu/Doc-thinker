@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from typing import Any
 
 _log = logging.getLogger("docthinker.retrieval_policy")
@@ -59,11 +60,36 @@ def relation_has_evidence(relation: dict[str, Any]) -> bool:
 def relation_confidence(relation: dict[str, Any]) -> float:
     """Legacy helper retained for original-edge ranking compatibility."""
     for key in ("confidence", "weight"):
+        if key not in relation:
+            continue
         try:
-            return max(0.0, min(1.0, float(relation.get(key, 0.0))))
+            value = float(relation[key])
         except (TypeError, ValueError):
             continue
+        return max(0.0, min(1.0, value)) if math.isfinite(value) else 0.0
     return 0.0
+
+
+def is_inferred_relation(relation: dict[str, Any]) -> bool:
+    """Recognise generated relations across current and legacy writers."""
+    inferred_sources = {
+        "eclrr_v4",
+        "edge_discovery",
+        "path_edge_discovery",
+        "self_study",
+        "legacy_synthetic",
+        "llm_expansion",
+        "query_local_path_completion",
+    }
+    source_ids = str(relation.get("source_id") or "").lower().split("<sep>")
+    return bool(
+        truthy_metadata(relation.get("is_discovered"))
+        or truthy_metadata(relation.get("is_expanded"))
+        or str(relation.get("review_status") or "").strip().lower()
+        in {"candidate", "pending", "proposed", "promoted", "rejected"}
+        or str(relation.get("provenance") or "").strip().lower() in inferred_sources
+        or any(source.strip() in inferred_sources for source in source_ids)
+    )
 
 
 def _judge_scores(relation: dict[str, Any]) -> dict[str, int]:
@@ -86,6 +112,14 @@ def _judge_scores(relation: dict[str, Any]) -> dict[str, int]:
 
 
 def is_promoted_relation(relation: dict[str, Any]) -> bool:
+    # Non-finite metadata must not evade later confidence or ranking checks.
+    for key in ("confidence", "weight"):
+        if key in relation:
+            try:
+                if not math.isfinite(float(relation[key])):
+                    return False
+            except (TypeError, ValueError):
+                return False
     if str(relation.get("review_status") or "").strip().lower() != "promoted":
         return False
     if str(relation.get("provenance") or "").strip().lower() != "eclrr_v4":
@@ -112,7 +146,8 @@ def _retrieval_relevance(relation: dict[str, Any]) -> tuple[int, float]:
     return 1, max(0.0, min(1.0, 1.0 - distance))
 
 
-def _expand_promoted_records(relation: dict[str, Any]) -> list[dict[str, Any]]:
+def expand_relation_records(relation: dict[str, Any]) -> list[dict[str, Any]]:
+    """Expose logical relations stored on a shared physical graph edge."""
     expanded = [relation]
     records = _json_value(relation.get("eclrr_relations"))
     if not isinstance(records, list):
@@ -125,7 +160,9 @@ def _expand_promoted_records(relation: dict[str, Any]) -> list[dict[str, Any]]:
         item = dict(record)
         item["src_id"] = item.get("src_id") or item.get("source") or source
         item["tgt_id"] = item.get("tgt_id") or item.get("target") or target
-        if item.get("canonical_key") == relation.get("canonical_key"):
+        if item.get("canonical_key") and item["canonical_key"] == relation.get(
+            "canonical_key"
+        ):
             continue
         expanded.append(item)
     return expanded
@@ -140,21 +177,8 @@ def select_relations_for_query(
     include_discovered = bool(getattr(query_param, "include_discovered_edges", False))
 
     for physical_relation in relations:
-        for relation in _expand_promoted_records(physical_relation):
-            review_status = str(relation.get("review_status") or "").strip().lower()
-            provenance = str(relation.get("provenance") or "").strip().lower()
-            discovered = (
-                truthy_metadata(relation.get("is_discovered"))
-                or review_status in {"candidate", "pending", "proposed", "promoted"}
-                or provenance
-                in {
-                    "eclrr_v4",
-                    "path_edge_discovery",
-                    "self_study",
-                    "legacy_synthetic",
-                    "llm_expansion",
-                }
-            )
+        for relation in expand_relation_records(physical_relation):
+            discovered = is_inferred_relation(relation)
             if not discovered:
                 originals.append(relation)
                 continue
@@ -197,6 +221,8 @@ def select_relations_for_query(
 
 
 __all__ = [
+    "expand_relation_records",
+    "is_inferred_relation",
     "is_promoted_relation",
     "relation_confidence",
     "relation_has_evidence",

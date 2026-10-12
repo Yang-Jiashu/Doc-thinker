@@ -5,23 +5,23 @@
 {% block extra_css %}
 <style>
     :root {
-        --dt-ink: #292520;
-        --dt-muted: #766f66;
-        --dt-hairline: #ded8cc;
-        --dt-paper: #fbfaf7;
-        --dt-panel: rgba(255, 254, 250, 0.92);
-        --dt-copper: #b85c38;
+        --dt-ink: #262626;
+        --dt-muted: #737373;
+        --dt-hairline: #e5e5e5;
+        --dt-paper: #ffffff;
+        --dt-panel: #ffffff;
+        --dt-copper: #303030;
         --dt-sage: #54746b;
         --dt-lake: #4b6f8f;
         --dt-ochre: #b7892d;
     }
     .kg-shell {
-        background: linear-gradient(180deg, #FAF8F5 0%, #F7F1EA 100%);
+        background: #fafafa;
     }
     .node circle { cursor: pointer; transition: stroke 0.18s ease, filter 0.18s ease, opacity 0.18s ease; }
     .node:hover circle { filter: saturate(1.08) brightness(1.05); stroke-width: 2.4; }
     .link {
-        stroke: #8f877d;
+        stroke: #a3a3a3;
         stroke-opacity: 0.2;
         cursor: pointer;
         transition: stroke 0.18s ease, stroke-opacity 0.18s ease, stroke-width 0.18s ease;
@@ -46,13 +46,13 @@
     .selected-node circle {
         stroke: var(--dt-copper) !important;
         stroke-width: 4px !important;
-        filter: drop-shadow(0 0 11px rgba(184, 92, 56, 0.34));
+        filter: drop-shadow(0 0 11px rgba(38, 38, 38, 0.18));
     }
     .selected-edge {
         stroke: var(--dt-copper) !important;
         stroke-opacity: 1 !important;
         stroke-width: 3.5px !important;
-        filter: drop-shadow(0 0 8px rgba(184, 92, 56, 0.28));
+        filter: drop-shadow(0 0 8px rgba(38, 38, 38, 0.16));
     }
     .gesture-hover circle {
         stroke: #22c55e !important;
@@ -62,9 +62,9 @@
     .detail-section { border-left: 3px solid #e2e8f0; padding-left: 12px; margin-bottom: 12px; }
     .detail-section.edge-detail { border-left-color: var(--dt-lake); }
     .detail-section.node-detail { border-left-color: var(--dt-sage); }
-    .relation-list-item { padding: 6px 8px; border-radius: 6px; background: #faf8f2; margin-bottom: 4px; font-size: 13px; }
-    .relation-list-item:hover { background: #f4efe4; }
-    .img-thumb { max-width: 100%; max-height: 160px; border-radius: 8px; border: 1px solid var(--dt-hairline); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; object-fit: contain; background: #faf8f2; }
+    .relation-list-item { padding: 6px 8px; border-radius: 6px; background: #f5f5f5; margin-bottom: 4px; font-size: 13px; }
+    .relation-list-item:hover { background: #eeeeee; }
+    .img-thumb { max-width: 100%; max-height: 160px; border-radius: 8px; border: 1px solid var(--dt-hairline); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; object-fit: contain; background: #f5f5f5; }
     .img-thumb:hover { transform: scale(1.03); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
     .lightbox { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; cursor: zoom-out; }
     .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); object-fit: contain; }
@@ -72,9 +72,8 @@
     .lightbox-close:hover { background: rgba(255,255,255,0.2); }
     .kg-panel {
         background: var(--dt-panel);
-        backdrop-filter: blur(18px);
-        border: 1px solid rgba(222, 216, 204, 0.9);
-        box-shadow: 0 18px 44px rgba(55, 46, 36, 0.12);
+        border: 1px solid #e5e5e5;
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.04);
     }
     .kg-toolbar {
         position: absolute;
@@ -95,19 +94,19 @@
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.86);
         padding: 12px;
-        box-shadow: 0 2px 16px rgba(193, 165, 140, 0.1);
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.02);
     }
     .kg-stat-tile {
         border-radius: 8px;
         padding: 12px;
-        background: linear-gradient(180deg, #fffefa 0%, #f7f3ea 100%);
+        background: #fafafa;
         border: 1px solid var(--dt-hairline);
     }
     .kg-life-bar {
         height: 8px;
         overflow: hidden;
         border-radius: 999px;
-        background: #e7dfd1;
+        background: #e5e5e5;
         display: flex;
     }
     .kg-life-segment { height: 100%; }
@@ -115,72 +114,72 @@
     .kg-life-active { background: var(--dt-lake); }
     .kg-life-promoted { background: var(--dt-sage); }
     .kg-node-row {
-        border: 1px solid #ebe4d8;
+        border: 1px solid #e5e5e5;
         border-radius: 8px;
         padding: 8px;
-        background: #faf7ef;
+        background: #fafafa;
     }
     .kg-memory-action {
-        width: 30px;
-        height: 30px;
+        width: 36px;
+        height: 36px;
         border-radius: 12px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid #e7dfd1;
-        background: #fffefa;
-        color: #766f66;
+        border: 1px solid #e5e5e5;
+        background: #ffffff;
+        color: #737373;
         transition: all 0.2s ease;
     }
     .kg-memory-action:hover {
         color: var(--dt-copper);
-        border-color: #d7a28b;
-        background: #fbede6;
+        border-color: #a3a3a3;
+        background: #f5f5f5;
     }
     .kg-command-input {
         width: 100%;
         min-height: 70px;
         resize: vertical;
         border-radius: 8px;
-        border: 1px solid #ded8cc;
-        background: #fffefa;
+        border: 1px solid #e5e5e5;
+        background: #ffffff;
         padding: 10px;
-        color: #292520;
+        color: #262626;
         font-size: 12px;
         line-height: 1.5;
         outline: none;
     }
     .kg-command-input:focus {
-        border-color: #c8876a;
-        box-shadow: 0 0 0 3px rgba(184, 92, 56, 0.12);
+        border-color: #737373;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
     }
     .kg-command-chip {
         border-radius: 999px;
-        border: 1px solid #e7dfd1;
-        background: #fffefa;
-        color: #766f66;
+        border: 1px solid #e5e5e5;
+        background: #ffffff;
+        color: #737373;
         padding: 3px 7px;
-        font-size: 11px;
+        font-size: 12px;
     }
     .kg-command-chip.active {
-        border-color: #d7a28b;
-        background: #fbede6;
-        color: #8a3d25;
+        border-color: #a3a3a3;
+        background: #f5f5f5;
+        color: #262626;
     }
     .kg-edit-summary {
         width: 100%;
         min-height: 58px;
         border-radius: 8px;
-        border: 1px solid #e7dfd1;
-        background: #fffefa;
+        border: 1px solid #e5e5e5;
+        background: #ffffff;
         padding: 8px;
         font-size: 12px;
-        color: #292520;
+        color: #262626;
     }
     .nl-node-highlight circle {
         stroke: var(--dt-copper) !important;
         stroke-width: 4px !important;
-        filter: drop-shadow(0 0 10px rgba(184, 92, 56, 0.32));
+        filter: drop-shadow(0 0 10px rgba(38, 38, 38, 0.18));
     }
     .nl-edge-highlight {
         stroke: var(--dt-copper) !important;
@@ -193,18 +192,17 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
-        border-radius: 24px;
+        border-radius: 9px;
         border: 1px solid var(--dt-hairline);
-        background: #fffefa;
-        color: #5f584f;
+        background: #ffffff;
+        color: #525252;
         font-weight: 600;
-        transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transition: color 0.15s, background 0.15s;
     }
     .kg-control-button:hover {
         color: var(--dt-copper);
-        border-color: #d7a28b;
-        background: #fbf2eb;
-        transform: translateY(-2px);
+        border-color: #a3a3a3;
+        background: #f5f5f5;
     }
     .kg-control-primary {
         color: white;
@@ -222,26 +220,26 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: #f7f3ea;
-        border: 1px solid #e7dfd1;
-        color: #766f66;
+        background: #f5f5f5;
+        border: 1px solid #e5e5e5;
+        color: #737373;
     }
     .kg-toggle-label {
         min-height: 34px;
         align-items: center;
         padding: 6px 8px;
         border-radius: 10px;
-        border: 1px solid #ebe4d8;
-        background: rgba(255, 254, 250, 0.7);
+        border: 1px solid #e5e5e5;
+        background: #fafafa;
     }
     .kg-control-accent {
-        color: #5f2e1f;
-        border-color: #dfb7a5;
-        background: #F5E6D3;
+        color: #262626;
+        border-color: #d4d4d4;
+        background: #f5f5f5;
     }
     .kg-control-accent:hover {
-        color: #5f2e1f;
-        background: #f6ded2;
+        color: #262626;
+        background: #eeeeee;
     }
     .kg-segmented {
         display: grid;
@@ -249,14 +247,14 @@
         gap: 4px;
         padding: 4px;
         border-radius: 12px;
-        border: 1px solid #e7dfd1;
-        background: rgba(255, 254, 250, 0.78);
+        border: 1px solid #e5e5e5;
+        background: #f5f5f5;
     }
     .kg-segment-button {
         min-width: 0;
         min-height: 34px;
         border-radius: 8px;
-        color: #766f66;
+        color: #737373;
         font-size: 12px;
         font-weight: 650;
         display: inline-flex;
@@ -267,12 +265,12 @@
     }
     .kg-segment-button:hover {
         color: var(--dt-copper);
-        background: #fbf2eb;
+        background: #f5f5f5;
     }
     .kg-segment-button.active {
-        color: #fffefa;
+        color: #ffffff;
         background: var(--dt-copper);
-        box-shadow: 0 6px 14px rgba(184, 92, 56, 0.18);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
     }
     .gesture-layer {
         position: absolute;
@@ -289,9 +287,9 @@
         object-fit: cover;
         transform: scaleX(-1);
         border-radius: 8px;
-        border: 1px solid rgba(222, 216, 204, 0.9);
-        box-shadow: 0 10px 28px rgba(55, 46, 36, 0.18);
-        background: #292520;
+        border: 1px solid #e5e5e5;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+        background: #262626;
     }
     .gesture-cursor {
         position: absolute;
@@ -312,11 +310,11 @@
         bottom: 18px;
         max-width: min(420px, calc(100% - 230px));
         border-radius: 8px;
-        border: 1px solid rgba(222, 216, 204, 0.9);
-        background: rgba(255, 254, 250, 0.9);
-        box-shadow: 0 10px 26px rgba(55, 46, 36, 0.12);
+        border: 1px solid #e5e5e5;
+        background: #ffffff;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.04);
         padding: 8px 10px;
-        color: #292520;
+        color: #262626;
         font-size: 12px;
         display: flex;
         gap: 8px;
@@ -342,35 +340,55 @@
         color: var(--dt-copper);
         letter-spacing: 0;
         text-transform: uppercase;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
     }
     .kg-soft-label {
         color: var(--dt-muted);
-        font-size: 11px;
+        font-size: 12px;
     }
+    .kg-toolbar-options > summary { min-height: 36px; color: var(--dt-muted); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+    .kg-toolbar-options > summary::after { content: '+'; margin-left: auto; }
+    .kg-toolbar-options[open] > summary::after { content: '−'; }
+    .kg-toolbar-options > div { margin-top: 12px; }
+    .kg-page-header { gap: 24px; }
+    .kg-page-header > div:first-child { min-width: 0; }
+    .kg-header-actions { flex-shrink: 0; }
+    .kg-more-tools { position: relative; }
+    .kg-more-tools summary { padding: 0 14px; list-style: none; }
+    .kg-more-tools summary::-webkit-details-marker { display: none; }
+    .kg-more-menu { position: absolute; right: 0; top: 46px; z-index: 40; min-width: 170px; padding: 8px; border: 1px solid var(--dt-line); background: #fff; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    .kg-more-menu .kg-control-button { display: flex; width: 100%; margin: 3px 0; border: 0; border-radius: 6px; justify-content: flex-start; background: #fff; font-weight: 400; }
+    .kg-more-menu .kg-control-button:hover { background: #f5f5f5; }
     @media (max-width: 1100px) {
         .kg-dashboard { display: none; }
     }
     @media (max-width: 900px) {
         .kg-toolbar { width: calc(100% - 36px); }
+        .kg-page-header { flex-wrap: wrap; gap: 12px; padding: 16px; }
+        .kg-page-header > div { min-width: 0; width: 100%; }
+        .kg-page-header select { max-width: 100%; }
+        .kg-control-button { min-height: 44px; }
+        .kg-toolbar { max-height: calc(100% - 36px); overflow-y: auto; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <script>window.KG_API_PREFIX = '{{ (api_config.api_prefix if api_config else none)|default("/api/v1") }}';</script>
-<header class="bg-[#fffefa] border-b border-[#ded8cc] px-6 py-4 flex items-center justify-between shrink-0">
+<header class="kg-page-header bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
     <div>
-        <p class="kg-kicker">DocThinker Memory Atlas</p>
-        <h2 class="text-lg font-semibold text-[#292520] mt-0.5">知识图谱</h2>
-        <p class="text-sm text-[#766f66]">查看知识、记忆与扩展节点如何共同生长
-            <span id="data-source-hint" class="text-[#b85c38] font-medium"></span>
+        <h2 class="text-lg font-semibold text-slate-800">知识与记忆</h2>
+        <p class="text-sm text-slate-500">查看来源，区分证据与候选关联
+            <span id="data-source-hint" class="text-slate-600 font-medium"></span>
         </p>
     </div>
-    <div class="flex flex-wrap gap-2 items-center">
+    <div class="kg-header-actions flex flex-wrap gap-2 items-center">
         <select id="kg-session-selector" class="input-field px-2 sm:px-3 py-2 rounded-lg text-sm min-w-[140px] sm:min-w-[260px]" onchange="handleKgSessionSwitch(this.value)"></select>
 
+        <details class="kg-more-tools">
+        <summary class="kg-control-button">更多</summary>
+        <div class="kg-more-menu">
         <button id="promo-graph-btn" onclick="openPromoGraph()" class="kg-control-button px-3 sm:px-4 text-sm" title="打开图谱二">
             <i class="fa-solid fa-diagram-project"></i>图谱二
         </button>
@@ -381,8 +399,10 @@
         <button id="gesture-btn" onclick="openGestureExperienceChooser()" class="kg-control-button px-3 sm:px-4 text-sm" title="摄像头手势控制">
             <i class="fa-solid fa-hand"></i>手势
         </button>
-        <button onclick="resetHighlight()" class="kg-control-button dt-icon-button hidden sm:inline-flex" title="取消聚焦"><i class="fa-solid fa-eye-slash"></i></button>
-        <button onclick="resetZoom()" class="kg-control-button dt-icon-button hidden sm:inline-flex" title="重置视图"><i class="fa-solid fa-expand"></i></button>
+        <button onclick="resetHighlight()" class="kg-control-button px-3 text-sm" title="取消聚焦"><i class="fa-solid fa-eye-slash"></i>取消聚焦</button>
+        <button onclick="resetZoom()" class="kg-control-button px-3 text-sm" title="重置视图"><i class="fa-solid fa-expand"></i>重置视图</button>
+        </div>
+        </details>
         <button onclick="refreshGraph()" class="kg-control-button kg-control-primary px-3 sm:px-4 text-sm" title="刷新">
             <i class="fa-solid fa-rotate"></i>刷新
         </button>
@@ -405,13 +425,15 @@
         <div class="kg-toolbar kg-panel p-3 space-y-3">
             <div>
                 <label class="relative block">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[#9b9287] text-xs"></i>
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[#858585] text-xs"></i>
                     <input type="text" id="search-input" placeholder="搜索节点..."
-                        class="input-field pl-9 pr-3 py-2 rounded-lg text-sm w-full bg-[#fffefa] border-[#ded8cc] text-[#292520] placeholder:text-[#9b9287]"
+                        class="input-field pl-9 pr-3 py-2 rounded-lg text-sm w-full bg-[#ffffff] border-[#e5e5e5] text-[#262626] placeholder:text-[#858585]"
                         oninput="searchNodes(this.value)">
                 </label>
             </div>
 
+            <details class="kg-toolbar-options">
+                <summary>筛选与布局</summary>
             <div>
                 <p class="kg-soft-label font-semibold uppercase mb-2">拓扑</p>
                 <div class="kg-segmented" role="group" aria-label="图谱拓扑布局">
@@ -433,29 +455,30 @@
                     <label class="kg-toggle-label flex gap-2 text-sm cursor-pointer">
                         <input type="checkbox" checked onchange="toggleLevel(3)" class="dt-check">
                         <span class="w-2 h-2 rounded-full" style="background:#8a5f87"></span>
-                        <span class="text-[#5f584f]">Domain</span>
+                        <span class="text-[#525252]">Domain</span>
                     </label>
                     <label class="kg-toggle-label flex gap-2 text-sm cursor-pointer">
                         <input type="checkbox" checked onchange="toggleLevel(2)" class="dt-check">
                         <span class="w-2 h-2 rounded-full" style="background:#4b6f8f"></span>
-                        <span class="text-[#5f584f]">Concept</span>
+                        <span class="text-[#525252]">Concept</span>
                     </label>
                     <label class="kg-toggle-label flex gap-2 text-sm cursor-pointer">
                         <input type="checkbox" checked onchange="toggleLevel(1)" class="dt-check">
                         <span class="w-2 h-2 rounded-full" style="background:#54746b"></span>
-                        <span class="text-[#5f584f]">Instance</span>
+                        <span class="text-[#525252]">Instance</span>
                     </label>
                     <label class="kg-toggle-label flex gap-2 text-sm cursor-pointer">
                         <input type="checkbox" checked onchange="toggleExpanded()" class="dt-check" id="chk-expanded">
                         <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#d6aa3d"></span>
-                        <span class="text-[#5f584f]">扩展节点</span>
+                        <span class="text-[#525252]">扩展节点</span>
                     </label>
                 </div>
             </div>
-            <div class="pt-2 border-t border-[#ded8cc]">
+            <div class="pt-2 border-t border-[#e5e5e5]">
                 <button onclick="checkExpandedNodes()" class="kg-control-button w-full text-xs">检查扩展节点</button>
-                <p id="debug-result" class="text-xs text-[#766f66] mt-2 break-all"></p>
+                <p id="debug-result" class="text-xs text-[#737373] mt-2 break-all"></p>
             </div>
+            </details>
         </div>
     </div>
 
@@ -463,11 +486,11 @@
         <div class="p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-sm font-semibold text-[#292520] flex items-center gap-2">
-                            <i class="fa-solid fa-diagram-project text-[#b85c38]"></i>
-                            Memory / KG Dashboard
+                        <h3 class="text-sm font-semibold text-[#262626] flex items-center gap-2">
+                            <i class="fa-solid fa-diagram-project text-[#303030]"></i>
+                            记忆概览
                         </h3>
-                        <p class="text-xs text-[#766f66] mt-1">当前会话的图谱、记忆与扩展节点状态。</p>
+                        <p class="text-xs text-[#737373] mt-1">当前会话的图谱、记忆与扩展节点状态。</p>
                     </div>
                     <button onclick="loadDashboardData()" class="dt-mini-button px-0 w-8" title="刷新面板">
                         <i class="fa-solid fa-rotate"></i>
@@ -477,7 +500,7 @@
                 <div class="grid grid-cols-3 gap-2">
                     <div class="kg-stat-tile">
                         <p class="kg-soft-label">实体</p>
-                        <p id="dash-entities" class="text-xl font-semibold text-[#292520]">-</p>
+                        <p id="dash-entities" class="text-xl font-semibold text-[#262626]">-</p>
                     </div>
                     <div class="kg-stat-tile">
                         <p class="kg-soft-label">关系</p>
@@ -491,15 +514,15 @@
 
                 <section class="kg-dashboard-card">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-semibold text-[#292520]">Expanded Lifecycle</h4>
-                        <span id="dash-life-total" class="text-[11px] text-[#9b9287]">0 total</span>
+                        <h4 class="text-xs font-semibold text-[#262626]">候选状态</h4>
+                        <span id="dash-life-total" class="text-[11px] text-[#858585]">0 total</span>
                     </div>
                     <div class="kg-life-bar mt-3">
                         <div id="dash-life-candidate" class="kg-life-segment kg-life-candidate" style="width:0%"></div>
                         <div id="dash-life-active" class="kg-life-segment kg-life-active" style="width:0%"></div>
                         <div id="dash-life-promoted" class="kg-life-segment kg-life-promoted" style="width:0%"></div>
                     </div>
-                    <div class="grid grid-cols-3 gap-2 mt-3 text-[11px] text-[#5f584f]">
+                    <div class="grid grid-cols-3 gap-2 mt-3 text-[11px] text-[#525252]">
                         <div><span class="inline-block w-2 h-2 rounded-full" style="background:#b7892d"></span> 候选 <b id="dash-candidate-count">0</b></div>
                         <div><span class="inline-block w-2 h-2 rounded-full" style="background:#4b6f8f"></span> 活跃 <b id="dash-active-count">0</b></div>
                         <div><span class="inline-block w-2 h-2 rounded-full" style="background:#54746b"></span> 晋升 <b id="dash-promoted-count">0</b></div>
@@ -507,18 +530,18 @@
                 </section>
 
                 <section class="kg-dashboard-card">
-                    <h4 class="text-xs font-semibold text-[#292520]">Memory Backend</h4>
-                    <div id="dash-memory-stats" class="mt-2 text-xs text-[#5f584f] space-y-1">
-                        <p class="text-[#9b9287]">等待加载...</p>
+                    <h4 class="text-xs font-semibold text-[#262626]">记忆存储</h4>
+                    <div id="dash-memory-stats" class="mt-2 text-xs text-[#525252] space-y-1">
+                        <p class="text-[#858585]">等待加载...</p>
                     </div>
                 </section>
 
                 <section class="kg-dashboard-card">
                     <div class="flex items-center justify-between gap-2">
-                        <h4 class="text-xs font-semibold text-[#292520]">Natural Language Memory Edit</h4>
+                        <h4 class="text-xs font-semibold text-[#262626]">用一句话修改记忆</h4>
                         <span id="nl-memory-action" class="kg-command-chip">idle</span>
                     </div>
-                    <textarea id="nl-memory-command" class="kg-command-input mt-3" placeholder="例如：把关于 UI 风格的长期记忆改成更克制、Claude-like；或删除临时 debug 相关记忆"></textarea>
+                    <textarea id="nl-memory-command" class="kg-command-input mt-3" placeholder="例如：以后先给简短结论，再解释原因；或删除临时测试相关的记忆"></textarea>
                     <div class="mt-2 grid grid-cols-2 gap-2">
                         <button onclick="planNaturalMemoryEdit()" class="dt-mini-button" title="预览匹配">
                             <i class="fa-solid fa-wand-magic-sparkles"></i>预览
@@ -529,14 +552,14 @@
                     </div>
                     <div id="nl-memory-graph-hints" class="mt-2 flex flex-wrap gap-1"></div>
                     <div id="nl-memory-results" class="mt-2 space-y-2">
-                        <p class="text-xs text-[#9b9287]">输入指令后预览候选记忆、节点和边。</p>
+                        <p class="text-xs text-[#858585]">输入指令后预览候选记忆、节点和边。</p>
                     </div>
                 </section>
 
                 <section class="kg-dashboard-card">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-semibold text-[#292520]">Long-horizon Memory</h4>
-                        <span id="dash-long-count" class="text-[11px] text-[#b85c38]">0 insights</span>
+                        <h4 class="text-xs font-semibold text-[#262626]">Long-horizon Memory</h4>
+                        <span id="dash-long-count" class="text-[11px] text-[#303030]">0 insights</span>
                     </div>
                     <div class="mt-3 grid grid-cols-2 gap-2">
                         <button onclick="exportLongHorizonMemory()" class="dt-mini-button" title="导出 MEMORY.md">
@@ -546,69 +569,69 @@
                             <i class="fa-solid fa-list-check"></i>管理
                         </button>
                     </div>
-                    <div id="dash-long-decision" class="mt-2 text-[11px] text-[#766f66]"></div>
+                    <div id="dash-long-decision" class="mt-2 text-[11px] text-[#737373]"></div>
                     <div id="dash-long-horizon" class="mt-2 space-y-2">
-                        <p class="text-xs text-[#9b9287]">暂无长期线索。</p>
+                        <p class="text-xs text-[#858585]">暂无长期线索。</p>
                     </div>
                 </section>
 
                 <section class="kg-dashboard-card">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-semibold text-[#292520]">Top Expanded Nodes</h4>
+                        <h4 class="text-xs font-semibold text-[#262626]">Top Expanded Nodes</h4>
                         <button onclick="focusTopExpandedNode()" class="dt-mini-button">聚焦最高分</button>
                     </div>
                     <div id="dash-expanded-list" class="mt-2 space-y-2">
-                        <p class="text-xs text-[#9b9287]">暂无扩展节点。</p>
+                        <p class="text-xs text-[#858585]">暂无扩展节点。</p>
                     </div>
                 </section>
         </div>
     </aside>
     
     <!-- Detail Panel -->
-    <div id="detail-panel" class="hidden w-96 bg-[#fffefa] border-l border-[#ded8cc] overflow-y-auto">
+    <div id="detail-panel" class="hidden w-96 bg-[#ffffff] border-l border-[#e5e5e5] overflow-y-auto">
         <div class="p-5">
             <div class="flex items-center justify-between mb-4">
-                <h3 id="detail-title" class="font-semibold text-[#292520] text-base">详情</h3>
+                <h3 id="detail-title" class="font-semibold text-[#262626] text-base">详情</h3>
                 <button onclick="closePanel()" class="dt-mini-button px-0 w-8" title="关闭详情">
                     <i class="fa-solid fa-times"></i>
                 </button>
             </div>
             <div id="detail-node-section">
-                <div id="detail-name-full" class="mb-3 p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0]">
-                    <div class="text-xs text-[#9b9287] mb-1">节点全称</div>
-                    <div id="detail-name-text" class="text-sm font-semibold text-[#292520] break-all">-</div>
+                <div id="detail-name-full" class="mb-3 p-3 bg-[#f5f5f5] rounded-lg border border-[#e5e5e5]">
+                    <div class="text-xs text-[#858585] mb-1">节点全称</div>
+                    <div id="detail-name-text" class="text-sm font-semibold text-[#262626] break-all">-</div>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mb-3">
-                    <div class="p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0]">
-                        <div class="text-xs text-[#9b9287] mb-1">类型</div>
+                    <div class="p-3 bg-[#f5f5f5] rounded-lg border border-[#e5e5e5]">
+                        <div class="text-xs text-[#858585] mb-1">类型</div>
                         <span id="detail-type" class="text-sm font-medium">-</span>
                     </div>
-                    <div class="p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0]">
-                        <div class="text-xs text-[#9b9287] mb-1">连接数</div>
+                    <div class="p-3 bg-[#f5f5f5] rounded-lg border border-[#e5e5e5]">
+                        <div class="text-xs text-[#858585] mb-1">连接数</div>
                         <span id="detail-connections" class="text-sm font-medium text-[#4b6f8f]">-</span>
                     </div>
                 </div>
-                <div id="detail-description" class="mb-3 p-3 bg-[#fbede6] rounded-lg border border-[#efd6c9]" style="display:none;">
-                    <div class="text-xs text-[#b85c38] mb-1">描述</div>
-                    <div id="detail-desc-text" class="text-sm text-[#5f584f] whitespace-pre-wrap"></div>
+                <div id="detail-description" class="mb-3 p-3 bg-[#f5f5f5] rounded-lg border border-[#e5e5e5]" style="display:none;">
+                    <div class="text-xs text-[#303030] mb-1">描述</div>
+                    <div id="detail-desc-text" class="text-sm text-[#525252] whitespace-pre-wrap"></div>
                 </div>
                 <div id="detail-neighbors" class="mb-3" style="display:none;">
-                    <div class="text-xs text-[#9b9287] mb-2">关联节点</div>
+                    <div class="text-xs text-[#858585] mb-2">关联节点</div>
                     <div id="detail-neighbors-list" class="space-y-1 max-h-48 overflow-y-auto"></div>
                 </div>
             </div>
             <div id="detail-edge-section" style="display:none;">
-                <div class="mb-3 p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0]">
-                    <div class="text-xs text-[#9b9287] mb-1">关系类型</div>
-                    <div id="detail-edge-label" class="text-sm font-semibold text-[#292520]">-</div>
+                <div class="mb-3 p-3 bg-[#f5f5f5] rounded-lg border border-[#e5e5e5]">
+                    <div class="text-xs text-[#858585] mb-1">关系类型</div>
+                    <div id="detail-edge-label" class="text-sm font-semibold text-[#262626]">-</div>
                 </div>
-                <div class="mb-3 p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0]">
-                    <div class="text-xs text-[#9b9287] mb-1">连接方向</div>
-                    <div id="detail-edge-direction" class="text-sm text-[#5f584f]">-</div>
+                <div class="mb-3 p-3 bg-[#f5f5f5] rounded-lg border border-[#e5e5e5]">
+                    <div class="text-xs text-[#858585] mb-1">连接方向</div>
+                    <div id="detail-edge-direction" class="text-sm text-[#525252]">-</div>
                 </div>
-                <div id="detail-edge-desc" class="mb-3 p-3 bg-[#fbede6] rounded-lg border border-[#efd6c9]" style="display:none;">
-                    <div class="text-xs text-[#b85c38] mb-1">描述</div>
-                    <div id="detail-edge-desc-text" class="text-sm text-[#5f584f] whitespace-pre-wrap"></div>
+                <div id="detail-edge-desc" class="mb-3 p-3 bg-[#f5f5f5] rounded-lg border border-[#e5e5e5]" style="display:none;">
+                    <div class="text-xs text-[#303030] mb-1">描述</div>
+                    <div id="detail-edge-desc-text" class="text-sm text-[#525252] whitespace-pre-wrap"></div>
                 </div>
                 <div id="detail-edge-tag" class="mb-3 p-3 bg-[#fff7f5] border border-[#ead3cf] rounded-lg" style="display:none;">
                     <span class="text-xs text-red-500 font-medium"></span>
@@ -620,8 +643,8 @@
             </button>
             <section id="detail-node-chunks" class="mt-4 space-y-2" style="display:none;">
                 <div class="flex items-center justify-between">
-                    <h4 class="text-xs font-semibold text-[#292520]">&#26469;&#28304; chunk &#25991;&#26412;</h4>
-                    <span id="detail-chunks-count" class="text-[11px] text-[#9b9287]">0</span>
+                    <h4 class="text-xs font-semibold text-[#262626]">&#26469;&#28304; chunk &#25991;&#26412;</h4>
+                    <span id="detail-chunks-count" class="text-[11px] text-[#858585]">0</span>
                 </div>
                 <div id="detail-chunks-list" class="space-y-2"></div>
             </section>
@@ -899,7 +922,7 @@ function renderMemoryStats(payload) {
     const el = document.getElementById('dash-memory-stats');
     if (!el) return;
     if (!payload || payload.enabled === false) {
-        el.innerHTML = `<p class="text-[#9b9287]">${payload?.error || '记忆后端暂未启用。'}</p>`;
+        el.innerHTML = `<p class="text-[#858585]">${payload?.error || '记忆后端暂未启用。'}</p>`;
         return;
     }
     const system = payload.system || 'memory';
@@ -908,13 +931,13 @@ function renderMemoryStats(payload) {
         .slice(0, 6);
     el.innerHTML = `
         <div class="flex items-center justify-between">
-            <span class="text-[#766f66]">系统</span>
-            <span class="font-medium text-[#292520]">${system}</span>
+            <span class="text-[#737373]">系统</span>
+            <span class="font-medium text-[#262626]">${system}</span>
         </div>
         ${rows.map(([key, value]) => `
             <div class="flex items-center justify-between gap-2">
-                <span class="text-[#766f66] truncate">${key}</span>
-                <span class="font-medium text-[#292520]">${value}</span>
+                <span class="text-[#737373] truncate">${key}</span>
+                <span class="font-medium text-[#262626]">${value}</span>
             </div>
         `).join('')}
     `;
@@ -928,7 +951,7 @@ function renderLongHorizonStats(payload) {
     if (!payload || payload.enabled === false) {
         if (countEl) countEl.textContent = '0 insights';
         if (decisionEl) decisionEl.textContent = '';
-        listEl.innerHTML = `<p class="text-xs text-[#9b9287]">${payload?.error || '长期记忆暂未启用。'}</p>`;
+        listEl.innerHTML = `<p class="text-xs text-[#858585]">${payload?.error || '长期记忆暂未启用。'}</p>`;
         return;
     }
     const recent = Array.isArray(payload.recent) ? payload.recent.slice(0, 4) : [];
@@ -936,10 +959,10 @@ function renderLongHorizonStats(payload) {
     if (countEl) countEl.textContent = `${count} insights`;
     if (decisionEl && payload.last_write_decision) {
         const decision = payload.last_write_decision;
-        decisionEl.innerHTML = `最近写入决策: <span class="font-medium text-[#292520]">${escapeHtml(decision.action || 'idle')}</span>${decision.reason ? ` · ${escapeHtml(decision.reason)}` : ''}`;
+        decisionEl.innerHTML = `最近写入决策: <span class="font-medium text-[#262626]">${escapeHtml(decision.action || 'idle')}</span>${decision.reason ? ` · ${escapeHtml(decision.reason)}` : ''}`;
     }
     if (!recent.length) {
-        listEl.innerHTML = '<p class="text-xs text-[#9b9287]">暂无长期线索。</p>';
+        listEl.innerHTML = '<p class="text-xs text-[#858585]">暂无长期线索。</p>';
         return;
     }
     listEl.innerHTML = recent.map((item) => {
@@ -949,13 +972,13 @@ function renderLongHorizonStats(payload) {
         const memoryId = item.id || '';
         return `<div class="kg-node-row">
             <div class="flex items-start justify-between gap-2">
-                <span class="text-xs font-medium text-[#292520] line-clamp-2">${escapeHtml(summary)}</span>
+                <span class="text-xs font-medium text-[#262626] line-clamp-2">${escapeHtml(summary)}</span>
                 <div class="flex items-center gap-1 shrink-0">
-                    <span class="text-[11px] text-[#b85c38]">${confidence}</span>
+                    <span class="text-[11px] text-[#303030]">${confidence}</span>
                     ${memoryId ? `<button onclick='deleteLongHorizonMemory(${JSON.stringify(String(memoryId))})' class="kg-memory-action" title="删除这条记忆"><i class="fa-solid fa-trash-can text-[11px]"></i></button>` : ''}
                 </div>
             </div>
-            <div class="mt-1 text-[11px] text-[#766f66]">${escapeHtml(kind)} · ${escapeHtml(item.scope || 'session')} ${memoryId ? `· ${escapeHtml(memoryId)}` : ''}</div>
+            <div class="mt-1 text-[11px] text-[#737373]">${escapeHtml(kind)} · ${escapeHtml(item.scope || 'session')} ${memoryId ? `· ${escapeHtml(memoryId)}` : ''}</div>
         </div>`;
     }).join('');
 }
@@ -1096,7 +1119,7 @@ function renderNaturalMemoryEditResults(plan, graphTargets) {
     if (!resultsEl) return;
     const candidates = Array.isArray(plan.candidates) ? plan.candidates : [];
     if (!candidates.length) {
-        resultsEl.innerHTML = '<p class="text-xs text-[#9b9287]">没有匹配到长期记忆。图中候选仍会高亮，可换一个更具体的词。</p>';
+        resultsEl.innerHTML = '<p class="text-xs text-[#858585]">没有匹配到长期记忆。图中候选仍会高亮，可换一个更具体的词。</p>';
         return;
     }
     resultsEl.innerHTML = candidates.map((item, index) => {
@@ -1107,14 +1130,14 @@ function renderNaturalMemoryEditResults(plan, graphTargets) {
         return `<div class="kg-node-row">
             <div class="flex items-start justify-between gap-2">
                 <div>
-                    <div class="text-xs font-semibold text-[#292520]">${escapeHtml(item.kind || 'insight')}</div>
-                    <div class="mt-1 text-[11px] text-[#766f66]">${escapeHtml(item.id || '')} · score ${score}</div>
+                    <div class="text-xs font-semibold text-[#262626]">${escapeHtml(item.kind || 'insight')}</div>
+                    <div class="mt-1 text-[11px] text-[#737373]">${escapeHtml(item.id || '')} · score ${score}</div>
                 </div>
                 <button onclick="applyNaturalMemoryEdit(${index})" class="kg-memory-action" title="${isDelete ? '删除候选记忆' : '应用编辑'}">
                     <i class="fa-solid ${isDelete ? 'fa-trash-can' : 'fa-check'} text-[11px]"></i>
                 </button>
             </div>
-            <p class="mt-2 text-xs text-[#5f584f]">${escapeHtml(item.summary || '')}</p>
+            <p class="mt-2 text-xs text-[#525252]">${escapeHtml(item.summary || '')}</p>
             ${terms ? `<div class="mt-2 flex flex-wrap gap-1">${terms}</div>` : ''}
             ${isDelete ? '' : `<textarea id="nl-memory-summary-${index}" class="kg-edit-summary mt-2">${escapeHtml(suggested)}</textarea>`}
         </div>`;
@@ -1190,7 +1213,7 @@ function clearNaturalMemoryEdit(options = {}) {
         if (input) input.value = '';
     }
     const resultsEl = document.getElementById('nl-memory-results');
-    if (resultsEl) resultsEl.innerHTML = '<p class="text-xs text-[#9b9287]">输入指令后预览候选记忆、节点和边。</p>';
+    if (resultsEl) resultsEl.innerHTML = '<p class="text-xs text-[#858585]">输入指令后预览候选记忆、节点和边。</p>';
     const hintsEl = document.getElementById('nl-memory-graph-hints');
     if (hintsEl) hintsEl.innerHTML = '';
     const actionEl = document.getElementById('nl-memory-action');
@@ -1223,7 +1246,7 @@ function renderExpandedDashboard(nodes) {
     if (!list) return;
     const top = dashboardExpandedNodes.slice(0, 5);
     if (!top.length) {
-        list.innerHTML = '<p class="text-xs text-[#9b9287]">暂无扩展节点。</p>';
+        list.innerHTML = '<p class="text-xs text-[#858585]">暂无扩展节点。</p>';
         return;
     }
     list.innerHTML = top.map((item) => {
@@ -1233,12 +1256,12 @@ function renderExpandedDashboard(nodes) {
         const uses = safeNumber(item.use_count);
         const status = item.status || 'candidate';
         const updated = compactDate(item.last_used_at || item.last_hit_at || item.updated_at);
-        return `<button onclick='focusDashboardNode(${JSON.stringify(String(name))})' class="kg-node-row w-full text-left hover:bg-[#fbede6]">
+        return `<button onclick='focusDashboardNode(${JSON.stringify(String(name))})' class="kg-node-row w-full text-left hover:bg-[#f5f5f5]">
             <div class="flex items-start justify-between gap-2">
-                <span class="text-xs font-medium text-[#292520] truncate">${escapeHtml(name)}</span>
-                <span class="text-[11px] text-[#b85c38]">${score}</span>
+                <span class="text-xs font-medium text-[#262626] truncate">${escapeHtml(name)}</span>
+                <span class="text-[11px] text-[#303030]">${score}</span>
             </div>
-            <div class="mt-1 flex items-center gap-2 text-[11px] text-[#766f66]">
+            <div class="mt-1 flex items-center gap-2 text-[11px] text-[#737373]">
                 <span>${escapeHtml(status)}</span>
                 <span>hits ${hits}</span>
                 <span>uses ${uses}</span>
@@ -1357,7 +1380,7 @@ function nodeStroke(d) {
 }
 
 function edgeBaseStroke(d) {
-    return d.is_discovered ? '#b85c38' : '#8f877d';
+    return d.is_discovered ? '#303030' : '#8f877d';
 }
 
 function edgeBaseOpacity(d) {
@@ -1760,7 +1783,7 @@ function renderGraph() {
         .attr('lengthAdjust', d => nodeLabelNeedsFit(d) ? 'spacingAndGlyphs' : null)
         .text(fittedNodeLabelText)
         .style('font-size', d => nodeLabelFontSize(d) + 'px')
-        .style('fill', d => isExpandedNode(d) ? '#5f2e1f' : '#fffefa');
+        .style('fill', d => isExpandedNode(d) ? '#5f2e1f' : '#ffffff');
 
     updateGraphPositions();
     startGraphForceLayout(visibleNodes, visibleLinks, width, height);
@@ -1808,7 +1831,7 @@ function renderNodeChunkLoading() {
     count.textContent = 'loading';
     list.innerHTML = '';
     const item = document.createElement('div');
-    item.className = 'p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0] text-xs text-[#766f66]';
+    item.className = 'p-3 bg-[#f5f5f5] rounded-lg border border-[#e5e5e5] text-xs text-[#737373]';
     item.textContent = '\u6b63\u5728\u52a0\u8f7d\u6765\u6e90 chunk...';
     list.appendChild(item);
 }
@@ -1826,7 +1849,7 @@ function renderNodeChunks(payload) {
 
     if (!chunks.length) {
         const empty = document.createElement('div');
-        empty.className = 'p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0] text-xs text-[#766f66]';
+        empty.className = 'p-3 bg-[#f5f5f5] rounded-lg border border-[#e5e5e5] text-xs text-[#737373]';
         empty.textContent = sourceIds.length
             ? '\u8be5\u8282\u70b9\u6709 chunk_id\uff0c\u4f46\u672a\u627e\u5230\u5bf9\u5e94\u7684 text chunk \u5185\u5bb9\u3002'
             : '\u8be5\u8282\u70b9\u6682\u65e0\u53ef\u8ffd\u6eaf\u7684\u6765\u6e90 chunk\u3002';
@@ -1836,7 +1859,7 @@ function renderNodeChunks(payload) {
 
     chunks.forEach((chunk, idx) => {
         const card = document.createElement('article');
-        card.className = 'p-3 bg-[#f7f3ea] rounded-lg border border-[#e8dfd0]';
+        card.className = 'p-3 bg-[#f5f5f5] rounded-lg border border-[#e5e5e5]';
 
         const header = document.createElement('div');
         header.className = 'flex items-start justify-between gap-2 mb-2';
@@ -1844,7 +1867,7 @@ function renderNodeChunks(payload) {
         const idWrap = document.createElement('div');
         idWrap.className = 'min-w-0';
         const label = document.createElement('div');
-        label.className = 'text-[11px] text-[#9b9287] mb-1';
+        label.className = 'text-[11px] text-[#858585] mb-1';
         label.textContent = 'chunk ' + (idx + 1);
         const idText = document.createElement('div');
         idText.className = 'font-mono text-[11px] leading-4 font-semibold text-[#4b6f8f] whitespace-nowrap overflow-x-auto max-w-full';
@@ -1853,7 +1876,7 @@ function renderNodeChunks(payload) {
         idWrap.appendChild(idText);
 
         const meta = document.createElement('span');
-        meta.className = 'shrink-0 text-[11px] text-[#9b9287]';
+        meta.className = 'shrink-0 text-[11px] text-[#858585]';
         meta.textContent = chunk.missing ? '\u672a\u627e\u5230' : (chunk.tokens ? String(chunk.tokens) + ' tokens' : '');
 
         header.appendChild(idWrap);
@@ -1862,13 +1885,13 @@ function renderNodeChunks(payload) {
 
         if (chunk.file_path) {
             const file = document.createElement('div');
-            file.className = 'mb-2 text-[11px] text-[#766f66] break-all';
+            file.className = 'mb-2 text-[11px] text-[#737373] break-all';
             file.textContent = '\u6765\u6e90\u6587\u4ef6\uff1a' + chunk.file_path;
             card.appendChild(file);
         }
 
         const content = document.createElement('div');
-        content.className = 'text-xs leading-5 text-[#5f584f] whitespace-pre-wrap break-words';
+        content.className = 'text-xs leading-5 text-[#525252] whitespace-pre-wrap break-words';
         content.textContent = chunk.content || (chunk.missing ? '\u672a\u627e\u5230\u8be5 chunk \u7684\u6587\u672c\u5185\u5bb9\u3002' : '');
         card.appendChild(content);
 
@@ -1903,7 +1926,7 @@ async function loadNodeChunksForDetail(d) {
         count.textContent = 'error';
         list.innerHTML = '';
         const item = document.createElement('div');
-        item.className = 'p-3 bg-[#fff7f5] rounded-lg border border-[#ead3cf] text-xs text-[#b85c38]';
+        item.className = 'p-3 bg-[#fff7f5] rounded-lg border border-[#ead3cf] text-xs text-[#303030]';
         item.textContent = '\u52a0\u8f7d\u6765\u6e90 chunk \u5931\u8d25\uff1a' + (err.message || err);
         list.appendChild(item);
     }
@@ -1950,10 +1973,10 @@ function selectNode(d) {
     }
     const srcFile = d.file_path || d.source_id || '';
     if (srcFile && srcFile !== 'llm_expansion') {
-        sourceEl.innerHTML = `<div class="text-xs text-[#54746b] mb-1">来源文件</div><div class="text-sm text-[#5f584f]">${srcFile}</div>`;
+        sourceEl.innerHTML = `<div class="text-xs text-[#54746b] mb-1">来源文件</div><div class="text-sm text-[#525252]">${srcFile}</div>`;
         sourceEl.style.display = '';
     } else if (isExp) {
-        sourceEl.innerHTML = `<div class="text-xs text-[#b7892d] mb-1">来源</div><div class="text-sm text-[#5f584f]">LLM 知识扩展生成</div>`;
+        sourceEl.innerHTML = `<div class="text-xs text-[#b7892d] mb-1">来源</div><div class="text-sm text-[#525252]">LLM 知识扩展生成</div>`;
         sourceEl.style.display = '';
     } else {
         sourceEl.style.display = 'none';
@@ -1975,9 +1998,9 @@ function selectNode(d) {
             const arrow = sid === d.id ? '→' : '←';
             const item = document.createElement('div');
             item.className = 'relation-list-item cursor-pointer flex items-center gap-1';
-            item.innerHTML = `<span class="text-[#9b9287] text-xs">${arrow}</span>` +
+            item.innerHTML = `<span class="text-[#858585] text-xs">${arrow}</span>` +
                 `<span class="text-[#4b6f8f] text-xs font-medium truncate" title="${otherName}">${otherName}</span>` +
-                (l.label ? `<span class="ml-auto text-[#9b9287] text-xs truncate max-w-[120px]" title="${l.label}">${l.label}</span>` : '');
+                (l.label ? `<span class="ml-auto text-[#858585] text-xs truncate max-w-[120px]" title="${l.label}">${l.label}</span>` : '');
             item.onclick = () => {
                 const targetNode = graphData.nodes.find(n => n.id === otherName);
                 if (targetNode) selectNode(targetNode);
@@ -1986,7 +2009,7 @@ function selectNode(d) {
         });
         if (connEdges.length > 20) {
             const more = document.createElement('div');
-            more.className = 'text-xs text-[#9b9287] text-center py-1';
+            more.className = 'text-xs text-[#858585] text-center py-1';
             more.textContent = `还有 ${connEdges.length - 20} 个关联...`;
             neighborsList.appendChild(more);
         }
@@ -2011,7 +2034,7 @@ function selectNode(d) {
         }).attr('stroke', l => {
             const sid = typeof l.source === 'object' ? l.source.id : l.source;
             const tid = typeof l.target === 'object' ? l.target.id : l.target;
-            if (sid === d.id || tid === d.id) return '#b85c38';
+            if (sid === d.id || tid === d.id) return '#303030';
             return edgeBaseStroke(l);
         }).attr('stroke-width', l => {
             const sid = typeof l.source === 'object' ? l.source.id : l.source;
@@ -2071,7 +2094,7 @@ function selectEdge(d) {
     }
     if (link) {
         link.classed('selected-edge', l => edgeIdentity(l) === selectedEdgeId)
-            .attr('stroke', l => (edgeIdentity(l) === selectedEdgeId) ? '#b85c38' : edgeBaseStroke(l))
+            .attr('stroke', l => (edgeIdentity(l) === selectedEdgeId) ? '#303030' : edgeBaseStroke(l))
             .attr('stroke-width', l => (edgeIdentity(l) === selectedEdgeId) ? 2.4 : edgeBaseWidth(l))
             .attr('stroke-opacity', l => (edgeIdentity(l) === selectedEdgeId) ? 0.95 : 0.08);
     }

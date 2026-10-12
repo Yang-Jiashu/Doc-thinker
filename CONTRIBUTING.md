@@ -22,6 +22,11 @@ pip install pytest pytest-asyncio
 pytest tests/ -v
 ```
 
+真实浏览器布局回归由独立的 `Sandboxed browser layout` CI 检查执行，覆盖
+390、768、1280px，且不允许跳过。普通单元测试仍无需安装浏览器。
+本地运行、安全沙箱前提及受限环境替代方案见
+[浏览器验证说明](docs/BROWSER_VALIDATION.md)。
+
 ## 提交流程
 
 1. Fork 本仓库，在本地创建分支（如 `feature/xxx` 或 `fix/xxx`）。

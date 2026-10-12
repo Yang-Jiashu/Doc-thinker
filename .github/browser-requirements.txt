@@ -1,0 +1,5 @@
+# Pin the installer and browser driver; tests explicitly enable Chromium's sandbox.
+playwright==1.63.0
+pytest==8.4.2
+pytest-asyncio==1.2.0
+Jinja2==3.1.6

@@ -705,7 +705,9 @@ class BaseModalProcessor:
 
         await self.chunks_vdb.upsert(chunk_vdb_data)
 
-        workspace = getattr(self.graphcore, "workspace", None)
+        workspace = getattr(
+            self.graphcore, "pipeline_workspace", getattr(self.graphcore, "workspace", None)
+        )
         pipeline_status = await get_namespace_data(
             "pipeline_status", workspace=workspace
         )
