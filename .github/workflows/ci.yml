@@ -43,7 +43,6 @@ jobs:
     env:
       DOCTHINKER_REQUIRE_BROWSER: "1"
       DOCTHINKER_BROWSER_ARTIFACTS: ${{ github.workspace }}/browser-artifacts
-      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/docthinker-browsers
       # Ubuntu 24.04 restricts user namespaces for downloaded executables.
       # Use the runner's existing Chrome SUID helper, as recommended by Chromium.
       # Keep AppArmor, host sysctls and Chromium's seccomp sandbox intact.
@@ -69,6 +68,7 @@ jobs:
           test "$(id -u)" -ne 0
           test "$(stat -c '%u:%a' "$CHROME_DEVEL_SANDBOX")" = "0:4755"
           test -x "$CHROME_DEVEL_SANDBOX"
+          echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/docthinker-browsers" >> "$GITHUB_ENV"
       - name: Install pinned full Chromium and layout test dependencies
         run: |
           python -m pip install -r .github/browser-requirements.txt
