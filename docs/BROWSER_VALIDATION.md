@@ -19,10 +19,13 @@ updates; this is a versioned browser recipe, not a byte-identical VM image.
 Update the browser pin deliberately as security releases become available.
 
 Ubuntu 24.04's AppArmor user-namespace restrictions can block downloaded
-Chromium builds. The job uses the runner's existing
-`/opt/google/chrome/chrome-sandbox` through `CHROME_DEVEL_SANDBOX`, following
+Chromium builds. The runner's preinstalled helper did not have usable SUID
+permissions in the observed `20261004.327.1` image. The job instead installs
+the matching `chrome_sandbox` shipped with the pinned browser into a root-owned
+`/usr/local/lib/docthinker/chrome-sandbox` (mode `4755`) and uses it through
+`CHROME_DEVEL_SANDBOX`, following
 [Chromium's documented SUID-helper option](https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md).
-It checks that this helper is root-owned, executable and mode `4755`, and that
+It checks that this helper is root-owned and mode `4755`, and that
 the browser runs as a non-root user. No AppArmor profile, global sysctl,
 container privilege setting or sandbox-disabling switch is changed.
 
@@ -66,8 +69,12 @@ with sync_playwright() as p:
     print(p.chromium.executable_path)
 PY
 )"
-# On Ubuntu 24.04 with an installed, root-owned Google Chrome SUID helper:
-export CHROME_DEVEL_SANDBOX=/opt/google/chrome/chrome-sandbox
+# On Ubuntu 24.04, install the matching helper into a protected path:
+sudo install -d -o root -g root -m 0755 /usr/local/lib/docthinker
+sudo install -o root -g root -m 4755 \
+  "$(dirname "$DOCTHINKER_BROWSER_BIN")/chrome_sandbox" \
+  /usr/local/lib/docthinker/chrome-sandbox
+export CHROME_DEVEL_SANDBOX=/usr/local/lib/docthinker/chrome-sandbox
 export DOCTHINKER_REQUIRE_BROWSER=1
 export DOCTHINKER_BROWSER_ARTIFACTS="$PWD/browser-artifacts"
 .browser-venv/bin/python -m pytest \

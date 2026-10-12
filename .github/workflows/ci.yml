@@ -44,9 +44,9 @@ jobs:
       DOCTHINKER_REQUIRE_BROWSER: "1"
       DOCTHINKER_BROWSER_ARTIFACTS: ${{ github.workspace }}/browser-artifacts
       # Ubuntu 24.04 restricts user namespaces for downloaded executables.
-      # Use the runner's existing Chrome SUID helper, as recommended by Chromium.
+      # Install the pinned browser's matching SUID helper in a root-owned path.
       # Keep AppArmor, host sysctls and Chromium's seccomp sandbox intact.
-      CHROME_DEVEL_SANDBOX: /opt/google/chrome/chrome-sandbox
+      CHROME_DEVEL_SANDBOX: /usr/local/lib/docthinker/chrome-sandbox
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,12 +62,9 @@ jobs:
             id
             uname -a
             printf 'ImageOS=%s ImageVersion=%s\n' "$ImageOS" "$ImageVersion"
-            stat -Lc '%u %a %n' "$CHROME_DEVEL_SANDBOX"
-            sha256sum "$CHROME_DEVEL_SANDBOX"
+            sysctl kernel.apparmor_restrict_unprivileged_userns user.max_user_namespaces
           } | tee browser-artifacts/runner.txt
           test "$(id -u)" -ne 0
-          test "$(stat -Lc '%u:%a' "$CHROME_DEVEL_SANDBOX")" = "0:4755"
-          test -x "$CHROME_DEVEL_SANDBOX"
           echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/docthinker-browsers" >> "$GITHUB_ENV"
       - name: Install pinned full Chromium and layout test dependencies
         run: |
@@ -81,6 +78,15 @@ jobs:
           with open(os.environ["GITHUB_ENV"], "a") as env:
               env.write(f"DOCTHINKER_BROWSER_BIN={browser}\n")
           PY
+      - name: Install matching SUID sandbox helper without changing host restrictions
+        run: |
+          sandbox_source="$(dirname "$DOCTHINKER_BROWSER_BIN")/chrome_sandbox"
+          test -f "$sandbox_source"
+          sudo install -d -o root -g root -m 0755 /usr/local/lib/docthinker
+          sudo install -o root -g root -m 4755 "$sandbox_source" "$CHROME_DEVEL_SANDBOX"
+          test "$(stat -Lc '%u:%a' "$CHROME_DEVEL_SANDBOX")" = "0:4755"
+          stat -Lc '%u %a %n' "$CHROME_DEVEL_SANDBOX" | tee browser-artifacts/helper.txt
+          sha256sum "$CHROME_DEVEL_SANDBOX" | tee -a browser-artifacts/helper.txt
       - name: Record browser version and executable digest
         run: |
           "$DOCTHINKER_BROWSER_BIN" --version | tee browser-artifacts/browser-version.txt
