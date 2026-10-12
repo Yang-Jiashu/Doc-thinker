@@ -62,11 +62,11 @@ jobs:
             id
             uname -a
             printf 'ImageOS=%s ImageVersion=%s\n' "$ImageOS" "$ImageVersion"
-            stat -c '%u %a %n' "$CHROME_DEVEL_SANDBOX"
+            stat -Lc '%u %a %n' "$CHROME_DEVEL_SANDBOX"
             sha256sum "$CHROME_DEVEL_SANDBOX"
           } | tee browser-artifacts/runner.txt
           test "$(id -u)" -ne 0
-          test "$(stat -c '%u:%a' "$CHROME_DEVEL_SANDBOX")" = "0:4755"
+          test "$(stat -Lc '%u:%a' "$CHROME_DEVEL_SANDBOX")" = "0:4755"
           test -x "$CHROME_DEVEL_SANDBOX"
           echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/docthinker-browsers" >> "$GITHUB_ENV"
       - name: Install pinned full Chromium and layout test dependencies
