@@ -98,3 +98,11 @@ moban.md
 .cursor/
 .codex/
 CLAUDE.md
+
+# Private deployment and local test artifacts
+node_modules/
+unpackage/
+project.private.config.json
+.playwright-cli/
+browser-artifacts/
+tmp/

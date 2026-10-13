@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Frozen legacy reference has an intentional final empty line in its SHA256.
+# Preserve its bytes rather than modifying the expected fingerprint.
+tests/fixtures/reference_semantic_cache_20261013.py whitespace=-blank-at-eof

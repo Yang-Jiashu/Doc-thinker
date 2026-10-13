@@ -1,0 +1,903 @@
+{
+  "schema": "research-real-ab-verified-v1",
+  "status": "completed_real_step5_generation_and_blind_agent_review",
+  "date": "2026-10-10",
+  "generated_at": "2026-10-10T05:26:33.858Z",
+  "conclusion_zh": "实名认证后 Step 5 Preview 已接通，48份真实论文回答及24对盲评全部完成。当前后台辅助没有新增有效证据材料，未证明回答质量或算法效率提高。",
+  "connection_after_real_name_verification": {
+    "sdk": "openai-python 2.54.0",
+    "base_url": "https://api.stepfun.com/step_plan/v1",
+    "model_actual": "step-5-preview",
+    "http_status": 200,
+    "answer_present": true,
+    "finish_reason": "stop",
+    "smoke_usage_total_tokens": 43,
+    "not_a_quality_trial": true
+  },
+  "method": {
+    "configuration_digest": "2c5fe2615bef12a1c421e876b9418134e490dab865a3752c7fca69d3d9338d11",
+    "fixture": "benchmarks/research_real/research_papers_ab_v1.json",
+    "papers": [
+      {
+        "id": "rag",
+        "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+        "authors": "Patrick Lewis et al.",
+        "arxiv_version": "2005.11401v4",
+        "pdf_url": "https://arxiv.org/pdf/2005.11401v4",
+        "landing_url": "https://arxiv.org/abs/2005.11401v4",
+        "page_count": 19,
+        "file": "rag.pdf",
+        "sha256": "23e3249e9a1e75418d82efecab0ea8c4d033b89c93742f63208d47ce01f21233",
+        "byte_size": 885323
+      },
+      {
+        "id": "lost_middle",
+        "title": "Lost in the Middle: How Language Models Use Long Contexts",
+        "authors": "Nelson F. Liu et al.",
+        "arxiv_version": "2307.03172v1",
+        "pdf_url": "https://arxiv.org/pdf/2307.03172v1",
+        "landing_url": "https://arxiv.org/abs/2307.03172v1",
+        "page_count": 15,
+        "file": "lost_middle.pdf",
+        "sha256": "c8070998fc12d9652d4f3b2e3094a4d6f438ed47a18539e04f07e5dbb9891f9e",
+        "byte_size": 804284
+      },
+      {
+        "id": "graphrag",
+        "title": "From Local to Global: A Graph RAG Approach to Query-Focused Summarization",
+        "authors": "Darren Edge et al.",
+        "arxiv_version": "2404.16130v1",
+        "pdf_url": "https://arxiv.org/pdf/2404.16130v1",
+        "landing_url": "https://arxiv.org/abs/2404.16130v1",
+        "page_count": 15,
+        "file": "graphrag.pdf",
+        "sha256": "33524b3b56910c513affdad8dbf67d14e68edf0572e4debdb09a9f1916463b06",
+        "byte_size": 6782285
+      },
+      {
+        "id": "memgpt",
+        "title": "MemGPT: Towards LLMs as Operating Systems",
+        "authors": "Charles Packer et al.",
+        "arxiv_version": "2310.08560v1",
+        "pdf_url": "https://arxiv.org/pdf/2310.08560v1",
+        "landing_url": "https://arxiv.org/abs/2310.08560v1",
+        "page_count": 15,
+        "file": "memgpt.pdf",
+        "sha256": "03723007dae7c2bde235893864a3282d4c41af7ecad85277f935360658dc4d43",
+        "byte_size": 602501
+      }
+    ],
+    "primary_unique_questions": 12,
+    "repetitions_per_question": 2,
+    "paired_generation_trials": 24,
+    "real_main_provider_calls": 48,
+    "diagnostic_answers_without_provider": 4,
+    "parameters": {
+      "temperature": 0,
+      "max_tokens": 8192,
+      "stream": false,
+      "reasoning_effort": "low"
+    },
+    "output_cap_protocol_change": "A separate 2048-token pilot produced one empty truncated HTTP-200 response. All main pairs were rerun in a new directory with an 8192 output cap. Product default remains 2048; main results must not be described as default-cap production performance.",
+    "controls": [
+      "Frozen original PDF corpus and document/chunk identities within each pair",
+      "Same source excerpts within every pair",
+      "Empty conversation history",
+      "Long-term memory and self-evolution disabled",
+      "Application generation-response cache disabled",
+      "Same model, endpoint, temperature and output cap",
+      "Serial requests; OFF and ON each called first in 12 pairs",
+      "No synthetic facts, Horn rules or reference answers ingested"
+    ],
+    "provider_cache_control": "Provider prompt caching was not disabled. Actual reported cached-token counts are retained; equal counts do not establish equal prefixes or strict cache control.",
+    "timing_definition": "Complete non-streaming answer wall-clock: retrieval/helper, model HTTP request and answer persistence. Not first-token latency. PDF ingestion/index building and cloning are measured separately in analysis/metrics.json.",
+    "quality_method": {
+      "rubric": [
+        {
+          "id": "factual_accuracy",
+          "weight": 25
+        },
+        {
+          "id": "evidence_support",
+          "weight": 25
+        },
+        {
+          "id": "key_fact_completeness",
+          "weight": 20
+        },
+        {
+          "id": "scope_and_uncertainty",
+          "weight": 15
+        },
+        {
+          "id": "task_usefulness",
+          "weight": 15
+        }
+      ],
+      "scale": "0..100",
+      "basis": "Semantic key facts checked against pinned original PDFs plus material citation support against the exact supplied S-number excerpts; not keyword overlap.",
+      "blinding": "Two agent reviewers split random-label packets; one reviewer per generation pair. Reviewers did not receive arm labels, timing, usage or internal helper traces.",
+      "reviewer_count": 2,
+      "reviewer_kind": "agent_blind_review",
+      "human_evaluation": false,
+      "inter_rater_reliability_established": false,
+      "main_average": "Within-question means across two repetitions, then 12 questions equally weighted."
+    }
+  },
+  "per_answer_observations": {
+    "pair_count": 24,
+    "input_tokens": {
+      "pair_count": 24,
+      "off_mean": 2779.1666666666665,
+      "on_mean": 2847.6666666666665,
+      "paired_delta_mean": 68.5,
+      "off_median": 2724.5,
+      "on_median": 2808.5,
+      "paired_delta_median": 68.5
+    },
+    "output_tokens": {
+      "pair_count": 24,
+      "off_mean": 3354.5416666666665,
+      "on_mean": 3149.875,
+      "paired_delta_mean": -204.66666666666666,
+      "off_median": 2962.5,
+      "on_median": 2913.5,
+      "paired_delta_median": -208
+    },
+    "total_tokens": {
+      "pair_count": 24,
+      "off_mean": 6133.708333333333,
+      "on_mean": 5997.541666666667,
+      "paired_delta_mean": -136.16666666666666,
+      "off_median": 5781.5,
+      "on_median": 5950.5,
+      "paired_delta_median": -97
+    },
+    "cached_tokens": {
+      "pair_count": 24,
+      "off_mean": 1482.6666666666667,
+      "on_mean": 1738.6666666666667,
+      "paired_delta_mean": 256,
+      "off_median": 2304,
+      "on_median": 2304,
+      "paired_delta_median": 0
+    },
+    "complete_response_ms": {
+      "pair_count": 24,
+      "off_mean": 39046.52120141933,
+      "on_mean": 36566.66269263951,
+      "paired_delta_mean": -2479.8585087798224,
+      "off_median": 36688.154728966765,
+      "on_median": 34694.34193754569,
+      "paired_delta_median": -2173.2189379399642
+    }
+  },
+  "quality": {
+    "question_balanced": {
+      "question_count": 12,
+      "off_mean": 84.21875,
+      "on_mean": 82.39583333333333,
+      "paired_delta_mean": -1.8229166666666667,
+      "paired_delta_median": -1.25,
+      "definition": "Average available paired review/generation scores within each question, then give each question equal weight. Descriptive, not independent-question evidence from every repetition."
+    },
+    "wins_on": 5,
+    "wins_off": 11,
+    "ties": 8,
+    "by_repetition": {
+      "1": {
+        "scored_reviewer_pair_count": 12,
+        "unique_generation_pair_count": 12,
+        "unique_question_count": 12,
+        "off_mean": 83.4375,
+        "on_mean": 82.29166666666667,
+        "paired_delta_mean": -1.1458333333333333,
+        "paired_delta_median": 0,
+        "wins_on": 4,
+        "wins_off": 5,
+        "ties": 3
+      },
+      "2": {
+        "scored_reviewer_pair_count": 12,
+        "unique_generation_pair_count": 12,
+        "unique_question_count": 12,
+        "off_mean": 85,
+        "on_mean": 82.5,
+        "paired_delta_mean": -2.5,
+        "paired_delta_median": -1.875,
+        "wins_on": 1,
+        "wins_off": 6,
+        "ties": 5
+      }
+    },
+    "by_exposure": {
+      "hint_only": {
+        "scored_reviewer_pair_count": 12,
+        "off_mean": 87.91666666666667,
+        "on_mean": 85.83333333333333,
+        "paired_delta_mean": -2.0833333333333335,
+        "paired_delta_median": -1.25,
+        "wins_on": 3,
+        "wins_off": 6,
+        "ties": 3
+      },
+      "identical_prompt": {
+        "scored_reviewer_pair_count": 12,
+        "off_mean": 80.52083333333333,
+        "on_mean": 78.95833333333333,
+        "paired_delta_mean": -1.5625,
+        "paired_delta_median": 0,
+        "wins_on": 2,
+        "wins_off": 5,
+        "ties": 5
+      }
+    },
+    "dimension_means": {
+      "factual_accuracy": {
+        "scale": "0..4",
+        "off_mean": 3.8333333333333335,
+        "on_mean": 3.7083333333333335
+      },
+      "evidence_support": {
+        "scale": "0..4",
+        "off_mean": 3.5,
+        "on_mean": 3.5833333333333335
+      },
+      "key_fact_completeness": {
+        "scale": "0..4",
+        "off_mean": 2.7083333333333335,
+        "on_mean": 2.5833333333333335
+      },
+      "scope_and_uncertainty": {
+        "scale": "0..4",
+        "off_mean": 3.625,
+        "on_mean": 3.4583333333333335
+      },
+      "task_usefulness": {
+        "scale": "0..4",
+        "off_mean": 3,
+        "on_mean": 2.9166666666666665
+      }
+    },
+    "critical_error_flags": 0,
+    "critical_error_caution": "No rubric critical-error flags in this small blind review is not a guarantee that all answer claims or citations are correct.",
+    "score_errors": []
+  },
+  "exposure": {
+    "assistance_on_answers": 24,
+    "with_actual_support_material": 0,
+    "with_parser_operator_trace": 20,
+    "without_parser_operator_trace": 4,
+    "successful_same_source_excerpt_pairs": 24,
+    "identical_prompt_pairs": 12,
+    "hint_only_pairs": 12,
+    "extra_input_tokens_per_hint_only_answer": 137,
+    "extra_helper_model_calls": 0,
+    "observed_scope": "No complete relevant support was inserted. 20 ON answers contain a parser/operator trace; 4 do not. The unchanged-input pairs cannot show an algorithm effect, and hint-only pairs assess an added limitation reminder, not actual analogy/deduction/induction material."
+  },
+  "descriptive_strata": {
+    "by_exposure": {
+      "hint_only": {
+        "pair_count": 12,
+        "input_tokens": {
+          "pair_count": 12,
+          "off_mean": 2767,
+          "on_mean": 2904,
+          "paired_delta_mean": 137,
+          "off_median": 2714,
+          "on_median": 2851,
+          "paired_delta_median": 137
+        },
+        "output_tokens": {
+          "pair_count": 12,
+          "off_mean": 3112.6666666666665,
+          "on_mean": 2775.5833333333335,
+          "paired_delta_mean": -337.0833333333333,
+          "off_median": 2809.5,
+          "on_median": 2494.5,
+          "paired_delta_median": -208
+        },
+        "total_tokens": {
+          "pair_count": 12,
+          "off_mean": 5879.666666666667,
+          "on_mean": 5679.583333333333,
+          "paired_delta_mean": -200.08333333333334,
+          "off_median": 5636,
+          "on_median": 5409,
+          "paired_delta_median": -71
+        },
+        "cached_tokens": {
+          "pair_count": 12,
+          "off_mean": 1109.3333333333333,
+          "on_mean": 1834.6666666666667,
+          "paired_delta_mean": 725.3333333333334,
+          "off_median": 1024,
+          "on_median": 2304,
+          "paired_delta_median": 256
+        },
+        "complete_response_ms": {
+          "pair_count": 12,
+          "off_mean": 36174.18564931722,
+          "on_mean": 32341.58371173544,
+          "paired_delta_mean": -3832.601937581785,
+          "off_median": 34148.93722953275,
+          "on_median": 29781.096978927962,
+          "paired_delta_median": -2399.8249165015295
+        }
+      },
+      "identical_prompt": {
+        "pair_count": 12,
+        "input_tokens": {
+          "pair_count": 12,
+          "off_mean": 2791.3333333333335,
+          "on_mean": 2791.3333333333335,
+          "paired_delta_mean": 0,
+          "off_median": 2750,
+          "on_median": 2750,
+          "paired_delta_median": 0
+        },
+        "output_tokens": {
+          "pair_count": 12,
+          "off_mean": 3596.4166666666665,
+          "on_mean": 3524.1666666666665,
+          "paired_delta_mean": -72.25,
+          "off_median": 3747.5,
+          "on_median": 3461.5,
+          "paired_delta_median": -205.5
+        },
+        "total_tokens": {
+          "pair_count": 12,
+          "off_mean": 6387.75,
+          "on_mean": 6315.5,
+          "paired_delta_mean": -72.25,
+          "off_median": 6484.5,
+          "on_median": 6222.5,
+          "paired_delta_median": -205.5
+        },
+        "cached_tokens": {
+          "pair_count": 12,
+          "off_mean": 1856,
+          "on_mean": 1642.6666666666667,
+          "paired_delta_mean": -213.33333333333334,
+          "off_median": 2304,
+          "on_median": 2304,
+          "paired_delta_median": 0
+        },
+        "complete_response_ms": {
+          "pair_count": 12,
+          "off_mean": 41918.856753521446,
+          "on_mean": 40791.74167354358,
+          "paired_delta_mean": -1127.11507997786,
+          "off_median": 41337.41297957022,
+          "on_median": 39431.92464555614,
+          "paired_delta_median": -2173.2189379399642
+        }
+      }
+    },
+    "by_repetition": {
+      "1": {
+        "pair_count": 12,
+        "input_tokens": {
+          "pair_count": 12,
+          "off_mean": 2779.1666666666665,
+          "on_mean": 2847.6666666666665,
+          "paired_delta_mean": 68.5,
+          "off_median": 2724.5,
+          "on_median": 2808.5,
+          "paired_delta_median": 68.5
+        },
+        "output_tokens": {
+          "pair_count": 12,
+          "off_mean": 3417.3333333333335,
+          "on_mean": 3197.3333333333335,
+          "paired_delta_mean": -220,
+          "off_median": 3196.5,
+          "on_median": 3206.5,
+          "paired_delta_median": -254
+        },
+        "total_tokens": {
+          "pair_count": 12,
+          "off_mean": 6196.5,
+          "on_mean": 6045,
+          "paired_delta_mean": -151.5,
+          "off_median": 6218,
+          "on_median": 5983,
+          "paired_delta_median": -205.5
+        },
+        "cached_tokens": {
+          "pair_count": 12,
+          "off_mean": 1386.6666666666667,
+          "on_mean": 1429.3333333333333,
+          "paired_delta_mean": 42.666666666666664,
+          "off_median": 2176,
+          "on_median": 2304,
+          "paired_delta_median": 0
+        },
+        "complete_response_ms": {
+          "pair_count": 12,
+          "off_mean": 39104.4774861463,
+          "on_mean": 36508.5839930883,
+          "paired_delta_mean": -2595.893493058005,
+          "off_median": 36937.389020458795,
+          "on_median": 36345.99014557898,
+          "paired_delta_median": -2797.3004794912413
+        }
+      },
+      "2": {
+        "pair_count": 12,
+        "input_tokens": {
+          "pair_count": 12,
+          "off_mean": 2779.1666666666665,
+          "on_mean": 2847.6666666666665,
+          "paired_delta_mean": 68.5,
+          "off_median": 2724.5,
+          "on_median": 2808.5,
+          "paired_delta_median": 68.5
+        },
+        "output_tokens": {
+          "pair_count": 12,
+          "off_mean": 3291.75,
+          "on_mean": 3102.4166666666665,
+          "paired_delta_mean": -189.33333333333334,
+          "off_median": 2809.5,
+          "on_median": 2618,
+          "paired_delta_median": -106
+        },
+        "total_tokens": {
+          "pair_count": 12,
+          "off_mean": 6070.916666666667,
+          "on_mean": 5950.083333333333,
+          "paired_delta_mean": -120.83333333333333,
+          "off_median": 5549,
+          "on_median": 5741,
+          "paired_delta_median": -37.5
+        },
+        "cached_tokens": {
+          "pair_count": 12,
+          "off_mean": 1578.6666666666667,
+          "on_mean": 2048,
+          "paired_delta_mean": 469.3333333333333,
+          "off_median": 2304,
+          "on_median": 2304,
+          "paired_delta_median": 128
+        },
+        "complete_response_ms": {
+          "pair_count": 12,
+          "off_mean": 38988.56491669236,
+          "on_mean": 36624.74139219072,
+          "paired_delta_mean": -2363.8235245016403,
+          "off_median": 36006.11652107909,
+          "on_median": 32429.70456252806,
+          "paired_delta_median": -137.30097899679095
+        }
+      }
+    },
+    "by_first_called_arm": {
+      "off": {
+        "pair_count": 12,
+        "input_tokens": {
+          "pair_count": 12,
+          "off_mean": 2779.1666666666665,
+          "on_mean": 2847.6666666666665,
+          "paired_delta_mean": 68.5,
+          "off_median": 2724.5,
+          "on_median": 2808.5,
+          "paired_delta_median": 68.5
+        },
+        "output_tokens": {
+          "pair_count": 12,
+          "off_mean": 3417.5,
+          "on_mean": 3148.6666666666665,
+          "paired_delta_mean": -268.8333333333333,
+          "off_median": 3196.5,
+          "on_median": 2911,
+          "paired_delta_median": -208
+        },
+        "total_tokens": {
+          "pair_count": 12,
+          "off_mean": 6196.666666666667,
+          "on_mean": 5996.333333333333,
+          "paired_delta_mean": -200.33333333333334,
+          "off_median": 6218,
+          "on_median": 5773.5,
+          "paired_delta_median": -97
+        },
+        "cached_tokens": {
+          "pair_count": 12,
+          "off_mean": 810.6666666666666,
+          "on_mean": 2240,
+          "paired_delta_mean": 1429.3333333333333,
+          "off_median": 0,
+          "on_median": 2304,
+          "paired_delta_median": 2304
+        },
+        "complete_response_ms": {
+          "pair_count": 12,
+          "off_mean": 39967.14776401253,
+          "on_mean": 36466.61038203941,
+          "paired_delta_mean": -3500.5373819731176,
+          "off_median": 36688.154728966765,
+          "on_median": 34430.06318761036,
+          "paired_delta_median": -2173.2189379399642
+        }
+      },
+      "on": {
+        "pair_count": 12,
+        "input_tokens": {
+          "pair_count": 12,
+          "off_mean": 2779.1666666666665,
+          "on_mean": 2847.6666666666665,
+          "paired_delta_mean": 68.5,
+          "off_median": 2724.5,
+          "on_median": 2808.5,
+          "paired_delta_median": 68.5
+        },
+        "output_tokens": {
+          "pair_count": 12,
+          "off_mean": 3291.5833333333335,
+          "on_mean": 3151.0833333333335,
+          "paired_delta_mean": -140.5,
+          "off_median": 2880,
+          "on_median": 2913.5,
+          "paired_delta_median": -172.5
+        },
+        "total_tokens": {
+          "pair_count": 12,
+          "off_mean": 6070.75,
+          "on_mean": 5998.75,
+          "paired_delta_mean": -72,
+          "off_median": 5674,
+          "on_median": 5950.5,
+          "paired_delta_median": -172.5
+        },
+        "cached_tokens": {
+          "pair_count": 12,
+          "off_mean": 2154.6666666666665,
+          "on_mean": 1237.3333333333333,
+          "paired_delta_mean": -917.3333333333334,
+          "off_median": 2304,
+          "on_median": 1152,
+          "paired_delta_median": 0
+        },
+        "complete_response_ms": {
+          "pair_count": 12,
+          "off_mean": 38125.89463882614,
+          "on_mean": 36666.71500323961,
+          "paired_delta_mean": -1459.1796355865274,
+          "off_median": 36040.888229501434,
+          "on_median": 36510.44724998064,
+          "paired_delta_median": -1734.4924369826913
+        }
+      },
+      "unknown": {
+        "pair_count": 0,
+        "input_tokens": {
+          "pair_count": 0,
+          "off_mean": null,
+          "on_mean": null,
+          "paired_delta_mean": null,
+          "off_median": null,
+          "on_median": null,
+          "paired_delta_median": null
+        },
+        "output_tokens": {
+          "pair_count": 0,
+          "off_mean": null,
+          "on_mean": null,
+          "paired_delta_mean": null,
+          "off_median": null,
+          "on_median": null,
+          "paired_delta_median": null
+        },
+        "total_tokens": {
+          "pair_count": 0,
+          "off_mean": null,
+          "on_mean": null,
+          "paired_delta_mean": null,
+          "off_median": null,
+          "on_median": null,
+          "paired_delta_median": null
+        },
+        "cached_tokens": {
+          "pair_count": 0,
+          "off_mean": null,
+          "on_mean": null,
+          "paired_delta_mean": null,
+          "off_median": null,
+          "on_median": null,
+          "paired_delta_median": null
+        },
+        "complete_response_ms": {
+          "pair_count": 0,
+          "off_mean": null,
+          "on_mean": null,
+          "paired_delta_mean": null,
+          "off_median": null,
+          "on_median": null,
+          "paired_delta_median": null
+        }
+      }
+    },
+    "by_reported_cached_token_count_match": {
+      "equal_known": {
+        "pair_count": 7,
+        "input_tokens": {
+          "pair_count": 7,
+          "off_mean": 2897.714285714286,
+          "on_mean": 2936.8571428571427,
+          "paired_delta_mean": 39.142857142857146,
+          "off_median": 2835,
+          "on_median": 2835,
+          "paired_delta_median": 0
+        },
+        "output_tokens": {
+          "pair_count": 7,
+          "off_mean": 2312.285714285714,
+          "on_mean": 2425.5714285714284,
+          "paired_delta_mean": 113.28571428571429,
+          "off_median": 2572,
+          "on_median": 2673,
+          "paired_delta_median": 101
+        },
+        "total_tokens": {
+          "pair_count": 7,
+          "off_mean": 5210,
+          "on_mean": 5362.428571428572,
+          "paired_delta_mean": 152.42857142857142,
+          "off_median": 5511,
+          "on_median": 5861,
+          "paired_delta_median": 238
+        },
+        "cached_tokens": {
+          "pair_count": 7,
+          "off_mean": 2157.714285714286,
+          "on_mean": 2157.714285714286,
+          "paired_delta_mean": 0,
+          "off_median": 2304,
+          "on_median": 2304,
+          "paired_delta_median": 0
+        },
+        "complete_response_ms": {
+          "pair_count": 7,
+          "off_mean": 28192.100017830464,
+          "on_mean": 28847.799017726044,
+          "paired_delta_mean": 655.6989998955812,
+          "off_median": 31405.70008289069,
+          "on_median": 31213.61320791766,
+          "paired_delta_median": -96.41929203644395
+        }
+      },
+      "different_known": {
+        "pair_count": 17,
+        "input_tokens": {
+          "pair_count": 17,
+          "off_mean": 2730.3529411764707,
+          "on_mean": 2810.9411764705883,
+          "paired_delta_mean": 80.58823529411765,
+          "off_median": 2707,
+          "on_median": 2794,
+          "paired_delta_median": 137
+        },
+        "output_tokens": {
+          "pair_count": 17,
+          "off_mean": 3783.705882352941,
+          "on_mean": 3448.1176470588234,
+          "paired_delta_mean": -335.5882352941176,
+          "off_median": 3254,
+          "on_median": 3259,
+          "paired_delta_median": -335
+        },
+        "total_tokens": {
+          "pair_count": 17,
+          "off_mean": 6514.058823529412,
+          "on_mean": 6259.058823529412,
+          "paired_delta_mean": -255,
+          "off_median": 6369,
+          "on_median": 6105,
+          "paired_delta_median": -335
+        },
+        "cached_tokens": {
+          "pair_count": 17,
+          "off_mean": 1204.7058823529412,
+          "on_mean": 1566.1176470588234,
+          "paired_delta_mean": 361.4117647058824,
+          "off_median": 2048,
+          "on_median": 2304,
+          "paired_delta_median": 256
+        },
+        "complete_response_ms": {
+          "pair_count": 17,
+          "off_mean": 43515.98874760298,
+          "on_mean": 39745.018323486234,
+          "paired_delta_mean": -3770.9704241167533,
+          "off_median": 37465.15562501736,
+          "on_median": 35214.33045808226,
+          "paired_delta_median": -4046.836292138323
+        }
+      },
+      "unknown": {
+        "pair_count": 0,
+        "input_tokens": {
+          "pair_count": 0,
+          "off_mean": null,
+          "on_mean": null,
+          "paired_delta_mean": null,
+          "off_median": null,
+          "on_median": null,
+          "paired_delta_median": null
+        },
+        "output_tokens": {
+          "pair_count": 0,
+          "off_mean": null,
+          "on_mean": null,
+          "paired_delta_mean": null,
+          "off_median": null,
+          "on_median": null,
+          "paired_delta_median": null
+        },
+        "total_tokens": {
+          "pair_count": 0,
+          "off_mean": null,
+          "on_mean": null,
+          "paired_delta_mean": null,
+          "off_median": null,
+          "on_median": null,
+          "paired_delta_median": null
+        },
+        "cached_tokens": {
+          "pair_count": 0,
+          "off_mean": null,
+          "on_mean": null,
+          "paired_delta_mean": null,
+          "off_median": null,
+          "on_median": null,
+          "paired_delta_median": null
+        },
+        "complete_response_ms": {
+          "pair_count": 0,
+          "off_mean": null,
+          "on_mean": null,
+          "paired_delta_mean": null,
+          "off_median": null,
+          "on_median": null,
+          "paired_delta_median": null
+        }
+      }
+    },
+    "warning": "These post-stratified descriptive groups do not isolate causal cache or algorithm effects."
+  },
+  "consumption": {
+    "main": {
+      "dispatched_call_count": 48,
+      "provider_receipt_count": 48,
+      "indeterminate_call_count": 0,
+      "usage_including_failed_and_incomplete_calls": {
+        "prompt_tokens": {
+          "reported_total": 135044,
+          "known_reported_subtotal": 135044,
+          "known_call_count": 48,
+          "unknown_call_count": 0
+        },
+        "completion_tokens": {
+          "reported_total": 156106,
+          "known_reported_subtotal": 156106,
+          "known_call_count": 48,
+          "unknown_call_count": 0
+        },
+        "total_tokens": {
+          "reported_total": 291150,
+          "known_reported_subtotal": 291150,
+          "known_call_count": 48,
+          "unknown_call_count": 0
+        },
+        "cached_tokens": {
+          "reported_total": 77312,
+          "known_reported_subtotal": 77312,
+          "known_call_count": 48,
+          "unknown_call_count": 0
+        },
+        "reasoning_tokens": {
+          "reported_total": 0,
+          "known_reported_subtotal": 0,
+          "known_call_count": 48,
+          "unknown_call_count": 0
+        }
+      },
+      "provider_status_counts": {
+        "ok": 48
+      },
+      "non_ok_calls": [],
+      "journal_errors": [],
+      "definition": "All provider-reported consumption, including failed or truncated attempts. Not currency charges; unknown usage is not zero. Separate from successful matched-pair averages."
+    },
+    "separate_2048_cap_pilot": {
+      "directory": "dist/real-paper-ab-20261010/real-answers-after-verification",
+      "provider_calls": 4,
+      "nonempty_complete_answers": 3,
+      "empty_truncated_answers": 1,
+      "reported_total_tokens": 15721,
+      "excluded_from_main_averages": true,
+      "failed_call_reported_tokens": 4755
+    },
+    "successful_connection_smoke": {
+      "calls": 1,
+      "reported_total_tokens": 43,
+      "excluded_from_main_averages": true
+    },
+    "combined_known_reported_tokens_main_pilot_and_smoke": 306914,
+    "prior_rejected_402_403_probe_usage": "Unknown/not reported; not represented as zero usage or included in the known subtotal.",
+    "usage_not_currency_charge": true,
+    "scoring_cost_scope": "Blind agent reviews were not Step-5 API calls and are not part of the product answer runtime or its provider-usage averages."
+  },
+  "chinese_retrieval_diagnostic": {
+    "question_id": "d01_chinese_retrieval_control",
+    "repetitions": 2,
+    "arms_per_repetition": 2,
+    "all_source_counts_zero": true,
+    "all_answer_modes": "insufficient_evidence",
+    "actual_model_calls": 0,
+    "provider_usage_fields": null,
+    "excluded_from_primary_quality_and_efficiency_averages": true,
+    "finding": "The Chinese-only diagnostic query did not retrieve the English papers in either arm; this exposes a cross-language retrieval limitation, not an efficiency win."
+  },
+  "interpretation_zh": [
+    "质量题目等权均分：关闭84.22、开启82.40；开启赢5对、关闭赢11对、平8对。小规模AI盲评，不能当成人工结论或显著性证明。",
+    "平均总token关闭6133.71、开启5997.54，观测少约2.22%；完整响应平均39.05秒与36.57秒，观测快约6.35%。这些不是已证明的算法收益。",
+    "开启辅助平均输入反而多68.5 token，输出少204.67 token；差异受生成长度与供应商缓存影响。缓存计数相同的7对里，开启平均多152.43 token、慢0.656秒；这个分层本身也不是严格受控实验。",
+    "24次开启辅助新增可用支持均为0；12对输入完全一致，另12对只增加137 token的边界提示，不能宣称三类后台推理已经生效。",
+    "盲评发现两组均有关键点遗漏、条件丢失、准确事实挂在不完整或不匹配S引用上的问题。自然论文解析和证据窗口完整性应先补齐。"
+  ],
+  "corrective_priorities_not_implemented_in_this_test": [
+    {
+      "priority": 1,
+      "issue": "纯中文问题召回英文论文失败",
+      "direction": "增加有界跨语言召回与原文位置校验，仍保留检索预算。"
+    },
+    {
+      "priority": 2,
+      "issue": "证据窗口按固定字符数截在条件/关键句中间",
+      "direction": "按句边界和限定条件组织连续证据，需要时补邻接句，不能为省token切掉关键前提。"
+    },
+    {
+      "priority": 3,
+      "issue": "短关系/显式条件规则解析器无法给自然论文形成完整相关支持",
+      "direction": "完善保留来源、条件和证据跨度的文档级结构抽取；不能把相关描述直接升级为因果规则，也不能放宽门槛制造命中。"
+    },
+    {
+      "priority": 4,
+      "issue": "回答长但仍漏关键点，默认2048还存在实际截断风险",
+      "direction": "依据任务组织简洁证据和回答预算，验证语义覆盖、引用支持及空/截断响应，不只提高输出上限。"
+    }
+  ],
+  "claims_not_established": [
+    "Analogy/deduction/induction materially improve natural-paper answers",
+    "Algorithm-caused token or latency reductions",
+    "Long-term memory quality or unbounded recall",
+    "Self-evolution quality or RSI",
+    "Concurrent scheduling performance",
+    "Commercial readiness",
+    "Generalization beyond these 12 questions, four papers and this model"
+  ],
+  "artifacts": {
+    "run": "dist/real-paper-ab-20261010/real-answers-8192/run.json",
+    "summary": "dist/real-paper-ab-20261010/real-answers-8192/summary.json",
+    "answer_directory": "dist/real-paper-ab-20261010/real-answers-8192/answers",
+    "provider_journal": "dist/real-paper-ab-20261010/real-answers-8192/calls.jsonl",
+    "metrics": "dist/real-paper-ab-20261010/analysis-8192/metrics.json",
+    "blind_packets": "dist/real-paper-ab-20261010/analysis-8192/blind",
+    "blind_scores": "dist/real-paper-ab-20261010/analysis-8192/scores",
+    "historical_blocked_report": "benchmarks/research_real/result_20261010.json"
+  },
+  "verification": {
+    "main_successful_answers": 48,
+    "main_finish_reason_stop": 48,
+    "matched_source_pairs": 24,
+    "complete_blind_review_pairs": 24,
+    "artifact_errors": [],
+    "score_errors": [],
+    "provider_unknown_usage_count": 0,
+    "automatic_retries": 0,
+    "offline_contract_tests_passed": 72,
+    "offline_tests_are_not_quality_evidence": true
+  }
+}

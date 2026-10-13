@@ -1,0 +1,72 @@
+{
+  "fixture_version": "insight-sealed-transfer-20261013-v1",
+  "prepared_date": "2026-10-13",
+  "purpose": "Two natural product-research tasks on two public papers not previously used in the repository benchmark directory. Prepared independently before the next production freeze; not a known-answer or forced-routing test.",
+  "evaluation_scope": "NEW_TO_REPOSITORY_BENCHMARK_TWO_PAIRS_ONLY. This is not a model-training holdout, statistical generalization study, expert certification, or evidence of product-wide superiority.",
+  "ground_truth_origin": "No generated reference answer. Empty key_facts and forbidden_claims are not a gold completeness score. Review visible final answers and cited evidence against the pinned original PDFs. Keep this rubric, the protocol, registration and private review navigation out of model inputs.",
+  "protocol": {
+    "status": "MATERIALS_ONLY_AWAITING_PARENT_PRODUCTION_FREEZE_AND_DISPATCH_DECISION",
+    "contrast": "insight",
+    "baseline": "Production ResearchService; context_assistance_enabled=true, knowledge_skill_mode=auto, insight_mode=off.",
+    "treatment": "Same service, corpus, question and generation settings; context_assistance_enabled=true, knowledge_skill_mode=auto, insight_mode=auto. Preserve actual source/card/input differences caused by shared production budgets.",
+    "bounds": "Two questions, one repetition, two arms per question, at most four sequential Step 5 Preview requests. Production research output budget remains 8192 tokens per request; no experimental cap override. Proposed 50000 supplier-reported aggregate tokens is an observation-based soft stop, not a hard spending bound, pending parent approval. No retries, continuations, replacement answers or silent refill of incomplete pairs.",
+    "generation_controls": "step-5-preview; temperature 0.1; same production request builder and retrieval settings in both arms; semantic=off. No private memories/history or LLM cache. Final values and a production fingerprint must be registered after code freeze and before any prepare or paid request.",
+    "code_freeze_expected": null,
+    "privacy": "Only these two public original PDFs may become the test corpus. Do not ingest review notes, rubric or generated reference answers. The material-preparation agent does not read credentials or call any model."
+  },
+  "papers": [
+    {
+      "id": "agentic_memory",
+      "title": "A-MEM: Agentic Memory for LLM Agents",
+      "arxiv_version": "2502.12110v1",
+      "source_url": "https://arxiv.org/abs/2502.12110v1",
+      "pdf_url": "https://arxiv.org/pdf/2502.12110v1",
+      "file": "paper-a.pdf",
+      "sha256": "5d94b7aa544ca07c2653d75b79ee6043a6843ed1508633299e1227258025f630",
+      "byte_size": 957963,
+      "pdf_pages": 20
+    },
+    {
+      "id": "temporal_graph_memory",
+      "title": "Zep: A Temporal Knowledge Graph Architecture for Agent Memory",
+      "arxiv_version": "2501.13956v1",
+      "source_url": "https://arxiv.org/abs/2501.13956v1",
+      "pdf_url": "https://arxiv.org/pdf/2501.13956v1",
+      "file": "paper-b.pdf",
+      "sha256": "d26f7eb599540e8b14d75e7efda58a07661abbb1b864e58323b5768475a15d42",
+      "byte_size": 148771,
+      "pdf_pages": 12
+    }
+  ],
+  "rubric": {
+    "dimensions": [
+      {"id": "method_fidelity", "weight": 25},
+      {"id": "source_support", "weight": 25},
+      {"id": "product_recommendation", "weight": 20},
+      {"id": "evaluation_scope", "weight": 10},
+      {"id": "pilot_actionability", "weight": 10},
+      {"id": "clarity_and_focus", "weight": 10}
+    ],
+    "rating_scale": "Each dimension is rated 0-4 with claim-level evidence notes; weighted total is the sum of weight times rating/4. 0=absent or materially wrong; 1=major correction needed; 2=partly useful but substantive gaps; 3=usable with minor corrections; 4=well-supported and ready for the stated task. These are reviewer judgments, not automatic truth measurements.",
+    "single_answer_gate": "Delivery complete; no critical factual, citation or feasibility error; method_fidelity and source_support each at least 3; weighted total at least 80. A high numerical score does not cancel a critical error.",
+    "critical_error": "An unsupported or contradicted central claim that changes a recommendation, invents an experiment/result, misrepresents access or training requirements, or presents an untested product transfer as demonstrated benefit.",
+    "pair_interpretation": "Preserve both answers and each gate outcome. Compare quality, provider token usage and end-to-end latency; distinguish measured paper results from proposed product changes. Activation, extra sources, citation count, keyword overlap and completion alone are not quality gains. Four responses cannot establish statistical or general superiority.",
+    "reviewer_disclosure": "Independent developer/AI source review, not expert validation. Record whether arm labels were visible. Paper novelty here means absence from prior repository benchmarks, not absence from any model's pretraining."
+  },
+  "questions": [
+    {
+      "id": "changing_user_memory_design",
+      "question": "我们在做一个会长期陪伴用户的个人助手，用户的工作、计划和偏好会不断变化。请结合 A-MEM 和 Zep，给团队写一份记忆模块设计建议：新增信息进来以后，怎样整理历史、处理变化，并在下一次聊天时用上；首版应该优先采用哪些设计，哪些先不做？结合论文里的验证说明理由，并给出一个小范围试用方案，帮助我们判断是否值得继续投入。",
+      "papers": ["agentic_memory", "temporal_graph_memory"],
+      "key_facts": [],
+      "forbidden_claims": []
+    },
+    {
+      "id": "memory_product_research_brief",
+      "question": "请根据 A-MEM 和 Zep，写一份面向产品团队的研究短报告，回答：比起保存聊天记录或摘要，主动组织记忆到底可能给长期私人助手带来什么价值，额外代价又在哪里？用两篇论文的方法和实验支撑判断，最后提出一个最值得我们验证的产品假设及可执行的小实验。结论要足够清楚，让团队能决定下一步把时间花在哪里。",
+      "papers": ["agentic_memory", "temporal_graph_memory"],
+      "key_facts": [],
+      "forbidden_claims": []
+    }
+  ]
+}

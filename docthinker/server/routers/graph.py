@@ -235,6 +235,7 @@ def _select_graph_nodes(
     *,
     scope: str = "summary",
     max_nodes: int = 200,
+    focus_node: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Select graph nodes without changing the classic graph's default cap."""
     normalized_scope = str(scope or "summary").strip().lower()
@@ -249,14 +250,29 @@ def _select_graph_nodes(
         ),
         reverse=True,
     )
-    budget = max(0, max_nodes - len(expanded_nodes))
-    return expanded_nodes + other_nodes[:budget]
+    budget = max(0, max_nodes)
+    selected = (expanded_nodes + other_nodes)[:budget]
+    if not focus_node or not budget:
+        return selected
+
+    def node_id(item: Dict[str, Any]) -> str:
+        return str(item.get("id") or item.get("entity_id") or "")
+
+    if any(node_id(item) == focus_node for item in selected):
+        return selected
+    # Resolve only against this session's source nodes. The URL is not an
+    # external lookup or a license to append an arbitrary node to the graph.
+    focused = next((item for item in nodes_data if node_id(item) == focus_node), None)
+    if focused is not None:
+        selected[-1:] = [focused]
+    return selected
 
 
 @router.get("/knowledge-graph/data")
 async def get_graph_data(
     session_id: Optional[str] = None,
     scope: str = "summary",
+    focus_node: Optional[str] = None,
 ):
     if not state.rag_instance or not state.session_manager:
         raise HTTPException(status_code=500, detail="Service not initialized")
@@ -295,6 +311,7 @@ async def get_graph_data(
             nodes_data,
             edge_degree,
             scope=scope,
+            focus_node=focus_node,
         )
         for node_info in nodes_to_use:
             node_id = node_info.get("id") or node_info.get("entity_id") or ""
@@ -341,6 +358,8 @@ async def get_graph_data(
             "expanded_in_response": expanded_in_response,
             "image_nodes_in_response": image_nodes_in_response,
         }
+        if focus_node:
+            meta["focus_node_found"] = focus_node in node_ids
         if hasattr(G, "_graphml_xml_file"):
             meta["graph_file"] = str(getattr(G, "_graphml_xml_file", ""))
         return {

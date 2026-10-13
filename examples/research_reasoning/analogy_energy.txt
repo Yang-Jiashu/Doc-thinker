@@ -1,0 +1,5 @@
+Synthetic algorithm fixture, not empirical research.
+Case: Energy
+Solar supports storage.
+Storage supports reliability.
+Solar supports reliability.

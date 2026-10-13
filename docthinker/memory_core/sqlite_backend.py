@@ -629,10 +629,10 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
                 existing_summary = re.sub(
                     r"\s+", " ", str(item.get("summary") or "")
                 ).strip().lower()
-                # An identical observation reinforces the same memory. A
-                # merely similar observation remains a separate source node;
-                # _auto_link_memory connects it after insertion instead of
-                # overwriting what previously happened.
+                # Identical summaries record recurrence, not independent
+                # evidence: preserve confidence while updating use/version.
+                # Merely similar observations remain separate source nodes;
+                # _auto_link_memory connects them instead of overwriting them.
                 if not normalized_summary or normalized_summary != existing_summary:
                     continue
                 item.update(
@@ -643,7 +643,6 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
                         )[:12],
                         "last_seen_at": float(timestamp),
                         "use_count": int(item.get("use_count") or 0) + 1,
-                        "confidence": min(0.95, float(item["confidence"]) + 0.05),
                         "audit": {
                             "last_decision": decision.get("reason"),
                             "source": "duplicate_reinforcement",

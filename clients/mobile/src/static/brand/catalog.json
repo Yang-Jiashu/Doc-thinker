@@ -1,0 +1,175 @@
+{
+  "brand": "DocThinker",
+  "primary": "01-evidence-window",
+  "provisional": true,
+  "note": "当前为可替换的默认设计，待用户选择确认。仅矢量本地渲染，未生成付费场景图。",
+  "palette": {
+    "paper": "#F6F5F0",
+    "ink": "#203D35",
+    "sage": "#E6ECDD",
+    "lime": "#D7EF99",
+    "muted": "#89928B"
+  },
+  "variants": [
+    {
+      "id": "01-evidence-window",
+      "name": "证据之窗",
+      "english": "Evidence Window",
+      "pattern": "字母几何 × 节点连接",
+      "primary": true,
+      "rationale": "把 Doc 的 D 变成一扇有边界的文档窗口，短线只连接窗口内的一个来源节点。先有依据，再生长洞见；不会把无边界的补边当作事实。实心轮廓适合 App 与小尺寸。"
+    },
+    {
+      "id": "02-source-fold",
+      "name": "引文折页",
+      "english": "Source Fold",
+      "pattern": "几何叠层 × 留白",
+      "rationale": "两张错位折页保留资料的来源层次。右上角的独立圆点代表从文档中提取的想法，文档主体与推断之间仍留有清晰空隙。偏轻盈、阅读工具感。"
+    },
+    {
+      "id": "03-reasoning-trail",
+      "name": "推理小径",
+      "english": "Reasoning Trail",
+      "pattern": "非对称节点网络",
+      "rationale": "三个层次分明的节点由一条有方向的曲线串联，把散点变成可逐步检查的推理路径。末端不封闭成万能答案，适合强调关系探索的方向。"
+    },
+    {
+      "id": "04-insight-aperture",
+      "name": "洞见光阑",
+      "english": "Insight Aperture",
+      "pattern": "密集线系统 × 负空间",
+      "rationale": "六条短弧围出安静的中心，像把多份资料逐步对焦。洞见来自中心留白而非额外装饰；这是更抽象、更偏研究工具的方案。"
+    },
+    {
+      "id": "05-knowledge-seed",
+      "name": "知识种子",
+      "english": "Knowledge Seed",
+      "pattern": "曲面相交 × 单焦点",
+      "rationale": "两片翻开的纸页组成种子的外形，交汇处出现一个新的核心。让“持续整理与学习”显得温和、有人文感；更适合知识伙伴而非数据库的定位。"
+    },
+    {
+      "id": "06-memory-lattice",
+      "name": "记忆格",
+      "english": "Memory Lattice",
+      "pattern": "模块点阵 × 选择性缺口",
+      "rationale": "五个圆角模块从左下向右上重组，最后一格由圆点替代。规则部分是可验证的知识骨架，变化部分是新想法；适合强调可控记忆与自改进的方向。"
+    }
+  ],
+  "appIcons": [
+    {
+      "file": "icon-20.png",
+      "size": 20,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-29.png",
+      "size": 29,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-40.png",
+      "size": 40,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-48.png",
+      "size": 48,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-58.png",
+      "size": 58,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-60.png",
+      "size": 60,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-72.png",
+      "size": 72,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-76.png",
+      "size": 76,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-80.png",
+      "size": 80,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-87.png",
+      "size": 87,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-96.png",
+      "size": 96,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-120.png",
+      "size": 120,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-144.png",
+      "size": 144,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-152.png",
+      "size": 152,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-167.png",
+      "size": 167,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-180.png",
+      "size": 180,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-192.png",
+      "size": 192,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-512.png",
+      "size": 512,
+      "opaque": true,
+      "preRounded": false
+    },
+    {
+      "file": "icon-1024.png",
+      "size": 1024,
+      "opaque": true,
+      "preRounded": false
+    }
+  ],
+  "maskable": "icon-maskable-512.png"
+}

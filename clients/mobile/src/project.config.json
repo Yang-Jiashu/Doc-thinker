@@ -1,0 +1,19 @@
+{
+  "description": "DocThinker 游客开发工程；正式 AppID 由构建环境注入输出目录，不需要 AppSecret。",
+  "appid": "touristappid",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "./",
+  "projectname": "DocThinker",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "minified": true,
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "uploadWithSourceMap": false
+  },
+  "packOptions": {
+    "ignore": [{ "type": "file", "value": "README.md" }],
+    "include": []
+  }
+}

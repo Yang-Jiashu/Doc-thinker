@@ -1,0 +1,1721 @@
+{
+  "schema": "research-real-ab-repaired-v2-audit-v1",
+  "date": "2026-10-10",
+  "generated_at": "2026-10-10T06:32:57.057918+00:00",
+  "status": "completed_development_diagnostic_not_held_out_validation",
+  "conclusion_zh": "跨语言检索断路已修复：纯中文问题从历史检索不到英文论文，变为两组都能取得 8 条原文证据并真实调用 Step-5。但是本轮仍没有实际辅助支持项进入任何 ON 回答，不能宣称类比、演绎、归纳或后台辅助提高了质量。ON 均分的 +3.65 分只是本轮描述性波动，平均 token 和回答耗时反而略增；材料覆盖和来源归属仍有缺口。",
+  "method": {
+    "model": "step-5-preview",
+    "endpoint": "https://api.stepfun.com/step_plan/v1",
+    "actual_returned_model": "step-5-preview",
+    "configuration_digest": "ef3fcab4e0026466a3c151f89082809be35795a150236990eea40a3949632964",
+    "code_fingerprint": "0b6eafa8603402344820d552f4a307a0a19f4985f9e2c322cce70b64ae688f72",
+    "run_started_at": "2026-10-10T05:59:13.886379+00:00",
+    "run_completed_at": "2026-10-10T06:21:28.994350+00:00",
+    "fixture": "benchmarks/research_real/research_papers_ab_v1.json",
+    "fixture_digest": "d3f6cd36e36cb7225a3a102c9feb380ef11144927c25aff254e871c3c8566912",
+    "papers": [
+      {
+        "id": "rag",
+        "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+        "authors": "Patrick Lewis et al.",
+        "arxiv_version": "2005.11401v4",
+        "pdf_url": "https://arxiv.org/pdf/2005.11401v4",
+        "landing_url": "https://arxiv.org/abs/2005.11401v4",
+        "page_count": 19,
+        "file": "rag.pdf",
+        "sha256": "23e3249e9a1e75418d82efecab0ea8c4d033b89c93742f63208d47ce01f21233",
+        "byte_size": 885323
+      },
+      {
+        "id": "lost_middle",
+        "title": "Lost in the Middle: How Language Models Use Long Contexts",
+        "authors": "Nelson F. Liu et al.",
+        "arxiv_version": "2307.03172v1",
+        "pdf_url": "https://arxiv.org/pdf/2307.03172v1",
+        "landing_url": "https://arxiv.org/abs/2307.03172v1",
+        "page_count": 15,
+        "file": "lost_middle.pdf",
+        "sha256": "c8070998fc12d9652d4f3b2e3094a4d6f438ed47a18539e04f07e5dbb9891f9e",
+        "byte_size": 804284
+      },
+      {
+        "id": "graphrag",
+        "title": "From Local to Global: A Graph RAG Approach to Query-Focused Summarization",
+        "authors": "Darren Edge et al.",
+        "arxiv_version": "2404.16130v1",
+        "pdf_url": "https://arxiv.org/pdf/2404.16130v1",
+        "landing_url": "https://arxiv.org/abs/2404.16130v1",
+        "page_count": 15,
+        "file": "graphrag.pdf",
+        "sha256": "33524b3b56910c513affdad8dbf67d14e68edf0572e4debdb09a9f1916463b06",
+        "byte_size": 6782285
+      },
+      {
+        "id": "memgpt",
+        "title": "MemGPT: Towards LLMs as Operating Systems",
+        "authors": "Charles Packer et al.",
+        "arxiv_version": "2310.08560v1",
+        "pdf_url": "https://arxiv.org/pdf/2310.08560v1",
+        "landing_url": "https://arxiv.org/abs/2310.08560v1",
+        "page_count": 15,
+        "file": "memgpt.pdf",
+        "sha256": "03723007dae7c2bde235893864a3282d4c41af7ecad85277f935360658dc4d43",
+        "byte_size": 602501
+      }
+    ],
+    "primary_unique_questions": 12,
+    "repetitions_per_question": 1,
+    "primary_paired_generation_trials": 12,
+    "main_provider_calls": 24,
+    "diagnostic_provider_calls": 2,
+    "total_provider_calls": 26,
+    "parameters": {
+      "temperature": 0,
+      "max_tokens": 8192,
+      "stream": false,
+      "reasoning_effort": "low"
+    },
+    "product_default_output_cap": 2048,
+    "output_cap_scope": "Experimental max_tokens=8192 overrides the unchanged product default 2048. This is not a measurement of default-cap production performance.",
+    "retrieval_configuration": {
+      "semantic_environment": "unrecognized",
+      "embedding_directory_override": false,
+      "model": "intfloat/multilingual-e5-small",
+      "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "model_file": "onnx/model.onnx",
+      "pinned_model_sha256": "ca456c06b3a9505ddfd9131408916dd79290368331e7d76bb621f1cba6bc8665",
+      "index_version": "e5-local-window-v1",
+      "candidate_gate_min_cosine": 0.78,
+      "gate_scope": "heuristic_not_universal_calibration",
+      "local_manifest_sha256": "c9850297efddb0a14a4b2bc895b880b68f995211ae6ad78255f922a1fb8cfcf9",
+      "declared_asset_hashes": {
+        "onnx/model.onnx": "ca456c06b3a9505ddfd9131408916dd79290368331e7d76bb621f1cba6bc8665",
+        "config.json": "69137736cab8b8903a07fe8afaafdda25aac55415a12a55d1bffa9f581abf959",
+        "tokenizer.json": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39",
+        "tokenizer_config.json": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b",
+        "special_tokens_map.json": "d05497f1da52c5e09554c0cd874037a083e1dc1b9cfd48034d1c717f1afc07a7"
+      },
+      "model_verification_basis": "runtime_setup_trace_not_manifest_presence",
+      "source_budget_shared_by_both_arms": {
+        "max_sources": 8,
+        "max_source_bytes": 12000,
+        "max_excerpt_chars": 1000
+      },
+      "document_prewarm": "each_fresh_storage_namespace_before_answer_timer",
+      "query_prewarm": false,
+      "setup_cost_accounting": "separate_elapsed_ms_and_trace_not_free_or_included_in_answer_latency"
+    },
+    "version_scope": "These receipts belong only to the frozen v2 fingerprint and e5-local-window-v1. Later source-window/index changes use a different implementation and are not evaluated by this report.",
+    "controls": [
+      "Pinned original PDFs only; no answer notes, synthetic causal rules or benchmark facts ingested.",
+      "Equivalent frozen corpus clones and empty history in each pair; memory, self-evolution and application response cache disabled.",
+      "Same local multilingual retriever, source budget, model and generation parameters in OFF and ON; only the optional background helper differs.",
+      "All 13 pairs have byte-for-byte equal structured supplied source lists; this was checked independently from answer artifacts.",
+      "Serial calls with alternating first arm, six OFF-first and six ON-first primary pairs.",
+      "Documents warmed separately per storage namespace; queries not pre-encoded or cache-warmed.",
+      "No automatic retry or silent provider/model switch."
+    ],
+    "provider_cache_control": "Vendor prompt caching was not disabled. Ten of twelve main pairs have unequal reported cached-token counts; equal counts in the other two do not prove matching cache state.",
+    "quality_method": {
+      "rubric": [
+        {
+          "id": "factual_accuracy",
+          "weight": 25
+        },
+        {
+          "id": "evidence_support",
+          "weight": 25
+        },
+        {
+          "id": "key_fact_completeness",
+          "weight": 20
+        },
+        {
+          "id": "scope_and_uncertainty",
+          "weight": 15
+        },
+        {
+          "id": "task_usefulness",
+          "weight": 15
+        }
+      ],
+      "score_scale": "0..100; sum(weight * dimension / 4)",
+      "basis": "Semantic required-fact checks against pinned papers plus material citation checks against the actual S-number excerpts, not keyword overlap.",
+      "blinding": "Random candidate labels; reviewers saw question, paper-grounded scoring notes and supplied excerpts, but not arm labels, timings, usage or helper traces.",
+      "reviewer_count": 2,
+      "reviewer_pairs": {
+        "repaired_blind_b": 6,
+        "repaired_blind_a": 6
+      },
+      "reviewer_kind": "agent_blind_review",
+      "candidate_score_count": 24,
+      "reviewers_per_pair": 1,
+      "human_evaluation": false,
+      "inter_rater_reliability_established": false,
+      "averaging": "One generation per arm per question; twelve questions equally weighted."
+    },
+    "data_scope": "This reuses a four-paper development benchmark whose earlier failures informed fixes. It is not held-out evaluation or proof of generalization."
+  },
+  "quality": {
+    "off_mean": 80.52083333333333,
+    "on_mean": 84.16666666666667,
+    "paired_delta_mean": 3.6458333333333335,
+    "paired_delta_median": 0,
+    "wins_on": 4,
+    "wins_off": 2,
+    "ties": 6,
+    "exposure_strata": {
+      "hint_only": {
+        "scored_reviewer_pair_count": 3,
+        "off_mean": 80.41666666666667,
+        "on_mean": 84.58333333333333,
+        "paired_delta_mean": 4.166666666666667,
+        "paired_delta_median": 0,
+        "wins_on": 1,
+        "wins_off": 1,
+        "ties": 1
+      },
+      "identical_prompt": {
+        "scored_reviewer_pair_count": 9,
+        "off_mean": 80.55555555555556,
+        "on_mean": 84.02777777777777,
+        "paired_delta_mean": 3.4722222222222223,
+        "paired_delta_median": 0,
+        "wins_on": 3,
+        "wins_off": 1,
+        "ties": 5
+      }
+    },
+    "score_errors": [],
+    "partial_reviews": [],
+    "dimension_means": {
+      "factual_accuracy": {
+        "off": 3.5833333333333335,
+        "on": 3.6666666666666665
+      },
+      "evidence_support": {
+        "off": 3.4166666666666665,
+        "on": 3.6666666666666665
+      },
+      "key_fact_completeness": {
+        "off": 2.6666666666666665,
+        "on": 2.6666666666666665
+      },
+      "scope_and_uncertainty": {
+        "off": 3.3333333333333335,
+        "on": 3.6666666666666665
+      },
+      "task_usefulness": {
+        "off": 2.9166666666666665,
+        "on": 3
+      }
+    },
+    "dimension_scale": "0..4",
+    "critical_error_flags": 0,
+    "critical_error_caution": "Zero rubric critical flags in this small AI review is not a guarantee that all facts or citations are correct."
+  },
+  "exposure": {
+    "main_identical_prompt_pairs": 9,
+    "main_hint_only_pairs": 3,
+    "main_actual_support_pairs": 0,
+    "diagnostic_actual_support_pairs": 0,
+    "all_on_answers": 13,
+    "all_on_answers_with_actual_support": 0,
+    "all_pairs_with_identical_supplied_sources": 13,
+    "hint_only_question_ids": [
+      "q03_context_memory_argument",
+      "q04_graphrag_pipeline",
+      "q05_extraction_tradeoff"
+    ],
+    "source_organization_support_items": 0,
+    "formal_auxiliary_support_items": 0,
+    "sum_of_main_score_deltas": 43.75,
+    "sum_of_score_deltas_in_identical_prompt_pairs": 31.25,
+    "interpretation": "Nine no-exposure controls account for 31.25 of the 43.75 summed score points. Zero actual support and only three hint-only pairs do not identify an algorithmic reasoning benefit; temperature zero also did not make repeated identical prompts deterministic."
+  },
+  "primary_efficiency": {
+    "pair_count": 12,
+    "unique_question_count": 12,
+    "repetition_count": 1,
+    "usage": {
+      "prompt_tokens": {
+        "pair_count": 12,
+        "measured_pair_count": 12,
+        "unavailable_pair_count": 0,
+        "off_mean": 2723.75,
+        "on_mean": 2758,
+        "paired_delta_mean": 34.25,
+        "off_median": 2711.5,
+        "on_median": 2748,
+        "paired_delta_median": 0,
+        "delta_direction": "on_minus_off"
+      },
+      "completion_tokens": {
+        "pair_count": 12,
+        "measured_pair_count": 12,
+        "unavailable_pair_count": 0,
+        "off_mean": 2938.3333333333335,
+        "on_mean": 3045.9166666666665,
+        "paired_delta_mean": 107.58333333333333,
+        "off_median": 2934,
+        "on_median": 2990.5,
+        "paired_delta_median": 269,
+        "delta_direction": "on_minus_off"
+      },
+      "total_tokens": {
+        "pair_count": 12,
+        "measured_pair_count": 12,
+        "unavailable_pair_count": 0,
+        "off_mean": 5662.083333333333,
+        "on_mean": 5803.916666666667,
+        "paired_delta_mean": 141.83333333333334,
+        "off_median": 5709.5,
+        "on_median": 5750,
+        "paired_delta_median": 269,
+        "delta_direction": "on_minus_off"
+      },
+      "cached_tokens": {
+        "pair_count": 12,
+        "measured_pair_count": 12,
+        "unavailable_pair_count": 0,
+        "off_mean": 1173.3333333333333,
+        "on_mean": 789.3333333333334,
+        "paired_delta_mean": -384,
+        "off_median": 1152,
+        "on_median": 0,
+        "paired_delta_median": -1152,
+        "delta_direction": "on_minus_off"
+      },
+      "reasoning_tokens": {
+        "pair_count": 12,
+        "measured_pair_count": 12,
+        "unavailable_pair_count": 0,
+        "off_mean": 0,
+        "on_mean": 0,
+        "paired_delta_mean": 0,
+        "off_median": 0,
+        "on_median": 0,
+        "paired_delta_median": 0,
+        "delta_direction": "on_minus_off"
+      }
+    },
+    "latency_ms": {
+      "pre_model_latency_ms": {
+        "pair_count": 12,
+        "measured_pair_count": 12,
+        "unavailable_pair_count": 0,
+        "off_mean": 72.029135383976,
+        "on_mean": 171.61835415754467,
+        "paired_delta_mean": 99.58921877356867,
+        "off_median": 58.7448125006631,
+        "on_median": 162.3249165713787,
+        "paired_delta_median": 103.33202057518065,
+        "delta_direction": "on_minus_off"
+      },
+      "model_latency_ms": {
+        "pair_count": 12,
+        "measured_pair_count": 12,
+        "unavailable_pair_count": 0,
+        "off_mean": 36361.39666677142,
+        "on_mean": 37332.47169087796,
+        "paired_delta_mean": 971.0750241065398,
+        "off_median": 36964.24760448281,
+        "on_median": 35619.05245843809,
+        "paired_delta_median": 2617.0930829830468,
+        "delta_direction": "on_minus_off"
+      },
+      "post_model_latency_ms": {
+        "pair_count": 12,
+        "measured_pair_count": 12,
+        "unavailable_pair_count": 0,
+        "off_mean": 19.718611244267475,
+        "on_mean": 20.126611188364524,
+        "paired_delta_mean": 0.40799994409705204,
+        "off_median": 19.021624932065606,
+        "on_median": 19.683666992932558,
+        "paired_delta_median": 1.4767504762858152,
+        "delta_direction": "on_minus_off"
+      },
+      "total_answer_latency_ms": {
+        "pair_count": 12,
+        "measured_pair_count": 12,
+        "unavailable_pair_count": 0,
+        "off_mean": 36453.14441339966,
+        "on_mean": 37524.21665622387,
+        "paired_delta_mean": 1071.0722428242054,
+        "off_median": 37141.685020993464,
+        "on_median": 35845.32864601351,
+        "paired_delta_median": 2757.365770637989,
+        "delta_direction": "on_minus_off"
+      }
+    },
+    "setup_latency_ms": {
+      "retrieval_setup_latency_ms": {
+        "pair_count": 12,
+        "measured_pair_count": 12,
+        "unavailable_pair_count": 0,
+        "off_mean": 9060.631888918579,
+        "on_mean": 9636.072913048944,
+        "paired_delta_mean": 575.4410241303655,
+        "off_median": 8437.085104058497,
+        "on_median": 8325.312291039154,
+        "paired_delta_median": -208.5188750643283,
+        "delta_direction": "on_minus_off"
+      },
+      "per_arm_setup_latency_ms": {
+        "pair_count": 12,
+        "measured_pair_count": 12,
+        "unavailable_pair_count": 0,
+        "off_mean": 9065.521239710506,
+        "on_mean": 9640.616912860423,
+        "paired_delta_mean": 575.0956731499173,
+        "off_median": 8439.06725011766,
+        "on_median": 8331.640186486766,
+        "paired_delta_median": -208.4830212406814,
+        "delta_direction": "on_minus_off"
+      },
+      "upfront_setup_latency_ms": {
+        "pair_count": 12,
+        "measured_pair_count": 12,
+        "unavailable_pair_count": 0,
+        "off_mean": 20150.105785093427,
+        "on_mean": 20725.201458243344,
+        "paired_delta_mean": 575.0956731499173,
+        "off_median": 18974.86800060142,
+        "on_median": 18543.38643711526,
+        "paired_delta_median": -208.4830212406814,
+        "delta_direction": "on_minus_off"
+      }
+    },
+    "semantic_retrieval": {
+      "off": {
+        "record_count": 12,
+        "status_counts": {
+          "ready": 12
+        },
+        "available_count": 12,
+        "busy_count": 0,
+        "timed_out_count": 0,
+        "missing_count": 0,
+        "availability_definition": "ready means the recorded retrieval operation ran; it does not establish relevant evidence or answer quality"
+      },
+      "on": {
+        "record_count": 12,
+        "status_counts": {
+          "ready": 12
+        },
+        "available_count": 12,
+        "busy_count": 0,
+        "timed_out_count": 0,
+        "missing_count": 0,
+        "availability_definition": "ready means the recorded retrieval operation ran; it does not establish relevant evidence or answer quality"
+      }
+    }
+  },
+  "efficiency_changes_percent": {
+    "mean_total_tokens": 2.50496725292516,
+    "mean_total_answer_latency": 2.9382163323899553
+  },
+  "consumption": {
+    "all_v2_provider_consumption": {
+      "dispatched_call_count": 26,
+      "provider_receipt_count": 26,
+      "indeterminate_call_count": 0,
+      "usage_including_failed_and_incomplete_calls": {
+        "prompt_tokens": {
+          "reported_total": 71705,
+          "known_reported_subtotal": 71705,
+          "known_call_count": 26,
+          "unknown_call_count": 0
+        },
+        "completion_tokens": {
+          "reported_total": 79060,
+          "known_reported_subtotal": 79060,
+          "known_call_count": 26,
+          "unknown_call_count": 0
+        },
+        "total_tokens": {
+          "reported_total": 150765,
+          "known_reported_subtotal": 150765,
+          "known_call_count": 26,
+          "unknown_call_count": 0
+        },
+        "cached_tokens": {
+          "reported_total": 26112,
+          "known_reported_subtotal": 26112,
+          "known_call_count": 26,
+          "unknown_call_count": 0
+        },
+        "reasoning_tokens": {
+          "reported_total": 0,
+          "known_reported_subtotal": 0,
+          "known_call_count": 26,
+          "unknown_call_count": 0
+        }
+      },
+      "provider_status_counts": {
+        "ok": 26
+      },
+      "non_ok_calls": [],
+      "journal_errors": [],
+      "definition": "All provider-reported consumption, including failed or truncated attempts. Not currency charges; unknown usage is not zero. Separate from successful matched-pair averages."
+    },
+    "main_24_call_total_tokens": 137592,
+    "diagnostic_2_call_total_tokens": 13173,
+    "status_counts": {
+      "ok": 26
+    },
+    "finish_reason_counts": {
+      "stop": 26
+    },
+    "actual_model_counts": {
+      "step-5-preview": 26
+    },
+    "automatic_retries": 0,
+    "new_calls_from_this_audit": 0,
+    "scope": "Only this v2 run. Does not replace or merge the historical 48-call main experiment, previous pilots, or later window experiments. Vendor token receipts are not currency charges. Blind AI reviews are not Step-5 API calls and are outside product runtime measurements.",
+    "reasoning_token_caution": "The provider reports zero reasoning tokens; this does not demonstrate absence of internal model reasoning."
+  },
+  "latency_definition": "Wall-clock pre-model, full non-streaming HTTP model call, post-model and total answer; not first-token latency. New runs exclude PDF ingestion, corpus cloning and document-vector prewarm from the answer timer and record them separately. Query encoding and retrieval remain inside the answer timer. Legacy missing setup measurements stay null.",
+  "setup_cost_definition": "retrieval_setup_latency_ms measures document-vector prewarm in each fresh storage namespace; per_arm_setup_latency_ms adds that arm's corpus clone. upfront_setup_latency_ms additionally includes the shared, amortizable frozen-corpus ingestion cost. Its paired mean describes cold-start-equivalent cost, not total run expenditure: never sum upfront_setup_latency_ms across answers. corpus_ingestion retains each corpus once; setup is local work with real elapsed cost, not free provider tokens.",
+  "corpus_ingestion_once_per_corpus": {
+    "ec7ac197034e5ed6dedfbde5575214114632f59949d79ff64753268aada5526e": {
+      "ingestion_latency_ms": 10646.743000019342
+    },
+    "44c0c98c32306a42f05b3788590b59f2663f9247d89cb69bc90db68232a71fc8": {
+      "ingestion_latency_ms": 10407.606709050015
+    },
+    "b2bac016579c53585d1380b0691a891707b3f9cf7857d6979615be86c6f6ec96": {
+      "ingestion_latency_ms": 9210.67254198715
+    },
+    "817c91948d701a8f4156919e7c91f3339087fb2dcc64452379d690808b918330": {
+      "ingestion_latency_ms": 6247.663166839629
+    },
+    "8f551d5d4eb05c8e1f354a07928c70d678d3386d91d3b8f5703567eaccb1ffcf": {
+      "ingestion_latency_ms": 10015.885792206973
+    },
+    "4d69275061f4843b8da5fe7fba58004e5ef28f4b6a9188a2e4c6c48f126c52f7": {
+      "ingestion_latency_ms": 4188.1920418236405
+    },
+    "5fa9f7d3eb63e71562224d4f792adeef64fe88486460b8e940ff6261bd20ec95": {
+      "ingestion_latency_ms": 10663.994791917503
+    },
+    "7b9086cfcba6b9e2c2a25d016cdb09f404b83ed8c9c906fa1c4ce28ee38d5986": {
+      "ingestion_latency_ms": 16104.233334073797
+    },
+    "8d93089ab1740d0d348a9311eafe27612939772d72e25cd796a2af244fb67570": {
+      "ingestion_latency_ms": 13643.606207799166
+    },
+    "f9bb2d771bf0435e77887d4c381dde66d0373a0b8c5ca1eacc4c1ada4a0bbc98": {
+      "ingestion_latency_ms": 26428.081250051036
+    }
+  },
+  "setup_interpretation": "Document-vector prewarm alone averaged 9.06 s OFF and 9.64 s ON per fresh clone; not included in answer latency. Local embedding uses CPU and memory even when provider token cost is zero. Shared ingestion cannot be summed once per answer.",
+  "vendor_cache_comparison": [
+    {
+      "question_id": "q01_rag_sequence_token",
+      "repetition": 1,
+      "exposure": "identical_prompt",
+      "off_cached_tokens": 0,
+      "on_cached_tokens": 2560,
+      "cache_hit_changed": true
+    },
+    {
+      "question_id": "q02_lost_middle_setup",
+      "repetition": 1,
+      "exposure": "identical_prompt",
+      "off_cached_tokens": 2304,
+      "on_cached_tokens": 0,
+      "cache_hit_changed": true
+    },
+    {
+      "question_id": "q03_context_memory_argument",
+      "repetition": 1,
+      "exposure": "hint_only",
+      "off_cached_tokens": 0,
+      "on_cached_tokens": 2048,
+      "cache_hit_changed": true
+    },
+    {
+      "question_id": "q04_graphrag_pipeline",
+      "repetition": 1,
+      "exposure": "hint_only",
+      "off_cached_tokens": 2304,
+      "on_cached_tokens": 0,
+      "cache_hit_changed": true
+    },
+    {
+      "question_id": "q05_extraction_tradeoff",
+      "repetition": 1,
+      "exposure": "hint_only",
+      "off_cached_tokens": 0,
+      "on_cached_tokens": 2304,
+      "cache_hit_changed": true
+    },
+    {
+      "question_id": "q06_memgpt_os_analogy",
+      "repetition": 1,
+      "exposure": "identical_prompt",
+      "off_cached_tokens": 2304,
+      "on_cached_tokens": 0,
+      "cache_hit_changed": true
+    },
+    {
+      "question_id": "q07_rag_memgpt_transfer",
+      "repetition": 1,
+      "exposure": "identical_prompt",
+      "off_cached_tokens": 0,
+      "on_cached_tokens": 0,
+      "cache_hit_changed": false
+    },
+    {
+      "question_id": "q08_synthesis_memory_patterns",
+      "repetition": 1,
+      "exposure": "identical_prompt",
+      "off_cached_tokens": 2304,
+      "on_cached_tokens": 0,
+      "cache_hit_changed": true
+    },
+    {
+      "question_id": "q09_global_quality_limits",
+      "repetition": 1,
+      "exposure": "identical_prompt",
+      "off_cached_tokens": 0,
+      "on_cached_tokens": 0,
+      "cache_hit_changed": false
+    },
+    {
+      "question_id": "q10_context_evaluation_design",
+      "repetition": 1,
+      "exposure": "identical_prompt",
+      "off_cached_tokens": 2560,
+      "on_cached_tokens": 0,
+      "cache_hit_changed": true
+    },
+    {
+      "question_id": "q11_query_aware_counterexample",
+      "repetition": 1,
+      "exposure": "identical_prompt",
+      "off_cached_tokens": 0,
+      "on_cached_tokens": 2560,
+      "cache_hit_changed": true
+    },
+    {
+      "question_id": "q12_step5_missing_comparison",
+      "repetition": 1,
+      "exposure": "identical_prompt",
+      "off_cached_tokens": 2304,
+      "on_cached_tokens": 0,
+      "cache_hit_changed": true
+    }
+  ],
+  "pure_chinese_retrieval_diagnostic": {
+    "question_id": "d01_chinese_retrieval_control",
+    "excluded_from_primary_quality_and_efficiency_averages": true,
+    "historical_before": {
+      "question_id": "d01_chinese_retrieval_control",
+      "repetitions": 2,
+      "arms_per_repetition": 2,
+      "all_source_counts_zero": true,
+      "all_answer_modes": "insufficient_evidence",
+      "actual_model_calls": 0,
+      "provider_usage_fields": null,
+      "excluded_from_primary_quality_and_efficiency_averages": true,
+      "finding": "The Chinese-only diagnostic query did not retrieve the English papers in either arm; this exposes a cross-language retrieval limitation, not an efficiency win."
+    },
+    "current": {
+      "off": {
+        "status": "completed",
+        "answer_mode": "evidence",
+        "source_count": 8,
+        "actual_model_calls": 1,
+        "assistance": {
+          "requested": false,
+          "has_actual_support": false,
+          "support_item_count": 0,
+          "status": "not_requested",
+          "algorithm_modes": [],
+          "skipped_reason": "operator_disabled",
+          "scheduler_status": null
+        },
+        "support_kind": {
+          "category": "none",
+          "item_counts": {}
+        },
+        "semantic_retrieval_status": "ready",
+        "usage": {
+          "prompt_tokens": 2962,
+          "completion_tokens": 3738,
+          "total_tokens": 6700,
+          "cached_tokens": 0,
+          "reasoning_tokens": 0
+        },
+        "setup_latency_ms": {
+          "retrieval_setup_latency_ms": 7777.585749980062,
+          "per_arm_setup_latency_ms": 7782.500124769285,
+          "upfront_setup_latency_ms": 18429.243124788627
+        },
+        "total_answer_latency_ms": 45371.123333927244,
+        "semantic_trace": {
+          "algorithm": "e5-local-window-v1",
+          "model": "intfloat/multilingual-e5-small",
+          "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+          "provider_calls": 0,
+          "llm_tokens": 0,
+          "semantic_entailment_verified": false,
+          "operation": "semantic_scores",
+          "threshold": 0.78,
+          "threshold_scope": "heuristic_not_universal_calibration",
+          "initialization_ms": 0,
+          "model_reused": true,
+          "model_fingerprint": "04c54f8e79f73248b1f9c047f6dfc16ebb930db9298db8eb8cc2f52d7e5c3570",
+          "status": "ready",
+          "scanned_chunks": 138,
+          "corpus_scan_limited": false,
+          "passage_windows_encoded": 0,
+          "cached_chunks": 138,
+          "query_cache_hit": false,
+          "query_tokens": 42,
+          "query_truncated": false,
+          "limited_chunks": 0,
+          "accepted_chunks": 40,
+          "best_cosine": 0.8479187488555908,
+          "document_embedding_ms": 0.272,
+          "query_embedding_ms": 48.677,
+          "total_ms": 49.696
+        },
+        "source_pages": [
+          {
+            "label": "S1",
+            "page": 2,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          },
+          {
+            "label": "S2",
+            "page": 8,
+            "paper_id": "memgpt",
+            "filename": "memgpt.pdf"
+          },
+          {
+            "label": "S3",
+            "page": 7,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          },
+          {
+            "label": "S4",
+            "page": 11,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          },
+          {
+            "label": "S5",
+            "page": 2,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          },
+          {
+            "label": "S6",
+            "page": 5,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          },
+          {
+            "label": "S7",
+            "page": 2,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          },
+          {
+            "label": "S8",
+            "page": 4,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          }
+        ]
+      },
+      "on": {
+        "status": "completed",
+        "answer_mode": "evidence",
+        "source_count": 8,
+        "actual_model_calls": 1,
+        "assistance": {
+          "requested": true,
+          "has_actual_support": false,
+          "support_item_count": 0,
+          "status": "insufficient_evidence",
+          "algorithm_modes": [
+            "deduction"
+          ],
+          "skipped_reason": "no_complete_relevant_support",
+          "scheduler_status": "completed"
+        },
+        "support_kind": {
+          "category": "none",
+          "item_counts": {}
+        },
+        "semantic_retrieval_status": "ready",
+        "usage": {
+          "prompt_tokens": 2962,
+          "completion_tokens": 3511,
+          "total_tokens": 6473,
+          "cached_tokens": 2560,
+          "reasoning_tokens": 0
+        },
+        "setup_latency_ms": {
+          "retrieval_setup_latency_ms": 7614.179875003174,
+          "per_arm_setup_latency_ms": 7617.438666988164,
+          "upfront_setup_latency_ms": 18264.181667007506
+        },
+        "total_answer_latency_ms": 43501.81279191747,
+        "semantic_trace": {
+          "algorithm": "e5-local-window-v1",
+          "model": "intfloat/multilingual-e5-small",
+          "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+          "provider_calls": 0,
+          "llm_tokens": 0,
+          "semantic_entailment_verified": false,
+          "operation": "semantic_scores",
+          "threshold": 0.78,
+          "threshold_scope": "heuristic_not_universal_calibration",
+          "initialization_ms": 0,
+          "model_reused": true,
+          "model_fingerprint": "04c54f8e79f73248b1f9c047f6dfc16ebb930db9298db8eb8cc2f52d7e5c3570",
+          "status": "ready",
+          "scanned_chunks": 138,
+          "corpus_scan_limited": false,
+          "passage_windows_encoded": 0,
+          "cached_chunks": 138,
+          "query_cache_hit": false,
+          "query_tokens": 42,
+          "query_truncated": false,
+          "limited_chunks": 0,
+          "accepted_chunks": 40,
+          "best_cosine": 0.8479187488555908,
+          "document_embedding_ms": 0.288,
+          "query_embedding_ms": 9.369,
+          "total_ms": 10.453
+        },
+        "source_pages": [
+          {
+            "label": "S1",
+            "page": 2,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          },
+          {
+            "label": "S2",
+            "page": 8,
+            "paper_id": "memgpt",
+            "filename": "memgpt.pdf"
+          },
+          {
+            "label": "S3",
+            "page": 7,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          },
+          {
+            "label": "S4",
+            "page": 11,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          },
+          {
+            "label": "S5",
+            "page": 2,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          },
+          {
+            "label": "S6",
+            "page": 5,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          },
+          {
+            "label": "S7",
+            "page": 2,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          },
+          {
+            "label": "S8",
+            "page": 4,
+            "paper_id": "lost_middle",
+            "filename": "lost_middle.pdf"
+          }
+        ]
+      }
+    },
+    "current_prompts_identical": true,
+    "current_supplied_sources_identical": true,
+    "interpretation": "The availability defect improved from no retrieved sources/no model call to eight sources/one real model call in both arms. The local cross-language repair is shared by OFF and ON, so this is not a helper treatment win. MemGPT evidence here is page 8 baseline/persona evaluation rather than the missing pages 2-4 mechanism; eight sources do not establish complete evidence or a causal chain."
+  },
+  "per_question": [
+    {
+      "question_id": "q01_rag_sequence_token",
+      "repetition": 1,
+      "quality": {
+        "off": 100,
+        "on": 100,
+        "on_minus_off": 0
+      },
+      "exposure": "identical_prompt",
+      "source_content_identical": true,
+      "on_support_item_count": 0,
+      "on_support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "on_assistance_status": "not_requested",
+      "first_called_arm": "off",
+      "vendor_cached_token_match": "different_known",
+      "usage": {
+        "prompt_tokens": {
+          "off": 2967,
+          "on": 2967,
+          "delta": 0
+        },
+        "completion_tokens": {
+          "off": 794,
+          "on": 932,
+          "delta": 138
+        },
+        "total_tokens": {
+          "off": 3761,
+          "on": 3899,
+          "delta": 138
+        },
+        "cached_tokens": {
+          "off": 0,
+          "on": 2560,
+          "delta": 2560
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 62.15462484396994,
+          "on": 48.03374991752207,
+          "delta": -14.120874926447868
+        },
+        "model_latency_ms": {
+          "off": 9695.869875140488,
+          "on": 10422.971208114177,
+          "delta": 727.1013329736888
+        },
+        "post_model_latency_ms": {
+          "off": 17.920624930411577,
+          "on": 22.65183301642537,
+          "delta": 4.731208086013794
+        },
+        "total_answer_latency_ms": {
+          "off": 9775.94512491487,
+          "on": 10493.656791048124,
+          "delta": 717.7116661332548
+        }
+      }
+    },
+    {
+      "question_id": "q02_lost_middle_setup",
+      "repetition": 1,
+      "quality": {
+        "on": 86.25,
+        "off": 86.25,
+        "on_minus_off": 0
+      },
+      "exposure": "identical_prompt",
+      "source_content_identical": true,
+      "on_support_item_count": 0,
+      "on_support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "on_assistance_status": "not_requested",
+      "first_called_arm": "on",
+      "vendor_cached_token_match": "different_known",
+      "usage": {
+        "prompt_tokens": {
+          "off": 2742,
+          "on": 2742,
+          "delta": 0
+        },
+        "completion_tokens": {
+          "off": 1647,
+          "on": 2047,
+          "delta": 400
+        },
+        "total_tokens": {
+          "off": 4389,
+          "on": 4789,
+          "delta": 400
+        },
+        "cached_tokens": {
+          "off": 2304,
+          "on": 0,
+          "delta": -2304
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 39.20195787213743,
+          "on": 34.57650006748736,
+          "delta": -4.625457804650068
+        },
+        "model_latency_ms": {
+          "off": 18943.695958005264,
+          "on": 26627.121458994225,
+          "delta": 7683.42550098896
+        },
+        "post_model_latency_ms": {
+          "off": 16.784875188022852,
+          "on": 24.49862495996058,
+          "delta": 7.713749771937728
+        },
+        "total_answer_latency_ms": {
+          "off": 18999.682791065425,
+          "on": 26686.196584021673,
+          "delta": 7686.513792956248
+        }
+      }
+    },
+    {
+      "question_id": "q03_context_memory_argument",
+      "repetition": 1,
+      "quality": {
+        "on": 81.25,
+        "off": 88.75,
+        "on_minus_off": -7.5
+      },
+      "exposure": "hint_only",
+      "source_content_identical": true,
+      "on_support_item_count": 0,
+      "on_support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "on_assistance_status": "insufficient_evidence",
+      "first_called_arm": "off",
+      "vendor_cached_token_match": "different_known",
+      "usage": {
+        "prompt_tokens": {
+          "off": 2473,
+          "on": 2610,
+          "delta": 137
+        },
+        "completion_tokens": {
+          "off": 1858,
+          "on": 1565,
+          "delta": -293
+        },
+        "total_tokens": {
+          "off": 4331,
+          "on": 4175,
+          "delta": -156
+        },
+        "cached_tokens": {
+          "off": 0,
+          "on": 2048,
+          "delta": 2048
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 42.457500007003546,
+          "on": 207.16841705143452,
+          "delta": 164.71091704443097
+        },
+        "model_latency_ms": {
+          "off": 26937.347625149414,
+          "on": 20364.941040985286,
+          "delta": -6572.406584164128
+        },
+        "post_model_latency_ms": {
+          "off": 15.568458940833807,
+          "on": 18.44000001437962,
+          "delta": 2.8715410735458136
+        },
+        "total_answer_latency_ms": {
+          "off": 26995.37358409725,
+          "on": 20590.5494580511,
+          "delta": -6404.824126046151
+        }
+      }
+    },
+    {
+      "question_id": "q04_graphrag_pipeline",
+      "repetition": 1,
+      "quality": {
+        "off": 86.25,
+        "on": 86.25,
+        "on_minus_off": 0
+      },
+      "exposure": "hint_only",
+      "source_content_identical": true,
+      "on_support_item_count": 0,
+      "on_support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "on_assistance_status": "insufficient_evidence",
+      "first_called_arm": "on",
+      "vendor_cached_token_match": "different_known",
+      "usage": {
+        "prompt_tokens": {
+          "off": 2693,
+          "on": 2830,
+          "delta": 137
+        },
+        "completion_tokens": {
+          "off": 4192,
+          "on": 3501,
+          "delta": -691
+        },
+        "total_tokens": {
+          "off": 6885,
+          "on": 6331,
+          "delta": -554
+        },
+        "cached_tokens": {
+          "off": 2304,
+          "on": 0,
+          "delta": -2304
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 33.01754198037088,
+          "on": 136.51120802387595,
+          "delta": 103.49366604350507
+        },
+        "model_latency_ms": {
+          "off": 48416.91270796582,
+          "on": 42581.713875057176,
+          "delta": -5835.198832908645
+        },
+        "post_model_latency_ms": {
+          "off": 20.11987497098744,
+          "on": 15.928374836221337,
+          "delta": -4.191500134766102
+        },
+        "total_answer_latency_ms": {
+          "off": 48470.05012491718,
+          "on": 42734.15345791727,
+          "delta": -5735.896666999906
+        }
+      }
+    },
+    {
+      "question_id": "q05_extraction_tradeoff",
+      "repetition": 1,
+      "quality": {
+        "off": 66.25,
+        "on": 86.25,
+        "on_minus_off": 20
+      },
+      "exposure": "hint_only",
+      "source_content_identical": true,
+      "on_support_item_count": 0,
+      "on_support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "on_assistance_status": "insufficient_evidence",
+      "first_called_arm": "off",
+      "vendor_cached_token_match": "different_known",
+      "usage": {
+        "prompt_tokens": {
+          "off": 2652,
+          "on": 2789,
+          "delta": 137
+        },
+        "completion_tokens": {
+          "off": 2309,
+          "on": 2836,
+          "delta": 527
+        },
+        "total_tokens": {
+          "off": 4961,
+          "on": 5625,
+          "delta": 664
+        },
+        "cached_tokens": {
+          "off": 0,
+          "on": 2304,
+          "delta": 2304
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 59.69708296470344,
+          "on": 170.78312509693205,
+          "delta": 111.08604213222861
+        },
+        "model_latency_ms": {
+          "off": 27315.6921248883,
+          "on": 32767.496374901384,
+          "delta": 5451.804250013083
+        },
+        "post_model_latency_ms": {
+          "off": 20.281209144741297,
+          "on": 17.242667032405734,
+          "delta": -3.0385421123355627
+        },
+        "total_answer_latency_ms": {
+          "off": 27395.670416997746,
+          "on": 32955.52216703072,
+          "delta": 5559.851750032976
+        }
+      }
+    },
+    {
+      "question_id": "q06_memgpt_os_analogy",
+      "repetition": 1,
+      "quality": {
+        "on": 91.25,
+        "off": 77.5,
+        "on_minus_off": 13.75
+      },
+      "exposure": "identical_prompt",
+      "source_content_identical": true,
+      "on_support_item_count": 0,
+      "on_support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "on_assistance_status": "insufficient_evidence",
+      "first_called_arm": "on",
+      "vendor_cached_token_match": "different_known",
+      "usage": {
+        "prompt_tokens": {
+          "off": 2583,
+          "on": 2583,
+          "delta": 0
+        },
+        "completion_tokens": {
+          "off": 3973,
+          "on": 3892,
+          "delta": -81
+        },
+        "total_tokens": {
+          "off": 6556,
+          "on": 6475,
+          "delta": -81
+        },
+        "cached_tokens": {
+          "off": 2304,
+          "on": 0,
+          "delta": -2304
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 31.89749992452562,
+          "on": 135.06787503138185,
+          "delta": 103.17037510685623
+        },
+        "model_latency_ms": {
+          "off": 51582.67058408819,
+          "on": 43578.06050009094,
+          "delta": -8004.61008399725
+        },
+        "post_model_latency_ms": {
+          "off": 15.064500039443374,
+          "on": 23.816249798983335,
+          "delta": 8.751749759539962
+        },
+        "total_answer_latency_ms": {
+          "off": 51629.63258405216,
+          "on": 43736.94462492131,
+          "delta": -7892.687959130853
+        }
+      }
+    },
+    {
+      "question_id": "q07_rag_memgpt_transfer",
+      "repetition": 1,
+      "quality": {
+        "off": 82.5,
+        "on": 80,
+        "on_minus_off": -2.5
+      },
+      "exposure": "identical_prompt",
+      "source_content_identical": true,
+      "on_support_item_count": 0,
+      "on_support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "on_assistance_status": "insufficient_evidence",
+      "first_called_arm": "off",
+      "vendor_cached_token_match": "equal_known",
+      "usage": {
+        "prompt_tokens": {
+          "off": 2689,
+          "on": 2689,
+          "delta": 0
+        },
+        "completion_tokens": {
+          "off": 2752,
+          "on": 4012,
+          "delta": 1260
+        },
+        "total_tokens": {
+          "off": 5441,
+          "on": 6701,
+          "delta": 1260
+        },
+        "cached_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 66.03450002148747,
+          "on": 263.71954195201397,
+          "delta": 197.6850419305265
+        },
+        "model_latency_ms": {
+          "off": 33869.23999991268,
+          "on": 46547.90608305484,
+          "delta": 12678.666083142161
+        },
+        "post_model_latency_ms": {
+          "off": 16.735624987632036,
+          "on": 18.920708913356066,
+          "delta": 2.1850839257240295
+        },
+        "total_answer_latency_ms": {
+          "off": 33952.0101249218,
+          "on": 46830.54633392021,
+          "delta": 12878.536208998412
+        }
+      }
+    },
+    {
+      "question_id": "q08_synthesis_memory_patterns",
+      "repetition": 1,
+      "quality": {
+        "off": 50,
+        "on": 50,
+        "on_minus_off": 0
+      },
+      "exposure": "identical_prompt",
+      "source_content_identical": true,
+      "on_support_item_count": 0,
+      "on_support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "on_assistance_status": "insufficient_evidence",
+      "first_called_arm": "on",
+      "vendor_cached_token_match": "different_known",
+      "usage": {
+        "prompt_tokens": {
+          "off": 2730,
+          "on": 2730,
+          "delta": 0
+        },
+        "completion_tokens": {
+          "off": 4620,
+          "on": 3145,
+          "delta": -1475
+        },
+        "total_tokens": {
+          "off": 7350,
+          "on": 5875,
+          "delta": -1475
+        },
+        "cached_tokens": {
+          "off": 2304,
+          "on": 0,
+          "delta": -2304
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 51.239958964288235,
+          "on": 244.07995794899762,
+          "delta": 192.83999898470938
+        },
+        "model_latency_ms": {
+          "off": 55684.951290953904,
+          "on": 38470.6085419748,
+          "delta": -17214.342748979107
+        },
+        "post_model_latency_ms": {
+          "off": 27.910334058105946,
+          "on": 20.44662507250905,
+          "delta": -7.463708985596895
+        },
+        "total_answer_latency_ms": {
+          "off": 55764.1015839763,
+          "on": 38735.135124996305,
+          "delta": -17028.966458979994
+        }
+      }
+    },
+    {
+      "question_id": "q09_global_quality_limits",
+      "repetition": 1,
+      "quality": {
+        "on": 91.25,
+        "off": 87.5,
+        "on_minus_off": 3.75
+      },
+      "exposure": "identical_prompt",
+      "source_content_identical": true,
+      "on_support_item_count": 0,
+      "on_support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "on_assistance_status": "insufficient_evidence",
+      "first_called_arm": "off",
+      "vendor_cached_token_match": "equal_known",
+      "usage": {
+        "prompt_tokens": {
+          "off": 2688,
+          "on": 2688,
+          "delta": 0
+        },
+        "completion_tokens": {
+          "off": 4278,
+          "on": 5523,
+          "delta": 1245
+        },
+        "total_tokens": {
+          "off": 6966,
+          "on": 8211,
+          "delta": 1245
+        },
+        "cached_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 58.165375143289566,
+          "on": 130.4902918636799,
+          "delta": 72.32491672039032
+        },
+        "model_latency_ms": {
+          "off": 54588.04358402267,
+          "on": 75209.3094161246,
+          "delta": 20621.265832101926
+        },
+        "post_model_latency_ms": {
+          "off": 19.69824987463653,
+          "on": 17.87958387285471,
+          "delta": -1.8186660017818213
+        },
+        "total_answer_latency_ms": {
+          "off": 54665.9072090406,
+          "on": 75357.67929186113,
+          "delta": 20691.772082820535
+        }
+      }
+    },
+    {
+      "question_id": "q10_context_evaluation_design",
+      "repetition": 1,
+      "quality": {
+        "on": 77.5,
+        "off": 61.25,
+        "on_minus_off": 16.25
+      },
+      "exposure": "identical_prompt",
+      "source_content_identical": true,
+      "on_support_item_count": 0,
+      "on_support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "on_assistance_status": "insufficient_evidence",
+      "first_called_arm": "on",
+      "vendor_cached_token_match": "different_known",
+      "usage": {
+        "prompt_tokens": {
+          "off": 2862,
+          "on": 2862,
+          "delta": 0
+        },
+        "completion_tokens": {
+          "off": 3116,
+          "on": 2226,
+          "delta": -890
+        },
+        "total_tokens": {
+          "off": 5978,
+          "on": 5088,
+          "delta": -890
+        },
+        "cached_tokens": {
+          "off": 2560,
+          "on": 0,
+          "delta": -2560
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 253.75970802269876,
+          "on": 186.63199990987778,
+          "delta": -67.12770811282098
+        },
+        "model_latency_ms": {
+          "off": 40059.255209052935,
+          "on": 27708.532333141193,
+          "delta": -12350.722875911742
+        },
+        "post_model_latency_ms": {
+          "off": 18.34499998949468,
+          "on": 20.699249813333154,
+          "delta": 2.3542498238384724
+        },
+        "total_answer_latency_ms": {
+          "off": 40331.35991706513,
+          "on": 27915.863582864404,
+          "delta": -12415.496334200725
+        }
+      }
+    },
+    {
+      "question_id": "q11_query_aware_counterexample",
+      "repetition": 1,
+      "quality": {
+        "off": 96.25,
+        "on": 96.25,
+        "on_minus_off": 0
+      },
+      "exposure": "identical_prompt",
+      "source_content_identical": true,
+      "on_support_item_count": 0,
+      "on_support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "on_assistance_status": "insufficient_evidence",
+      "first_called_arm": "off",
+      "vendor_cached_token_match": "different_known",
+      "usage": {
+        "prompt_tokens": {
+          "off": 2852,
+          "on": 2852,
+          "delta": 0
+        },
+        "completion_tokens": {
+          "off": 3706,
+          "on": 4414,
+          "delta": 708
+        },
+        "total_tokens": {
+          "off": 6558,
+          "on": 7266,
+          "delta": 708
+        },
+        "cached_tokens": {
+          "off": 0,
+          "on": 2560,
+          "delta": 2560
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 107.3996250052005,
+          "on": 153.86670804582536,
+          "delta": 46.46708304062486
+        },
+        "model_latency_ms": {
+          "off": 45271.09241695143,
+          "on": 55231.92599997856,
+          "delta": 9960.833583027124
+        },
+        "post_model_latency_ms": {
+          "off": 26.341165881603956,
+          "on": 18.37358297780156,
+          "delta": -7.967582903802395
+        },
+        "total_answer_latency_ms": {
+          "off": 45404.83320783824,
+          "on": 55404.166291002184,
+          "delta": 9999.333083163947
+        }
+      }
+    },
+    {
+      "question_id": "q12_step5_missing_comparison",
+      "repetition": 1,
+      "quality": {
+        "off": 83.75,
+        "on": 83.75,
+        "on_minus_off": 0
+      },
+      "exposure": "identical_prompt",
+      "source_content_identical": true,
+      "on_support_item_count": 0,
+      "on_support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "on_assistance_status": "insufficient_evidence",
+      "first_called_arm": "on",
+      "vendor_cached_token_match": "different_known",
+      "usage": {
+        "prompt_tokens": {
+          "off": 2754,
+          "on": 2754,
+          "delta": 0
+        },
+        "completion_tokens": {
+          "off": 2015,
+          "on": 2458,
+          "delta": 443
+        },
+        "total_tokens": {
+          "off": 4769,
+          "on": 5212,
+          "delta": 443
+        },
+        "cached_tokens": {
+          "off": 2304,
+          "on": 0,
+          "delta": -2304
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 59.32424985803664,
+          "on": 348.49087498150766,
+          "delta": 289.166625123471
+        },
+        "model_latency_ms": {
+          "off": 23971.98862512596,
+          "on": 28479.073458118364,
+          "delta": 4507.084832992405
+        },
+        "post_model_latency_ms": {
+          "off": 21.853416925296187,
+          "on": 22.62183395214379,
+          "delta": 0.7684170268476009
+        },
+        "total_answer_latency_ms": {
+          "off": 24053.166291909292,
+          "on": 28850.186167052016,
+          "delta": 4797.019875142723
+        }
+      }
+    }
+  ],
+  "remaining_failures_zh": [
+    "q08 两边均 50 分：将 GraphRAG 相关工作中对通用 RAG 的介绍误当成 GraphRAG 自己的方法。检索到论文里的文字，不代表归属与上下文正确。",
+    "q02 和 q05 的重要机制材料仍未完整进入回答上下文；q05 的一次 ON 提高主要是避免 OFF 的过度断言，而不是新增了完整 gleaning 证据。",
+    "关键事实完整性均为 2.667/4，并未随 ON 提升；q07 和中文诊断中的 MemGPT 机制材料仍不完整。",
+    "没有实际支持链进入答案，不能声称后台类比、演绎、归纳已证明有效。后续窗口修复必须在单独的新结果中评价。"
+  ],
+  "claims_not_established": [
+    "Causal answer-quality improvement from background assistance.",
+    "Savings in provider tokens or full response latency.",
+    "Complete causal chains, verified entailment, or universally accurate citations.",
+    "Held-out generalization beyond these familiar papers and questions.",
+    "Default-product performance at a 2048-token cap, multi-tenant capacity, production readiness, or RSI."
+  ],
+  "verification": {
+    "independent_recalculation": "Recomputed all 24 candidate weighted scores from the twelve score files and private mapping, and summed all 26 provider receipts independently; they match metrics.json.",
+    "dimension_range_and_completeness_checked": true,
+    "all_saved_answer_count": 26,
+    "all_semantic_status_ready": 26,
+    "query_embedding_cache_hit_count": 0,
+    "score_errors": [],
+    "partial_reviews": [],
+    "artifact_errors": [],
+    "excluded_primary_pairs": [],
+    "manifest_note": "Run configuration records semantic_environment=unrecognized. This label is not proof of disabled retrieval: all twenty-six runtime semantic traces are ready and identify the pinned local E5 model. Preserve the recorded value rather than retroactively rewriting it.",
+    "historical_reports_preserved": true
+  },
+  "artifacts_sha256": {
+    "dist/real-paper-ab-20261010/repaired-real-v2/run.json": "351088d972db784295acfdafadfcff9f069c36bb542e068e346786918fa3cecc",
+    "dist/real-paper-ab-20261010/repaired-real-v2/summary.json": "030039ebafc7c7d9acf733c8fd9d28f8f2d2f79cca294861efc060f123247efe",
+    "dist/real-paper-ab-20261010/repaired-real-v2/calls.jsonl": "f3168cf4bd0b70cc0f321d9ee3a87f0381060195065ced2a5d484ad8aa321d7a",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/metrics.json": "01bb042c8f5ba51dfaa2b7bff1fc882c4c9fb122239af37a1be1e165c397545f",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/private_mapping.json": "bf278405785df20234a74c3be1c5d65845c92eb88de9fafe9894d42a9dcdf486",
+    "benchmarks/research_real/result_real_20261010.json": "fc2b2f5300d6f31c72d6c2135c3239806299ea2202d1faf993271c234be41a50",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/scores/packet-1feb8d956b372365.json": "6fce253e332cd743b8ec63cbaf514aa8aa34d189d1c23553af40c3dea3952178",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/scores/packet-4a74269d240379cf.json": "93d642556131b4b251d3bf2877a1210b4b9d671fd6ffbca63ca489a4530ec509",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/scores/packet-51cfd03c4398bb20.json": "1867c1becb5c30cebc1a8a43f3c9e9327527798709d273fadd190cde3a634d15",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/scores/packet-6beb6c20dc44e0f9.json": "b2f024508e12fb379fddc9925085f33de01d236ffafd50fb2d310b5bd4795967",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/scores/packet-7de828f88867b8e7.json": "19aae22c213db44b29ff64488646c8fc3cd5bc00a9c43ed432d17b198aa2bb07",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/scores/packet-8a1694920ac8f117.json": "83b720516f52ac60fe995b081bd558f2adefb6aff1bd0c920208701a43d7d4c4",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/scores/packet-d082986842ed6775.json": "481466d1e2a536ea7bc3a2b5247d616980699cc77032791a676e297ad14d8af5",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/scores/packet-e4abd9862c4f8360.json": "cc872644f0a68493571d9db664d1c370f11c968824de6cbcf0d2e6582d18d48d",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/scores/packet-e9839802732b4bf3.json": "2f1c856651cdda8a8ff87144dd76b372d15252dd05bc333be95368b6799d0530",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/scores/packet-ef448c2b9a5ded38.json": "0753081e6453e532c04d59629de52b8a5ee53ee094b2fe307a0f452fa8ce5d28",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/scores/packet-f6bdb9ec1cf858c9.json": "4c73e250df7b3db7d58a3aaeb34943cef4dcd15b77ecbbd971ba977ee37495f7",
+    "dist/real-paper-ab-20261010/repaired-analysis-v2/scores/packet-fd7cc7551f1caa43.json": "2a0d2c660b070aa4e39353c1b5b00b8a7c628b74b8fc2cbce443b78fcaedc74f"
+  }
+}

@@ -1,0 +1,1007 @@
+{
+  "version": 1,
+  "checked_at": "2026-09-19",
+  "providers": [
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "description": "官方 Chat Completions 与文本向量接口。",
+      "docs_url": "https://developers.openai.com/api/docs/models",
+      "key_url": "https://platform.openai.com/api-keys",
+      "local": false,
+      "endpoints": {
+        "llm": "https://api.openai.com/v1",
+        "embedding": "https://api.openai.com/v1"
+      },
+      "models": [
+        {
+          "id": "gpt-4.1",
+          "name": "GPT-4.1",
+          "roles": [
+            "chat",
+            "vision",
+            "keyword",
+            "extraction"
+          ],
+          "description": "文本与图片输入；可用于对话、关键词和实体抽取。",
+          "source_url": "https://developers.openai.com/api/docs/models/gpt-4.1"
+        },
+        {
+        "id": "gpt-4.1-mini",
+        "name": "GPT-4.1 mini",
+          "roles": [
+            "chat",
+            "vision",
+            "keyword",
+            "extraction"
+          ],
+          "description": "文本与图片输入；可用于对话、关键词和实体抽取。",
+          "source_url": "https://developers.openai.com/api/docs/models/gpt-4.1-mini"
+        },
+        {
+        "id": "gpt-4o",
+        "name": "GPT-4o",
+          "roles": [
+            "chat",
+            "vision",
+            "keyword",
+            "extraction"
+          ],
+          "description": "文本与图片输入；可用于对话、关键词和实体抽取。",
+          "source_url": "https://developers.openai.com/api/docs/models/gpt-4o"
+        },
+        {
+        "id": "gpt-4o-mini",
+        "name": "GPT-4o mini",
+          "roles": [
+            "chat",
+            "vision",
+            "keyword",
+            "extraction"
+          ],
+          "description": "文本与图片输入；可用于对话、关键词和实体抽取。",
+          "source_url": "https://developers.openai.com/api/docs/models/gpt-4o-mini"
+        },
+        {
+          "id": "text-embedding-3-small",
+          "name": "Text Embedding 3 Small",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；默认 1536 维。",
+          "source_url": "https://developers.openai.com/api/docs/models/text-embedding-3-small",
+          "dimension": 1536
+        },
+        {
+          "id": "text-embedding-3-large",
+          "name": "Text Embedding 3 Large",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；默认 3072 维。",
+          "source_url": "https://developers.openai.com/api/docs/models/text-embedding-3-large",
+          "dimension": 3072
+        }
+      ],
+      "notes": [
+        "API 计费与 ChatGPT 订阅分开。",
+        "本目录优先收录通用 Chat Completions 型号，不包含 Responses-only、语音、图像生成或专用代理型号。",
+        "更换向量模型或维度后，旧文档必须重新建立向量索引。"
+      ]
+    },
+    {
+      "id": "dashscope",
+      "name": "阿里云百炼 / Qwen",
+      "description": "百炼 OpenAI 兼容接口；请先补全自己的业务空间地址。",
+      "docs_url": "https://help.aliyun.com/zh/model-studio/first-api-call-to-qwen",
+      "key_url": "https://help.aliyun.com/zh/model-studio/get-api-key",
+      "local": false,
+      "endpoints": {
+        "llm": "https://{WorkspaceId}.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+        "embedding": "https://{WorkspaceId}.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
+      },
+      "models": [
+        {
+          "id": "qwen-plus",
+          "name": "Qwen Plus",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "通用文本；混合思考模式由运行时按调用角色控制。",
+          "source_url": "https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-chat-completions"
+        },
+        {
+          "id": "qwen-turbo",
+          "name": "Qwen Turbo",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "轻量文本；关键词和实体抽取可关闭思考。",
+          "source_url": "https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-chat-completions"
+        },
+        {
+          "id": "qwen-max",
+          "name": "Qwen Max",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "通用文本模型。",
+          "source_url": "https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-chat-completions"
+        },
+        {
+          "id": "qwen-vl-max",
+          "name": "Qwen VL Max",
+          "roles": [
+            "chat",
+            "vision",
+            "keyword",
+            "extraction"
+          ],
+          "description": "支持图片理解与文本输出。",
+          "source_url": "https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-chat-completions"
+        },
+        {
+          "id": "qwen-vl-plus",
+          "name": "Qwen VL Plus",
+          "roles": [
+            "chat",
+            "vision",
+            "keyword",
+            "extraction"
+          ],
+          "description": "支持图片理解与文本输出。",
+          "source_url": "https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-chat-completions"
+        },
+        {
+          "id": "qwen3.8-max",
+          "name": "Qwen 3.8 Max",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "支持文本与图片；未列为低预算独立抽取预设。",
+          "source_url": "https://www.alibabacloud.com/help/en/model-studio/models"
+        },
+        {
+          "id": "text-embedding-v4",
+          "name": "Text Embedding v4",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；默认 1024 维。",
+          "source_url": "https://help.aliyun.com/zh/model-studio/text-embedding-synchronous-api",
+          "dimension": 1024
+        },
+        {
+          "id": "text-embedding-v3",
+          "name": "Text Embedding v3",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；默认 1024 维。",
+          "source_url": "https://help.aliyun.com/zh/model-studio/text-embedding-synchronous-api",
+          "dimension": 1024
+        }
+      ],
+      "notes": [
+        "必须将地址中的 {WorkspaceId} 替换为百炼控制台业务空间 ID；不要直接使用模板发请求。",
+        "这里展示北京地域模板。不同地域的 API Key、地址及模型权限不同，请以自己控制台为准；不要覆盖已经验证可用的旧地址。",
+        "模型名称与可用性受地域、账号权限影响；未收录 DashScope 专有多模态向量或重排接口。"
+      ]
+    },
+    {
+      "id": "siliconflow",
+      "name": "硅基流动 / SiliconFlow",
+      "description": "OpenAI 兼容模型服务，含文本向量与重排。",
+      "docs_url": "https://docs.siliconflow.cn/docs/api/chat-completions-post",
+      "key_url": "https://cloud.siliconflow.cn",
+      "local": false,
+      "endpoints": {
+        "llm": "https://api.siliconflow.cn/v1",
+        "embedding": "https://api.siliconflow.cn/v1",
+        "rerank": "https://api.siliconflow.cn/v1"
+      },
+      "models": [
+        {
+          "id": "deepseek-ai/DeepSeek-V4-Flash",
+          "name": "DeepSeek V4 Flash · SiliconFlow",
+          "roles": [
+            "chat"
+          ],
+          "description": "经硅基流动调用；思考成本受上游模型控制。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/chat-completions-post"
+        },
+        {
+        "id": "BAAI/bge-large-zh-v1.5",
+        "name": "BGE Large Chinese v1.5",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；本目录未确认服务端默认维度，请按实际返回填写。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/embeddings-post"
+        },
+        {
+        "id": "BAAI/bge-large-en-v1.5",
+        "name": "BGE Large English v1.5",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；本目录未确认服务端默认维度，请按实际返回填写。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/embeddings-post"
+        },
+        {
+        "id": "netease-youdao/bce-embedding-base_v1",
+        "name": "BCE Embedding Base v1",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；本目录未确认服务端默认维度，请按实际返回填写。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/embeddings-post"
+        },
+        {
+        "id": "BAAI/bge-m3",
+        "name": "BGE M3",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；本目录未确认服务端默认维度，请按实际返回填写。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/embeddings-post"
+        },
+        {
+        "id": "Pro/BAAI/bge-m3",
+        "name": "BGE M3 · Pro",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；本目录未确认服务端默认维度，请按实际返回填写。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/embeddings-post"
+        },
+        {
+        "id": "Qwen/Qwen3-Embedding-8B",
+        "name": "Qwen 3 Embedding 8B",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；本目录未确认服务端默认维度，请按实际返回填写。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/embeddings-post"
+        },
+        {
+        "id": "Qwen/Qwen3-Embedding-4B",
+        "name": "Qwen 3 Embedding 4B",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；本目录未确认服务端默认维度，请按实际返回填写。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/embeddings-post"
+        },
+        {
+        "id": "Qwen/Qwen3-Embedding-0.6B",
+        "name": "Qwen 3 Embedding 0.6B",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；本目录未确认服务端默认维度，请按实际返回填写。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/embeddings-post"
+        },
+        {
+        "id": "BAAI/bge-reranker-v2-m3",
+        "name": "BGE Reranker v2 M3",
+          "roles": [
+            "rerank"
+          ],
+          "description": "对文本候选重新排序，不负责生成回答。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/rerank-post"
+        },
+        {
+        "id": "Qwen/Qwen3-Reranker-8B",
+        "name": "Qwen 3 Reranker 8B",
+          "roles": [
+            "rerank"
+          ],
+          "description": "对文本候选重新排序，不负责生成回答。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/rerank-post"
+        },
+        {
+        "id": "Qwen/Qwen3-Reranker-4B",
+        "name": "Qwen 3 Reranker 4B",
+          "roles": [
+            "rerank"
+          ],
+          "description": "对文本候选重新排序，不负责生成回答。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/rerank-post"
+        },
+        {
+        "id": "Qwen/Qwen3-Reranker-0.6B",
+        "name": "Qwen 3 Reranker 0.6B",
+          "roles": [
+            "rerank"
+          ],
+          "description": "对文本候选重新排序，不负责生成回答。",
+          "source_url": "https://docs.siliconflow.cn/docs/api/rerank-post"
+        }
+      ],
+      "notes": [
+        "模型以硅基流动官方接口文档列举为准，未使用密钥探测你的账号权限。",
+        "向量维度未填写的条目不会猜测默认值；需核对服务端返回维度后建库。",
+        "这里只预设文本向量和文本重排，不代表接通多模态向量或图像重排。"
+      ]
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "description": "DeepSeek 官方 OpenAI 兼容对话接口。",
+      "docs_url": "https://api-docs.deepseek.com/",
+      "key_url": "https://platform.deepseek.com",
+      "local": false,
+      "endpoints": {
+        "llm": "https://api.deepseek.com"
+      },
+      "models": [
+        {
+          "id": "deepseek-flash",
+          "name": "DeepSeek Flash",
+          "roles": [
+            "chat"
+          ],
+          "description": "官方当前 Flash 调用名称；仅列对话用途。",
+          "source_url": "https://api-docs.deepseek.com/"
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "name": "DeepSeek V4 Pro",
+          "roles": [
+            "chat"
+          ],
+          "description": "官方继续提供的 Pro 接口；可用性以公告为准。",
+          "source_url": "https://api-docs.deepseek.com/"
+        }
+      ],
+      "notes": [
+        "未收录已经退役的 deepseek-chat / deepseek-reasoner 或重定向旧别名。",
+        "本目录不把思考型模型默认推荐给低预算关键词/实体抽取，也不预设独立向量或重排接口。"
+      ]
+    },
+    {
+      "id": "moonshot",
+      "name": "Moonshot / Kimi",
+      "description": "Kimi 官方 OpenAI 兼容接口（国际地址）。",
+      "docs_url": "https://platform.kimi.ai/docs/overview",
+      "key_url": "https://platform.kimi.ai",
+      "local": false,
+      "endpoints": {
+        "llm": "https://api.moonshot.ai/v1"
+      },
+      "models": [
+        {
+          "id": "kimi-k2.6",
+          "name": "Kimi K2.6",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "支持文本与图片；模型支持思考/非思考模式。",
+          "source_url": "https://platform.kimi.ai/docs/overview"
+        },
+        {
+          "id": "kimi-k3",
+          "name": "Kimi K3",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "支持文本与图片；默认推理开销较高，未列为独立抽取预设。",
+          "source_url": "https://platform.kimi.ai/docs/overview"
+        }
+      ],
+      "notes": [
+        "API 平台额度与 Kimi 消费者订阅不是同一项服务。",
+        "此处地址来自国际文档；区域账号请使用对应控制台提供的地址和密钥。",
+        "未承诺低 token 预算下的思考模型抽取效果；可另选非思考辅助模型。"
+      ]
+    },
+    {
+      "id": "bigmodel",
+      "name": "智谱 / GLM",
+      "description": "智谱 BigModel OpenAI 兼容接口。",
+      "docs_url": "https://docs.bigmodel.cn/cn/guide/develop/openai/introduction",
+      "key_url": "https://bigmodel.cn",
+      "local": false,
+      "endpoints": {
+        "llm": "https://open.bigmodel.cn/api/paas/v4",
+        "embedding": "https://open.bigmodel.cn/api/paas/v4"
+      },
+      "models": [
+        {
+          "id": "glm-4-flash-250414",
+          "name": "GLM 4 Flash 250414",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "文本模型；独立关键词/实体抽取候选。",
+          "source_url": "https://docs.bigmodel.cn/cn/guide/start/model-overview"
+        },
+        {
+          "id": "glm-4-flashx-250414",
+          "name": "GLM 4 FlashX 250414",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "文本模型；独立关键词/实体抽取候选。",
+          "source_url": "https://docs.bigmodel.cn/cn/guide/start/model-overview"
+        },
+        {
+          "id": "glm-4v-flash",
+          "name": "GLM 4V Flash",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "图片理解；上下文和输出预算较小。",
+          "source_url": "https://docs.bigmodel.cn/cn/guide/models/free/glm-4v-flash"
+        },
+        {
+          "id": "glm-5.3",
+          "name": "GLM 5.3",
+          "roles": [
+            "chat"
+          ],
+          "description": "思考型文本模型；未列为低预算抽取预设。",
+          "source_url": "https://docs.bigmodel.cn/cn/guide/models/text/glm-5.3"
+        },
+        {
+          "id": "glm-5.3-flash",
+          "name": "GLM 5.3 Flash",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "原生图文模型；官方不支持关闭思考。",
+          "source_url": "https://docs.bigmodel.cn/cn/guide/models/vlm/glm-5.3-flash"
+        },
+        {
+          "id": "embedding-3",
+          "name": "Embedding 3",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；默认 2048 维。",
+          "source_url": "https://docs.bigmodel.cn/cn/guide/models/embedding/embedding-3",
+          "dimension": 2048
+        }
+      ],
+      "notes": [
+        "使用通用 API 账号的对应额度；Coding Plan 专用地址不等同这里的通用接口。",
+        "GLM 5.3 系列不能关闭思考；建议关键词/实体抽取独立选择非思考模型。"
+      ]
+    },
+    {
+      "id": "minimax",
+      "name": "MiniMax",
+      "description": "MiniMax 官方 OpenAI 兼容接口。",
+      "docs_url": "https://platform.minimax.io/docs/api-reference/text-openai-api",
+      "key_url": "https://platform.minimax.io",
+      "local": false,
+      "endpoints": {
+        "llm": "https://api.minimax.io/v1"
+      },
+      "models": [
+        {
+          "id": "MiniMax-M3",
+          "name": "MiniMax M3",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "文本与图片输入；默认带思考，未列为独立关键词/实体抽取预设。",
+          "source_url": "https://platform.minimax.io/docs/api-reference/text-openai-api"
+        }
+      ],
+      "notes": [
+        "M3 默认开启思考，thinking.type=disabled 可关闭；标准返回 content 可能包含 <think> 标签。",
+        "本目录未收录不能关闭思考的 M2.x 作为抽取预设，也未收录语音/音乐/图像生成接口。",
+        "请使用与国际 API 地址匹配的密钥与额度。"
+      ]
+    },
+    {
+      "id": "stepfun",
+      "name": "阶跃星辰 / StepFun API",
+      "description": "普通按量付费 OpenAI 兼容通道，与 Step Plan 额度独立。",
+      "docs_url": "https://platform.stepfun.com/docs/zh/api-reference/chat/chat-completion-create",
+      "key_url": "https://platform.stepfun.com",
+      "local": false,
+      "endpoints": {
+        "llm": "https://api.stepfun.com/v1"
+      },
+      "models": [
+        {
+          "id": "step-5-preview",
+          "name": "Step 5 Preview · 普通 API",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "官方声明支持文本、图片与视频输入、文本输出及 1M 上下文；本预设提供对话/视觉选择，不代表应用已接通视频处理。",
+          "source_url": "https://platform.stepfun.com/docs/zh/guides/models/step-5-preview"
+        }
+      ],
+      "notes": [
+        "2026-10-10 增量核对本 Step 5 Preview 入口；目录中其他服务商仍沿用 2026-09-19 核查，不表示全部重新验证。",
+        "普通 API 按实际用量计费，与 Step Plan 的套餐 Credit 独立；不要用订阅权益推断普通 API 余额或权限。",
+        "Preview 可用性、账号权限及限额以平台为准；预设不表示已经连通或免费。",
+        "未列为低预算关键词/知识抽取预设；辅助角色留空跟随对话时仍可能调用此模型，应单独评估成本。",
+        "模型能力声明不等于应用端多模态、工具或 1M 上下文已完整接线；现有检索/上下文预算保持不变。"
+      ]
+    },
+    {
+      "id": "stepfun-plan",
+      "name": "阶跃星辰 / Step Plan",
+      "description": "订阅 Credit 专用 OpenAI 兼容通道，不是普通 API 地址。",
+      "docs_url": "https://platform.stepfun.com/docs/zh/api-reference/chat/chat-completion-create",
+      "key_url": "https://platform.stepfun.com",
+      "local": false,
+      "endpoints": {
+        "llm": "https://api.stepfun.com/step_plan/v1"
+      },
+      "models": [
+        {
+          "id": "step-5-preview",
+          "name": "Step 5 Preview · Step Plan",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "官方声明支持文本、图片与视频输入、文本输出及 1M 上下文；本预设提供对话/视觉选择，不代表应用已接通视频处理。",
+          "source_url": "https://platform.stepfun.com/docs/zh/guides/models/step-5-preview"
+        }
+      ],
+      "notes": [
+        "2026-10-10 增量核对本 Step 5 Preview 入口；目录中其他服务商仍沿用 2026-09-19 核查，不表示全部重新验证。",
+        "此地址消耗 Step Plan Credit，普通 API 余额/权限与其独立；核对订阅、当前模型权限和额度：https://platform.stepfun.com/docs/zh/step-plan/overview",
+        "将订阅服务提供给第三方需要厂商明确许可；不能因为选择此预设就直接用于多人客户产品：https://platform.stepfun.com/docs/zh/step-plan/paid-service-agreement",
+        "Preview 可用性、账号权限及限额以平台为准；预设本身不做连通或账号权限验证，模型列表可见也不代表能够发起对话。",
+        "未列为低预算关键词/知识抽取预设；辅助角色留空跟随对话时仍可能调用此模型，应单独评估成本。",
+        "模型能力声明不等于应用端多模态、工具或 1M 上下文已完整接线；现有检索/上下文预算保持不变。"
+      ]
+    },
+    {
+      "id": "google",
+      "name": "Google Gemini",
+      "description": "Gemini API 的 OpenAI 兼容入口；并非原生 generateContent 地址。",
+      "docs_url": "https://ai.google.dev/gemini-api/docs/openai",
+      "key_url": "https://aistudio.google.com/api-keys",
+      "local": false,
+      "endpoints": {
+        "llm": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "embedding": "https://generativelanguage.googleapis.com/v1beta/openai"
+      },
+      "models": [
+        {
+          "id": "gemini-3.8-flash",
+          "name": "Gemini 3.8 Flash",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "通用图文输入；思考开销按模型处理。",
+          "source_url": "https://ai.google.dev/gemini-api/docs/models"
+        },
+        {
+          "id": "gemini-3.5-flash-lite",
+          "name": "Gemini 3.5 Flash Lite",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "轻量图文输入。",
+          "source_url": "https://ai.google.dev/gemini-api/docs/models"
+        },
+        {
+          "id": "gemini-2.5-flash",
+          "name": "Gemini 2.5 Flash",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "图文输入；模型可能进行思考。",
+          "source_url": "https://ai.google.dev/gemini-api/docs/models"
+        },
+        {
+          "id": "gemini-2.5-flash-lite",
+          "name": "Gemini 2.5 Flash Lite",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "轻量图文输入。",
+          "source_url": "https://ai.google.dev/gemini-api/docs/models"
+        },
+        {
+          "id": "gemini-embedding-001",
+          "name": "Gemini Embedding 001",
+          "roles": [
+            "embedding"
+          ],
+          "description": "文本向量；默认 3072 维。",
+          "source_url": "https://ai.google.dev/gemini-api/docs/embeddings",
+          "dimension": 3072
+        }
+      ],
+      "notes": [
+        "OpenAI 兼容层只支持官方列举的参数与功能；不是完整 OpenAI API 复刻。",
+        "预设只使用文本/图片输入及文本向量；不包含 Live、媒体生成或托管 Agent。",
+        "未收录 Embedding 2：其多输入聚合语义需要另行适配，不能直接替换当前批量文本向量流程。"
+      ]
+    },
+    {
+      "id": "openrouter",
+      "name": "OpenRouter 聚合服务",
+      "description": "使用一套 OpenRouter 密钥访问不同上游；不是厂商原生地址。",
+      "docs_url": "https://openrouter.ai/docs/quickstart",
+      "key_url": "https://openrouter.ai/settings/keys",
+      "local": false,
+      "endpoints": {
+        "llm": "https://openrouter.ai/api/v1"
+      },
+      "models": [
+        {
+        "id": "openai/gpt-4.1",
+        "name": "GPT-4.1",
+          "roles": [
+            "chat",
+            "vision",
+            "keyword",
+            "extraction"
+          ],
+          "description": "经 OpenRouter 调用的图文模型。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+        "id": "openai/gpt-4.1-mini",
+        "name": "GPT-4.1 mini",
+          "roles": [
+            "chat",
+            "vision",
+            "keyword",
+            "extraction"
+          ],
+          "description": "经 OpenRouter 调用的图文模型。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+        "id": "openai/gpt-4o",
+        "name": "GPT-4o",
+          "roles": [
+            "chat",
+            "vision",
+            "keyword",
+            "extraction"
+          ],
+          "description": "经 OpenRouter 调用的图文模型。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+        "id": "openai/gpt-4o-mini",
+        "name": "GPT-4o mini",
+          "roles": [
+            "chat",
+            "vision",
+            "keyword",
+            "extraction"
+          ],
+          "description": "经 OpenRouter 调用的图文模型。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+        "id": "anthropic/claude-sonnet-4",
+        "name": "Claude Sonnet 4",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "通过 OpenRouter 兼容接口调用 Claude；非 Anthropic 原生接口。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+        "id": "anthropic/claude-opus-4",
+        "name": "Claude Opus 4",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "通过 OpenRouter 兼容接口调用 Claude；非 Anthropic 原生接口。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+        "id": "anthropic/claude-haiku-4.5",
+        "name": "Claude Haiku 4.5",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "通过 OpenRouter 兼容接口调用 Claude；非 Anthropic 原生接口。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+        "id": "qwen/qwen3-235b-a22b-2507",
+        "name": "Qwen 3 235B A22B Instruct 2507",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "经 OpenRouter 调用的文本指令模型。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+        "id": "qwen/qwen-2.5-72b-instruct",
+        "name": "Qwen 2.5 72B Instruct",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "经 OpenRouter 调用的文本指令模型。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+        "id": "qwen/qwen-2.5-7b-instruct",
+        "name": "Qwen 2.5 7B Instruct",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "经 OpenRouter 调用的文本指令模型。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+        "id": "qwen/qwen-2.5-coder-32b-instruct",
+        "name": "Qwen 2.5 Coder 32B Instruct",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "经 OpenRouter 调用的文本指令模型。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+          "id": "qwen/qwen2.5-vl-72b-instruct",
+          "name": "Qwen 2.5 VL 72B · OpenRouter",
+          "roles": [
+            "chat",
+            "vision",
+            "keyword",
+            "extraction"
+          ],
+          "description": "经 OpenRouter 调用的图文指令模型。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+          "id": "moonshotai/kimi-k2",
+          "name": "Kimi K2 0711 · OpenRouter",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "聚合服务中的文本模型；与 Kimi 官方新型号分开。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+          "id": "deepseek/deepseek-chat-v3-0324",
+          "name": "DeepSeek V3 0324 · OpenRouter",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "聚合服务中的文本模型；不代表 DeepSeek 官方同名接口仍在售。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        },
+        {
+          "id": "minimax/minimax-01",
+          "name": "MiniMax 01 · OpenRouter",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "聚合服务中的图文模型。",
+          "source_url": "https://openrouter.ai/api/v1/models"
+        }
+      ],
+      "notes": [
+        "已核对公开 models API 中的 ID 与输入模态；未验证任何付费账号的实际调用。",
+        "模型可用性、上游路由、价格和数据处理条款由 OpenRouter 及上游决定。",
+        "Claude 通过此兼容网关接入；没有把 Anthropic 原生 Messages API 当成 OpenAI 接口。"
+      ]
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama 本地",
+      "description": "连接运行 Doc-thinker 的机器上的 Ollama 服务。",
+      "docs_url": "https://docs.ollama.com/api/openai-compatibility",
+      "key_url": "https://docs.ollama.com/api/openai-compatibility",
+      "local": true,
+      "endpoints": {
+        "llm": "http://localhost:11434/v1",
+        "embedding": "http://localhost:11434/v1"
+      },
+      "models": [
+        {
+          "id": "qwen2.5:7b",
+          "name": "Qwen 2.5 7b · 本地",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "文本指令模型；需下载并具备足够内存。",
+          "source_url": "https://ollama.com/library/qwen2.5",
+          "requires_download": true
+        },
+        {
+          "id": "qwen2.5:14b",
+          "name": "Qwen 2.5 14b · 本地",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "文本指令模型；需下载并具备足够内存。",
+          "source_url": "https://ollama.com/library/qwen2.5",
+          "requires_download": true
+        },
+        {
+          "id": "qwen2.5:32b",
+          "name": "Qwen 2.5 32b · 本地",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "文本指令模型；需下载并具备足够内存。",
+          "source_url": "https://ollama.com/library/qwen2.5",
+          "requires_download": true
+        },
+        {
+          "id": "qwen2.5-coder:7b",
+          "name": "Qwen 2.5 Coder 7b · 本地",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "代码与文本指令模型；需先下载。",
+          "source_url": "https://ollama.com/library/qwen2.5-coder",
+          "requires_download": true
+        },
+        {
+          "id": "qwen2.5-coder:14b",
+          "name": "Qwen 2.5 Coder 14b · 本地",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "代码与文本指令模型；需先下载。",
+          "source_url": "https://ollama.com/library/qwen2.5-coder",
+          "requires_download": true
+        },
+        {
+          "id": "llama3.2:3b",
+          "name": "Llama 3.2 3B · 本地",
+          "roles": [
+            "chat",
+            "keyword",
+            "extraction"
+          ],
+          "description": "小型文本指令模型；需先下载。",
+          "source_url": "https://ollama.com/library/llama3.2",
+          "requires_download": true
+        },
+        {
+          "id": "llava:7b",
+          "name": "LLaVA 7B · 本地",
+          "roles": [
+            "chat",
+            "vision"
+          ],
+          "description": "本地图文模型；需先下载。",
+          "source_url": "https://ollama.com/library/llava",
+          "requires_download": true
+        },
+        {
+        "id": "nomic-embed-text",
+        "name": "Nomic Embed Text · 本地",
+          "roles": [
+            "embedding"
+          ],
+          "description": "本地文本向量；请核对所下载版本实际返回维度。",
+          "source_url": "https://ollama.com/library/nomic-embed-text",
+          "requires_download": true
+        },
+        {
+        "id": "mxbai-embed-large",
+        "name": "Mixedbread Embed Large · 本地",
+          "roles": [
+            "embedding"
+          ],
+          "description": "本地文本向量；请核对所下载版本实际返回维度。",
+          "source_url": "https://ollama.com/library/mxbai-embed-large",
+          "requires_download": true
+        },
+        {
+        "id": "bge-m3",
+        "name": "BGE M3 · 本地",
+          "roles": [
+            "embedding"
+          ],
+          "description": "本地文本向量；请核对所下载版本实际返回维度。",
+          "source_url": "https://ollama.com/library/bge-m3",
+          "requires_download": true
+        }
+      ],
+      "notes": [
+        "必须先安装 Ollama、启动服务并下载所选模型；预设不会自动下载或自动启动。",
+        "本地默认不需要真实 API Key；若客户端要求非空值，可填任意本地占位值。",
+        "localhost 指后端所在机器；Docker/远程部署需改成后端可访问的 Ollama 地址。",
+        "模型量化、上下文、内存与速度取决于本地下载版本及硬件。"
+      ]
+    },
+    {
+      "id": "jina",
+      "name": "Jina AI 重排",
+      "description": "专用文本重排服务，不提供本目录中的对话入口。",
+      "docs_url": "https://jina.ai/reranker/",
+      "key_url": "https://jina.ai",
+      "local": false,
+      "endpoints": {
+        "rerank": "https://api.jina.ai/v1"
+      },
+      "models": [
+        {
+        "id": "jina-reranker-v3.5",
+        "name": "Jina Reranker v3.5",
+          "roles": [
+            "rerank"
+          ],
+          "description": "按问题相关性重排文本候选；不生成回答。",
+          "source_url": "https://jina.ai/zh-CN/reranker/"
+        },
+        {
+        "id": "jina-reranker-v3",
+        "name": "Jina Reranker v3",
+          "roles": [
+            "rerank"
+          ],
+          "description": "按问题相关性重排文本候选；不生成回答。",
+          "source_url": "https://jina.ai/zh-CN/reranker/"
+        },
+        {
+        "id": "jina-reranker-v2-base-multilingual",
+        "name": "Jina Reranker v2 Multilingual",
+          "roles": [
+            "rerank"
+          ],
+          "description": "按问题相关性重排文本候选；不生成回答。",
+          "source_url": "https://jina.ai/zh-CN/reranker/"
+        }
+      ],
+      "notes": [
+        "仅配置重排 URL、模型和对应密钥；不要覆盖主 LLM 配置。",
+        "当前流程使用文本 documents，不代表已接通图片/视频重排。"
+      ]
+    }
+  ]
+}

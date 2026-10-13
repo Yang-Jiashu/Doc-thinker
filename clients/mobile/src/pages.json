@@ -1,0 +1,19 @@
+{
+  "pages": [
+    {"path":"pages/chat/index","style":{"navigationBarTitleText":"DocThinker"}},
+    {"path":"pages/documents/index","style":{"navigationBarTitleText":"资料"}},
+    {"path":"pages/memory/index","style":{"navigationBarTitleText":"会话记忆"}},
+    {"path":"pages/graph/index","style":{"navigationBarTitleText":"知识图谱"}},
+    {"path":"pages/settings/index","style":{"navigationBarTitleText":"设置"}},
+    {"path":"pages/invite/index","style":{"navigationBarTitleText":"邀请内测"}},
+    {"path":"pages/studio/index","style":{"navigationBarTitleText":"洞见体验"}}
+  ],
+  "globalStyle":{"navigationStyle":"custom","navigationBarTextStyle":"black","navigationBarBackgroundColor":"#f6f5f0","backgroundColor":"#f6f5f0"},
+  "tabBar":{"color":"#7c8972","selectedColor":"#203d35","backgroundColor":"#fffefa","borderStyle":"white","height":"60px","iconWidth":"23px","fontSize":"11px","list":[
+    {"pagePath":"pages/chat/index","text":"助手","iconPath":"static/brand/tab-chat.png","selectedIconPath":"static/brand/tab-chat-active.png"},
+    {"pagePath":"pages/documents/index","text":"资料","iconPath":"static/brand/tab-documents.png","selectedIconPath":"static/brand/tab-documents-active.png"},
+    {"pagePath":"pages/memory/index","text":"记忆","iconPath":"static/brand/tab-memory.png","selectedIconPath":"static/brand/tab-memory-active.png"},
+    {"pagePath":"pages/graph/index","text":"图谱","iconPath":"static/brand/tab-graph.png","selectedIconPath":"static/brand/tab-graph-active.png"},
+    {"pagePath":"pages/settings/index","text":"设置","iconPath":"static/brand/tab-settings.png","selectedIconPath":"static/brand/tab-settings-active.png"}
+  ]}
+}
