@@ -1,8 +1,11 @@
+import asyncio
+
 from fastapi import APIRouter, HTTPException
 
 from ..state import state
 from ..schemas import CreateSessionRequest
 from ..memory import remove_session_memory_engine
+from ..research_history import hydrate_research_history
 
 
 router = APIRouter()
@@ -64,7 +67,9 @@ async def get_session_history(session_id: str):
     if not state.session_manager:
         raise HTTPException(status_code=500, detail="Session manager not initialized")
     try:
-        history = state.session_manager.get_history(session_id)
+        history = await asyncio.to_thread(state.session_manager.get_history, session_id)
+        history = await asyncio.to_thread(hydrate_research_history, history, session_id,
+                                          getattr(state, "research_service", None))
         return {"status": "success", "history": history}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

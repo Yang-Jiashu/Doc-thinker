@@ -333,18 +333,12 @@ async def openai_complete_if_cache(
     # GPT-5 models on OpenAI Chat Completions expect max_completion_tokens.
     if _use_max_completion_tokens(str(api_model)):
         if "max_completion_tokens" not in kwargs and "max_tokens" in kwargs:
-            raw_budget = kwargs.pop("max_tokens")
-            try:
-                kwargs["max_completion_tokens"] = max(int(raw_budget), 600)
-            except Exception:
-                kwargs["max_completion_tokens"] = 600
-        elif "max_completion_tokens" in kwargs:
-            try:
-                kwargs["max_completion_tokens"] = max(
-                    int(kwargs["max_completion_tokens"]), 600
-                )
-            except Exception:
-                kwargs["max_completion_tokens"] = 600
+            kwargs["max_completion_tokens"] = kwargs.pop("max_tokens")
+        if "max_completion_tokens" in kwargs:
+            # Field compatibility must never silently enlarge a caller's cap.
+            raw_budget = kwargs["max_completion_tokens"]
+            if type(raw_budget) is not int or raw_budget <= 0:
+                raise ValueError("max_completion_tokens must be a positive integer")
 
     try:
         # Don't use async with context manager, use client directly

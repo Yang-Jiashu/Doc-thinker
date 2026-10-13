@@ -1,0 +1,112 @@
+{
+  "schema": "research-evidence-trace-evaluation-protocol-v1",
+  "prepared_date": "2026-10-10",
+  "status": "frozen_before_answer_generation",
+  "title": "Independent evaluation protocol for evidence-trace assistance",
+  "fixture": "benchmarks/research_real/research_evidence_trace_ab_v1.json",
+  "scope": {
+    "main_pairs": 12,
+    "development_regression_pairs": 8,
+    "new_document_holdout_pairs": 4,
+    "diagnostic_pairs": 1,
+    "repetitions_per_question": 1,
+    "planned_provider_calls": 26,
+    "new_documents": 2,
+    "previous_documents": 4,
+    "independent_main_question_count": 12,
+    "holdout_scope": "The new documents and four questions have not been used in previous runs or exposed to production implementers before runtime freeze. They are same-field public papers, not proof of unseen-domain or pretraining-free generalization."
+  },
+  "freeze_and_access": {
+    "custodian": "Independent fixture/report agent; no production edits or retrieval-output inspection on holdout before freeze.",
+    "before_runtime_freeze": "To the coordinator/implementers disclose only fixture/protocol paths and SHA-256, paper IDs/URLs/download status, and counts. Do not disclose new questions, gold facts, scoring pages, candidate packs or holdout preparation outputs.",
+    "freeze_order": "First freeze PDF bytes, fixture and this protocol; record file and canonical fixture SHA-256. Freeze runtime code/config and archive them before coordinator reads new-question text/gold or initiates any holdout preparation/generation.",
+    "after_runtime_freeze": "Holdout may be ingested and evaluated by the frozen runner. No code, thresholds, gold, questions or split changes in response to holdout outputs. Any subsequent revision is a separate development run and needs a fresh holdout for a new generalization claim.",
+    "old_question_reclassification": "All eight old main questions are development_regression, including the four previously called new_question_no_tuning. Old question text, facts, pages and forbidden claims remain unchanged."
+  },
+  "baseline_and_treatment": {
+    "baseline": "Fresh same-run assistance OFF using the retained legacy selector; never substitute historical outputs.",
+    "treatment": "Fresh same-run assistance ON using the frozen evidence-trace selector.",
+    "shared_controls": [
+      "Same pinned PDF bytes and parse/chunk identities within each pair; no fixture facts or evaluation notes indexed.",
+      "Fresh per-arm project/session; empty history and memory; no answer cache, self-evolution or memory writes.",
+      "Same model/provider/generation settings and source budget in both arms. Record returned model, request counts, prompt/source digests and source IDs.",
+      "Separate document-vector prewarm for each arm before the answer timer; query encoding remains inside the timer.",
+      "Use serial alternating order, six OFF-first and six ON-first main pairs; retain recorded UTC dispatch order. No automatic retries."
+    ]
+  },
+  "model_and_budget": {
+    "model_requested": "step-5-preview",
+    "actual_returned_model_required": "step-5-preview",
+    "endpoint": "https://api.stepfun.com/step_plan/v1",
+    "generation_parameters": {
+      "temperature": 0,
+      "max_tokens": 8192,
+      "stream": false,
+      "reasoning_effort": "low"
+    },
+    "product_default_output_cap": 2048,
+    "experimental_override_only": true,
+    "max_calls": 26,
+    "soft_reported_token_limit": 150000,
+    "soft_limit_scope": "Inherited conservative stop limit, checked between calls; an in-flight call can cross it. If it prevents completion retain all outcomes and report incompleteness, do not silently raise it or rerun.",
+    "auxiliary_answer_provider_calls": 0,
+    "no_added_model_processing": "Do not add generative LLM query expansion, summarization, grading, or repair calls to the product-runtime answer pipeline. Local embedding/reranking/translation costs must still be measured. A claim that ON adds no prompt/total model tokens is an empirical acceptance condition, not an assumption; report actual provider counts and every per-pair increase.",
+    "review_cost_scope": "Independent agent review is an evaluation activity outside the 26 Step-5 answer calls; it is not free runtime work and must not be presented as human or expert evaluation."
+  },
+  "diagnostics": {
+    "question_id": "d01_chinese_retrieval_control",
+    "excluded_from_primary_quality_and_efficiency": true,
+    "retain_usage_and_latency": true,
+    "required_report": "Call count, actual model, source count, activation, insufficient-evidence behaviour and separate usage/latency. No quality-win claim unless separately reviewed and clearly labelled."
+  },
+  "quality_and_retrieval_review": {
+    "rubric_source": "Existing five-dimensional weighted rubric retained unchanged: 25 factual accuracy, 25 evidence support, 20 completeness, 15 scope/uncertainty, 15 usefulness; each 0..4.",
+    "reviewer_kind": "agent_blind_review",
+    "human_evaluation": false,
+    "expert_evaluation": false,
+    "independent_reviewers_per_main_pair": 2,
+    "blinding": "Random-label packets reveal question, actual answer/source excerpts and original-paper scoring notes, but hide arm, algorithm, usage, timing and traces. Use a different candidate order for the second reviewer.",
+    "independence": "Reviewers score separately without reading each other's annotations or messages. Average both weighted scores per question; repeated reviews are not extra generation trials.",
+    "retrieval_first": "Before scoring the answer, label each required fact full/partial/absent from the supplied excerpts alone. Full requires all material components, subjects, relations, attribution and conditions. Compound facts remain compound; partial never counts as full.",
+    "answer_coverage": "Record covered/partial/absent against the generated answer separately. A correct answer from memory does not validate supplied evidence.",
+    "irrelevance": "Flag only wholly irrelevant source labels; preserve necessary context/conditions and mixed-source labels. Report macro per-question and micro pooled-label rates with denominators; neither is sentence-level precision or byte noise.",
+    "critical_errors": "Keep exact flagged answer sentences and reasons visible outside means. Apply the retained rubric's critical-error rule consistently; do not hide a bad baseline inside a positive treatment mean.",
+    "disagreement_policy": "Preserve both original reviews and disagreements. For conflicting required-fact or irrelevance labels, perform a separate blinded evidence-only adjudication against the cited original pages, without arm or aggregate scores. Publish original and adjudicated counts and reasons; weighted scores are not silently rewritten.",
+    "same_pack_consistency": "Group exact supplied-evidence hashes within this run. Identical packs for the same question/frozen facts must have the same adjudicated retrieval labels even if generated answers differ. Do not copy answer-quality ratings across generations.",
+    "no_missing_as_zero": "Unscored or incomplete annotations are unavailable, not zero. Incomplete reviewer coverage blocks a fully scored conclusion.",
+    "gold_validation": "Fixture author checked primary PDF text plus rendered mechanism/table pages. This is agent verification, not independent expert ground truth."
+  },
+  "required_reporting": {
+    "split_order": [
+      "development_regression",
+      "new_document_holdout",
+      "overall"
+    ],
+    "per_split": [
+      "Weighted quality mean/median paired delta and wins/losses/ties, dimension means, critical errors.",
+      "Answer fact covered/partial/absent counts and all-facts-covered question count.",
+      "Strict supplied-evidence full/partial/absent counts, macro and micro full rate, and all-facts-full question count.",
+      "Wholly irrelevant source-label counts and denominators, macro and micro rates.",
+      "Provider prompt/completion/total/cached/reasoning usage, means/medians and totals; cached tokens are a subset/detail of prompt counts, never added again.",
+      "Pre-model, local helper, full non-streaming HTTP model, post-model and total answer wall time; no TTFT claim.",
+      "Separate clone, per-arm document-vector setup, actual once-per-corpus ingestion, and cold-start-equivalent allocation."
+    ],
+    "pipeline_diagnostics": "Persist sufficient stage provenance to distinguish candidate absence, window loss, reranker scoring, threshold removal and final packing. Candidate count or high relevance logit is not completeness/entailment. If traces cannot localize a loss, say so.",
+    "all_call_accounting": "Include diagnostic, failed, truncated and indeterminate calls; unknown usage remains unknown. Report actual model and finish-reason counts. No cherry-picked question or version pooling."
+  },
+  "frozen_descriptive_acceptance": {
+    "scope": "A conservative descriptive quality/efficiency screen for this bounded run, not statistical significance or automatic deployment permission.",
+    "quality": "Require non-negative ON-minus-OFF weighted quality mean and no ON critical error in each split; report per-question regressions even if means pass.",
+    "strict_evidence": "Require no decrease in strict full-fact macro recall or all-facts-full questions in either split, and a positive full-fact gain on new_document_holdout. Partial evidence is not a substitute.",
+    "source_noise": "Require no increase in wholly irrelevant-label macro rate in either split; also report micro counts and denominator changes.",
+    "runtime_tokens": "Require no added answer-pipeline provider calls and no increase in mean prompt or total provider tokens in either split; disclose every individual increase.",
+    "interpretation": "Failing any screen prevents a claim of a reliable no-extra-token quality improvement. Passing only nominates further validation; two held-out papers and four questions do not justify universal claims or default activation."
+  },
+  "prohibited_actions": [
+    "No production changes by fixture custodian.",
+    "No answer-model or paid API calls while constructing/finalizing the fixture.",
+    "No developer access to new question/gold content before runtime freeze.",
+    "No threshold tuning, selective reruns, question dropping, or gold editing after observing held-out outputs.",
+    "No claim that reviews are human, expert, independent generation repetitions, or statistically significant evidence."
+  ]
+}

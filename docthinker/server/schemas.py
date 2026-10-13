@@ -1,4 +1,5 @@
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Literal, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -22,9 +23,21 @@ class QueryRequest(BaseModel):
     session_id: Optional[str] = None
     memory_mode: str = "session"
     use_memory: bool = True
+    knowledge_skill_mode: Literal['auto', 'off'] = 'auto'
+    insight_mode: Literal['auto', 'off'] = Field(default='auto',
+        description='Stage-aware insight assistance; off retains existing static knowledge cards for controlled comparison.')
+    reasoning_mode: Literal["auto", "evidence", "analogy", "deduction", "induction"] = Field(
+        default="auto", json_schema_extra={"deprecated": True},
+        description="Legacy receipt compatibility; normal chat routes background assistance from the question, not this field.")
+    memory_as_of: float | None = Field(default=None, ge=0, le=253402300799, allow_inf_nan=False, strict=True)
     use_conversation_context: bool = True
     use_llm_cache: bool = True
     use_self_evolution: bool = True
+    evolution_mode: Literal["off", "auto", "faithful", "path", "explore"] = "auto"
+    adaptive_context: bool = True
+    enable_path_completion: bool = False
+    max_history_tokens: int = Field(default=1200, ge=0, le=8000)
+    max_auxiliary_tokens: int = Field(default=2000, ge=256, le=8000)
     retrieval_instruction: Optional[str] = None
     enable_thinking: bool = False
     enable_expanded_matching: bool = True

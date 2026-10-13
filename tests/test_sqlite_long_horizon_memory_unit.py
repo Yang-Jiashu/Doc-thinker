@@ -45,6 +45,90 @@ class SQLiteLongHorizonMemoryTests(unittest.TestCase):
         self.assertEqual(1, len(recalled))
         self.assertEqual("store", second.last_write_decision()["action"])
 
+    def test_repeated_summary_records_recurrence_without_inflating_confidence(self):
+        backend = self._backend()
+        answer = "Long-term project decisions should remain traceable to their original sources and explicit user confirmations."
+        stored = backend.consolidate(
+            "repeated-session", "请记住长期项目规则", answer,
+            concepts=["project decisions"], scope="session", timestamp=100.0,
+        )
+        self.assertIsNotNone(stored)
+        initial_confidence = stored["confidence"]
+
+        for repetition in range(1, 21):
+            repeated = backend.consolidate(
+                "repeated-session", "继续记录长期项目规则", answer,
+                concepts=["project decisions", "source traceability"],
+                scope="session", timestamp=100.0 + repetition,
+                matched_expanded=[{"entity": "project decisions"}],
+            )
+            self.assertEqual(stored["id"], repeated["id"])
+            self.assertEqual(initial_confidence, repeated["confidence"])
+            self.assertEqual(repetition + 1, repeated["use_count"])
+            self.assertEqual(repetition + 1, repeated["version"])
+
+        reopened = self._backend()
+        items = reopened.list_insights("repeated-session", scope="session")
+        self.assertEqual(1, len(items))
+        self.assertEqual(initial_confidence, items[0]["confidence"])
+        self.assertEqual(21, items[0]["use_count"])
+        self.assertEqual(120.0, items[0]["last_seen_at"])
+        revisions = reopened.list_revisions(stored["id"], "repeated-session")
+        self.assertEqual(21, len(revisions))
+        self.assertEqual("reinforce", revisions[0]["action"])
+        self.assertTrue(all(
+            revision["snapshot"]["confidence"] == initial_confidence
+            for revision in revisions
+        ))
+
+    def test_duplicate_recurrence_is_independent_across_session_and_scope_keys(self):
+        backend = self._backend()
+        answer = "A durable project decision should preserve its source rather than become more credible through repeated summaries."
+        keys = (("session-one", "session"), ("session-two", "session"),
+                ("session-one", "project"), ("session-one", "user"))
+        stored_by_key = {}
+        for index, (session_id, scope) in enumerate(keys):
+            stored_by_key[(session_id, scope)] = backend.consolidate(
+                session_id, "请记住长期规则", answer, concepts=["durable rule"],
+                scope=scope, timestamp=200.0 + index,
+            )
+        self.assertEqual(4, len({item["id"] for item in stored_by_key.values()}))
+
+        for repetition in range(1, 21):
+            repeated = backend.consolidate(
+                "session-one", "请记住长期规则", answer, concepts=["durable rule"],
+                scope="session", timestamp=210.0 + repetition,
+            )
+            self.assertEqual(stored_by_key[("session-one", "session")]["id"], repeated["id"])
+
+        for key, initial in stored_by_key.items():
+            session_id, scope = key
+            with self.subTest(session_id=session_id, scope=scope):
+                items = backend.list_insights(session_id, scope=scope)
+                self.assertEqual(1, len(items))
+                self.assertEqual(initial["id"], items[0]["id"])
+                self.assertEqual(initial["confidence"], items[0]["confidence"])
+                self.assertEqual(21 if key == ("session-one", "session") else 1,
+                                 items[0]["use_count"])
+
+    def test_duplicate_preserves_explicitly_edited_confidence_including_legacy_high_values(self):
+        backend = self._backend()
+        for index, confidence in enumerate((0.41, 0.98)):
+            session_id = f"edited-confidence-{index}"
+            answer = "The existing memory confidence should remain unchanged unless an explicit authorized edit changes it."
+            stored = backend.consolidate(
+                session_id, "请记住长期规则", answer, concepts=["confidence"],
+                scope="session", timestamp=300.0 + index,
+            )
+            edited = backend.update_insight(stored["id"], {"confidence": confidence}, session_id)
+            self.assertEqual(confidence, edited["confidence"])
+            repeated = backend.consolidate(
+                session_id, "请记住长期规则", answer, concepts=["confidence"],
+                scope="session", timestamp=310.0 + index,
+            )
+            self.assertEqual(confidence, repeated["confidence"])
+            self.assertEqual(edited["use_count"] + 1, repeated["use_count"])
+
     def test_update_delete_and_restore_keep_immutable_revisions(self):
         backend = self._backend()
         stored = backend.consolidate(

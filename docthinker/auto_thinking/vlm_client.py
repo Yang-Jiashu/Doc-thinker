@@ -11,6 +11,8 @@ import asyncio
 
 import aiohttp
 
+from docthinker.providers.request_compat import chat_request_options, thinking_request_options
+
 
 class VLMClient:
     """Lightweight wrapper around an OpenAI-compatible /chat/completions endpoint."""
@@ -93,29 +95,19 @@ class VLMClient:
             else:
                 messages.append({"role": "user", "content": prompt})
 
-        completion_budget = int(max_tokens)
-        if self._use_max_completion_tokens(self.model):
-            completion_budget = max(completion_budget, 600)
-
         payload = {
             "model": self.model,
             "messages": messages,
-            "temperature": temperature,
+            **chat_request_options(self.model, max_tokens, temperature),
         }
-        if self._use_max_completion_tokens(self.model):
-            payload["max_completion_tokens"] = completion_budget
-        else:
-            payload["max_tokens"] = completion_budget
         if extra_body:
-            try:
-                payload.update(dict(extra_body))
-            except Exception:
-                payload.update({"enable_thinking": extra_body.get("enable_thinking", False)})
-        # For some non-OpenAI providers, explicitly disable provider-specific thinking mode.
-        if "enable_thinking" not in payload and not self._is_openai_endpoint(self.api_base):
-            payload["enable_thinking"] = False
-        # OpenAI chat endpoint does not accept provider-specific flags such as enable_thinking.
-        if self._is_openai_endpoint(self.api_base):
+            payload.update(dict(extra_body))
+        # Some internal callers pass DashScope's flag unconditionally. Filter it
+        # as well as the former automatic default for other providers/models.
+        thinking_options = thinking_request_options(self.api_base, self.model)
+        if thinking_options:
+            payload.setdefault("enable_thinking", thinking_options["enable_thinking"])
+        else:
             payload.pop("enable_thinking", None)
 
         last_error = None

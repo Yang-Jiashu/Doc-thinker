@@ -112,6 +112,9 @@ class KnowledgeBase:
     metadata: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
+    # Internal SQLite identity, deliberately excluded from to_dict exports.
+    # AUTOINCREMENT keeps recreated human-readable session names distinct.
+    storage_id: Optional[int] = field(default=None, repr=False, compare=False)
     knowledge_graph: Optional[KnowledgeGraph] = field(default=None, init=False)  # Linked knowledge graph
     reasoning_history: List[Dict[str, Any]] = field(default_factory=list, init=False)  # Reasoning history records
     entity_mapping: Dict[str, List[str]] = field(default_factory=dict, init=False)  # Entity to entry mappings

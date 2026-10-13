@@ -374,3 +374,9 @@ Pull requests and issues are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 Current and future versions use the [PolyForm Shield License 1.0.0](LICENSE). Within its terms, the source may be used, studied, modified, and distributed, but it may not be used to provide a product or service that competes with DocThinker or related products and services of the licensor. Contact the maintainer for commercial licensing beyond those terms.
 
 Historical versions previously released under MIT remain under their original license. Unless a file or version states otherwise, the current repository and future releases use PolyForm Shield 1.0.0.
+
+## Accepted incremental release · 2026-10-13
+
+The original logo, demos, desktop UI and architecture presentation above are preserved. This release adds the separate mobile/private invitation profile, bounded persistent tasks, evidence checks and compatible backend performance/safety fixes; it does not replace the existing framework or implement an autonomous Project/Phase controller.
+
+See [release verification and limitations](docs/RELEASE_PUBLICATION_2026-10-13.md), [private test deployment](deploy/invite/README.md), [mobile client](docs/MOBILE_APP.md) and [persistent task boundaries](docs/LONG_PROJECT_RUNTIME.md). Software acceptance is not production deployment or proof of answer quality; the recorded real-model V14 evaluation remains **FAIL**.

@@ -1,0 +1,16 @@
+# Caddy is the TLS terminator, not an end-to-end encrypted messaging service.
+{$DOCTHINKER_PUBLIC_HOST} {
+    header {
+        Referrer-Policy no-referrer
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+    }
+    # Preserve the browser Host for the gateway's configured origin check.
+    # No access/header/body log, no forwarding of desktop/admin/worker ports.
+    reverse_proxy gateway:8080 {
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 125s
+        }
+    }
+}

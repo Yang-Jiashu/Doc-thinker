@@ -1,0 +1,818 @@
+{
+  "fixture_version": "research-evidence-trace-ab-v1",
+  "prepared_date": "2026-10-10",
+  "purpose": "Frozen paired evaluation of evidence-trace assistance: eight fully exposed development regressions and four new-document holdouts, plus one separate Chinese retrieval diagnostic.",
+  "ground_truth_origin": "All eight previous main questions are exposed development regressions and remain textually unchanged except split metadata. Four new questions were authored from two newly downloaded pinned original public PDFs and checked by an independent agent using PDF text and visual table/mechanism inspection before answer generation. New question/gold content is withheld from production implementers until runtime freeze. This is agent-authored evaluation, not expert/human ground truth.",
+  "page_convention": "One-based physical PDF pages in the pinned files; do not substitute publication page numbers or newer versions.",
+  "papers": [
+    {
+      "id": "rag",
+      "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "authors": "Patrick Lewis et al.",
+      "arxiv_version": "2005.11401v4",
+      "pdf_url": "https://arxiv.org/pdf/2005.11401v4",
+      "landing_url": "https://arxiv.org/abs/2005.11401v4",
+      "page_count": 19,
+      "file": "rag.pdf",
+      "sha256": "23e3249e9a1e75418d82efecab0ea8c4d033b89c93742f63208d47ce01f21233"
+    },
+    {
+      "id": "lost_middle",
+      "title": "Lost in the Middle: How Language Models Use Long Contexts",
+      "authors": "Nelson F. Liu et al.",
+      "arxiv_version": "2307.03172v1",
+      "pdf_url": "https://arxiv.org/pdf/2307.03172v1",
+      "landing_url": "https://arxiv.org/abs/2307.03172v1",
+      "page_count": 15,
+      "file": "lost_middle.pdf",
+      "sha256": "c8070998fc12d9652d4f3b2e3094a4d6f438ed47a18539e04f07e5dbb9891f9e"
+    },
+    {
+      "id": "graphrag",
+      "title": "From Local to Global: A Graph RAG Approach to Query-Focused Summarization",
+      "authors": "Darren Edge et al.",
+      "arxiv_version": "2404.16130v1",
+      "pdf_url": "https://arxiv.org/pdf/2404.16130v1",
+      "landing_url": "https://arxiv.org/abs/2404.16130v1",
+      "page_count": 15,
+      "file": "graphrag.pdf",
+      "sha256": "33524b3b56910c513affdad8dbf67d14e68edf0572e4debdb09a9f1916463b06"
+    },
+    {
+      "id": "memgpt",
+      "title": "MemGPT: Towards LLMs as Operating Systems",
+      "authors": "Charles Packer et al.",
+      "arxiv_version": "2310.08560v1",
+      "pdf_url": "https://arxiv.org/pdf/2310.08560v1",
+      "landing_url": "https://arxiv.org/abs/2310.08560v1",
+      "page_count": 15,
+      "file": "memgpt.pdf",
+      "sha256": "03723007dae7c2bde235893864a3282d4c41af7ecad85277f935360658dc4d43"
+    },
+    {
+      "id": "dpr",
+      "title": "Dense Passage Retrieval for Open-Domain Question Answering",
+      "authors": "Vladimir Karpukhin et al.",
+      "arxiv_version": "2004.04906v3",
+      "pdf_url": "https://arxiv.org/pdf/2004.04906v3",
+      "landing_url": "https://arxiv.org/abs/2004.04906v3",
+      "page_count": 13,
+      "file": "dpr.pdf",
+      "sha256": "3e67fc1a9977715acf722d85f0b7d124b03715e975f6310a4d6c12094190912f",
+      "byte_size": 383508
+    },
+    {
+      "id": "fid",
+      "title": "Leveraging Passage Retrieval with Generative Models for Open Domain Question Answering",
+      "authors": "Gautier Izacard and Edouard Grave",
+      "arxiv_version": "2007.01282v2",
+      "pdf_url": "https://arxiv.org/pdf/2007.01282v2",
+      "landing_url": "https://arxiv.org/abs/2007.01282v2",
+      "page_count": 6,
+      "file": "fid.pdf",
+      "sha256": "f1ee7e927c3fb31beb2146f8c205692a91b40dadd65d80e025c6686e4d430953",
+      "byte_size": 326612
+    }
+  ],
+  "protocol": {
+    "baseline": "Same frozen code, source bytes, ingestion and model settings; assistance OFF explicitly retains the legacy selector. Report any common pipeline change affecting both arms. Do not substitute a historical run for the paired baseline.",
+    "treatment": "Same frozen code and papers with the redesigned facet-coverage evidence-selection assistance ON. No question-specific rules, gold facts or evaluation notes may be consumed by production retrieval.",
+    "model": "step-5-preview",
+    "generation_settings": "Use the same temperature, output cap, provider and endpoint in both arms; record actual returned model ID and all settings.",
+    "context_controls": "Start each question from clean equivalent projects/sessions, empty conversation history and no confirmed memories; disable generation-response caches. Warm the parsed/indexed documents identically. Preserve the same source order, source hashes and uploaded bytes.",
+    "trial_order": "Alternate or seed-randomize which arm runs first for each paired question. Record order and UTC wall-clock timestamps. Serial execution avoids comparing provider concurrency/load effects with algorithm cost.",
+    "repeats": "Exactly one generation per arm per question: twelve primary pairs plus one separate diagnostic pair, twenty-six planned Step-5 provider calls.",
+    "cost_accounting": "Use provider usage: prompt_tokens, completion_tokens, total_tokens and any reasoning/cache details. Time the assistance pass and complete application answer separately. If a field is missing, mark unavailable rather than inferring actual usage from bytes.",
+    "quality_blinding": "Random-label packets reveal question, actual answer/source excerpts and original-paper scoring notes, but hide arm, algorithm, usage, timing and traces. Use a different candidate order for the second reviewer. Two independent agent reviewers per main pair; see the separate frozen evaluation protocol.",
+    "critical_activation_report": "Report routing decision, whether support items or only gap hints were supplied, added source IDs, assistance bytes and skip/timeout status. Identical prompts or a non-activated algorithm are no-exposure controls, not evidence that the algorithm improved reasoning.",
+    "anti_contamination": "Ingest six original pinned PDFs only. No scoring facts, gold text, synthetic chains, question-specific documents or answer-model-preparation outputs may guide implementation. Public papers may be present in model pretraining.",
+    "stop_policy": "Do not retry failed paid calls automatically or silently change model/provider. Retain failures and token usage, record the reason, and report the incomplete pair.",
+    "claim_scope": "Twelve questions on six related-field papers, only four questions/two papers held out from implementation; one generation per arm. No statistical significance, expert-review, universal memory or deployment-latency claim.",
+    "evaluation_splits": "All eight previously tested questions are development_regression. Four new questions on two new documents are new_document_holdout; report the splits separately before pooled results. This is not a pretraining-free or unseen-domain benchmark.",
+    "freeze_policy": "First freeze PDF bytes, fixture and this protocol; record file and canonical fixture SHA-256. Freeze runtime code/config and archive them before coordinator reads new-question text/gold or initiates any holdout preparation/generation. Holdout may be ingested and evaluated by the frozen runner. No code, thresholds, gold, questions or split changes in response to holdout outputs. Any subsequent revision is a separate development run and needs a fresh holdout for a new generalization claim.",
+    "bounded_run": {
+      "main_questions": 12,
+      "diagnostic_questions": 1,
+      "repetitions": 1,
+      "planned_provider_calls": 26,
+      "max_output_tokens": 8192,
+      "soft_reported_token_limit": 150000,
+      "soft_limit_note": "Inherited conservative stop limit, checked between calls; an in-flight call can cross it. If it prevents completion retain all outcomes and report incompleteness, do not silently raise it or rerun."
+    },
+    "retrieval_quality": "Before judging the generated answer, assess whether each required fact is fully, partially or not evidenced in that candidate's actual source pack. Require correct subject/attribution, relation and material conditions; a keyword, title, related background or paper-level fact outside the retrieved quotes is not full evidence. Separately flag source labels that contribute neither direct support nor necessary qualifying context. These annotations measure supplied evidence, not answer quality or proven entailment.",
+    "independent_protocol": "benchmarks/research_real/research_evidence_trace_ab_v1.protocol.json",
+    "no_extra_answer_model_calls": "Do not add generative LLM query expansion, summarization, grading, or repair calls to the product-runtime answer pipeline. Local embedding/reranking/translation costs must still be measured. A claim that ON adds no prompt/total model tokens is an empirical acceptance condition, not an assumption; report actual provider counts and every per-pair increase."
+  },
+  "rubric": {
+    "scale": "Each dimension is scored 0, 1, 2, 3 or 4. Weighted total is sum(weight * score / 4), from 0 to 100.",
+    "dimensions": [
+      {
+        "id": "factual_accuracy",
+        "weight": 25,
+        "description": "Method, experiment and number statements agree with the original papers; no invented benchmark or reversed method.",
+        "anchors": {
+          "0": "Central claim false or fabricated.",
+          "1": "Major factual errors.",
+          "2": "Partly correct with a material error.",
+          "3": "Correct core with minor imprecision.",
+          "4": "All material factual claims correct."
+        }
+      },
+      {
+        "id": "evidence_support",
+        "weight": 25,
+        "description": "Check each material cited claim against the actual S-number excerpt supplied to that answer. Full-paper correctness and supplied-context citation validity are distinct.",
+        "anchors": {
+          "0": "Citations invented or centrally contradict evidence.",
+          "1": "Most cited material claims unsupported.",
+          "2": "Mixed support; missing central evidence.",
+          "3": "Central claims supported with minor gaps.",
+          "4": "All material evidence claims supported and attributable."
+        }
+      },
+      {
+        "id": "key_fact_completeness",
+        "weight": 20,
+        "description": "Semantically covers the question's preregistered required facts and useful connections. Exact keyword overlap is not required; irrelevant length receives no credit.",
+        "anchors": {
+          "0": "No required facts covered.",
+          "1": "A minority covered.",
+          "2": "Roughly half covered or an essential link absent.",
+          "3": "Most covered, small omission.",
+          "4": "All required points addressed coherently."
+        }
+      },
+      {
+        "id": "scope_and_uncertainty",
+        "weight": 15,
+        "description": "Distinguishes reported results from proposal/analogy, preserves conditions and counterexamples, acknowledges unavailable comparisons.",
+        "anchors": {
+          "0": "States a prohibited or unsupported universal conclusion.",
+          "1": "Major limitations omitted.",
+          "2": "Some limits present but a material overclaim remains.",
+          "3": "Relevant bounds stated, minor imprecision.",
+          "4": "Clear complete scope, uncertainty and inference labels."
+        }
+      },
+      {
+        "id": "task_usefulness",
+        "weight": 15,
+        "description": "Directly fulfills the requested explanation/writing task in natural Chinese, with a readable organization and little distraction.",
+        "anchors": {
+          "0": "No usable answer.",
+          "1": "Mostly off task or unreadable.",
+          "2": "Usable in part but disorganized/repetitive.",
+          "3": "Useful and clear with small distractions.",
+          "4": "Direct, concise, coherent and actionable within the task."
+        }
+      }
+    ],
+    "key_fact_check": "For each required fact, record covered, partial or absent plus the relevant answer sentence. Keep it separate from the weighted score; it is semantic coverage, not a keyword metric.",
+    "citation_check": "For every material citation, record supported, partially_supported, unsupported or contradicted against the supplied excerpt. A paper name or accurate fact from model memory cannot validate an unrelated S-number.",
+    "critical_error": "A central fabricated experiment, result, causal guarantee or Step-5 comparison requires factual_accuracy=0 and scope_and_uncertainty=0; record the exact offending sentence. Do not hide it inside an average.",
+    "judge_caution": "A model judge is an auxiliary reviewer, especially if it is the same Step-5 model used to answer. Preserve its reasons and evidence mapping, and separately check all claimed wins and citation errors. Do not label automated assessment as independent human evaluation. For absence-control questions, reward cautious statements that the supplied excerpts do not establish a comparison; a short retrieved excerpt pack cannot prove that an entire paper lacks a result.",
+    "diagnostic_only": "Questions with diagnostic_only=true are retrieval/activation checks excluded from the primary quality and model-usage averages. Report their source count, insufficient-evidence behavior, actual model-call count and any separately available usage/timing; do not quietly discard them or count them as answer-quality wins.",
+    "retrieved_evidence_check": "For every required fact in every candidate, add retrieved_evidence_checks entries with fact_id, status='full'|'partial'|'absent', source_labels and a short reason. Judge the actual supplied source pack alone; use original PDF pages only to verify the gold requirement. Mark compound requirements full only when all material components and qualifications are present, including support spread across multiple quoted sources. Do this independently of key_fact_checks on the generated answer. Distinguish an accurate answer recalled from model knowledge from retrieval success.",
+    "irrelevant_source_check": "For each candidate, add irrelevant_source_labels and irrelevant_source_reason. Flag a label only if its supplied quote contributes neither support to a requested material point nor necessary attribution, caveat or context. A partly relevant quote is mixed rather than entirely irrelevant; explain mixed/uncertain cases in the reason. Do not infer irrelevance merely because the answer failed to cite a useful source. Do not present whole-label counts as sentence-level precision or byte-level noise without separate span annotations.",
+    "retrieval_score_contract": {
+      "retrieved_evidence_checks": [
+        {
+          "fact_id": "a required_facts id",
+          "status": "full | partial | absent",
+          "source_labels": [
+            "actual supplied S-number label(s), or empty when absent"
+          ],
+          "reason": "short source-grounded explanation"
+        }
+      ],
+      "irrelevant_source_labels": [
+        "actual supplied labels that are entirely irrelevant to requested facts and necessary context"
+      ],
+      "irrelevant_source_reason": "short explanation covering flagged labels and mixed/uncertain cases"
+    },
+    "aggregation_note": "Keep the existing five weighted answer dimensions unchanged. Report retrieval full-fact rate, partial-fact rate, all-facts-full question rate and wholly irrelevant source-label rate separately, by evaluation split. Missing retrieval annotations are unavailable, not zero; compound facts remain compound and may be partially met. Do not call model review human evaluation."
+  },
+  "questions": [
+    {
+      "id": "q02_lost_middle_setup",
+      "category": "factual_control",
+      "question": "Lost in the Middle 用哪些任务检查 long context 的使用？作者怎样改变相关信息的位置和上下文长度，怎样尽量保持答案不变？请依据论文回答。",
+      "papers": [
+        "lost_middle"
+      ],
+      "key_facts": [
+        {
+          "id": "q02_f1",
+          "text": "Tasks are multi-document question answering and synthetic key-value retrieval.",
+          "paper_id": "lost_middle",
+          "pages": [
+            3,
+            6
+          ],
+          "section": "3.1 Experimental Setup; 4.1 Experimental Setup"
+        },
+        {
+          "id": "q02_f2",
+          "text": "Distractor documents or UUID pairs change length; reordering the answer-bearing document/pair changes position without changing the target answer.",
+          "paper_id": "lost_middle",
+          "pages": [
+            4,
+            6,
+            7
+          ],
+          "section": "3.1; 4.1; Figures 3, 4, 8, 9"
+        }
+      ],
+      "forbidden_claims": [
+        "The desired answer is intentionally changed when documents are reordered.",
+        "The synthetic UUID task requires domain knowledge or semantic reasoning."
+      ],
+      "eval_split": "development_regression"
+    },
+    {
+      "id": "q06_memgpt_os_analogy",
+      "category": "analogy_writing",
+      "question": "我想向非技术读者介绍 MemGPT。借鉴论文的 operating system 类比，用 main memory、disk、paging 和 interrupts 来解释 main context、external context 和 function chaining。请说明这个类比在哪些地方只是设计启发。",
+      "papers": [
+        "memgpt"
+      ],
+      "key_facts": [
+        {
+          "id": "q06_f1",
+          "text": "Main context maps to RAM, external context to disk; functions move information between them.",
+          "paper_id": "memgpt",
+          "pages": [
+            1,
+            2
+          ],
+          "section": "Introduction; Figure 1"
+        },
+        {
+          "id": "q06_f2",
+          "text": "Events trigger inference; a function continuation flag can return control for chaining, while yielding waits for the next event.",
+          "paper_id": "memgpt",
+          "pages": [
+            2,
+            5
+          ],
+          "section": "Figure 1; 2.4 Control Flow and Function Chaining"
+        },
+        {
+          "id": "q06_f3",
+          "text": "The memory operations are LLM-directed through instructions/functions; ordinary computer paging does not itself guarantee the quality of LLM decisions.",
+          "paper_id": "memgpt",
+          "pages": [
+            4,
+            5
+          ],
+          "section": "2.3-2.4"
+        }
+      ],
+      "forbidden_claims": [
+        "The model is executing a literal operating-system CPU instruction set.",
+        "Paging makes recall and reasoning infallible or requires no model inference."
+      ],
+      "eval_split": "development_regression"
+    },
+    {
+      "id": "q08_synthesis_memory_patterns",
+      "category": "synthesis_induction",
+      "question": "综合 RAG、GraphRAG 和 MemGPT，写一段 related work，归纳它们管理模型外部知识的共同思路和关键差异。按具体设计比较，不要只罗列名称，也不要把三篇工作归纳成一种万能方案。",
+      "papers": [
+        "rag",
+        "graphrag",
+        "memgpt"
+      ],
+      "key_facts": [
+        {
+          "id": "q08_f1",
+          "text": "All three use external material while selecting/organizing what the generator receives.",
+          "paper_id": "rag",
+          "pages": [
+            2,
+            3
+          ],
+          "section": "Figure 1; 2 Methods"
+        },
+        {
+          "id": "q08_f2",
+          "text": "RAG uses retrieved passages with joint retriever/generator fine-tuning; GraphRAG builds community summaries for corpus-wide questions.",
+          "paper_id": "graphrag",
+          "pages": [
+            3,
+            4,
+            5
+          ],
+          "section": "2 Pipeline"
+        },
+        {
+          "id": "q08_f3",
+          "text": "MemGPT adds editable memory and event/function control across sessions, rather than treating all external storage as simultaneous prompt text.",
+          "paper_id": "memgpt",
+          "pages": [
+            3,
+            4,
+            5
+          ],
+          "section": "2.1-2.4"
+        }
+      ],
+      "forbidden_claims": [
+        "All three were evaluated on the same dataset and model, so the papers provide a direct ranking.",
+        "Three related systems prove all external-memory designs improve every task."
+      ],
+      "eval_split": "development_regression"
+    },
+    {
+      "id": "q11_query_aware_counterexample",
+      "category": "counterexample_control",
+      "question": "Lost in the Middle 的 query-aware contextualization 是否完全解决了长上下文的问题？解释把 query 放在资料前后对 key-value retrieval 和 multi-document QA 的效果差异，避免把单一任务的成功推广到所有任务。",
+      "papers": [
+        "lost_middle"
+      ],
+      "key_facts": [
+        {
+          "id": "q11_f1",
+          "text": "The query is placed before and after data to enable query-aware contextualization.",
+          "paper_id": "lost_middle",
+          "pages": [
+            9
+          ],
+          "section": "5.2 Effect of Query-Aware Contextualization"
+        },
+        {
+          "id": "q11_f2",
+          "text": "GPT-3.5-Turbo 16K reaches perfect retrieval at 300 UUID pairs in the tested setting.",
+          "paper_id": "lost_middle",
+          "pages": [
+            9
+          ],
+          "section": "5.2"
+        },
+        {
+          "id": "q11_f3",
+          "text": "Multi-document QA trends change little, so the UUID success does not establish a general solution.",
+          "paper_id": "lost_middle",
+          "pages": [
+            9
+          ],
+          "section": "5.2"
+        }
+      ],
+      "forbidden_claims": [
+        "Repeating the query guarantees perfect QA for all models and documents.",
+        "The paper reports identical perfect results for UUID retrieval and multi-document QA."
+      ],
+      "eval_split": "development_regression"
+    },
+    {
+      "id": "q13_rag_training_protocol",
+      "category": "precise_factual",
+      "eval_split": "development_regression",
+      "question": "RAG 论文里的联合训练具体更新了哪些组件？请说明训练需要什么监督、优化什么目标，以及为何没有连文档编码器和索引一起更新。不要把“联合训练”理解成所有组件都持续更新。",
+      "papers": [
+        "rag"
+      ],
+      "key_facts": [
+        {
+          "id": "q13_f1",
+          "text": "Fine-tuning uses input/output pairs and does not require direct supervision identifying which document should be retrieved.",
+          "paper_id": "rag",
+          "pages": [
+            3
+          ],
+          "section": "2.4 Training",
+          "evidence_anchors": [
+            "without any direct supervision on what document should be retrieved"
+          ]
+        },
+        {
+          "id": "q13_f2",
+          "text": "Training minimizes the target negative marginal log-likelihood; the query encoder and BART generator are fine-tuned.",
+          "paper_id": "rag",
+          "pages": [
+            4
+          ],
+          "section": "2.4 Training",
+          "evidence_anchors": [
+            "minimize the negative marginal log-likelihood",
+            "only fine-tuning the query encoder"
+          ]
+        },
+        {
+          "id": "q13_f3",
+          "text": "The document encoder and index are kept fixed: updating the document encoder would require costly periodic index updates, which the authors did not find necessary for strong performance in their setting.",
+          "paper_id": "rag",
+          "pages": [
+            4
+          ],
+          "section": "2.4 Training",
+          "evidence_anchors": [
+            "keep the document encoder (and index) fixed"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "Every component, including the document encoder and document index, is jointly updated during this reported fine-tuning.",
+        "Training requires gold labels identifying the document to retrieve for every example.",
+        "The paper proves that updating a document encoder is never useful."
+      ]
+    },
+    {
+      "id": "q14_graphrag_comparison_conditions",
+      "category": "method_comparison",
+      "eval_split": "development_regression",
+      "question": "GraphRAG 评测中的 C0–C3、TS 和 SS 各自把什么材料送进回答阶段？请比较 TS 和图社区方法的共同处理方式与关键区别，并说明作者保持了哪些回答条件一致，让比较不只是模型或上下文容量不同。",
+      "papers": [
+        "graphrag"
+      ],
+      "key_facts": [
+        {
+          "id": "q14_f1",
+          "text": "C0-C3 use community summaries from progressively lower levels of the hierarchy; C0 uses the fewest root-level communities and C3 the greatest number of low-level communities.",
+          "paper_id": "graphrag",
+          "pages": [
+            7
+          ],
+          "section": "3.3 Conditions",
+          "evidence_anchors": [
+            "Uses root-level community summaries",
+            "Uses low-level community summaries"
+          ]
+        },
+        {
+          "id": "q14_f2",
+          "text": "TS applies the same map-reduce summarization method, but shuffles and chunks source texts instead of community summaries; SS retrieves source text chunks until the available token limit is reached.",
+          "paper_id": "graphrag",
+          "pages": [
+            7
+          ],
+          "section": "3.3 Conditions",
+          "evidence_anchors": [
+            "source texts (rather than community",
+            "until the specified token limit is reached"
+          ]
+        },
+        {
+          "id": "q14_f3",
+          "text": "All six conditions use the same answer-generation context-window size and prompts, except minor reference-style adjustments; what differs is how context contents are constructed.",
+          "paper_id": "graphrag",
+          "pages": [
+            7
+          ],
+          "section": "3.3 Conditions",
+          "evidence_anchors": [
+            "Conditions only differ in how the contents of the context window are created"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "TS is simply semantic top-k retrieval of graph community summaries.",
+        "The six conditions deliberately use different answer-generation context-window sizes.",
+        "C0 is the finest community level and has the most communities."
+      ]
+    },
+    {
+      "id": "q15_model_architecture_scope",
+      "category": "scope_boundary",
+      "eval_split": "development_regression",
+      "question": "Lost in the Middle 对 encoder-decoder 与 decoder-only 模型的分析，能否证明只要换成 encoder-decoder，就不再受相关信息位置影响？请区分训练长度范围内、超出训练长度时的观察，以及作者对原因的推测。",
+      "papers": [
+        "lost_middle"
+      ],
+      "key_facts": [
+        {
+          "id": "q15_f1",
+          "text": "Flan-UL2 is relatively robust to relevant-information position when evaluated within its training-time context window; the paper does not claim position is irrelevant at all lengths.",
+          "paper_id": "lost_middle",
+          "pages": [
+            8
+          ],
+          "section": "5.1 Effect of Model Architecture; Figure 11",
+          "evidence_anchors": [
+            "within its 2048",
+            "relatively robust to changes in the position"
+          ]
+        },
+        {
+          "id": "q15_f2",
+          "text": "At longer-than-training sequences, Flan-UL2 and Flan-T5-XXL show stronger middle-position degradation or a U-shaped performance pattern, limiting the architectural generalization.",
+          "paper_id": "lost_middle",
+          "pages": [
+            8
+          ],
+          "section": "5.1 Effect of Model Architecture; Figure 11",
+          "evidence_anchors": [
+            "sequences longer than those seen during training",
+            "Flan-T5-XXL shows a similar trend"
+          ]
+        },
+        {
+          "id": "q15_f3",
+          "text": "The proposed advantage of a bidirectional encoder contextualizing documents using future documents and estimating relative importance is explicitly speculation, not a demonstrated causal explanation.",
+          "paper_id": "lost_middle",
+          "pages": [
+            8,
+            9
+          ],
+          "section": "5.1 Effect of Model Architecture",
+          "evidence_anchors": [
+            "We speculate that encoder-decoder models",
+            "potentially enhancing relative importance estimation"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "Encoder-decoder models are unaffected by information position at any context length.",
+        "The experiments establish bidirectional encoding as the sole causal explanation.",
+        "The observed extrapolation behavior guarantees successful use of arbitrary-length contexts."
+      ]
+    },
+    {
+      "id": "q16_memgpt_context_overhead",
+      "category": "design_tradeoff",
+      "eval_split": "development_regression",
+      "question": "MemGPT 在相同底层模型、相同 token 预算下，为什么不一定比固定上下文基线同时放下更多文档、得到更高的问答准确率？请解释系统指令的开销、论文报告的容量与效果权衡，以及把基线文档截短会付出什么代价。",
+      "papers": [
+        "memgpt"
+      ],
+      "key_facts": [
+        {
+          "id": "q16_f1",
+          "text": "MemGPT's OS instructions and memory-function schemas consume a nontrivial share of the same token budget, reducing the number of documents simultaneously held in context compared with the fixed-context baseline.",
+          "paper_id": "memgpt",
+          "pages": [
+            11
+          ],
+          "section": "3.2.1 Multi-Document Question-Answering",
+          "evidence_anchors": [
+            "a non-trivial portion of MemGPT’s token budget",
+            "lower for MemGPT than the baselines"
+          ]
+        },
+        {
+          "id": "q16_f2",
+          "text": "In the reported document-QA comparison, MemGPT has lower average accuracy than GPT-4, though higher than GPT-3.5, while it can scale to larger numbers of documents; this is a measured setting, not a universal ranking.",
+          "paper_id": "memgpt",
+          "pages": [
+            11
+          ],
+          "section": "3.2.1 Multi-Document Question-Answering; Figure 7",
+          "evidence_anchors": [
+            "MemGPT has a lower average accuracy than GPT-4",
+            "can trivially scale to larger numbers"
+          ]
+        },
+        {
+          "id": "q16_f3",
+          "text": "To extend fixed-context baselines to more documents, the authors truncate retrieved document segments; shrinking documents lowers accuracy because relevant snippets may be omitted.",
+          "paper_id": "memgpt",
+          "pages": [
+            11
+          ],
+          "section": "3.2.1 Multi-Document Question-Answering",
+          "evidence_anchors": [
+            "document truncation reduces accuracy",
+            "the relevant snippet (in the gold document) being omitted"
+          ]
+        }
+      ],
+      "forbidden_claims": [
+        "External memory removes the token cost of system instructions or function schemas.",
+        "MemGPT universally has higher document-QA accuracy than GPT-4.",
+        "Truncating documents preserves every answer-bearing snippet without affecting accuracy."
+      ]
+    },
+    {
+      "id": "q17_dpr_training_mechanism",
+      "category": "training_mechanism",
+      "question": "DPR怎样把已有问答样本变成一个会找资料的检索器？请说明模型实际学习的目标、训练中如何形成有用的对照，以及为什么不必为每项对照都重复计算表示。",
+      "papers": [
+        "dpr"
+      ],
+      "key_facts": [
+        {
+          "id": "q17_f1",
+          "text": "Separate question/passage BERT encoders are trained so dot-product scores favour the positive passage, using its softmax negative log-likelihood against negatives.",
+          "paper_id": "dpr",
+          "pages": [
+            3,
+            5
+          ],
+          "section": "3.1 Encoders; 3.2 Training, Equation 2; 5 Experiments"
+        },
+        {
+          "id": "q17_f2",
+          "text": "A batch reuses B question and B passage embeddings for B-squared pairs; each question treats the other B-minus-one gold passages as negatives.",
+          "paper_id": "dpr",
+          "pages": [
+            3,
+            4
+          ],
+          "section": "3.2 In-batch negatives"
+        },
+        {
+          "id": "q17_f3",
+          "text": "The main setup adds one high-BM25 passage without the answer per question; these hard negatives are shared across the batch.",
+          "paper_id": "dpr",
+          "pages": [
+            3,
+            5,
+            6
+          ],
+          "section": "3.2 Positive and negative passages; 5; 5.2 In-batch negative training"
+        }
+      ],
+      "forbidden_claims": [
+        "DPR's main training freezes its passage encoder.",
+        "Hard negatives are answer-containing positive passages."
+      ],
+      "eval_split": "new_document_holdout"
+    },
+    {
+      "id": "q18_dpr_comparison_boundaries",
+      "category": "comparison_scope",
+      "question": "DPR的实验是否足以说明它能全面替代传统词项检索？请区分检索命中和最终答对，举一项具体实验对比，并解释论文对适用边界的看法。",
+      "papers": [
+        "dpr"
+      ],
+      "key_facts": [
+        {
+          "id": "q18_f1",
+          "text": "Top-k retrieval accuracy counts questions whose retrieved set contains an answer; final QA exact match instead checks the reader's predicted answer.",
+          "paper_id": "dpr",
+          "pages": [
+            2,
+            7,
+            8
+          ],
+          "section": "2 Background; 6.1 End-to-end QA System; 6.2 Results"
+        },
+        {
+          "id": "q18_f2",
+          "text": "SQuAD is a counterexample: Table 2 single-dataset DPR top-20 retrieval is 63.2%, below BM25's 68.8%.",
+          "paper_id": "dpr",
+          "pages": [
+            5
+          ],
+          "section": "5.1 Main Results; Table 2"
+        },
+        {
+          "id": "q18_f3",
+          "text": "The authors conjecture that passage-seen question writing creates lexical overlap favouring BM25, and the 500-plus-article collection biases SQuAD; these are explanations, not universal causal proof.",
+          "paper_id": "dpr",
+          "pages": [
+            5
+          ],
+          "section": "5.1 Main Results"
+        }
+      ],
+      "forbidden_claims": [
+        "DPR beats BM25 on every tested dataset.",
+        "Top-k retrieval accuracy means every returned passage answers correctly."
+      ],
+      "eval_split": "new_document_holdout"
+    },
+    {
+      "id": "q19_fid_fusion_boundary",
+      "category": "architecture_and_training_scope",
+      "question": "Fusion-in-Decoder究竟在哪里把多份资料的信息结合起来？请沿资料进入模型到生成答案的过程解释，它为何能处理更多资料，以及论文中是否已经实现检索与作答的整体联合学习。",
+      "papers": [
+        "fid"
+      ],
+      "key_facts": [
+        {
+          "id": "q19_f1",
+          "text": "The encoder processes each passage independently, with its title and the question attached.",
+          "paper_id": "fid",
+          "pages": [
+            2,
+            3
+          ],
+          "section": "Figure 2; 3 Method, Reading"
+        },
+        {
+          "id": "q19_f2",
+          "text": "The decoder attends jointly to concatenated encoder representations; fusion is not joint encoder processing of all raw passages.",
+          "paper_id": "fid",
+          "pages": [
+            3
+          ],
+          "section": "3 Method, Reading"
+        },
+        {
+          "id": "q19_f3",
+          "text": "Per-passage encoder self-attention makes computation grow linearly rather than quadratically with passage count under the described setup; additional passages are not free.",
+          "paper_id": "fid",
+          "pages": [
+            3
+          ],
+          "section": "3 Method, Reading"
+        },
+        {
+          "id": "q19_f4",
+          "text": "The conclusion lists integrating retrieval and learning the whole system end-to-end as future work, not an implemented result.",
+          "paper_id": "fid",
+          "pages": [
+            5
+          ],
+          "section": "5 Conclusion"
+        }
+      ],
+      "forbidden_claims": [
+        "All passages are jointly encoded as one raw concatenation.",
+        "This paper already jointly optimizes retrieval end-to-end."
+      ],
+      "eval_split": "new_document_holdout"
+    },
+    {
+      "id": "q20_fid_training_cost_tradeoff",
+      "category": "training_efficiency_scope",
+      "question": "如果训练Fusion-in-Decoder时减少所读资料，只在使用时再增加，是否就能无代价地保留效果？请依据作者的对照实验说明测试条件、补救办法，以及报告的效果与计算成本取舍。",
+      "papers": [
+        "fid"
+      ],
+      "key_facts": [
+        {
+          "id": "q20_f1",
+          "text": "Table 2 varies training passage count but tests every model with 100 passages; fewer training passages reduce accuracy.",
+          "paper_id": "fid",
+          "pages": [
+            5
+          ],
+          "section": "4 Experiments, Impact of the number of training passages; Table 2"
+        },
+        {
+          "id": "q20_f2",
+          "text": "Fine-tuning those models with 100 passages for 1,000 steps reduces the accuracy gap; increasing test passages alone is not the remedy.",
+          "paper_id": "fid",
+          "pages": [
+            5
+          ],
+          "section": "4 Experiments, Impact of the number of training passages"
+        },
+        {
+          "id": "q20_f3",
+          "text": "For NaturalQuestions the cheaper procedure reaches 46.0 EM using 147 GPU-hours, versus 425 GPU-hours for 100-passage training; this is training cost, not inference latency.",
+          "paper_id": "fid",
+          "pages": [
+            5
+          ],
+          "section": "4 Experiments, Impact of the number of training passages"
+        }
+      ],
+      "forbidden_claims": [
+        "Every Table 2 model tests with its training passage count.",
+        "147 versus 425 GPU-hours measures answer-time latency."
+      ],
+      "eval_split": "new_document_holdout"
+    },
+    {
+      "id": "d01_chinese_retrieval_control",
+      "category": "retrieval_diagnostic",
+      "diagnostic_only": true,
+      "include_in_primary_quality_average": false,
+      "question": "为什么把更多资料和更长的对话全部塞进模型，反而可能降低回答质量？请根据上传论文，解释干扰信息、关键信息位置和记忆管理的关系，并标注依据。",
+      "papers": [
+        "lost_middle",
+        "memgpt"
+      ],
+      "diagnostic_purpose": "The question is pure Chinese, while the untouched PDFs and their filenames are English. It intentionally omits English paper titles and keywords to expose cross-language lexical-retrieval limits, rather than helping the retriever with translated anchors.",
+      "expected_observations": [
+        "Record source count and selected document IDs before assistance.",
+        "If lexical retrieval yields no evidence, report that result and whether the application accurately declines source-grounded conclusions.",
+        "Do not add translated queries, metadata, excerpts or synthetic rules only for this diagnostic arm.",
+        "If no answer model is called because evidence is absent, actual token usage is zero for that application request, not a model-efficiency improvement."
+      ],
+      "key_facts": [
+        {
+          "id": "d01_f1",
+          "text": "Answer-bearing information position and added distractors can affect long-context performance; the effect is task/model-specific.",
+          "paper_id": "lost_middle",
+          "pages": [
+            5,
+            6,
+            7
+          ],
+          "section": "3.3; 4.2"
+        },
+        {
+          "id": "d01_f2",
+          "text": "MemGPT manages information movement between a bounded input context and external memory rather than loading everything at once.",
+          "paper_id": "memgpt",
+          "pages": [
+            2,
+            3,
+            4
+          ],
+          "section": "Figure 1; 2.1-2.3"
+        }
+      ],
+      "forbidden_claims": [
+        "Inventing uploaded-paper evidence when the supplied source pack is empty.",
+        "Calling a zero-source or zero-model-call failure an answer-quality or model-token gain."
+      ],
+      "eval_split": "retrieval_diagnostic"
+    }
+  ]
+}

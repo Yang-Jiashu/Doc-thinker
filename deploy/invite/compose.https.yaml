@@ -1,0 +1,25 @@
+# Optional public edge. Do not apply until DNS, model permission and access
+# scope are confirmed. The base compose remains loopback-only.
+services:
+  https:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    read_only: true
+    security_opt: ["no-new-privileges:true"]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOCTHINKER_PUBLIC_HOST: "${DOCTHINKER_PUBLIC_HOST:?Set your approved DNS hostname}"
+    volumes:
+      - ./Caddyfile.container:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    tmpfs: [/tmp]
+    depends_on:
+      gateway:
+        condition: service_healthy
+
+volumes:
+  caddy-data:
+  caddy-config:
