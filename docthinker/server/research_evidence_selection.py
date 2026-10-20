@@ -20,6 +20,7 @@ from .research_document_titles import subplot_axis_labels, initial_title_hints
 from .research_selection_diagnostics import emit_diagnostic, window_identity
 from .research_query_facets import valid_quoted_audit_view, _document_mentions, is_role_only_phrase
 from .research_component_coverage import component_nomination_queue
+from .research_fallback_sources import source_filter_reason
 
 MAX_CANDIDATES = 48
 MAX_WINDOW_CHARS = 1_600
@@ -309,6 +310,40 @@ def _window_row(row: Mapping[str, Any], start: int, end: int, roles: Sequence[st
     return result
 
 
+def _baseline_witness_nomination(row, baseline, start, end, facet, tokens, tokenize, section):
+    """A live exact baseline span gets a bounded chance, never a support verdict.
+
+    A document name can also be the question's only content word (a handover,
+    appointment, or a short paper/model name). Removing names from ALL views
+    erased a relevant baseline even when the same word occurs in source prose.
+    Restore only its scoring opportunity after the ordinary unit hygiene gate;
+    a filename match by itself, a stale/corrupt quote, or pure metadata cannot
+    nominate anything. Every retained quote still faces the full-query scorer.
+    """
+    original = baseline.get(row['id'])
+    if not isinstance(original, Mapping) or original.get('document_id') != row['document_id']:
+        return False
+    if facet.get('kind') not in {'original', 'clause'} or facet.get('derived_translation') or facet.get('query_only'):
+        return False
+    scoped = set(facet.get('document_ids', ()))
+    if scoped and row['document_id'] not in scoped:
+        return False
+    text = original.get('content')
+    left = original.get('excerpt_start', 0)
+    right = original.get('excerpt_end', len(text) if isinstance(text, str) else 0)
+    if (type(text) is not str or type(left) is not int or type(right) is not int
+            or not 0 <= left < right <= len(row['content'])
+            or row['content'][left:right] != text or not start <= left < right <= end):
+        return False
+    content = row['content'][start:end]
+    if source_filter_reason(facet['text'], content, section=section) is not None:
+        return False
+    # A name must occur in the body itself. Filename/title metadata is neither
+    # lexical evidence nor a reason to weaken negations or scope constraints.
+    query_terms = set(tokenize(facet['text'])) - _COMMON_TERMS
+    return bool(tokens & query_terms)
+
+
 def prepare_evidence_candidates(
     question: str, chunks: Sequence[Mapping[str, Any]], baseline_sources: Sequence[Mapping[str, Any]],
     facet_plan: Mapping[str, Any], semantic_results: Mapping[str, Any], max_candidates: int = MAX_CANDIDATES,
@@ -558,6 +593,7 @@ def prepare_evidence_candidates(
                 lexical_scores = {}
                 semantic_hits = []
                 section_role_nomination = False
+                baseline_witness_nomination = False
                 cross_document_mentions = set().union(*(docs for pattern, docs in named_mentions
                                                        if pattern.search(content))) if named_mentions else set()
                 for facet in facets:
@@ -638,6 +674,13 @@ def prepare_evidence_candidates(
                         # relevance than the full request it came from. Keep
                         # its candidate opportunity; do not invent a new term.
                         score = min(score, max((facet_scores.get(owner, 0.) for owner in owners), default=score))
+                    if score <= .03 and _baseline_witness_nomination(
+                            row, baseline, start, end, facet, tokens, tokenize, section):
+                        # Existing live, whole baseline evidence competes under
+                        # the normal reranker/selection budgets. This does not
+                        # reserve an answer slot or credit an unscored clause.
+                        score = .08 * penalty
+                        baseline_witness_nomination = True
                     if score > .03:
                         facet_scores[key] = round(score, 8)
                         lexical_scores[key] = round(lexical, 8)
@@ -660,6 +703,7 @@ def prepare_evidence_candidates(
                 candidate.update({"facet_scores": facet_scores, "anchor_scores": anchor_scores, "lexical_scores": lexical_scores,
                                   "semantic_facets": sorted(set(semantic_hits)), "fragment_penalty": penalty,
                                   "baseline_source": row["id"] in baseline,
+                                  "baseline_witness_nomination": baseline_witness_nomination,
                                   "nomination_prior": prior,
                                   "section_role_nomination": section_role_nomination,
                                   "outline_roles": list(outline_roles),
@@ -779,6 +823,7 @@ def prepare_evidence_candidates(
         "baseline_nominations": baseline_nominations,
         "max_baseline_nominations": MAX_BASELINE_NOMINATIONS,
         "baseline_nominations_force_selection": False,
+        "baseline_witness_nominations": sum(bool(row.get('baseline_witness_nomination')) for row in selected),
         "bibliographic_units_filtered": filtered, "oversized_chunks_skipped": oversized,
         "contact_metadata_units_filtered": contact_filtered,
         "axis_tick_units_filtered": axis_filtered, "graph_data_request_exempt": graph_data_request,

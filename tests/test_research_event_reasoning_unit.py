@@ -7,7 +7,7 @@ import pytest
 from docthinker.server.research_event_reasoning import (
     EVENT_RESPONSE_POLICY, build_event_obligations, event_response_contract,
     event_trial_response, hydrate_event_receipt, parse_event_response, prepare_event_frontier,
-    render_event_reasoning, supplement_event_gaps, normalize_event_condition_schema,
+    render_event_reasoning, supplement_event_gaps, normalize_event_condition_schema, MAX_RECEIPT_BYTES,
 )
 
 
@@ -36,6 +36,15 @@ def witness(row):
     return {'label': row['label'], 'quote': row['content'], 'start': row['excerpt_start']}
 
 
+def catalog_witnesses(value):
+    if isinstance(value, list):
+        return [catalog_witnesses(item) for item in value]
+    if isinstance(value, dict):
+        return {key: ([{'label': item['label']} for item in raw] if key in {'evidence', 'satisfaction_evidence'}
+                      else catalog_witnesses(raw)) for key, raw in value.items()}
+    return value
+
+
 def satisfied_condition(name, row):
     return {'condition': name, 'verdict': 'support', 'evidence': [witness(row)],
             'satisfaction': 'met', 'satisfaction_evidence': [witness(row)]}
@@ -48,6 +57,8 @@ def envelope(row, conditions=None):
                 'links': [{'obligation_id': identifier, 'verdict': 'support', 'evidence': quote,
                            'from_event': left, 'to_event': right,
                            'conditions': conditions or []} for identifier, left, right in (('L1', 'a', 'b'), ('L2', 'b', 'c'))],
+                'events': [{'obligation_id': f'E{index}', 'verdict': 'support', 'evidence': quote,
+                            'conditions': conditions or []} for index in range(1, 4)],
                 'path': {'verdict': 'support', 'evidence': quote},
                 'alternatives': [{'explanation': 'Staff leave rather than new scope',
                                   'verdict': 'counterevidence', 'evidence': quote}], 'missing_links': []}}
@@ -65,9 +76,9 @@ def statuses(receipt):
 def test_directed_chain_and_alternative_are_explicit_unassessed_obligations():
     receipt = build_event_obligations(context())
     assert receipt['causality_verified'] is False and receipt['model_assessed'] is False
-    assert statuses(receipt) == {'L1': 'unknown', 'L2': 'unknown', 'P1': 'unknown', 'A1': 'unknown'}
+    assert statuses(receipt) == {name: 'unknown' for name in ('L1', 'L2', 'E1', 'E2', 'E3', 'P1', 'A1')}
     assert receipt['paths'] == [{'event_ids': ['a', 'b', 'c'], 'obligation_ids': ['L1', 'L2']}]
-    assert receipt['suggested_queries'] and receipt['unknown'] == 4
+    assert receipt['suggested_queries'] and receipt['unknown'] == 7
 
 
 def test_depends_on_is_inverted_not_traversed_as_effect_causing_prerequisite():
@@ -76,8 +87,8 @@ def test_depends_on_is_inverted_not_traversed_as_effect_causing_prerequisite():
     receipt = build_event_obligations(ctx)
     assert [(row['source_id'], row['target_id']) for row in receipt['obligations'][:2]] == [('a', 'b'), ('b', 'c')]
     assert receipt['paths'] == []
-    assert len(receipt['obligations']) == 2
-    assert all(row['prerequisite_candidate'] and not row['causal_candidate'] for row in receipt['obligations'])
+    assert len(receipt['obligations']) == 5
+    assert all(row['prerequisite_candidate'] and not row['causal_candidate'] for row in receipt['obligations'][:2])
     assert 'P1' not in statuses(receipt) and 'A1' not in statuses(receipt)
 
 
@@ -86,8 +97,8 @@ def test_before_and_related_to_never_become_causal_path():
     ctx['relations'] = [relation('r1', 'a', 'b', 'before'), relation('r2', 'b', 'c', 'related_to')]
     receipt = build_event_obligations(ctx)
     assert receipt['paths'] == []
-    assert len(receipt['obligations']) == 2
-    assert all(not row['causal_candidate'] for row in receipt['obligations'])
+    assert len(receipt['obligations']) == 5
+    assert all(not row['causal_candidate'] for row in receipt['obligations'][:2])
 
 
 def test_before_requires_nonoverlapping_interval_order_not_merely_ordered_starts():
@@ -110,6 +121,15 @@ def test_known_reverse_time_blocks_even_exact_quote_model_support():
     assert receipt['causality_verified'] is False
 
 
+def test_cause_after_effect_onset_is_not_accepted_from_overlapping_intervals():
+    ctx, row = context(), source()
+    ctx['events'][0].update(occurred_from=5, occurred_until=6)
+    ctx['events'][1].update(occurred_from=3, occurred_until=8)
+    _, receipt = parse(envelope(row), ctx, [row])
+    assert statuses(receipt)['L1'] == statuses(receipt)['P1'] == 'unknown'
+    assert 'temporal_order_conflict' in receipt['obligations'][0]['gaps']
+
+
 def test_quote_bound_assessment_is_visible_but_not_truth_or_automatic_action():
     row = source()
     answer, receipt = parse(envelope(row))
@@ -121,6 +141,110 @@ def test_quote_bound_assessment_is_visible_but_not_truth_or_automatic_action():
     assert evidence == {'label': 'S1', 'source_id': 's1', 'span': [0, len(row['content'])],
                         'quote_sha256': hashlib.sha256(row['content'].encode()).hexdigest()}
     assert 'quote' not in evidence and 'execution_authorized' not in receipt
+
+
+@pytest.mark.parametrize('text,start', [
+    ('Customer added scope increased workload, which delayed delivery.', 0),
+    ('原文：客户追加需求后，记录到工作量增加。尚不能排除其他原因。', 173),
+])
+def test_catalog_label_binds_whole_current_window_with_character_offsets_and_utf8_hash(text, start):
+    row = source(text, start=start)
+    value = catalog_witnesses(envelope(row))
+    answer, receipt = parse(value, rows=[row])
+    assert answer == value['answer'] and receipt['causality_verified'] is False
+    assert set(statuses(receipt).values()) == {'model_assessed_support'}
+    expected = {'label': 'S1', 'source_id': row['id'], 'span': [start, start + len(text)],
+                'quote_sha256': hashlib.sha256(text.encode('utf-8')).hexdigest()}
+    assert receipt['obligations'][0]['evidence'] == [expected]
+    assert hydrate_event_receipt(receipt, [row]) == receipt
+
+
+@pytest.mark.parametrize('problem', ['unknown', 'duplicate', 'bad_end', 'negative', 'boolean', 'empty', 'whitespace', 'extra_key'])
+def test_catalog_reference_cannot_accept_unknown_ambiguous_or_malformed_current_window(problem):
+    row = source()
+    value = catalog_witnesses(envelope(row))
+    rows = [row]
+    if problem == 'unknown':
+        value['event_assessment']['links'][0]['evidence'][0]['label'] = 'S99'
+    elif problem == 'duplicate':
+        rows.append({**row, 'id': 'different-source'})
+    elif problem == 'bad_end':
+        row['excerpt_end'] += 1
+    elif problem == 'negative':
+        row.update(excerpt_start=-1, excerpt_end=len(row['content']) - 1)
+    elif problem == 'boolean':
+        row.update(excerpt_start=False, excerpt_end=len(row['content']))
+    elif problem == 'empty':
+        row.update(content='', excerpt_end=0)
+    elif problem == 'whitespace':
+        row.update(content=' \n\t', excerpt_end=3)
+    else:
+        value['event_assessment']['links'][0]['evidence'][0]['whole_window'] = True
+    _, receipt = parse(value, rows=rows)
+    assert statuses(receipt)['L1'] == statuses(receipt)['P1'] == 'unknown'
+
+
+def test_catalog_labels_preserve_all_cross_source_premises_and_condition_axes():
+    first = source('The scope expansion required additional critical-path work in this project.', 'scope', 'S1', 100)
+    second = source('The rule requires explicit approval; written approval has NOT been given.', 'approval', 'S2', 250)
+    ctx = context(['Explicit approval'])
+    condition = {'condition': 'Explicit approval', 'verdict': 'support', 'evidence': [{'label': 'S2'}],
+                 'satisfaction': 'unmet', 'satisfaction_evidence': [{'label': 'S2'}]}
+    value = catalog_witnesses(envelope(first))
+    value['event_assessment']['links'][0].update(
+        evidence=[{'label': 'S1'}, {'label': 'S2'}], conditions=[condition])
+    _, receipt = parse(value, ctx, [first, second])
+    need = receipt['obligations'][0]
+    assert need['status'] == 'unknown' and statuses(receipt)['P1'] == 'unknown'
+    assert {ref['source_id'] for ref in need['evidence']} == {'scope', 'approval'}
+    assert need['condition_checks'][0]['rule_status'] == 'model_assessed_support'
+    assert need['condition_checks'][0]['satisfaction'] == 'unmet'
+    assert 'conditions_not_met' in need['gaps']
+    condition['satisfaction'] = 'unknown'
+    condition['satisfaction_evidence'] = []
+    _, uncertain = parse(value, ctx, [first, second])
+    assert statuses(uncertain)['L1'] == statuses(uncertain)['P1'] == 'unknown'
+    assert hydrate_event_receipt(receipt, [first]) is None
+
+
+def test_catalog_counterevidence_is_not_upgraded_to_support_by_valid_geometry():
+    row = source('The measured execution log does NOT support the alleged critical-path effect.')
+    value = catalog_witnesses(envelope(row))
+    value['event_assessment']['links'][0]['verdict'] = 'counterevidence'
+    _, receipt = parse(value, rows=[row])
+    assert statuses(receipt)['L1'] == 'model_assessed_counterevidence'
+    assert statuses(receipt)['P1'] == 'unknown' and receipt['causality_verified'] is False
+
+
+@pytest.mark.parametrize('change', ['removed', 'mutated', 'shrunk', 'moved', 'label'])
+def test_catalog_bound_whole_window_receipt_revokes_when_current_source_geometry_changes(change):
+    row = source('The whole retained original source includes both the rule and its qualifications.', start=200)
+    _, receipt = parse(catalog_witnesses(envelope(row)), rows=[row])
+    changed = dict(row)
+    if change == 'removed':
+        rows = []
+    elif change == 'mutated':
+        changed['content'] = changed['content'].replace('original', 'modified')
+        rows = [changed]
+    elif change == 'shrunk':
+        changed.update(content=row['content'][:-1], excerpt_end=row['excerpt_end'] - 1)
+        rows = [changed]
+    elif change == 'moved':
+        changed.update(excerpt_start=201, excerpt_end=row['excerpt_end'] + 1)
+        rows = [changed]
+    else:
+        changed['label'] = 'S2'
+        rows = [changed]
+    assert hydrate_event_receipt(receipt, rows) is None
+
+
+def test_catalog_and_legacy_exact_quote_protocols_can_share_a_joint_assessment():
+    row = source('The original record includes a mechanism and all relevant conditions.', start=100)
+    value = catalog_witnesses(envelope(row))
+    value['event_assessment']['links'][0]['evidence'] = [witness(row)]
+    _, receipt = parse(value, rows=[row])
+    assert set(statuses(receipt).values()) == {'model_assessed_support'}
+    assert hydrate_event_receipt(receipt, [row]) == receipt
 
 
 @pytest.mark.parametrize('modification', ['label', 'quote', 'offset', 'duplicate', 'unhashable', 'oversize', 'verdict'])
@@ -306,14 +430,68 @@ def test_disconnected_edges_never_form_complete_chain_from_model_claim_alone():
     ctx['relations'][1] = relation('r2', 'c', 'd')
     _, receipt = parse(envelope(source()), ctx)
     assert statuses(receipt)['P1'] == 'unknown'
-    assert any(gap['code'] == 'disconnected_or_branching_chain' for gap in receipt['gaps'])
+    assert any(gap['code'] == 'disconnected_causal_components' for gap in receipt['gaps'])
+
+
+def full_compact_review(ctx, row):
+    checks = [{'id': need['id'], 'verdict': 'support', 'evidence': [witness(row)]}
+              for need in build_event_obligations(ctx)['obligations'] if need['id'] != 'A1']
+    checks.append({'id': 'A1', 'verdict': 'counterevidence', 'alternative': 'Another cause', 'evidence': [witness(row)]})
+    return {'answer': 'A source-supported candidate mechanism, not verified causality [S1].',
+            'event_assessment': {'checks': checks}}
+
+
+def test_branching_and_converging_dag_requires_every_branch_occurrence_and_link():
+    ctx = {'events': [event('a', 'Scope changed', 1, 1), event('b', 'Workload rose', 2, 2),
+                      event('c', 'Testing expanded', 2, 2), event('d', 'Delivery delayed', 3, 3)],
+           'relations': [relation('ab', 'a', 'b'), relation('ac', 'a', 'c'),
+                         relation('bd', 'b', 'd'), relation('cd', 'c', 'd')]}
+    row = source('The records support both workload and testing mechanisms in this project, with an independently recorded delay.')
+    prepared = prepare_event_frontier('How did scope change delay delivery?', ctx, [row])
+    packet = json.loads(render_event_reasoning(prepared, build_event_obligations(prepared)))
+    assert len(packet['candidate_paths']) == 2
+    assert next(need for need in packet['needs'] if need['id'] == 'P1')['required_link_ids'] == ['L1', 'L2', 'L3', 'L4']
+    value = full_compact_review(ctx, row)
+    _, accepted = parse(value, prepared, [row])
+    assert statuses(accepted)['P1'] == 'model_assessed_support' and accepted['causality_verified'] is False
+    for missing in ('L1', 'L2', 'L3', 'L4', 'E1', 'E2', 'E3', 'E4', 'A1'):
+        partial = json.loads(json.dumps(value))
+        partial['event_assessment']['checks'] = [check for check in partial['event_assessment']['checks'] if check['id'] != missing]
+        _, receipt = parse(partial, prepared, [row])
+        assert statuses(receipt)['P1'] == 'unknown'
+
+
+def test_dag_branches_outside_four_illustrative_path_samples_still_need_occurrence():
+    ctx = {'events': [event('a', 'Starting condition', 1, 1), event('z', 'Observed effect', 3, 3)]
+                     + [event(f'm{index}', f'Intermediate mechanism {index}', 2, 2) for index in range(5)],
+           'relations': [relation(f'{side}{index}', 'a' if side == 'a' else f'm{index}',
+                                  f'm{index}' if side == 'a' else 'z') for index in range(5) for side in ('a', 'z')]}
+    row = source('Five separate recorded intermediate mechanisms connect the starting condition with the observed effect.')
+    assert len(build_event_obligations(ctx)['paths']) == 4
+    value = full_compact_review(ctx, row)
+    _, accepted = parse(value, ctx, [row])
+    assert statuses(accepted)['P1'] == 'model_assessed_support'
+    value['event_assessment']['checks'] = [check for check in value['event_assessment']['checks'] if check['id'] != 'E7']
+    _, missing = parse(value, ctx, [row])
+    assert statuses(missing)['P1'] == 'unknown'
+
+
+def test_cyclic_claims_cannot_be_accepted_as_a_joint_dag_even_with_same_time_quotes():
+    ctx = context()
+    for item in ctx['events']:
+        item.update(occurred_from=1, occurred_until=1)
+    ctx['relations'].append(relation('cycle', 'c', 'a'))
+    row = source()
+    _, receipt = parse(full_compact_review(ctx, row), ctx, [row])
+    assert statuses(receipt)['P1'] == 'unknown'
+    assert any(gap['code'] == 'cyclic_causal_structure' for gap in receipt['gaps'])
 
 
 @pytest.mark.parametrize('raw', ['normal prose [S1]', '{not json}', '[]', '[' * 2000 + '0' + ']' * 2000])
 def test_bad_provider_envelope_has_no_repair_call_and_unknown_receipt(raw):
     answer, receipt = parse_event_response(raw, context(), [source()])
     assert answer == raw
-    assert receipt['model_assessed'] is False and receipt['unknown'] == 4
+    assert receipt['model_assessed'] is False and receipt['unknown'] == 7
 
 
 def test_trial_spec_is_compatible_but_arbitrary_action_fields_are_not():
@@ -366,6 +544,66 @@ def test_local_gap_pass_preserves_originals_and_adds_at_most_two_whole_windows()
     assert 's4' not in result['trace']['added_source_ids']
     assert [row['label'] for row in result['sources']] == ['S1', 'S2', 'S3']
     assert all(row['sentence_boundary_preserved'] for row in result['added'])
+
+
+def test_gap_trace_records_actual_query_attempts_and_candidate_gains_not_semantic_support():
+    primary = source('The original baseline remains unchanged.')
+    candidate = source('The critical path record states scope increased workload.', 'candidate', 'S9')
+    queries = ['critical path scope workload', 'galaxy telescope stars']
+    result = supplement_event_gaps('scope', [primary], [candidate], {'suggested_queries': [None, *queries]})
+    assert result['queries'] == queries
+    assert result['trace']['attempted_query_indices'] == [0, 1]
+    assert result['trace']['covered_query_indices'] == [0]
+    assert result['trace']['corpus_attempted_query_indices'] == [0, 1]
+    assert 'supported' not in result['trace'] and 'obligations' not in result
+    missed = supplement_event_gaps('space', [primary], [candidate], {'suggested_queries': ['quasar cosmology']})
+    assert missed['trace']['attempted_query_indices'] == [0]
+    assert missed['trace']['covered_query_indices'] == []
+    for original, worklist in (([primary], []), ([source(identifier=f'base-{index}', label=f'S{index + 1}')
+                                               for index in range(10)], queries)):
+        skipped = supplement_event_gaps('scope', original, [candidate], {'suggested_queries': worklist})
+        assert skipped['trace']['covered_query_indices'] == []
+        assert skipped['trace']['corpus_attempted_query_indices'] == []
+        assert skipped['trace']['attempted_query_indices'] == (list(range(len(queries))) if worklist else [])
+        assert skipped['trace']['scanned_chunks'] == 0
+
+
+def test_gap_query_can_locate_an_existing_retained_window_without_adding_sources():
+    retained = source('The critical path record states scope increased workload.')
+    result = supplement_event_gaps('scope', [retained], [retained],
+                                   {'suggested_queries': ['critical path scope workload', 'quasar cosmology']})
+    assert result['sources'] == [retained] and result['added'] == []
+    assert result['trace']['retained_scanned_windows'] == 1
+    assert result['trace']['retained_candidate_query_indices'] == [0]
+    assert result['trace']['attempted_query_indices'] == [0, 1]
+    assert result['trace']['corpus_attempted_query_indices'] == []
+    assert result['trace']['covered_query_indices'] == []
+    full = [source(identifier=f'retained-{index}', label=f'S{index + 1}', text=retained['content']) for index in range(10)]
+    capped = supplement_event_gaps('scope', full, [source('New unseen corpus.', 'outside', 'S99')],
+                                   {'suggested_queries': ['critical path scope workload']})
+    assert capped['trace']['status'] == 'capacity_reached'
+    assert capped['trace']['retained_candidate_query_indices'] == [0]
+    assert capped['trace']['attempted_query_indices'] == [0]
+    assert capped['trace']['corpus_attempted_query_indices'] == []
+    assert capped['trace']['scanned_chunks'] == 0
+
+
+def test_every_obligation_keeps_its_own_lookup_including_late_path_and_alternatives():
+    row, ctx = source(), context()
+    value = {'answer': 'The evidence is not sufficient for a causal conclusion [S1].', 'event_assessment': {'checks': [
+        {'id': 'P1', 'verdict': 'unknown', 'missing_query': 'Find the project critical path and actual work hours.'},
+        {'id': 'A1', 'verdict': 'unknown', 'missing_query': 'Find actual staffing absences and supplier incidents.'}]}}
+    _, receipt = parse(value, ctx, [row])
+    by_id = {need['id']: need for need in receipt['obligations']}
+    assert by_id['P1']['lookup_query'] == value['event_assessment']['checks'][0]['missing_query']
+    assert by_id['A1']['lookup_query'] == value['event_assessment']['checks'][1]['missing_query']
+    assert by_id['L1']['lookup_query'].startswith('Customer added scope | Workload increased')
+    assert by_id['E1']['lookup_query'].startswith('Customer added scope | original event occurrence record')
+    assert all(isinstance(need['lookup_query'], str) and 0 < len(need['lookup_query'].encode()) <= 400
+               for need in receipt['obligations'])
+    value['event_assessment']['checks'][0]['missing_query'] = '查找关键路径与工时' * 30
+    _, bounded = parse(value, ctx, [row])
+    assert len(next(need['lookup_query'] for need in bounded['obligations'] if need['id'] == 'P1').encode()) <= 400
 
 
 def test_append_only_full_budget_never_drops_primary_for_supplement():
@@ -528,13 +766,13 @@ def test_relation_bound_to_old_event_revision_is_not_a_current_obligation():
     assert receipt['obligations'][0]['relation_id'] == 'r2'
 
 
-def test_maximal_feedback_has_all_obligations_and_fits_six_kibibytes():
+def test_maximal_feedback_keeps_all_occurrences_and_links_in_bounded_metadata():
     ctx = {'events': [event(f'event-{i}', '记录任务状态与关键约束' * 5, i * 2, i * 2 + 1) for i in range(8)],
            'relations': [relation(f'relation-{i}', f'event-{i % 7}', f'event-{i % 7 + 1}') for i in range(12)]}
     _, receipt = parse_event_response('A provider that ignored JSON.', ctx, [])
-    assert len(receipt['obligations']) == 14
-    assert len(json.dumps(receipt, ensure_ascii=False, separators=(',', ':')).encode()) <= 6144
-    assert len(receipt['gaps']) <= 20 and len(receipt['suggested_queries']) <= 8
+    assert len(receipt['obligations']) == 22
+    assert len(json.dumps(receipt, ensure_ascii=False, separators=(',', ':')).encode()) <= MAX_RECEIPT_BYTES
+    assert len(receipt['gaps']) <= 48 and len(receipt['suggested_queries']) <= 8
 
 
 @pytest.mark.parametrize('change', ['deleted', 'mutated', 'shrunk', 'moved', 'wrong_label'])
@@ -610,7 +848,7 @@ def test_condition_witness_dependency_is_not_lost_when_main_link_uses_another_so
 
 
 def test_dense_receipt_downgrades_whole_needs_not_positive_partial_proofs():
-    rows = [source(f'Independent supporting passage number {i} binds this need.', f'{i:036}', f'S{i}') for i in range(1, 4)]
+    rows = [source(f'Independent supporting passage number {i} binds this need.', f'{i:0256}', f'S{i}') for i in range(1, 4)]
     ctx = context()
     ctx['relations'] = [relation(f'{index:036}', 'a', 'b') for index in range(12)]
     proof = [witness(row) for row in rows]
@@ -618,7 +856,7 @@ def test_dense_receipt_downgrades_whole_needs_not_positive_partial_proofs():
     value['event_assessment']['links'] = [{'obligation_id': f'L{i + 1}', 'from_event': 'a', 'to_event': 'b',
         'verdict': 'support', 'evidence': proof} for i in range(12)]
     _, receipt = parse(value, ctx, rows)
-    assert len(json.dumps(receipt, ensure_ascii=False, separators=(',', ':')).encode()) <= 6144
+    assert len(json.dumps(receipt, ensure_ascii=False, separators=(',', ':')).encode()) <= MAX_RECEIPT_BYTES
     assert any('assessment_receipt_budget' in row['gaps'] for row in receipt['obligations'])
     for row in receipt['obligations']:
         if row['kind'] == 'relation' and row['status'] == 'model_assessed_support':
@@ -660,7 +898,8 @@ def test_frontier_semantics_are_relation_types_not_case_or_model_keywords(kind, 
     ctx, row = anchored_context(kind)
     prepared = prepare_event_frontier('Workload and delivery', ctx, [row])
     assert prepared['_semantic_profile'] == profile
-    assert len(prepared['_active_need_ids']) <= 2
+    assert set(prepared['_active_need_ids']) == ({'L1', 'L2', 'E1', 'E2', 'E3', 'P1', 'A1'} if derived
+                                               else {'L1', 'L2', 'E1', 'E2', 'E3'})
     receipt = build_event_obligations(prepared)
     assert ('P1' in statuses(receipt)) is derived
     if not derived:
@@ -672,13 +911,16 @@ def test_frontier_semantics_are_relation_types_not_case_or_model_keywords(kind, 
 def test_inactive_needs_cannot_be_promoted_even_with_valid_extra_model_proofs():
     ctx, row = anchored_context()
     prepared = prepare_event_frontier('Delivery delayed', ctx, [row])
+    # Only a concrete capacity limit, not a permanent two-item policy, may
+    # defer a need. The validator must still reject extra model judgments.
+    prepared['_active_need_ids'].remove('L1')
     _, receipt = parse(envelope(row), prepared, [row])
     active = set(prepared['_active_need_ids'])
-    assert len(active) == 2
+    assert len(active) == 6
     for need in receipt['obligations']:
         if need['id'] not in active:
             assert need['status'] == 'unknown'
-            assert 'bounded_frontier_unassessed' in need['gaps']
+            assert 'assessment_capacity_exceeded' in need['gaps']
     assert statuses(receipt)['P1'] == 'unknown'
 
 
@@ -694,13 +936,141 @@ def test_compact_checks_bind_host_direction_and_keep_joint_proof():
     assert statuses(receipt)['P1'] == 'unknown'
 
 
-def test_more_than_two_compact_checks_is_not_a_way_around_frontier_bound():
+def test_complete_frontier_accepts_whole_chain_only_after_every_check_is_bound():
+    ctx, row = anchored_context()
+    prepared = prepare_event_frontier('Delivery delayed', ctx, [row])
+    packet = json.loads(render_event_reasoning(prepared, build_event_obligations(prepared)))
+    assert {need['id'] for need in packet['needs']} == {'L1', 'L2', 'E1', 'E2', 'E3', 'P1', 'A1'}
+    assert packet['candidate_paths'] == [{'event_ids': ['a', 'b', 'c'], 'obligation_ids': ['L1', 'L2']}]
+    checks = [{'id': name, 'verdict': 'support', 'evidence': [witness(row)]} for name in ('L1', 'L2', 'E1', 'E2', 'E3', 'P1')]
+    checks.append({'id': 'A1', 'verdict': 'counterevidence', 'alternative': 'Staff leave', 'evidence': [witness(row)]})
+    value = {'answer': 'A qualified account of the records [S1].', 'event_assessment': {'checks': checks}}
+    _, receipt = parse(value, prepared, [row])
+    assert set(statuses(receipt).values()) == {'model_assessed_support'}
+    assert receipt['causality_verified'] is False
+    for missing in ('L1', 'L2', 'E1', 'E2', 'E3', 'A1'):
+        changed = json.loads(json.dumps(value))
+        changed['event_assessment']['checks'] = [check for check in checks if check['id'] != missing]
+        _, partial = parse(changed, prepared, [row])
+        assert statuses(partial)['P1'] == 'unknown'
+
+
+@pytest.mark.parametrize('problem', ['time_unknown', 'graph_truncated', 'competing_explanation', 'counteredge'])
+def test_whole_chain_review_cannot_override_missing_time_capacity_or_counterevidence(problem):
+    ctx, row = context(), source()
+    value = envelope(row)
+    if problem == 'time_unknown':
+        ctx['events'][1].update(occurred_from=None, occurred_until=None)
+    elif problem == 'graph_truncated':
+        ctx['trace']['truncation'] = ['bridge_capacity']
+    elif problem == 'competing_explanation':
+        value['event_assessment']['alternatives'][0]['verdict'] = 'support'
+    else:
+        value['event_assessment']['links'][1]['verdict'] = 'counterevidence'
+    prepared = prepare_event_frontier('Delivery delayed', ctx, [row])
+    _, receipt = parse(value, prepared, [row])
+    assert statuses(receipt)['P1'] == 'unknown'
+    assert 'chain_not_supported_per_link' in next(need for need in receipt['obligations'] if need['id'] == 'P1')['gaps']
+
+
+@pytest.mark.parametrize('kind', ['contradicts', 'depends_on'])
+def test_causal_path_requires_explicit_conflict_and_prerequisite_resolution(kind):
+    ctx, row = context(), source()
+    ctx['events'].append(event('d', 'Explicit approval or conflicting project record', 0, 0))
+    if kind == 'depends_on':
+        ctx['relations'].append(relation('r3', 'b', 'd', kind))
+        left, right, resolved_verdict = 'd', 'b', 'support'
+    else:
+        ctx['relations'].append(relation('r3', 'a', 'd', kind))
+        left, right, resolved_verdict = 'a', 'd', 'counterevidence'
+    value = envelope(row)
+    # The additional endpoint's occurrence is kept even outside the main path.
+    value['event_assessment']['events'].append({'obligation_id': 'E4', 'verdict': 'support', 'evidence': [witness(row)]})
+    _, missing = parse(value, ctx, [row])
+    assert statuses(missing)['P1'] == 'unknown'
+    value['event_assessment']['links'].append({'obligation_id': 'L3', 'verdict': resolved_verdict,
+        'from_event': left, 'to_event': right, 'evidence': [witness(row)]})
+    _, resolved = parse(value, ctx, [row])
+    assert statuses(resolved)['P1'] == 'model_assessed_support'
+    if kind == 'depends_on':
+        missing_occurrence = json.loads(json.dumps(value))
+        missing_occurrence['event_assessment']['events'].pop()
+        _, absent = parse(missing_occurrence, ctx, [row])
+        assert statuses(absent)['E4'] == statuses(absent)['P1'] == 'unknown'
+    value['event_assessment']['links'][-1]['verdict'] = 'support' if kind == 'contradicts' else 'counterevidence'
+    _, contradicted = parse(value, ctx, [row])
+    assert statuses(contradicted)['P1'] == 'unknown'
+
+
+def test_general_mechanism_support_without_actual_occurrence_cannot_complete_path():
+    row = source('Increasing project scope can increase workload and can cause delays in some projects.')
+    value = envelope(row)
+    value['event_assessment'].pop('events')
+    _, receipt = parse(value, context(), [row])
+    assert all(statuses(receipt)[name] == 'unknown' for name in ('E1', 'E2', 'E3', 'P1'))
+
+
+def test_event_types_survive_review_so_a_planned_task_is_not_its_execution():
+    ctx, row = anchored_context()
+    ctx['events'][0]['event_type'] = 'decision'
+    ctx['events'][1]['event_type'] = 'task'
+    ctx['events'][2]['event_type'] = 'observation'
+    prepared = prepare_event_frontier('Delivery delayed', ctx, [row])
+    receipt = build_event_obligations(prepared)
+    packet = json.loads(render_event_reasoning(prepared, receipt))
+    assert next(item for item in packet['deferred_constraints'] if item['event_id'] == 'a')['event_type'] == 'decision'
+    assert next(item for item in packet['events'] if item['id'] == 'b')['event_type'] == 'task'
+    assert {item['event_id']: item['event_type'] for item in packet['needs'] if item['kind'] == 'event'} == {
+        'a': 'decision', 'b': 'task', 'c': 'observation'}
+    assert 'not that its intended action was executed' in EVENT_RESPONSE_POLICY
+
+
+def test_old_path_receipt_without_occurrence_review_is_not_grandfathered_as_complete():
+    row = source()
+    _, receipt = parse(envelope(row))
+    receipt.pop('causal_review_schema')
+    receipt['obligations'] = [item for item in receipt['obligations'] if item['kind'] != 'event']
+    migrated = hydrate_event_receipt(receipt, [row])
+    assert migrated is not None
+    assert migrated['causal_review_schema'] == 2 and statuses(migrated)['P1'] == 'unknown'
+    assert 'legacy_path_review_unknown' in next(item for item in migrated['obligations'] if item['id'] == 'P1')['gaps']
+
+
+def test_long_chain_topology_reaches_every_in_scope_node_not_six_node_prefix():
+    ctx = {'events': [event(f'e{index}', f'Mechanism {index}', index * 2, index * 2 + 1) for index in range(8)],
+           'relations': [relation(f'r{index}', f'e{index}', f'e{index + 1}') for index in range(7)]}
+    prepared = prepare_event_frontier('Mechanism chain', ctx, [])
+    receipt = build_event_obligations(prepared)
+    packet = json.loads(render_event_reasoning(prepared, receipt))
+    assert packet['candidate_paths'][0]['event_ids'] == [f'e{index}' for index in range(8)]
+    assert len(packet['needs']) == 17
+    assert {need['id'] for need in packet['needs']} == set(prepared['_active_need_ids'])
+
+
+def test_review_packet_capacity_defers_complete_needs_and_blocks_their_claims(monkeypatch):
+    import docthinker.server.research_event_reasoning as module
+    ctx, row = anchored_context()
+    prepared = prepare_event_frontier('Delivery delayed', ctx, [row])
+    full = render_event_reasoning(prepared, build_event_obligations(prepared))
+    monkeypatch.setattr(module, 'MAX_PACKET_BYTES', len(full.encode()) - 80)
+    bounded = json.loads(render_event_reasoning(prepared, build_event_obligations(prepared)))
+    assert bounded['capacity_deferred_need_ids']
+    assert len(json.dumps(bounded, separators=(',', ':')).encode()) <= module.MAX_PACKET_BYTES
+    _, receipt = parse(envelope(row), prepared, [row])
+    for need in receipt['obligations']:
+        if need['id'] in bounded['capacity_deferred_need_ids']:
+            assert need['status'] == 'unknown' and 'assessment_capacity_exceeded' in need['gaps']
+    assert statuses(receipt)['P1'] == 'unknown'
+
+
+def test_all_compact_checks_are_processed_but_missing_alternative_blocks_chain():
     ctx, row = anchored_context()
     prepared = prepare_event_frontier('Delivery delayed', ctx, [row])
     value = {'answer': 'A cautious answer [S1].', 'event_assessment': {'checks': [
         {'id': identifier, 'verdict': 'support', 'evidence': [witness(row)]} for identifier in ('L1', 'L2', 'P1')]}}
     _, receipt = parse(value, prepared, [row])
-    assert all(need['status'] == 'unknown' for need in receipt['obligations'])
+    assert statuses(receipt)['L1'] == statuses(receipt)['L2'] == 'model_assessed_support'
+    assert statuses(receipt)['P1'] == statuses(receipt)['A1'] == 'unknown'
 
 
 def test_frontier_routes_to_relevant_bottleneck_and_prioritizes_known_conflict():
@@ -718,7 +1088,7 @@ def test_frontier_keeps_uncovered_personal_memory_facts_not_just_two_nodes():
     prepared = prepare_event_frontier('personal facts', ctx, [])
     receipt = build_event_obligations(prepared)
     packet = json.loads(render_event_reasoning(prepared, receipt))
-    assert len(packet['needs']) == 2
+    assert len(packet['needs']) == 8
     assert len(packet['events']) == 8
     assert len(receipt['obligations']) == 8
     assert all(event['action'] in json.dumps(packet) for event in ctx['events'])
@@ -731,10 +1101,34 @@ def test_frontier_keeps_all_condition_and_time_constraints_while_deferring_sourc
     ctx['events'][0]['conditions'] = ['Special constraint for the earlier event']
     prepared = prepare_event_frontier('Delivery delayed', ctx, [row])
     packet = json.loads(render_event_reasoning(prepared, build_event_obligations(prepared)))
-    assert len(packet['needs']) <= 2
+    assert {need['id'] for need in packet['needs']} == {'L1', 'L2', 'E1', 'E2', 'E3', 'P1', 'A1'}
+    assert packet['candidate_paths'] == [{'event_ids': ['a', 'b', 'c'], 'obligation_ids': ['L1', 'L2']}]
     assert len(packet['events']) < len(ctx['events'])
     assert ctx['events'][0]['conditions'][0] in packet['required_conditions'].values()
     assert any(item['event_id'] == 'a' and item['time'] == [1, 2] for item in packet['deferred_constraints'])
+
+
+def test_source_carried_action_deduplication_preserves_scope_identity_and_negation():
+    ctx, row = anchored_context()
+    ctx['events'][0].update(actor={'id': 'alice-project-a', 'name': 'Alice'},
+                            object={'id': 'project-a', 'name': 'Project A'})
+    ctx['events'][1].update(actor={'id': 'alice-project-b', 'name': 'Alice'},
+                            object={'id': 'project-b', 'name': 'Project B'})
+    # The node is omitted only because its complete assertion remains in its
+    # guarded source; its actor/object/time still belong to that exact ID.
+    prepared = prepare_event_frontier('Delivery delayed', ctx, [row])
+    packet = json.loads(render_event_reasoning(prepared, build_event_obligations(prepared)))
+    omitted = next(item for item in packet['deferred_constraints'] if item['event_id'] == 'a')
+    assert omitted['actor']['id'] == 'alice-project-a' and omitted['object']['id'] == 'project-a'
+    visible = next(item for item in packet['events'] if item['id'] == 'b')
+    assert visible['actor']['id'] == 'alice-project-b' and visible['object']['id'] == 'project-b'
+    negative = source('Project A scope increase did NOT affect its critical path; Project B suffered staff leave.')
+    value = envelope(negative)
+    value['event_assessment']['links'][0]['verdict'] = 'counterevidence'
+    value['event_assessment']['alternatives'][0]['verdict'] = 'support'
+    _, receipt = parse(value, prepared, [negative])
+    assert statuses(receipt)['L1'] == statuses(receipt)['A1'] == 'model_assessed_counterevidence'
+    assert statuses(receipt)['P1'] == 'unknown'
 
 
 def test_an_origin_pointer_alone_does_not_erase_an_unquoted_personal_assertion():
@@ -906,10 +1300,13 @@ def test_dense_condition_metadata_cannot_leave_positive_without_all_condition_st
     row = source()
     names = [f'Independently required condition {index}' for index in range(16)]
     ctx = context(names)
+    ctx['events'][1]['conditions'] = [f'Middle event condition {index}' for index in range(16)]
+    ctx['events'][2]['conditions'] = [f'Final event condition {index}' for index in range(16)]
+    names = [name for item in ctx['events'] for name in item['conditions']]
     value = envelope(row, [satisfied_condition(name, row) for name in names])
     value['event_assessment']['path']['conditions'] = [satisfied_condition(name, row) for name in names]
     _, receipt = parse(value, ctx, [row])
-    assert len(json.dumps(receipt, ensure_ascii=False, separators=(',', ':')).encode()) <= 6144
+    assert len(json.dumps(receipt, ensure_ascii=False, separators=(',', ':')).encode()) <= MAX_RECEIPT_BYTES
     assert any('assessment_receipt_budget' in need['gaps'] for need in receipt['obligations'])
     for need in receipt['obligations']:
         if need['status'] == 'model_assessed_support' and need['condition_count']:
@@ -919,11 +1316,15 @@ def test_dense_condition_metadata_cannot_leave_positive_without_all_condition_st
     assert hydrate_event_receipt(receipt, [row]) == receipt
 
 
-def test_sparse_contract_prioritizes_answer_without_requiring_all_checks_or_conditions():
+def test_contract_requires_complete_chain_review_without_equating_sources_to_truth():
     policy = event_response_contract()
-    assert 'answer with [S#] citations FIRST' in policy
-    assert 'checks:[] is valid' in policy and 'at most TWO' in policy
-    assert 'do not search, exhaustively prove, fill every need/required_condition' in policy
+    assert 'answer with [S#] citations' in policy
+    assert 'host retains ALL listed event needs' in policy
+    assert 'checks:[] is valid' in policy and 'no two-check limit' in policy
+    assert 'Do not exhaustively prove' in policy
+    assert 'Do not recopy quotes or calculate offsets' in policy
+    assert '"evidence":[{"label":"S1"}]' in policy
+    assert 'complete P1 chain' in policy and 'all required conditions' in policy
     assert 'Omitted/deferred items stay unknown' in policy
     assert 'rule support never implies met' in policy
     assert 'abstain rather than truncate' in policy
@@ -935,8 +1336,8 @@ def test_empty_sparse_annotations_preserve_normal_answer_and_every_host_obligati
     value = {'answer': answer, 'event_assessment': {'checks': []}}
     delivered, receipt = parse(value, ctx, [row])
     assert delivered == answer and receipt['model_assessed'] is False
-    assert set(statuses(receipt)) == {'L1', 'L2', 'P1', 'A1'}
-    assert receipt['unknown'] == 4 and receipt['supported'] == 0
+    assert set(statuses(receipt)) == {'L1', 'L2', 'E1', 'E2', 'E3', 'P1', 'A1'}
+    assert receipt['unknown'] == 7 and receipt['supported'] == 0
     assert receipt['obligations'][0]['condition_count'] == 1
     assert 'conditions_unresolved' in receipt['obligations'][0]['gaps']
 

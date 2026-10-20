@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "scope": "Personal-agent evidence repair, versioned memory/event dependencies and approved long-project execution",
+  "production_python_sha256": "88f08e28d78b989943acafe044860e529fb673dfb7afa4e9fa01566440be580e",
+  "runner_sha256": "b383a59d68ea72d0fa971a69437a20259454af31703cfeebab6e34edf476c965",
+  "software": {
+    "backend_full_suite": {
+      "passed": 7071,
+      "skipped": 9,
+      "subtests_passed": 13,
+      "failed": 0,
+      "seconds": 176.03,
+      "junit": "goal_evidence_staged_full_20261020.xml.gz",
+      "uncompressed_junit_sha256": "65bff3e0a2b356e36af445dfeae950ad72ef30821336a5d83e07aad2108bdc8d",
+      "warning": "Existing FastAPI/Starlette test-client deprecation warning",
+      "excludes_real_model_quality": true
+    },
+    "mobile_tests": {"passed": 999, "failed": 0},
+    "builds": {
+      "h5": {"status": "passed", "pwa_files": 84, "bytes": 981732},
+      "mp_weixin": {"status": "passed", "files": 133, "bytes": 681714},
+      "app_resources": {"status": "passed", "signed_installer": false},
+      "h5_existing_warning": "pwa-register script is not a module"
+    },
+    "new_control_flow_acceptance": [
+      "Separate approved compose and verify nodes; one provider call per node; grant remains at most six",
+      "Failed verification preserves a readable saved draft; restart and status reads never retry",
+      "Typed refine_of preserves original question and document/memory scope",
+      "Unchanged-corpus missed-window repair performs actual local retrieval, rewrites and verifies",
+      "Explicit counterevidence triggers refinement rather than repeated inspection of frozen old windows",
+      "Only current replacement leaves contribute to goal progress and report prose; old drafts remain readable history",
+      "Source/event/memory changes invalidate derived reviews, reports and cross-phase results",
+      "Six questions and twelve explicit nodes run under two six-call grants; next phase carries six reviewed leaves",
+      "Partial search fairly rotates twenty-six full requirements; no candidate or limited scan is not proof or exhaustion"
+    ],
+    "unchanged_branding": ["logo", "existing demos", "overall client visual style", "Harness and Insight Schema foundations"]
+  },
+  "real_model": {
+    "cohort": "goal-evidence-staged-20261020-real-2",
+    "registration_sha256": "97540963c9cb9d28c04c871244902509141f3f2036a36d4ee626469979ff63e9",
+    "model": "step-5-preview",
+    "base_url": "https://api.stepfun.com/step_plan/v1",
+    "planned_calls": 8,
+    "dispatched_calls": 8,
+    "delivered_stages": 8,
+    "citation_syntax_valid_stages": 8,
+    "verbatim_frozen_body_reviews": 4,
+    "automatic_retries": 0,
+    "generation_override": false,
+    "usage_basis": "Numeric usage reported by the provider; no invented hidden-reasoning or billing estimate",
+    "prompt_tokens": 28696,
+    "completion_tokens": 24573,
+    "total_tokens": 53269,
+    "sum_model_seconds": 318.4319486670138,
+    "calls": [
+      {"id": "work.initial.compose", "answer_bytes": 1811, "source_windows": 1, "total_tokens": 6310, "model_seconds": 25.748193542007357, "event_supported": 0, "event_unknown": 10},
+      {"id": "work.initial.verify", "answer_bytes": 1811, "source_windows": 1, "total_tokens": 5425, "model_seconds": 35.34824833300081, "event_supported": 2, "event_unknown": 8},
+      {"id": "work.updated.compose", "answer_bytes": 2240, "source_windows": 2, "total_tokens": 6753, "model_seconds": 23.456648375009536, "event_supported": 0, "event_unknown": 10},
+      {"id": "work.updated.verify", "answer_bytes": 2240, "source_windows": 2, "total_tokens": 8143, "model_seconds": 68.97501366700453, "event_supported": 2, "event_counterevidence": 1, "event_unknown": 7},
+      {"id": "home.current.compose", "answer_bytes": 1272, "source_windows": 1, "total_tokens": 6756, "model_seconds": 36.70687591699243, "event_supported": 0, "event_unknown": 8},
+      {"id": "home.current.verify", "answer_bytes": 1272, "source_windows": 1, "total_tokens": 5121, "model_seconds": 32.807540875000996, "event_supported": 3, "event_unknown": 5},
+      {"id": "paper.current.compose", "answer_bytes": 2821, "source_windows": 3, "total_tokens": 7344, "model_seconds": 41.303952500005835, "event_supported": 0, "event_unknown": 5},
+      {"id": "paper.current.verify", "answer_bytes": 2821, "source_windows": 3, "total_tokens": 7417, "model_seconds": 54.08547545799229, "event_supported": 3, "event_unknown": 2}
+    ],
+    "material_kinds": {
+      "work": "Synthetic work records and a signed-correction fixture",
+      "home": "Synthetic household appointment and permission records",
+      "paper": "Full real paper Lost in the Middle, arXiv 2307.03172v1; 39 chunks"
+    },
+    "paper_sha256": "c8070998fc12d9652d4f3b2e3094a4d6f438ed47a18539e04f07e5dbb9891f9e",
+    "event_input": "Structured event/source-anchor fixtures, not arbitrary-document automatic event extraction",
+    "prior_failures_preserved": {
+      "combined_trials": [
+        {"provider_calls": 4, "registration_sha256": "83d04e6adb341288e7db3b72de9830e43356680ec90cd782291e039582410b30"},
+        {"provider_calls": 4, "registration_sha256": "e1ed814cf167c972b632df58705d36c849eecf3a07f2a5ea9c56788c1d938cd0"},
+        {"provider_calls": 4, "registration_sha256": "7a2d20da566190b4e628252794e163428dc3446c263388f37ebd733d4f3371db"}
+      ],
+      "first_staged_trial": {
+        "planned_stages": 8,
+        "dispatched_calls": 5,
+        "registration_sha256": "8aad8188d5d9ab2f9142136cd4fb44ab58efba05780109b89eec33dab9580119",
+        "summary_sha256": "ce4d8dff8f148e5efa6a5994d20ce56013401d6c8eb46226803d1be774f3be5b",
+        "failure": "Three visible drafts rejected by metadata-tail parsing; their audits skipped. Two updated-work stages delivered but parenthesized citation syntax was invalid.",
+        "retrospective_decode_is_not_fresh_generation_acceptance": true
+      }
+    },
+    "quality_scope": "Exposed development cases and independent-agent source review; not human, blind, holdout or fresh paired ON/OFF acceptance",
+    "independent_review": {
+      "reviewer": "independent_agent_not_human_or_holdout",
+      "overall": "accepted_with_caveats",
+      "core_rubric": {"work.initial": "3/3 PASS", "work.updated": "4/4 PASS", "home.current": "4/4 PASS", "paper.current": "3/3 PASS"},
+      "actual_source_windows_reviewed": true,
+      "all_four_frozen_review_bodies_and_source_windows_match": true,
+      "reviewer_model_calls": 0
+    },
+    "known_fidelity_caveats": [
+      "The updated-work withdrawal paraphrases the earlier partly-attributed explanation as mainly caused. The corrected conclusion is appropriately qualified, but that historical wording is stronger than the original.",
+      "The paper draft uses phrases equivalent to larger windows do not solve accurate retrieval and position management matters more than larger windows; these are stronger than the paper's often/not necessarily qualifications."
+    ],
+    "semantic_verified": false,
+    "causality_verified": false,
+    "goal_verified": false
+  },
+  "not_claimed": [
+    "Universal causal identification, natural-language entailment or exclusion of every alternative",
+    "A full path is proved by connected graph edges, valid citations or a review receipt",
+    "Task requirements inherited from compose were newly examined by this verify batch",
+    "Weeks-long unattended real-user task acceptance",
+    "A significant quality gain, model-independent semantic benchmark, stable token savings or end-to-end speedup",
+    "Public hosting, signed mobile installation, commercial readiness or complete RSI"
+  ],
+  "privacy": "No raw prompts, generated answers, user databases, source documents, provider hidden reasoning or credentials are published here"
+}

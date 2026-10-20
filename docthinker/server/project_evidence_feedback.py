@@ -10,7 +10,7 @@ import html
 import json
 import re
 
-MAX_FEEDBACK_BYTES = 6144
+MAX_FEEDBACK_BYTES = 16384
 _STATUS = {'evidence_gaps', 'assessed_with_caveats', 'not_assessed',
            'needs_evidence', 'model_assessed_with_support', 'review_required'}
 _ITEM_STATUS = {'unknown', 'model_assessed_support', 'model_assessed_counterevidence'}
@@ -64,8 +64,8 @@ def _checked_event_reasoning(value):
             or type(value['model_assessed']) is not bool):
         raise ValueError('Evidence assessment is not verified causality')
     obligations, gaps, queries = value['obligations'], value['gaps'], value['suggested_queries']
-    if (type(obligations) is not list or len(obligations) > 16
-            or type(gaps) is not list or len(gaps) > 20
+    if (type(obligations) is not list or len(obligations) > 24
+            or type(gaps) is not list or len(gaps) > 48
             or type(queries) is not list or len(queries) > 8):
         raise ValueError('Evidence feedback exceeds its item budget')
     ids, counts = set(), dict.fromkeys(_ITEM_STATUS, 0)

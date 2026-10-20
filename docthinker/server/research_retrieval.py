@@ -621,6 +621,8 @@ def citation_validation(answer: str, plan_or_labels: Mapping[str, Any] | Sequenc
 
     K labels require an explicitly supplied, current knowledge selection. Even
     a known K citation cannot satisfy the requirement to cite uploaded S text.
+    Citation-shaped event/condition/goal IDs remain unknown diagnostics, even
+    if a caller puts them in source/method labels; they never become evidence.
     This check NEVER claims either kind of reference entails a factual claim.
     """
     if isinstance(plan_or_labels, Mapping):
@@ -659,6 +661,32 @@ def citation_validation(answer: str, plan_or_labels: Mapping[str, Any] | Sequenc
             "used_labels": used, "unknown_labels": unknown, "missing_citations": missing,
             "warnings": warnings, "scope": "citation_syntax_only", "entailment_verified": False,
             "metadata_truncated": metadata_truncated}
+
+
+def refresh_citation_validation(answer: str, source_labels: Sequence[str], previous: dict, *,
+                                knowledge_labels: Sequence[str] = ()) -> dict[str, Any]:
+    """Recheck a replayed body without reviving an older invalid receipt.
+
+    This is a bounded return-time projection, not a metadata rewrite, provider
+    request or semantic verdict. Current namespaces expose legacy false-clean
+    citations while old revocation/limit warnings remain fail-closed.
+    """
+    fresh = citation_validation(answer, source_labels, knowledge_labels=knowledge_labels)
+    used = list(dict.fromkeys([*fresh['used_labels'], *previous.get('used_labels', [])]))
+    unknown = list(dict.fromkeys([*fresh['unknown_labels'], *previous.get('unknown_labels', [])]))
+    missing = fresh['missing_citations'] or previous.get('missing_citations', False)
+    warnings = {row['code']: row for row in fresh['warnings']}
+    for row in previous.get('warnings', []):
+        warnings.setdefault(row['code'], row)
+    if unknown and 'unknown_citation_labels' in warnings:
+        warnings['unknown_citation_labels'] = {**warnings['unknown_citation_labels'], 'labels': unknown[:32]}
+    truncated = (fresh['metadata_truncated'] or previous.get('metadata_truncated', False)
+                 or len(used) > 32 or len(unknown) > 32 or len(warnings) > 8)
+    return {**fresh, 'valid': bool(fresh['valid'] and previous.get('valid') is True
+                                  and not unknown and not missing and not truncated),
+            'used_labels': used[:32], 'unknown_labels': unknown[:32],
+            'missing_citations': missing, 'warnings': list(warnings.values())[:8],
+            'metadata_truncated': truncated}
 
 
 def export_answer_markdown(question: str, answer: str, plan: Mapping[str, Any]) -> str:

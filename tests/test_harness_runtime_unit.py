@@ -72,6 +72,25 @@ async def test_deadline_cancels_once_and_reports_unknown_external_outcome():
         await run.execute(operation)
 
 
+async def test_review_wall_allowance_cannot_extend_a_shorter_outer_deadline():
+    run = HarnessRun('#00001', timeout_seconds=0.01)
+    original_deadline = run.deadline
+    calls = []
+
+    async def model():
+        calls.append(current_run())
+        assert current_run() is run and current_run().deadline == original_deadline
+        await asyncio.Event().wait()
+
+    async def adapter():
+        return await execute_run(model, session_id='#00001', timeout_seconds=240)
+
+    with pytest.raises(asyncio.TimeoutError):
+        await run.execute(adapter)
+    assert calls == [run] and run.deadline == original_deadline
+    assert run.snapshot()['status'] == 'unknown'
+
+
 async def test_cancel_running_operation_is_observed_without_retry_or_rollback_claim():
     started = asyncio.Event()
     stopped = asyncio.Event()

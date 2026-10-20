@@ -48,6 +48,7 @@ ROUTES = {
     ("POST", "/workbench/tasks/run"), ("POST", "/workbench/tasks/control"),
     ("GET", "/workbench/task/artifact"),
     ("POST", "/workbench/tasks/replan/preview"), ("POST", "/workbench/tasks/replan"),
+    ("POST", "/workbench/tasks/evidence/preview"),
     ("POST", "/workbench/long-projects"), ("GET", "/workbench/long-projects"),
     ("GET", "/workbench/long-project"), ("POST", "/workbench/long-project/phases"),
     ("GET", "/workbench/long-project/phases"), ("POST", "/workbench/long-project/phases/review"),

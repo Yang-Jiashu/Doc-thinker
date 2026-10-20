@@ -9,6 +9,7 @@ import json
 import re
 
 _FIELDS = frozenset({'answer', 'event_assessment', 'task_assessment', 'trial_spec'})
+_ANNOTATIONS = _FIELDS - {'answer'}
 _METADATA = re.compile(r'"(?:answer|event_assessment|task_assessment|trial_spec)"\s*:')
 _ROOT = re.compile(r'(?m)^[ \t]*\{')
 _FENCE = re.compile(r'(?im)^[ \t]*```(?:json)?[ \t]*\r?\n[ \t]*(?=\{)')
@@ -61,16 +62,23 @@ def _plain_prefix(value):
     return not stack and not quoted
 
 
-def decode_research_envelope(raw: str, *, max_bytes: int = 131072) -> dict | None:
+def decode_research_envelope(raw: str, *, max_bytes: int = 131072,
+                             allowed_metadata_fields=()) -> dict | None:
     """Return a unique strict root, None for prose, fixed error for unsafe metadata.
 
     Only a line-root bare object or a JSON/unlabelled fenced terminal object
-    can follow prose. Nonempty suffixes, multiple roots, nested examples,
-    duplicate keys and nonfinite JSON never become a selected envelope.
+    can follow prose. A host that explicitly requested annotations may name
+    those fields: one metadata-only terminal object then uses the intact
+    nonempty prose prefix as answer. This is presentation, never semantic
+    repair. Without that contract an example is not promoted into a response.
     """
     try:
         if type(raw) is not str or type(max_bytes) is not int or not 0 < max_bytes <= 1_048_576:
             raise ValueError(_ERROR)
+        if (not isinstance(allowed_metadata_fields, (list, tuple, set, frozenset))
+                or any(type(key) is not str or key not in _ANNOTATIONS for key in allowed_metadata_fields)):
+            raise ValueError(_ERROR)
+        allowed_metadata_fields = set(allowed_metadata_fields)
         if len(raw.encode('utf-8')) > max_bytes:
             raise ValueError(_ERROR)
         text = raw.strip()
@@ -87,7 +95,12 @@ def decode_research_envelope(raw: str, *, max_bytes: int = 131072) -> dict | Non
                 value, end = decoder.raw_decode(text, start)
             except (ValueError, TypeError, RecursionError):
                 continue
-            if not _qualified(value) or not _plain_prefix(text[:prefix_end]):
+            prefix = text[:prefix_end]
+            metadata_only = (type(value) is dict and bool(value) and set(value) <= allowed_metadata_fields
+                             and all(type(item) is dict for item in value.values()))
+            if not _qualified(value) and metadata_only and prefix.strip() and _plain_prefix(prefix):
+                value = {'answer': prefix.rstrip(), **value}
+            if not _qualified(value) or not _plain_prefix(prefix):
                 continue
             suffix = text[end:]
             complete = (bool(re.fullmatch(r'\s*```[ \t]*\s*', suffix)) if fenced else not suffix.strip())

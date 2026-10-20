@@ -102,7 +102,11 @@ def test_invite_run_units_exact_types(tmp_path, units):
 async def _workspace(tmp_path):
     manager = SessionManager(str(tmp_path / '_system'), str(tmp_path), migrate_legacy=False)
     sid = manager.create_session('Scoped project')['id']
-    service = ResearchService(tmp_path, extractor=text_extractor, context_assistance_enabled=True)
+    # This test instruments the literal candidate-derivation lane. Select it
+    # explicitly instead of letting an installed local reranker change which
+    # function is observed on different developer/CI machines.
+    service = ResearchService(tmp_path, extractor=text_extractor, context_assistance_enabled=True,
+                              semantic_retriever=None, evidence_reranker=None, query_translator=None)
     docs = []
     for filename, text in [('allowed.txt', 'Cedar cache preserves previous records under the retention rule. ALLOWED_SCOPE_MARKER.'),
                            ('excluded.txt', 'Cedar cache preserves previous records under the retention rule. PRIVATE_OTHER_DOCUMENT_MARKER.')]:

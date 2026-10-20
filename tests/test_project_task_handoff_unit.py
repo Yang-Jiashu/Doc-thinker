@@ -101,7 +101,7 @@ def test_project_context_is_mandatory_whole_data_but_not_a_retrieval_query(tmp_p
             before = len(prompts)
             with pytest.raises(ValueError):
                 await service.answer(request(sid, question), model, manager,
-                                     document_ids=[doc['id']], project_context='x' * 8193)
+                                     document_ids=[doc['id']], project_context='x' * 16385)
             assert len(prompts) == before
         finally:
             await service.stop()

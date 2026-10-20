@@ -66,6 +66,22 @@ test('research metadata keeps evidence limitations as bounded codes without trus
   assert.deepEqual(api.researchAnswerMetadata({retrieval_gaps:input}),{});
   assert.deepEqual(api.researchAnswerMetadata({research_core:true,retrieval_gaps:Array(100).fill(null)}).retrieval_gaps,[]);
 });
+test('citation-shaped control IDs survive as warnings and never become source references',async()=>{
+  const unknown=['C1','L2','E3','P1','Q1','A1','G1','c0','S99','K99'];
+  const value=api.researchAnswerMetadata({research_core:true,sources:[],citation_validation:{
+    valid:true,entailment_verified:true,unknown_labels:[...unknown,'X1','private-message',{},'C'+'1'.repeat(17)],
+    warnings:[{code:'unknown_citation_labels',message:'private-upstream-text'}]}});
+  assert.deepEqual(value.citation_validation.unknown_labels,unknown);
+  assert.equal(value.citation_validation.entailment_verified,false);
+  assert.ok(!('sources' in value));
+  assert.doesNotMatch(JSON.stringify(value),/private|X1/);
+  const {answerDeliverable}=await import('../src/services/answer-deliverable.js');
+  const exported=answerDeliverable({answer:'Scope limit [C1].',researchCore:true,
+    citationValidation:value.citation_validation});
+  assert.equal(exported.available,true);
+  assert.match(exported.text,/引用缺失或标签不在本次来源内/);
+  assert.match(exported.text,/Scope limit \[C1\]/);
+});
 test('knowledge helper field is omitted for old callers and only accepts automatic routing or off',async()=>{
   api.savePreferences({mode:'connected',baseUrl:'https://one.test',accessToken:'test'});
   await api.api.ask('#00001','普通提问');assert.equal('knowledge_skill_mode' in requests.at(-1).data,false);

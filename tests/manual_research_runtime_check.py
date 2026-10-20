@@ -337,19 +337,42 @@ def phase_one(origin, invitations, calls, parser_lock):
                 "workbench": workbench}
 
 
+def assert_restarted_answer(before, replay, history, *, memory_revoked):
+    """A restart replays request identity, never restores revoked premises."""
+    assert replay['answer_id'] == before['answer_id'], 'Restart changed an accepted request identity'
+    assert len(history) == 2 and history[-1]['id'] == before['answer_id']
+    current = history[-1]
+    assert current['sources'] == replay['sources']
+    assert current['content'] == replay['answer']
+    if memory_revoked:
+        assert replay['sources'] == [] and current['sources'] == []
+        assert replay['used_memory_count'] == current['used_memory_count'] == 0
+        for answer in (replay, current):
+            assert answer['citation_validation']['valid'] is False
+            assert 'memory_context_revoked' in {row['code'] for row in answer['citation_validation']['warnings']}
+            assert 'PRIVATE_RESEARCH_FIXTURE_QUOTE' not in json.dumps(answer)
+            assert before['answer'] not in json.dumps(answer, ensure_ascii=False), 'A withdrawn answer body leaked through replay/history'
+        assert replay['answer'] != before['answer'], 'Corrected memory restored an old generated answer'
+    else:
+        assert replay['sources'] == before['sources']
+        assert replay['answer'] == before['answer']
+        assert replay['used_memory_count'] == current['used_memory_count'] == before['used_memory_count']
+        assert replay['citation_validation'] == before['citation_validation']
+    # Selection metadata describes the historical request, not permission to
+    # reuse its old revisions. Current usage is independently zero on revoke.
+    assert replay['memory_selection'] == current['memory_selection'] == before['memory_selection']
+    assert [gap['code'] for gap in before['retrieval_gaps']] == [gap['code'] for gap in current['retrieval_gaps']]
+    assert all(set(gap) <= {'code', 'count', 'message'} for gap in current['retrieval_gaps'])
+
+
 def phase_two(origin, saved, calls):
     with client(origin) as browser:
         alice, bob = login(browser, "preview"), login(browser, "bobby")
         sid = saved["sid"]
-        for identity, payload, before in zip((alice, bob), saved["payloads"], saved["results"]):
+        for index, (identity, payload, before) in enumerate(zip((alice, bob), saved["payloads"], saved["results"])):
             replay = completed_query(browser, identity, payload)
-            assert replay["answer_id"] == before["answer_id"] and replay["sources"] == before["sources"]
             history = browser.get(PREFIX + "/history", headers=identity, params={"session_id": sid}).json()["history"]
-            assert len(history) == 2 and history[-1]["sources"] == replay["sources"]
-            assert replay["used_memory_count"] == history[-1]["used_memory_count"] == before["used_memory_count"]
-            assert replay["memory_selection"] == history[-1]["memory_selection"] == before["memory_selection"]
-            assert [gap["code"] for gap in before["retrieval_gaps"]] == [gap["code"] for gap in history[-1]["retrieval_gaps"]]
-            assert all(set(gap) <= {"code", "count", "message"} for gap in history[-1]["retrieval_gaps"])
+            assert_restarted_answer(before, replay, history, memory_revoked=index == 0)
         assert len(calls) == 2, "Worker restart replay unexpectedly invoked a provider"
         assert browser.get(PREFIX + "/workbench/brief", headers=alice,
                            params={"session_id": sid}).json()["brief"] == saved["workbench"]["brief"]
@@ -358,7 +381,12 @@ def phase_two(origin, saved, calls):
         assert len(catalog) == 1 and "answer" not in catalog[0], "Listing should not hydrate every saved answer"
         artifact = browser.get(PREFIX + "/workbench/artifact", headers=alice,
                                params={"session_id": sid, "answer_id": saved["results"][0]["answer_id"]}).json()["artifact"]
-        assert artifact == saved["workbench"]["artifact"], "Saved output did not survive worker restart"
+        assert artifact['available'] is False and artifact['answer'] is None
+        assert artifact['unavailable_reason'] == 'memory_context_revoked'
+        assert 'PRIVATE_RESEARCH_FIXTURE_QUOTE' not in json.dumps(artifact)
+        for key, value in saved['workbench']['artifact'].items():
+            if key not in {'available', 'answer'}:
+                assert artifact[key] == value, 'Restart lost the saved bookmark identity'
         memories = browser.get(PREFIX + "/research/memory", headers=alice, params={"session_id": sid}).json()["items"]
         assert next(row for row in memories if row["id"] == saved["preference"]["id"])["text"] == PREFERENCE_UPDATED
         assert len(browser.get(PREFIX + "/sessions", headers=alice).json()["sessions"]) == 2
@@ -715,7 +743,7 @@ def main(argv=None):
                 assert len(calls) == expected_calls, "A replay, status read or healthcheck made an extra model call"
                 if args.workbench_only:
                     print("PASS: real two-worker gateway; per-user and per-session briefs; stale revision rejection; "
-                          "answer-reference bookmarks; restart persistence; live source-revocation suppression; "
+                          "answer-reference bookmarks; restart identity persistence with corrected-memory withdrawal; live source-revocation suppression; "
                           "idempotent unbookmark; no model calls for workbench actions; three fake answer requests only. "
                           "Not a real-model quality or Internet deployment test.", flush=True)
                 else:

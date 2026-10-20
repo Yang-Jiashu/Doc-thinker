@@ -72,6 +72,8 @@ jobs:
           tests/test_mobile_safe_startup_unit.py
           tests/test_chat_completion_contract_unit.py
           tests/test_completion_budget_unit.py
+          tests/test_goal_evidence_budget_unit.py
+          tests/test_goal_evidence_staged_runner_unit.py
           tests/test_gpt5_token_compat_unit.py
           tests/test_invite_app_unit.py
           tests/test_invite_store_unit.py
@@ -92,6 +94,16 @@ jobs:
           tests/test_project_task_replan_unit.py
           tests/test_project_task_handoff_unit.py
           tests/test_project_task_acceptance_unit.py
+          tests/test_project_explicit_review_unit.py
+          tests/test_project_analysis_lineage_unit.py
+          tests/test_project_review_lifecycle_unit.py
+          tests/test_project_lookup_fairness_unit.py
+          tests/test_project_task_followup_unit.py
+          tests/test_project_obligation_ledger_unit.py
+          tests/test_project_evidence_controller_unit.py
+          tests/test_evidence_goal_lifecycle_unit.py
+          tests/test_gap_recompose_lifecycle_unit.py
+          tests/test_manual_research_runtime_contract_unit.py
           tests/test_project_task_quota_unit.py
           tests/test_project_tasks_mobile_unit.py
           tests/test_long_project_store_unit.py
@@ -100,6 +112,11 @@ jobs:
           tests/test_long_projects_gateway_unit.py
           tests/test_personal_events_unit.py
           tests/test_personal_events_mobile_unit.py
+          tests/test_personal_event_context_unit.py
+          tests/test_research_event_reasoning_unit.py
+          tests/test_research_task_review_unit.py
+          tests/test_research_review_stage_unit.py
+          tests/test_project_evidence_feedback_unit.py
           tests/test_research_answer_dependencies_unit.py
           tests/test_research_answer_dependency_batch_unit.py
           tests/test_research_local_handoff_lineage_unit.py
@@ -160,6 +177,7 @@ jobs:
           tests/test_research_fallback_sources_unit.py
           tests/test_research_fallback_service_unit.py
           tests/test_research_answer_contract_unit.py
+          tests/test_research_response_envelope_unit.py
           tests/test_research_heading_boundaries_unit.py
           tests/test_research_source_scope_unit.py
           tests/test_research_source_scope_acceptance_unit.py

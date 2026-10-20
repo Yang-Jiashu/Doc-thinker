@@ -20,6 +20,10 @@ MAX_OUTPUT_TOKENS = 2048
 # delivered text. Evidence-backed synthesis gets headroom, not a second call.
 # This is a task policy shared by every model, not a Step-only token override.
 GROUNDED_OUTPUT_TOKENS = 8192
+# Tasks carrying host-fixed event/task review have to synthesize a delivery as
+# well as assess evidence. This is a task class, independent of vendor/model;
+# the larger cap grants no second call and certifies no causal conclusion.
+REVIEWED_OUTPUT_TOKENS = 16384
 _OUTPUT_BUDGET: ContextVar[int | None] = ContextVar("docthinker_output_budget", default=None)
 _TRUNCATED = "\n[历史片段已截断]\n"
 
@@ -30,6 +34,7 @@ INVITE_REQUEST_BUDGET = {
     "max_input_bytes": MAX_INPUT_BYTES,
     "max_output_tokens": MAX_OUTPUT_TOKENS,
     "max_grounded_output_tokens": GROUNDED_OUTPUT_TOKENS,
+    "max_reviewed_output_tokens": REVIEWED_OUTPUT_TOKENS,
     "automatic_retry": False,
     "history_policy": "recent_bounded",
 }
@@ -51,7 +56,7 @@ def completion_output_budget(limit: int):
     Nested work may reduce but cannot raise the enclosing call allowance. The
     provider still receives one hard completion cap, with no automatic repair.
     """
-    if type(limit) is not int or not 1 <= limit <= GROUNDED_OUTPUT_TOKENS:
+    if type(limit) is not int or not 1 <= limit <= REVIEWED_OUTPUT_TOKENS:
         raise ValueError("Invalid completion budget")
     previous = _OUTPUT_BUDGET.get()
     token = _OUTPUT_BUDGET.set(min(previous, limit) if previous is not None else limit)

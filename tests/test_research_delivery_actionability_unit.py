@@ -30,7 +30,7 @@ def fit(question, quote="The study compares two systems on a fixed test set."):
 
 
 def test_trial_requirements_are_trusted_static_and_have_an_explicit_narrow_scope():
-    assert POLICY_VERSION == "grounded-answer-contract-v8"
+    assert POLICY_VERSION == "grounded-answer-contract-v9"
     assert len(SYSTEM_POLICY.encode()) <= 3800
     for clause in (
         "仅用户要求设计试点/验证/验收时适用",

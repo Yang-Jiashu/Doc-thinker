@@ -32,6 +32,9 @@ class QuestionStep(BaseModel):
     memory_ids: list[str] = Field(default_factory=list, max_length=8)
     document_ids: list[str] | None = Field(default=None, min_length=1, max_length=20)
     depends_on: list[str] = Field(default_factory=list, max_length=6)
+    purpose: Literal['compose', 'verify'] = 'compose'
+    review_of: str | None = Field(default=None, pattern=r'^[a-z][a-z0-9_-]{0,31}$')
+    refine_of: str | None = Field(default=None, pattern=r'^[a-z][a-z0-9_-]{0,31}$')
 
 
 class CreateTask(BaseModel):
@@ -39,7 +42,7 @@ class CreateTask(BaseModel):
     session_id: str = Field(pattern=r'^#[0-9]{5}$')
     goal: str = Field(min_length=1, max_length=1200)
     constraints: str = Field(default='', max_length=1200)
-    questions: list[QuestionStep] = Field(min_length=1, max_length=6)
+    questions: list[QuestionStep] = Field(min_length=1, max_length=12)
 
 
 class UpdateTask(CreateTask):
@@ -66,6 +69,13 @@ class ControlTask(BaseModel):
     task_id: str = Field(pattern=UUID4)
     expected_revision: int = Field(ge=1, lt=2147483647)
     action: Literal['pause', 'resume', 'cancel', 'refresh', 'reconcile', 'retry_failed']
+
+
+class EvidenceRepair(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    session_id: str = Field(pattern=r'^#[0-9]{5}$')
+    task_id: str = Field(pattern=UUID4)
+    expected_revision: int = Field(ge=1, lt=2147483647)
 
 
 async def _safe(operation, *args, **kwargs):
@@ -229,6 +239,14 @@ async def replan_task(body: ReplanTask):
         proposal_sha256=body.proposal_sha256)}
 
 
+@router.post('/tasks/evidence/preview')
+async def preview_evidence_repair(body: EvidenceRepair):
+    _, runtime, _ = await _safe(_context, body.session_id)
+    await _current(runtime, body.task_id)
+    return {'repair': await _safe(runtime.preview_evidence_repair, body.task_id,
+                                  expected_revision=body.expected_revision)}
+
+
 async def _drive(key, runtime, body):
     try:
         await runtime.drive_approved(body.task_id, run_request_id=body.request_id)
@@ -302,7 +320,7 @@ async def artifact(session_id: str, task_id: str = Query(pattern=UUID4),
                 result['content'] = rendered['content']
                 result.update(acceptance_status=rendered['acceptance_status'],
                               goal_verified=rendered['goal_verified'])
-                result.update({key: rendered[key] for key in ('evidence_feedback', 'task_review_feedback', 'content_review', 'next_step_suggestions')
+                result.update({key: rendered[key] for key in ('evidence_feedback', 'task_review_feedback', 'content_review', 'next_step_suggestions', 'evidence_progress', 'delivery_status')
                                if key in rendered})
             else:
                 result.update(available=False, references=None, status='withdrawn')

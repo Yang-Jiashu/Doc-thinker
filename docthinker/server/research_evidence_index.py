@@ -307,9 +307,18 @@ def hydrate_reasoning(reasoning, sources):
             # whose *different* supporting source was removed or changed.
             trace.pop('event_reasoning', None)
             trace['event_reasoning_revoked'] = True
+            trace.pop('causal_delivery', None)
             missing = True
         else:
             trace['event_reasoning'] = current_receipt
+            from .project_evidence_controller import causal_delivery_state
+            admission = causal_delivery_state(current_receipt)
+            if admission is not None:
+                trace['causal_delivery'] = admission
+            else:
+                trace.pop('causal_delivery', None)
+    else:
+        trace.pop('causal_delivery', None)
     if 'task_review' in trace:
         from .research_task_review import hydrate_task_review
         current_review = hydrate_task_review(trace['task_review'], sources)

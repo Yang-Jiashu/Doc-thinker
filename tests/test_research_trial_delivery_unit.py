@@ -120,6 +120,24 @@ async def test_trial_is_one_call_even_with_insight_off_and_survives_history(work
 
 
 @pytest.mark.asyncio
+async def test_trial_metadata_only_terminal_block_preserves_full_existing_trial_contract(workspace):
+    root, manager, sid, _ = workspace
+    service = ResearchService(root, extractor=text_extractor, context_assistance_enabled=False)
+    try:
+        await document(service, sid)
+        value = envelope()
+        model = FakeModel(value['answer'] + '\n\n```json\n' +
+                          json.dumps({'trial_spec': value['trial_spec']}) + '\n```')
+        result = await service.answer(trial_request(sid), model, manager)
+        assert len(model.prompts) == 1 and result['trial_delivery']['status'] == 'valid'
+        assert result['trial_delivery']['executed'] is False
+        assert value['answer'] in result['answer'] and 'trial_spec' not in result['answer']
+        assert service.hydrate_history(sid, manager.get_history(sid))[-1]['content'] == result['answer']
+    finally:
+        await service.stop()
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize('response', ['This is an unstructured proposed plan [S1].', '{"answer":"draft", "trial_spec":null}'])
 async def test_invalid_paid_output_remains_draft_without_retry_or_ready(workspace, response):
     root, manager, sid, _ = workspace

@@ -141,7 +141,7 @@ class LongProjectContext:
                         # Legacy callback artifacts lack review provenance.
                         # Modern reviews must retain the exact originating
                         # answer, including event-only revision invalidation.
-                        if 'event_reasoning' in payload or 'task_review' in payload:
+                        if any(key in payload for key in ('event_reasoning', 'task_review', 'analysis_review')):
                             packet['answer_id'] = payload.get('answer_id')
                         encoded = json.dumps(packet, sort_keys=True, separators=(',', ':'), allow_nan=False)
                         budget.check(len(encoded.encode('utf-8')))

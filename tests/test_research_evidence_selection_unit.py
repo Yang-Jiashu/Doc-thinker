@@ -1,5 +1,6 @@
 """Generic evidence-window retrieval and bounded coverage, no paper fixtures."""
 import copy
+import pytest
 
 from docthinker.server.research_evidence_selection import prepare_evidence_candidates, select_evidence
 
@@ -237,6 +238,79 @@ def test_missing_nonfinite_and_non_numeric_reranker_scores_fail_closed():
         assert result["trace"]["rerank_missing_or_invalid"] == len(candidates)
     assert select_evidence(candidates, {}, facets, [])["sources"] == []
     assert select_evidence(candidates, {item["id"]: 0.0 for item in candidates}, facets, [])["sources"]
+
+
+@pytest.mark.parametrize('question,filename,text', [
+    ('Draft a private handover note and disclose what is missing.', 'handover.txt',
+     'Internal handover is Friday. Sending is not authorized.'),
+    ('Prepare the appointment plan and list what is missing.', 'appointment.txt',
+     'The appointment is Tuesday at 09:00. Payment is not approved.'),
+    ('Summarize the itinerary; keep restrictions.', 'itinerary.txt',
+     'The itinerary requires check-in before 19:00. Late arrival is not guaranteed.'),
+    ('解释 Cedar，有哪些限制？', 'Cedar.pdf',
+     'Cedar reduces recall error by 12%. However, this result applies only to sparse indexes.'),
+    ('Cedar?', 'Cedar.pdf',
+     'Cedar reduces recall error by 12%. However, this result applies only to sparse indexes.'),
+])
+def test_filename_topic_collision_cannot_erase_live_baseline_body_evidence(question, filename, text):
+    from docthinker.server.research_faceted_assist import build_faceted_assistance
+    from docthinker.server.research_retrieval import build_retrieval_plan
+
+    class UnavailableSemantic:
+        def semantic_scores(self, *args, **kwargs):
+            return {'scores': {}, 'spans': {}, 'trace': {'status': 'model_unavailable'}}
+
+    class FullQueryScorer:
+        def rank_pairs(self, candidates, **kwargs):
+            return {'scores': {item['id']: 3. for item in candidates}, 'trace': {'status': 'ready'}}
+
+    chunks = [row('live', text, filename=filename)]
+    baseline = build_retrieval_plan(question, chunks)['sources']
+    assert baseline and baseline[0]['content'] == text
+    result = build_faceted_assistance(question, baseline, chunks, UnavailableSemantic(), FullQueryScorer(),
+                                      session_id='#00001')
+    assert result['sources'] and result['sources'][0]['id'] == 'live'
+    assert result['sources'][0]['content'] == text
+    assert result['trace']['candidate_pool']['candidate_count'] >= 1
+    assert 0 <= result['trace']['candidate_pool']['baseline_witness_nominations'] <= result['trace']['candidate_pool']['candidate_count']
+    assert result['trace']['model_calls'] == result['trace']['provider_calls'] == 0
+    assert sum(len(item['content'].encode()) for item in result['sources']) <= 12000
+
+
+@pytest.mark.parametrize('text', [
+    'References\n[12] Lane, A. 2024. Cedar architecture. Journal of fictional methods.',
+    'Cedar',
+    'Cedar University\ncontact: cedar@example.com',
+    'The orchard produces apples in spring.',
+])
+def test_filename_baseline_rescue_never_bypasses_body_or_metadata_hygiene(text):
+    from docthinker.server.research_query_facets import build_query_facets
+    question = 'Explain the Cedar architecture.'
+    chunk = row('old', text, filename='Cedar.pdf')
+    facets = build_query_facets(question, [chunk])
+    baseline = [{**chunk, 'excerpt_start': 0, 'excerpt_end': len(text)}]
+    result = prepare_evidence_candidates(question, [chunk], baseline, facets, {})
+    assert not any(item.get('baseline_witness_nomination') for item in result['candidates'])
+
+
+@pytest.mark.parametrize('mutation', ['body', 'offset', 'document', 'revoked'])
+def test_baseline_witness_rescue_requires_exact_current_scoped_original(mutation):
+    from docthinker.server.research_query_facets import build_query_facets
+    question = 'Draft the handover note.'
+    text = 'The handover is Friday. Sending is not authorized.'
+    live = row('live', text, filename='handover.txt')
+    baseline = {**live, 'excerpt_start': 0, 'excerpt_end': len(text)}
+    if mutation == 'body':
+        baseline['content'] = 'A corrupted baseline quote.'
+    elif mutation == 'offset':
+        baseline['excerpt_start'] = 1
+    elif mutation == 'document':
+        baseline['document_id'] = 'another'
+    else:
+        live['status'] = 'revoked'
+    facets = build_query_facets(question, [live])
+    result = prepare_evidence_candidates(question, [live], [baseline], facets, {})
+    assert not any(item.get('baseline_witness_nomination') for item in result['candidates'])
 
 
 def test_explicit_anchor_detail_coverage_adds_mechanisms_after_generic_summary():

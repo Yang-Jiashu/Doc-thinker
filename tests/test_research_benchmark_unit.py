@@ -282,7 +282,7 @@ def test_runner_parameters_share_production_provider_rules_without_independent_e
 def test_manifest_records_task_policy_without_pretending_single_output_cap():
     configured = generation_configuration('https://api.stepfun.com/v1', 'step-5-preview')
     assert configured['output_budget_policy'] == {
-        'mode': 'production_task_budget', 'chat': 2048, 'grounded_research': 8192,
+        'mode': 'production_task_budget', 'chat': 2048, 'grounded_research': 8192, 'evidence_review': 16384,
         'explicit_override': None, 'actual_dispatch_parameters_in_each_receipt': True}
     assert 'max_tokens' not in configured['parameters']
     assert configured['temperature_control']['requested'] == 0.1
@@ -294,7 +294,8 @@ def test_manifest_records_task_policy_without_pretending_single_output_cap():
 
 
 @pytest.mark.asyncio
-async def test_actual_dispatch_and_prepare_capture_task_budget_inside_context(tmp_path):
+@pytest.mark.parametrize('limit', [8192, 16384])
+async def test_actual_dispatch_and_prepare_capture_task_budget_inside_context(tmp_path, limit):
     from docthinker.server.invite_budget import completion_output_budget, current_output_tokens
 
     requests = []
@@ -304,13 +305,13 @@ async def test_actual_dispatch_and_prepare_capture_task_budget_inside_context(tm
     async with httpx.AsyncClient(transport=httpx.MockTransport(handle)) as client:
         model, _ = adapter(tmp_path, client)
         preparation = PreparationModel()
-        with completion_output_budget(8192):
+        with completion_output_budget(limit):
             await model('paper', system_prompt='policy')
             with pytest.raises(PreparedPrompt) as captured:
                 await preparation('paper', system_prompt='policy')
         assert current_output_tokens() == 2048
-    assert requests[0]['max_tokens'] == model.metadata['parameters']['max_tokens'] == 8192
-    assert captured.value.parameters['max_tokens'] == 8192
+    assert requests[0]['max_tokens'] == model.metadata['parameters']['max_tokens'] == limit
+    assert captured.value.parameters['max_tokens'] == limit
     assert model.metadata['output_cap_basis'] == 'production_task_budget'
     with completion_output_budget(8192):
         assert generation_parameters('https://api.stepfun.com/v1', 'step-5-preview', max_output_tokens=1024)['max_tokens'] == 1024

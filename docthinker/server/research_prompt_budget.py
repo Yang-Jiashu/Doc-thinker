@@ -9,7 +9,8 @@ from __future__ import annotations
 import json
 import re
 
-from .invite_budget import GROUNDED_OUTPUT_TOKENS, MAX_OUTPUT_TOKENS, validate_invite_messages
+from .invite_budget import (GROUNDED_OUTPUT_TOKENS, MAX_OUTPUT_TOKENS, REVIEWED_OUTPUT_TOKENS,
+                            current_output_tokens, has_output_budget, validate_invite_messages)
 from .research_retrieval import grounded_prompt, refresh_query_coverage
 from .research_answer_contract import answer_contract_receipt, SYSTEM_POLICY, INSIGHT_POLICY, knowledge_skill_system_policy
 from .research_knowledge import compile_task_knowledge
@@ -102,7 +103,7 @@ def fit_research_prompt(question, plan, history, assistance, *, system_policy, m
     if task_review_context is None and task_review_contract is not None:
         raise ValueError('Task review contract requires task context')
     if project_context is not None and (not isinstance(project_context, str) or not project_context.strip()
-                                        or len(project_context.encode('utf-8')) > 8192):
+                                        or len(project_context.encode('utf-8')) > 16384):
         raise ValueError('Invalid project context')
     memory = plan["confirmed_memories"]
     # Bind only current input windows. This is neither new retrieval nor a
@@ -297,6 +298,17 @@ def fit_research_prompt(question, plan, history, assistance, *, system_policy, m
             row['code'] == 'final_need_witness_unmatched' and 'uncovered_query_terms' in gap_codes
             and not need_ledger.explicit and not need_ledger.omitted_query_terms)]
         fitted = {**fitted, 'gaps': [*fitted['gaps'], *need_gaps]}
+        # Only validated host review contexts select the reviewed profile.
+        # User text, sources or model names cannot request the larger cap.
+        # A trusted outer execution may impose a smaller allowance; fitting
+        # reports that actual bound instead of merely relying on dispatch to
+        # clamp an overoptimistic receipt later.
+        reviewed = event_context is not None or task_review_context is not None
+        output_profile = 'evidence_review' if reviewed else 'grounded' if sources else 'chat'
+        profile_output_tokens = (REVIEWED_OUTPUT_TOKENS if reviewed else
+                                 GROUNDED_OUTPUT_TOKENS if sources else MAX_OUTPUT_TOKENS)
+        output_tokens = (min(profile_output_tokens, current_output_tokens())
+                         if has_output_budget() else profile_output_tokens)
         budget = {"measurement": "utf8_bytes_not_billed_tokens", "max_input_bytes": 24576,
                   "input_bytes": sum(len(item["role"].encode()) + len(item["content"].encode()) for item in messages),
                   "source_bytes": sum(len(row["content"].encode()) for row in sources),
@@ -305,8 +317,9 @@ def fit_research_prompt(question, plan, history, assistance, *, system_policy, m
                   "assist_bytes": len(support["prompt"].encode()), "retrieval_passes": 1,
                   "knowledge_skill_bytes": len(skill.encode()),
                   "insight_bytes": len(insight.encode()),
-                  "max_output_tokens": GROUNDED_OUTPUT_TOKENS if sources else MAX_OUTPUT_TOKENS,
-                  "output_budget_profile": "grounded" if sources else "chat",
+                  "max_output_tokens": output_tokens,
+                  "profile_output_tokens": profile_output_tokens,
+                  "output_budget_profile": output_profile,
                   "automatic_retry": False}
         if trial_contract:
             budget['trial_contract_bytes'] = len(trial_contract['prompt'].encode()) + len(trial_contract['policy'].encode())

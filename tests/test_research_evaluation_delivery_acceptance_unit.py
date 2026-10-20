@@ -250,7 +250,7 @@ def fitted(question, text="A fixed archive study found no improvement under the 
 
 def test_trial_contract_is_trusted_and_requires_comparable_inputs_and_measurable_rules():
     _, result = fitted("给这个工具设计一个小规模试点，说明怎么决定继续还是停止。")
-    assert contract.POLICY_VERSION == "grounded-answer-contract-v8"
+    assert contract.POLICY_VERSION == "grounded-answer-contract-v9"
     policy = result["messages"][0]["content"]
     assert result["messages"][0]["role"] == "system"
     assert "拟议验证交付" in policy

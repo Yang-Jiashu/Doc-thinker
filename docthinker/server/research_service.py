@@ -17,7 +17,8 @@ import time
 
 from docthinker.harness_runtime import current_run, execute_run
 from .invite_budget import bounded_invite_history, completion_output_budget, validate_invite_question
-from .research_retrieval import build_retrieval_plan, citation_validation, refresh_query_coverage
+from .research_retrieval import (build_retrieval_plan, citation_validation, refresh_query_coverage,
+                                 refresh_citation_validation)
 from .research_corpus_index import PreparedCorpusCache, CorpusIndexTooLarge
 from .research_memory import select_confirmed_memories
 from .research_memory_dependencies import MemoryDependencies
@@ -50,6 +51,8 @@ from .research_discovery import build_discovery_context, fit_graph_receipt
 from .insight_runtime import InsightRuntime
 from .research_trial_delivery import (requests_trial_delivery, trial_contract_packet,
                                      trial_delivery_receipt, unavailable_trial_receipt)
+from .research_review_stage import COMPOSE_EVENT_POLICY
+from .research_citation_syntax import normalize_approved_citations
 
 EXTRACTION_SECONDS = 25
 MAX_EXTRACT_OUTPUT = 2 * 1024 * 1024
@@ -602,11 +605,12 @@ class ResearchService:
 
     async def answer(self, request, model, manager, *, document_ids=None, project_instance_id=None,
                      project_context=None, task_context_refs=None, project_parent_answer_ids=None,
-                     project_parent_task_refs=None, task_requirements=None) -> dict:
+                     project_parent_task_refs=None, task_requirements=None, task_followup=None,
+                     analysis_purpose='compose', review_target=None) -> dict:
         # HTTP, mobile and direct service calls share one execution owner. A
         # transport that already entered the Harness is reused, not restarted.
         return await execute_run(lambda: self._answer(request, model, manager)
-                                 if document_ids is None and project_instance_id is None and project_context is None and task_context_refs is None and project_parent_answer_ids is None and project_parent_task_refs is None and task_requirements is None else
+                                 if document_ids is None and project_instance_id is None and project_context is None and task_context_refs is None and project_parent_answer_ids is None and project_parent_task_refs is None and task_requirements is None and task_followup is None and analysis_purpose == 'compose' and review_target is None else
                                  self._answer(request, model, manager, document_ids=document_ids,
                                               project_instance_id=project_instance_id,
                                               project_context=project_context,
@@ -615,12 +619,25 @@ class ResearchService:
                                                  if project_parent_answer_ids is not None else {}),
                                               **({'project_parent_task_refs': project_parent_task_refs}
                                                  if project_parent_task_refs is not None else {}),
-                                              **({'task_requirements': task_requirements} if task_requirements is not None else {})),
+                                              **({'task_requirements': task_requirements} if task_requirements is not None else {}),
+                                              **({'task_followup': task_followup} if task_followup is not None else {}),
+                                              analysis_purpose=analysis_purpose, review_target=review_target),
                                  session_id=request.session_id)
 
     async def _answer(self, request, model, manager, *, document_ids=None, project_instance_id=None,
                       project_context=None, task_context_refs=None, project_parent_answer_ids=None,
-                      project_parent_task_refs=None, task_requirements=None) -> dict:
+                      project_parent_task_refs=None, task_requirements=None, task_followup=None,
+                      analysis_purpose='compose', review_target=None) -> dict:
+        if analysis_purpose not in {'compose', 'verify'}:
+            raise ValueError('Invalid host analysis purpose')
+        if analysis_purpose == 'verify':
+            return await self._verify_answer(request, model, manager, document_ids=document_ids,
+                project_instance_id=project_instance_id, project_context=project_context,
+                project_parent_answer_ids=project_parent_answer_ids,
+                project_parent_task_refs=project_parent_task_refs, task_requirements=task_requirements,
+                task_context_refs=task_context_refs, review_target=review_target)
+        if review_target is not None:
+            raise ValueError('Compose cannot borrow a review target')
         run = current_run()
         sid, question = request.session_id, request.question
         parent_answer_ids = []
@@ -654,12 +671,24 @@ class ResearchService:
         if project_context is not None:
             # Trusted project context is mandatory analysis data, not a query
             # expansion. Routing/ranking continue to see the actual question.
-            if not isinstance(project_context, str) or not project_context.strip():
+            if (not isinstance(project_context, str) or not project_context.strip()
+                    or len(project_context.encode('utf-8')) > 16384):
                 raise ValueError('Invalid project context')
-            validate_invite_question(project_context)
+            # This includes the full project/phase requirements and current
+            # predecessor gaps, not another chat question. The formatter still
+            # meters the complete messages against the shared input ceiling.
             if request.use_memory or request.use_conversation_context:
                 raise ValueError('Project task context must be explicit')
         task_review_packet, task_review = None, None
+        followup_queries = []
+        if task_followup is not None:
+            if project_context is None or project_instance_id is None or not parent_answer_ids:
+                raise ValueError('Evidence follow-up requires current authorized parent analyses')
+            from .research_task_review import validate_task_followup, task_followup_queries
+            task_followup = validate_task_followup(task_followup)
+            if any(row['answer_id'] not in parent_answer_ids for row in task_followup['dependencies']):
+                raise ValueError('Evidence follow-up exceeds approved parent scope')
+            followup_queries = task_followup_queries(task_followup)
         if task_requirements is not None and (project_context is None or project_instance_id is None):
             raise ValueError('Task requirements require an explicit project context')
         if project_context is not None:
@@ -704,8 +733,18 @@ class ResearchService:
             if request.use_memory or request.use_conversation_context:
                 raise ValueError('Scoped task context must be explicit')
             documents = [row for row in documents if row['id'] in allowed]
+        lookup_scope = None
+        lookup_before = (await asyncio.to_thread(self.store.document_snapshots, sid, document_ids)
+                         if task_followup is not None and not personal else None)
         chunks = ([] if personal else await asyncio.to_thread(self.all_chunks, sid) if document_ids is None else
                   await asyncio.to_thread(self.all_chunks, sid, document_ids=document_ids))
+        if task_followup is not None:
+            if personal:
+                lookup_scope = {'input_kind': 'personal', 'context_refs': dict(task_context_refs)}
+            else:
+                lookup_after = await asyncio.to_thread(self.store.document_snapshots, sid, document_ids)
+                if lookup_before == lookup_after:
+                    lookup_scope = {'input_kind': 'documents', 'document_snapshot': lookup_before}
         if document_ids is not None:
             scoped_chunk_ids = {row['id'] for row in chunks}
         selection = ({'memories': explicit_memories, 'omitted_count': 0, 'strategy': 'explicit_task_memory'} if personal else
@@ -916,15 +955,22 @@ class ResearchService:
                 'status': work.status, 'model_calls': 0,
                 **({'timing': work.trace} if work.trace is not None else {})}
         run.checkpoint()
-        task_queries = ([value.encode('utf-8')[:400].decode('utf-8', errors='ignore')
-                         for value in task_requirements['acceptance_criteria'][:4]]
-                        if task_requirements is not None else [])
-        if event_context is not None or task_queries:
+        if task_requirements is not None:
+            from .research_task_review import task_requirement_rows
+            task_queries = [row['text'].encode('utf-8')[:400].decode('utf-8', errors='ignore')
+                            for row in task_requirement_rows(task_requirements)]
+        else:
+            task_queries = []
+        if event_context is not None or task_queries or followup_queries:
             # Link witnesses and counterevidence get the existing two spare
             # source slots BEFORE generic Insight extras. This does not evict
             # primary evidence or increase the shared 10-source/12KB budget.
-            query_needs = {**(event_obligations or {}), 'suggested_queries': list(dict.fromkeys([
-                *(event_obligations or {}).get('suggested_queries', [])[:4], *task_queries]))[:8]}
+            # Actual unresolved parent work competes before generic criteria.
+            # Fair, bounded query selection never turns a deferred item into
+            # a completed one; the durable ledger retains the full worklist.
+            from .project_evidence_controller import retrieval_worklist
+            query_needs, followup_trace = retrieval_worklist(event_obligations,
+                followup_queries=followup_queries, requirement_queries=task_queries)
             event_supplement = await asyncio.to_thread(supplement_event_gaps, search_question,
                 assistance['sources'], chunks, query_needs, context=event_context)
             assistance = {**assistance, 'sources': event_supplement['sources']}
@@ -976,7 +1022,7 @@ class ResearchService:
                                      system_policy=knowledge_skill_system_policy(bool(knowledge_support and knowledge_support['prompt'])),
                                      memory_as_of=memory_as_of, knowledge_support=knowledge_support,
                                      insight_runtime=insight, trial_contract=trial_contract,
-                                     **({'event_context': event_prompt, 'event_contract': EVENT_RESPONSE_POLICY,
+                                     **({'event_context': event_prompt, 'event_contract': COMPOSE_EVENT_POLICY,
                                          'event_source_guards': event_source_guards}
                                         if event_prompt is not None else {}),
                                      **({'task_review_context': task_review_packet,
@@ -1000,6 +1046,29 @@ class ResearchService:
         reasoning['trace']['semantic_retrieval'] = semantic_trace
         reasoning['trace']['lexical_features'] = lexical_features
         reasoning['trace']['knowledge_skill_router'] = knowledge_route
+        if task_followup is not None:
+            from .project_obligation_ledger import LOOKUP_POLICY_VERSION
+            looked_up = event_supplement.get('queries', []) if event_supplement else []
+            lookup_trace = event_supplement.get('trace', {}) if event_supplement else {}
+            def query_digests(indices):
+                return [hashlib.sha256(looked_up[index].encode('utf-8')).hexdigest()
+                        for index in indices if type(index) is int and 0 <= index < len(looked_up)]
+            reasoning['trace']['evidence_followup'] = {
+                **followup_trace,
+                'lookup_policy': LOOKUP_POLICY_VERSION, 'lookup_scope': lookup_scope,
+                'parent_answer_ids': list(dict.fromkeys(row['answer_id'] for row in task_followup['dependencies'])),
+                'omitted_queries': sum(row['omitted_query_count'] for row in task_followup['dependencies']),
+                'omitted_gaps': sum(row['omitted_gap_count'] for row in task_followup['dependencies']),
+                'attempted_query_sha256': query_digests(lookup_trace.get('attempted_query_indices', [])),
+                'corpus_attempted_query_sha256': query_digests(lookup_trace.get('corpus_attempted_query_indices', [])),
+                'corpus_scan_limited': lookup_trace.get('limited') is not False,
+                'candidate_query_sha256': query_digests(sorted(set([
+                    *lookup_trace.get('covered_query_indices', []),
+                    *lookup_trace.get('retained_candidate_query_indices', [])]))),
+                'dependencies': [{key: row[key] for key in ('instance_id', 'task_id', 'step_id',
+                    'artifact_version', 'answer_id', 'review_kind', 'receipt_sha256')}
+                    for row in task_followup['dependencies']],
+                'model_calls': 0, 'semantic_verified': False}
         if task_requirements is not None and event_supplement is not None:
             reasoning['trace']['task_requirement_retrieval'] = event_supplement['trace']
             if event_context is None:
@@ -1067,9 +1136,28 @@ class ResearchService:
                 raise ValueError("Chat model returned an invalid answer")
             answer_mode = mode if refs else "memory" if plan["confirmed_memories"] else "general"
         model_called = algorithm_answer is None and answer_mode != 'insufficient_evidence'
+        raw_model_response = answer
         raw_event_response = answer
+        if model_called and (event_context is not None or task_review_packet is not None or trial_contract):
+            from .research_response_envelope import decode_research_envelope
+            try:
+                envelope = decode_research_envelope(answer, allowed_metadata_fields=(
+                    *(('task_assessment',) if task_review_packet is not None else ()),
+                    *(('trial_spec',) if trial_contract else ())))
+            except (ValueError, TypeError, RecursionError, UnicodeError):
+                from .model_response_error import ModelResponseError
+                raise ModelResponseError('model_response_invalid') from None
+            if envelope is not None:
+                answer = envelope['answer']
+                # One explicit host-owned presentation composition. All later
+                # parsers receive the same unique root, not another extraction
+                # from arbitrary examples or a different prose prefix.
+                raw_event_response = json.dumps(envelope, ensure_ascii=False)
         if event_context is not None and model_called:
-            answer, event_receipt = parse_event_response(answer, event_context, refs)
+            # Writing and evidence review are separate authorized DAG nodes.
+            # Ignore unsolicited event verdicts from a writer, retaining the
+            # complete host catalog as unknown for the explicit verify node.
+            _, event_receipt = parse_event_response(json.dumps({'answer': answer}), event_context, refs)
             reasoning['trace']['event_reasoning'] = event_receipt
             reasoning['trace']['event_retrieval'] = event_context['trace']
             reasoning['trace']['event_frontier'] = event_context['_frontier_trace']
@@ -1084,14 +1172,44 @@ class ResearchService:
         if trial_contract and model_called:
             from .research_trial_contract import parse_trial_response
             from .research_trial_renderer import render_trial_response
-            trial_response = answer
+            # Preserve the complete trial wrapper after presentation decoding;
+            # ``answer`` now contains only the author's public body.
+            trial_response = raw_event_response
             if event_receipt is not None or task_review_packet is not None:
                 trial_response = event_trial_response(raw_event_response)
             parsed_trial = parse_trial_response(trial_response)
+            if (parsed_trial['status'] != 'valid' and event_receipt is None
+                    and task_review_packet is None):
+                # Existing trial-only failures retain their original draft,
+                # including formatting; never hide an invalid provider shape
+                # behind the mechanically decoded body.
+                parsed_trial['raw_draft'] = raw_model_response
             answer = render_trial_response(parsed_trial)
             trial_receipt = trial_delivery_receipt(parsed_trial, [source['id'] for source in refs],
                                                    trial_contract['schema_sha256'])
             reasoning['trace']['trial_delivery'] = trial_receipt
+        if event_receipt is not None and model_called:
+            from .project_evidence_controller import causal_delivery_state
+            causal_delivery = causal_delivery_state(event_receipt)
+            if causal_delivery is not None:
+                reasoning['trace']['causal_delivery'] = causal_delivery
+                if causal_delivery['status'] != 'ready_for_review':
+                    # Keep the original generated draft inspectable while
+                    # preventing an unexamined graph from being presented as
+                    # a settled causal answer. Bind review to THIS final body.
+                    notice = ('证据核对：当前存在反证，以下仅作待复核的候选解释，不能认定因果。'
+                              if causal_delivery['status'] == 'counterevidence' else
+                              '证据核对：关键因果链尚未补齐，以下仅作待验证的候选解释，不能认定因果。')
+                    answer = notice + '\n\n' + answer
+        if model_called:
+            method_labels = ([row['label'] for row in (knowledge_support or {}).get('sources', [])]
+                if fitted['knowledge_skill_included'] and (knowledge_support or {}).get('trace', {}).get('status') == 'ready' else [])
+            normalized_answer = normalize_approved_citations(answer, [row['label'] for row in refs],
+                                                             knowledge_labels=method_labels)
+            if normalized_answer != answer:
+                reasoning['trace']['citation_presentation'] = {'normalized': True,
+                    'scope': 'current_approved_s_k_groups_only', 'model_calls': 0}
+            answer = normalized_answer
         if task_review_packet is not None and model_called:
             _, task_review = parse_task_response(raw_event_response, task_requirements, refs, final_answer=answer)
             reasoning['trace']['task_review'] = task_review
@@ -1198,6 +1316,17 @@ class ResearchService:
         answer_id = manager.add_message(sid, "assistant", answer,
             **({'research_memory_required': True} if memory_bindings else {}),
             **({'research_provenance_required': True} if provenance_required else {}))
+        if model_called and answer not in {WITHDRAWN_ANALYSIS, WITHDRAWN_MEMORY}:
+            from .research_review_stage import make_review_marker
+            marker = make_review_marker(question=question, body=answer, sources=refs,
+                event_context=event_context, task_requirements=task_requirements, answer_id=answer_id,
+                input_scope={'document_ids': sorted(row['id'] for row in documents),
+                             'context_refs': dict(task_context_refs or {})})
+            reasoning['trace']['analysis_review'] = marker
+            if event_receipt is not None:
+                _, event_receipt = parse_event_response(json.dumps({'answer': answer}), event_context, refs,
+                                                        context_sha256=marker['context_sha256'])
+                reasoning['trace']['event_reasoning'] = event_receipt
         used_memory_count = 0 if algorithm_answer is not None or answer_mode == "insufficient_evidence" else len(plan["confirmed_memories"])
         context_metadata = {"retrieval_gaps": plan["gaps"],
                             "used_memory_count": used_memory_count,
@@ -1298,6 +1427,196 @@ class ResearchService:
                     result.pop(key, None)
         return result
 
+    def _current_review_target(self, request, manager, target, instance_id):
+        """Reload authoritative parent text and windows; never trust a packet alone."""
+        from .research_review_stage import build_review_target
+        sid = request.session_id
+        session = manager.get_session(sid)
+        if (type(target) is not dict or target.get('session_id') != sid
+                or target.get('instance_id') != instance_id or not session
+                or session.get('instance_id') != instance_id):
+            raise ResearchNotFoundError('Review parent scope changed')
+        matches = [row for row in manager.get_history(sid)
+                   if row.get('id') == target.get('answer_id') and row.get('role') == 'assistant']
+        if len(matches) != 1:
+            raise ResearchNotFoundError('Review parent answer unavailable')
+        current = self.hydrate_history(sid, matches)[0]
+        rebuilt = build_review_target(current, question=request.question, session_id=sid, instance_id=instance_id)
+        if rebuilt != target:
+            raise ResearchNotFoundError('Review parent body or source windows changed')
+        return current
+
+    async def _verify_answer(self, request, model, manager, *, document_ids, project_instance_id,
+                             project_context, project_parent_answer_ids, project_parent_task_refs,
+                             task_requirements, task_context_refs, review_target):
+        """One explicit paid review of a frozen body, without retrieval/writing.
+
+        Failure never changes the parent. The same history/provenance stores
+        own a successful reviewed version; this method creates no run grant.
+        """
+        from .research_review_stage import (build_review_target, digest, load_bound_event_context,
+            make_review_marker, merge_task_review, review_prompt)
+        from .research_response_envelope import decode_research_envelope
+        from .research_task_review import validate_task_requirements
+        from .invite_budget import REVIEWED_OUTPUT_TOKENS
+        from .model_response_error import ModelResponseError
+        run = current_run()
+        sid, question = request.session_id, request.question
+        validate_invite_question(question)
+        if (model is None or project_instance_id is None or project_context is None
+                or request.use_memory or request.use_conversation_context
+                or getattr(request, 'memory_as_of', None) is not None):
+            raise ValueError('Review requires explicit current task context')
+        parents = self.answer_dependencies.decode(json.dumps(project_parent_answer_ids))
+        if not parents or type(review_target) is not dict or review_target.get('answer_id') not in parents:
+            raise ValueError('Review target must be an approved parent analysis')
+        capacity = await asyncio.to_thread(self.store.answer_capacity, sid)
+        if not capacity['available']:
+            from .research_store import ResearchLimitError
+            raise ResearchLimitError('Answer metadata capacity reached')
+        if not await asyncio.to_thread(self.answer_dependencies.parents_live, sid, parents):
+            raise ResearchNotFoundError('Review parent provenance unavailable')
+        if project_parent_task_refs and not await asyncio.to_thread(
+                self.answer_dependencies.task_origins_live, sid, project_parent_task_refs):
+            raise ResearchNotFoundError('Review task origin changed')
+        current = await asyncio.to_thread(self._current_review_target, request, manager, review_target, project_instance_id)
+        marker = review_target['analysis_review']
+        body, refs = review_target['content'], review_target['sources']
+        if document_ids is not None and any(row['document_id'] not in document_ids for row in refs):
+            raise ValueError('Review source exceeds approved document scope')
+        personal = task_context_refs is not None
+        approved_documents = ([] if personal else list(document_ids) if document_ids is not None else
+                              [row['id'] for row in await asyncio.to_thread(self.store.list_documents, sid)])
+        if marker.get('input_scope') != {'document_ids': sorted(approved_documents),
+                                         'context_refs': dict(task_context_refs or {})}:
+            raise ValueError('Review cannot change the approved input scope')
+        if personal:
+            if document_ids != [] or refs:
+                raise ValueError('Personal review cannot borrow document sources')
+            await asyncio.to_thread(self.task_memory_context, sid, list(task_context_refs), expected=task_context_refs)
+        if task_requirements is None and marker.get('requirements_sha256') is not None:
+            task_requirements = build_task_requirements(question, input_kind='personal' if personal else 'documents')
+        if task_requirements is not None:
+            task_requirements = validate_task_requirements(task_requirements)
+            if task_requirements['question'] != question or task_requirements['input_kind'] != ('personal' if personal else 'documents'):
+                raise ValueError('Review requirements changed')
+        if marker.get('requirements_sha256') != (task_requirements or {}).get('requirements_sha256'):
+            raise ValueError('Review cannot substitute original requirements')
+        context = await asyncio.to_thread(load_bound_event_context, self.store, sid, marker)
+        event_receipt = review_target.get('event_reasoning')
+        task_review = review_target.get('task_review')
+        if context is not None and event_receipt is None:
+            _, event_receipt = parse_event_response(json.dumps({'answer': body}), context, refs,
+                                                    context_sha256=marker['context_sha256'])
+        if task_requirements is not None and task_review is None:
+            _, task_review = parse_task_response(body, task_requirements, refs, final_answer=body)
+        work = review_prompt(question, body, refs, context, event_receipt, task_requirements,
+                             task_review, marker['assessed_need_ids'])
+        run.emit('stage.completed', 'retrieval', {'source_count': len(refs), 'new_retrieval': False})
+        run.checkpoint()
+        with run.stage('generation'), completion_output_budget(REVIEWED_OUTPUT_TOKENS):
+            raw = str(await model(work['prompt'], system_prompt=work['messages'][0]['content']) or '').strip()
+        if not raw:
+            raise ModelResponseError('model_response_empty')
+        try:
+            envelope = decode_research_envelope(raw, allowed_metadata_fields=(
+                *(('event_assessment',) if context is not None else ()),
+                *(('task_assessment',) if task_requirements is not None else ())))
+            if envelope is None:
+                raise ValueError('Missing assessment envelope')
+        except (ValueError, TypeError, RecursionError):
+            # A complete response arrived with a known unusable format. It is
+            # not an ambiguous transport outcome and never retries itself.
+            raise ModelResponseError('model_response_invalid') from None
+        raw = json.dumps(envelope, ensure_ascii=False)
+        if not await asyncio.to_thread(self.answer_dependencies.parents_live, sid, parents):
+            raise ResearchNotFoundError('Review parent changed during assessment')
+        await asyncio.to_thread(self._current_review_target, request, manager, review_target, project_instance_id)
+        if project_parent_task_refs and not await asyncio.to_thread(
+                self.answer_dependencies.task_origins_live, sid, project_parent_task_refs):
+            raise ResearchNotFoundError('Review task origin changed during assessment')
+        if context is not None:
+            try:
+                _, event_receipt = parse_event_response(raw, work['context'], refs,
+                    previous=event_receipt, context_sha256=marker['context_sha256'])
+            except (ValueError, TypeError, KeyError, RecursionError, UnicodeError):
+                raise ModelResponseError('model_response_invalid') from None
+        selected_tasks = set(work['task_ids'])
+        task_assessment = envelope.get('task_assessment')
+        task_rows = task_assessment.get('requirements') if type(task_assessment) is dict else []
+        task_rows = ([row for row in task_rows if type(row) is dict and row.get('id') in selected_tasks]
+                     if type(task_rows) is list and len(task_rows) <= 26 else [])
+        if task_requirements is not None:
+            filtered = json.dumps({'answer': 'Frozen answer review',
+                                   'task_assessment': {'requirements': task_rows}})
+            try:
+                _, fresh = parse_task_response(filtered, task_requirements, refs, final_answer=body)
+                task_review = merge_task_review(fresh, task_review, refs, body)
+            except (ValueError, TypeError, KeyError, RecursionError, UnicodeError):
+                raise ModelResponseError('model_response_invalid') from None
+        reviewed_ids = list(dict.fromkeys([*marker['assessed_need_ids'],
+            *('event:' + value for value in (event_receipt or {}).get('assessed_need_ids', [])),
+            *('task:' + row['id'] for row in task_rows)]))
+        reasoning = json.loads(json.dumps(current.get('reasoning') or {'mode': 'context_assist',
+            'status': 'not_requested', 'claims': [], 'conclusions': [], 'gaps': [], 'trace': {}}))
+        trace = reasoning.setdefault('trace', {})
+        if event_receipt is not None:
+            trace['event_reasoning'] = event_receipt
+            from .project_evidence_controller import causal_delivery_state
+            admission = causal_delivery_state(event_receipt)
+            if admission is not None:
+                trace['causal_delivery'] = admission
+        if task_review is not None:
+            trace['task_review'] = task_review
+        trace.update(answer_model_calls=1, review_batch={'event_ids': work['event_ids'],
+            'task_ids': work['task_ids'], 'new_retrieval': False, 'rewritten_body': False,
+            'input_bytes': work['input_bytes'], 'model_calls': 1})
+        knowledge = current.get('knowledge_skill')
+        labels = [row['label'] for row in (knowledge or {}).get('sources', [])] if (knowledge or {}).get('status') == 'ready' else []
+        validation = refresh_citation_validation(body, [row['label'] for row in refs],
+                                                 current['citation_validation'], knowledge_labels=labels)
+        audit = audit_answer(body, refs)
+        run.checkpoint()
+        manager.add_message(sid, 'user', question)
+        answer_id = manager.add_message(sid, 'assistant', body, research_provenance_required=True)
+        trace['analysis_review'] = make_review_marker(question=question, body=body, sources=refs,
+            event_context=context, task_requirements=task_requirements, answer_id=answer_id,
+            purpose='verify', previous=marker, target_answer_id=review_target['answer_id'], assessed_need_ids=reviewed_ids,
+            input_scope=marker.get('input_scope'))
+        trace['harness'] = run.snapshot()
+        metadata = {'used_memory_count': 0, 'answer_dependency_required': True}
+        if context is not None:
+            metadata.update(self.event_dependencies.context_metadata(context['bindings']))
+        try:
+            await asyncio.to_thread(self.store.record_answer, sid, answer_id,
+                [{key: row[key] for key in ('id', 'label', 'excerpt_start', 'excerpt_end', 'truncated')} for row in refs],
+                validation, current['answer_mode'], context_metadata=metadata)
+            if context is not None:
+                await asyncio.to_thread(self.event_dependencies.record, sid, answer_id, context['bindings'])
+            await asyncio.to_thread(self.answer_dependencies.record, sid, answer_id, parents,
+                **({'task_refs': project_parent_task_refs} if project_parent_task_refs else {}))
+            await asyncio.to_thread(self.evidence.record, sid, answer_id, reasoning=reasoning, audit=audit,
+                memory_as_of=None, reasoning_mode=current.get('reasoning_mode', 'auto'), knowledge_skill=knowledge)
+        except Exception:
+            # The new child may be unavailable; the frozen parent is untouched.
+            return {'answer': WITHDRAWN_ANALYSIS, 'answer_id': answer_id, 'sources': [],
+                'answer_mode': current['answer_mode'], 'research_core': True,
+                'research_provenance_required': True,
+                'citation_validation': {**validation, 'valid': False, 'warnings': [*validation['warnings'],
+                    {'code': 'provenance_unavailable', 'message': '审核记录未能保存；原草稿未修改，不会自动重试模型。'}]}}
+        await asyncio.to_thread(self._current_review_target, request, manager, review_target, project_instance_id)
+        if not (await asyncio.to_thread(self.answer_dependencies.states, sid, [answer_id])).get(answer_id):
+            raise ResearchNotFoundError('Review lineage changed at publication')
+        result = {'answer': body, 'answer_id': answer_id, 'sources': refs,
+            'answer_mode': current['answer_mode'], 'research_core': True, 'context_windowed': True,
+            'research_provenance_required': True, 'citation_validation': validation,
+            'reasoning': reasoning, 'claim_audit': audit, **metadata,
+            **({'event_reasoning': event_receipt} if event_receipt is not None else {}),
+            **({'task_review': task_review} if task_review is not None else {}),
+            **({'knowledge_skill': knowledge} if knowledge else {})}
+        run.emit('stage.completed', 'delivery', {'model_calls': 1, 'source_count': len(refs), 'purpose': 'verify'})
+        return result
+
     def hydrate_history(self, sid: str, messages: list[dict]) -> list[dict]:
         ids = [m["id"] for m in messages[-200:] if m.get("role") == "assistant" and isinstance(m.get("id"), str)]
         metadata = self.store.answer_metadata(sid, ids)
@@ -1363,6 +1682,13 @@ class ResearchService:
                 for field in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery', 'event_reasoning', 'task_review'):
                     message.pop(field, None)
                 message.update(proof_metadata)
+                current_knowledge = message.get('knowledge_skill') or {}
+                validation = refresh_citation_validation(
+                    message.get('content', message.get('answer', '')),
+                    [source['label'] for source in sources], validation,
+                    knowledge_labels=[row['label'] for row in current_knowledge.get('sources', [])]
+                        if current_knowledge.get('status') == 'ready' else [])
+                message['citation_validation'] = validation
                 if message.get('reasoning', {}).get('trace', {}).get('event_reasoning'):
                     message['event_reasoning'] = message['reasoning']['trace']['event_reasoning']
                 task_receipt = message.get('reasoning', {}).get('trace', {}).get('task_review')

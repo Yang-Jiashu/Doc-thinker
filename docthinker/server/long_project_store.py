@@ -258,7 +258,21 @@ class LongProjectStore:
             if 'report_version' not in ref:
                 raise ProjectTaskError('Parent report version must be explicit')
             steps = {row['step_id']: row['artifact_version'] for row in binding['inputs']}
-            ids = ref.get('step_ids', list(steps))
+            if 'step_ids' in ref:
+                ids = ref['step_ids']
+            else:
+                # A review retains its frozen draft verbatim. Carry only the
+                # explicit review-lineage leaves by default, not both copies
+                # of each question. Ordinary dependency edges are NOT reviews
+                # and must never silently remove another question's result.
+                analyses = [row for row in self.tasks._steps(db, phase['task_id'])
+                            if row['kind'] == 'analysis' and row['id'] in steps]
+                from .project_analysis_lineage import superseded_step_ids
+                superseded = superseded_step_ids(analyses)
+                active = [row for row in analyses if row['id'] not in superseded]
+                reviewed = {row['review_of'] for row in active
+                            if row['purpose'] == 'verify' and row['review_of'] in steps}
+                ids = [row['id'] for row in active if row['id'] not in reviewed]
             if (type(ids) is not list or not ids or any(type(key) is not str for key in ids)
                     or len(ids) != len(set(ids)) or any(key not in steps for key in ids)):
                 raise ProjectTaskError('Invalid explicit parent analysis selection')

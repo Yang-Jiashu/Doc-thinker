@@ -15,6 +15,7 @@ from docthinker.server.research_retrieval import build_retrieval_plan
 from docthinker.server.research_trial_delivery import trial_contract_packet
 from docthinker.server.research_retrieval import lexical_tokens
 from docthinker.server.research_surface_coverage import surface_term_coverage
+from docthinker.server.invite_budget import completion_output_budget, current_output_tokens, has_output_budget
 
 
 REFERENCE = Path(__file__).parent / 'fixtures' / 'reference_research_prompt_20261013.py'
@@ -39,12 +40,40 @@ def _without_added_metadata(result):
     return result
 
 
-def _assert_current_packet(packet, value, support, history):
+def _budget_profile(options, sources):
+    """Independent policy oracle; no production fitter result as expected data."""
+    reviewed = options.get('event_context') is not None or options.get('task_review_context') is not None
+    profile = 'evidence_review' if reviewed else 'grounded' if sources else 'chat'
+    profile_cap = 16384 if reviewed else 8192 if sources else 2048
+    effective = min(profile_cap, current_output_tokens()) if has_output_budget() else profile_cap
+    return {'output_budget_profile': profile, 'profile_output_tokens': profile_cap,
+            'max_output_tokens': effective}
+
+
+def _with_current_budget_diagnostics(result, options):
+    """Extend the frozen oracle only for the explicit newer budget policy.
+
+    All prior byte counts, messages, hashes and source fields remain exact.
+    In particular, do not remove the budget from the differential comparison.
+    """
+    result = deepcopy(result)
+    if result[0] == 'ok':
+        packet = result[1]
+        policy = _budget_profile(options, packet['plan']['sources'])
+        packet['budget'].update(policy)
+        packet['reasoning']['trace']['context_budget'].update(policy)
+    return result
+
+
+def _assert_current_packet(packet, value, support, history, options):
     """Independently check new bookkeeping against the actual dispatch bytes."""
     messages, budget = packet['messages'], packet['budget']
     assert [row['role'] for row in messages] == ['system', 'user']
     assert packet['prompt'] == messages[1]['content']
     assert budget == packet['reasoning']['trace']['context_budget']
+    for key, expected in _budget_profile(options, packet['plan']['sources']).items():
+        assert budget[key] == expected
+    assert budget['automatic_retry'] is False
     measured = sum(len(row['role'].encode()) + len(row['content'].encode()) for row in messages)
     assert measured == budget['input_bytes'] <= budget['max_input_bytes'] == 24576
     canonical = lambda row: json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()
@@ -87,9 +116,9 @@ def assert_formatter_compat(actual, expected, value, support, history, options):
     if actual[0] != 'ok' or expected[0] != 'ok':
         assert actual == expected  # Keep error type and fixed diagnostics too.
         return
-    _assert_current_packet(actual[1], value, support, history)
+    _assert_current_packet(actual[1], value, support, history, options)
     # The frozen oracle predates these explicit non-wire return fields.
-    old = deepcopy(expected)
+    old = _with_current_budget_diagnostics(expected, options)
     old[1]['need_ledger'] = None
     old[1]['history_included'] = None
     old[1]['reasoning']['trace']['final_need_ledger'] = None
@@ -109,6 +138,7 @@ def assert_formatter_compat(actual, expected, value, support, history, options):
                      if actual[1]['knowledge_skill_included'] else None}
     rebuilt = run(ORACLE.fit_research_prompt, fixed, kept_support, kept_history, fixed_options)
     assert rebuilt[0] == 'ok'
+    rebuilt = _with_current_budget_diagnostics(rebuilt, fixed_options)
     # Re-render the precise retained packet with the OLD formatter. Hashes,
     # policy, wrappers and budgets remain byte-exact, not merely <= a cap.
     for key in ('messages', 'prompt', 'budget'):
@@ -172,6 +202,20 @@ def test_whole_result_matches_prior_formatter(extension, policy_size, knowledge,
     actual = run(current.fit_research_prompt, value, support, history, options)
     assert_formatter_compat(actual, expected, value, support, history, options)
     assert (value, support, history, options) == original
+
+
+@pytest.mark.parametrize('parent_cap', [512, 16384])
+def test_frozen_budget_comparison_includes_profile_and_a_smaller_parent_cap(parent_cap):
+    value, support, history, options = fixture(knowledge=True)
+    with completion_output_budget(parent_cap):
+        expected = run(ORACLE.fit_research_prompt, value, support, history, options)
+        actual = run(current.fit_research_prompt, value, support, history, options)
+        assert actual[0] == expected[0] == 'ok'
+        assert actual[1]['budget']['profile_output_tokens'] == 8192
+        assert actual[1]['budget']['max_output_tokens'] == min(parent_cap, 8192)
+        assert_formatter_compat(actual, expected, value, support, history, options)
+        assert current_output_tokens() == parent_cap
+    assert current_output_tokens() == 2048 and not has_output_budget()
 
 
 def test_fallback_reuses_only_identical_base_packets(monkeypatch):

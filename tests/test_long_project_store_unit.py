@@ -66,6 +66,93 @@ def task_count(tasks):
         return db.execute('SELECT count(*) FROM project_tasks').fetchone()[0]
 
 
+def complete_review_plan(tasks, task_id):
+    """Store protocol fixture: two explicit grants, no provider or semantic proof."""
+    for _ in range(2):
+        current = tasks.get_task(task_id)
+        current = tasks.begin_run(task_id, expected_revision=current['revision'], request_id=uid(),
+            max_calls=6, source_snapshots={}, context_snapshots={})
+        while (step := tasks.claim_next(task_id, current['run_id'])) is not None:
+            if step['kind'] == 'inventory':
+                payload = {'documents': []}
+            elif step['kind'] == 'report':
+                payload = {'step_refs': [{'step_id': row['id'], 'version': row['artifact_version']}
+                    for row in tasks.get_task(task_id)['steps'] if row['kind'] == 'analysis']}
+            else:
+                payload = {'answer_id': uid(), 'source_ids': [], 'document_ids': [],
+                    'input_kind': 'personal', 'context_refs': {}}
+                if step.get('purpose') == 'verify':
+                    prior = tasks.get_artifact(task_id, step['review_of'])['references']
+                    marker = prior.get('analysis_review', {})
+                    payload['analysis_review'] = {'version': 1, 'purpose': 'verify',
+                        'root_answer_id': marker.get('root_answer_id', prior['answer_id']),
+                        'target_answer_id': prior['answer_id'], 'body_sha256': 'a' * 64,
+                        'root_body_sha256': 'a' * 64, 'context_sha256': 'b' * 64,
+                        'source_scope_sha256': 'c' * 64, 'assessed_need_ids': [],
+                        'semantic_verified': False}
+            current = tasks.complete_step(task_id, step['id'], step['claim_token'], payload)
+        if tasks.get_task(task_id)['status'] == 'completed':
+            return
+    raise AssertionError('The twelve-node protocol fixture did not finish')
+
+
+def staged_questions(count=6):
+    rows = []
+    for index in range(count):
+        key = f'draft{index}'
+        body = {'question': f'Draft private action {index}; do not send it.',
+                'input_kind': 'personal', 'memory_ids': []}
+        rows.extend([{**body, 'id': key}, {**body, 'id': f'review{index}',
+            'purpose': 'verify', 'review_of': key, 'depends_on': [key]}])
+    return rows
+
+
+def test_default_parent_selects_six_explicit_review_leaves_not_twelve_copies(tmp_path):
+    tasks, store = opened(tmp_path)
+    root = project(store)
+    parent = add(store, root, rows=staged_questions())
+    complete_review_plan(tasks, parent['task_id'])
+    child = add(store, root, parents=[{'phase_id': parent['id'], 'report_version': 1}])
+    refs = store.parent_dependencies(child['task_id'])
+    assert refs[0]['step_ids'] == [f'review{i}' for i in range(6)]
+    assert len(refs[0]['step_versions']) == 6
+    # An explicit selection remains exact; it is not silently upgraded.
+    exact = add(store, root, parents=[{'phase_id': parent['id'], 'report_version': 1,
+                                     'step_ids': ['draft0', 'review0']}])
+    assert store.parent_dependencies(exact['task_id'])[0]['step_ids'] == ['draft0', 'review0']
+
+
+def test_parent_review_chain_collapses_only_explicit_review_edges(tmp_path):
+    tasks, store = opened(tmp_path)
+    root = project(store)
+    rows = staged_questions(2)
+    rows[2]['depends_on'] = ['review0']  # A different question must survive.
+    rows.append({**rows[1], 'id': 'second_review', 'review_of': 'review0',
+                 'depends_on': ['review0']})
+    parent = add(store, root, rows=rows)
+    complete_review_plan(tasks, parent['task_id'])
+    child = add(store, root, parents=[{'phase_id': parent['id'], 'report_version': 1}])
+    assert store.parent_dependencies(child['task_id'])[0]['step_ids'] == ['review1', 'second_review']
+
+
+def test_default_parent_drops_typed_refined_body_and_its_old_review_copy(tmp_path):
+    tasks, store = opened(tmp_path)
+    root = project(store)
+    rows = staged_questions(2)
+    fresh = {**rows[0], 'id': 'refined', 'refine_of': 'review0', 'depends_on': ['review0']}
+    rows.extend([fresh, {**fresh, 'id': 'refined_review', 'purpose': 'verify',
+                        'review_of': 'refined', 'depends_on': ['refined']}])
+    rows[-1].pop('refine_of')
+    parent = add(store, root, rows=rows)
+    complete_review_plan(tasks, parent['task_id'])
+    child = add(store, root, parents=[{'phase_id': parent['id'], 'report_version': 1}])
+    assert store.parent_dependencies(child['task_id'])[0]['step_ids'] == ['review1', 'refined_review']
+    # History remains explicitly selectable: default projection is not erasure.
+    historical = add(store, root, parents=[{'phase_id': parent['id'], 'report_version': 1,
+                                          'step_ids': ['draft0']}])
+    assert store.parent_dependencies(historical['task_id'])[0]['step_ids'] == ['draft0']
+
+
 def test_empty_directory_read_does_not_create_database_and_default_tasks_stay_compatible(tmp_path):
     tasks, store = opened(tmp_path)
     assert store.list_projects() == {'items': [], 'next_cursor': None}

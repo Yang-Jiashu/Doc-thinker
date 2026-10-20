@@ -36,6 +36,8 @@ POSTS = [
         'expected_revision': 1, 'goal': 'Synthetic revised goal', 'constraints': '',
         'questions': [{'id': 'q1', 'question': 'Review the new requirements'}],
         'proposal_sha256': 'a' * 64}),
+    ('workbench/tasks/evidence/preview', {'session_id': '#00001', 'task_id': TASK,
+                                        'expected_revision': 1}),
 ]
 
 

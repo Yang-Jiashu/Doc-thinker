@@ -41,7 +41,7 @@ class PhaseBody(Body):
     request_id: Identifier
     title: str = Field(min_length=1, max_length=120)
     acceptance_criteria: list[Criterion] = Field(min_length=1, max_length=12)
-    questions: list[QuestionStep] = Field(min_length=1, max_length=6)
+    questions: list[QuestionStep] = Field(min_length=1, max_length=12)
     constraints: str = Field(default='', max_length=1200)
     parent_refs: list[ParentReference] = Field(default_factory=list, max_length=6)
 

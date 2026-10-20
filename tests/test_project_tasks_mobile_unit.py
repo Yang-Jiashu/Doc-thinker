@@ -64,6 +64,32 @@ async def test_creation_and_reads_do_not_generate_or_expose_other_instances(mobi
         await project_tasks.shutdown_project_tasks()
 
 
+async def test_http_staged_plan_keeps_twelve_nodes_but_not_twelve_call_grant(mobile):
+    rows = []
+    for index in range(6):
+        key = f'q{index}'
+        base = {'question': f'Draft private checklist {index}; do not execute it.',
+                'input_kind': 'personal', 'memory_ids': []}
+        rows.extend([{**base, 'id': key}, {**base, 'id': f'v{index}',
+            'purpose': 'verify', 'review_of': key, 'depends_on': [key]}])
+    try:
+        async with mobile_client(mobile) as browser:
+            response = await browser.post(PREFIX + '/workbench/tasks',
+                json={**plan(), 'questions': rows})
+            assert response.status_code == 200, response.text
+            task = response.json()['task']
+            analyses = [row for row in task['steps'] if row['kind'] == 'analysis']
+            assert len(analyses) == 12
+            assert len([row for row in analyses if row.get('purpose') == 'verify']) == 6
+            denied = await browser.post(PREFIX + '/workbench/tasks/run', json={
+                'session_id': SID, 'task_id': task['id'], 'expected_revision': task['revision'],
+                'request_id': str(uuid.uuid4()), 'max_calls': 12})
+            assert denied.status_code == 422
+        mobile.model.assert_not_awaited()
+    finally:
+        await project_tasks.shutdown_project_tasks()
+
+
 async def test_one_approval_executes_dependency_steps_and_real_report(mobile):
     try:
         async with mobile_client(mobile) as browser:

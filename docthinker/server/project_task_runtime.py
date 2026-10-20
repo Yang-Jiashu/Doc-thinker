@@ -14,7 +14,8 @@ import re
 import sqlite3
 from collections.abc import Mapping
 
-from .project_task_store import ProjectTaskConflictError
+from .project_task_store import ProjectTaskConflictError, MAX_ANALYSIS_STEPS
+from .project_analysis_lineage import superseded_step_ids
 
 MAX_CALLS = 6
 MAX_DOCUMENTS = 100
@@ -111,6 +112,9 @@ def _artifact(receipt):
             result['task_review'] = normalize_task_review(receipt['task_review'])
         except (ValueError, TypeError, KeyError) as error:
             raise ProjectTaskRuntimeError('Task review is unavailable') from error
+    if 'analysis_review' in receipt:
+        from .research_review_stage import normalize_review_lineage
+        result['analysis_review'] = normalize_review_lineage(receipt['analysis_review'])
     if receipt.get('input_kind') == 'personal':
         refs = receipt.get('context_refs')
         if (type(refs) is not dict or len(refs) > 8 or result['source_ids'] or result['document_ids']
@@ -324,7 +328,7 @@ class ProjectTaskRuntime:
                     # as well as the provider await itself.
                     self._block(task_id, step, 'provider_outcome_unknown')
                 raise
-            task = self.store.get_task(task_id)
+            task = self.review_current_feedback(self.store.get_task(task_id))
             if task.get('status') not in {'running', 'ready'}:
                 break
         return self.store.get_task(task_id)
@@ -376,7 +380,11 @@ class ProjectTaskRuntime:
                     question=step['question'], document_ids=_scope(step),
                     input_snapshot=dict(before), goal=task['goal'], constraints=task['constraints'],
                     dependency_artifacts=dependencies, **personal,
-                    **({'origin_task_id': task_id} if self.bind_task_origins else {}),
+                    **({'purpose': 'verify', 'review_of': step['review_of']}
+                       if step.get('purpose') == 'verify' else {}),
+                    **({'refine_of': step['refine_of']} if step.get('refine_of') is not None else {}),
+                    **({'origin_task_id': task_id} if self.bind_task_origins or step.get('purpose') == 'verify'
+                       or step.get('refine_of') is not None else {}),
                     **({'phase_dependencies': phase_dependencies} if phase_dependencies else {}),
                     **({'phase_task_id': task_id, 'phase_context': phase_context} if phase_context is not None else {}))
             except asyncio.CancelledError:
@@ -394,6 +402,8 @@ class ProjectTaskRuntime:
                 return
             try:
                 artifact = _artifact(receipt)
+                if step.get('purpose') == 'verify' and artifact.get('analysis_review', {}).get('purpose') != 'verify':
+                    raise ProjectTaskRuntimeError('Explicit verification did not return a bound review')
                 if 'handoff' in artifact and artifact['handoff']['required'] != len(dependencies):
                     raise ProjectTaskRuntimeError('Dependency handoff does not match approved dependencies')
                 expected_phase_refs = [row['phase_ref'] for row in phase_dependencies]
@@ -536,15 +546,27 @@ class ProjectTaskRuntime:
                                        context_snapshots=contexts)
 
     def review_current_feedback(self, task):
-        """Final synchronous metadata projection, never a retry or state rewrite.
+        """Current provenance barrier plus durable goal/evidence worklist.
 
         Execution completion is durable history. Its cached positive review is
         not current evidence after an answer's event/source lineage is revoked.
         One task snapshot supplies the exact answer IDs to one batch barrier.
         """
         keys = ('evidence_feedback', 'task_review_feedback')
-        if self.validate_inputs is None or not any(any(key in row for key in keys) for row in task['steps']):
-            return task
+        def project(result, eligible=()):
+            from .project_obligation_ledger import ProjectObligationLedger
+            try:
+                progress = ProjectObligationLedger(self.store).synchronize(task['id'],
+                    expected_revision=result['revision'], task=result, eligible_step_ids=list(eligible))
+            except (ValueError, TypeError, KeyError, sqlite3.Error):
+                # Never serve a previous positive goal status when today's
+                # evidence/definition snapshot cannot be read consistently.
+                progress = {'schema_version': 1, 'task_id': result['id'],
+                    'task_revision': result['revision'], 'status': 'unavailable',
+                    'next_action': 'collect_evidence', 'goal_verified': False, 'semantic_verified': False}
+            return {**result, 'evidence_progress': progress}
+        if self.validate_inputs is None:
+            return project(task)
         result, live = task, False
         try:
             with self.store._db() as db:
@@ -565,17 +587,37 @@ class ProjectTaskRuntime:
                         raise ProjectTaskRuntimeError('Task feedback answer unavailable')
                     packets.append({**row, 'answer_id': data['answer_id']})
                 live = bool(packets) and self.validate_inputs(packets) is True
+                if live and self.validate_task is not None:
+                    live = self.validate_task(current['id']) is True
         except (ValueError, KeyError, TypeError, sqlite3.Error):
             live = False
         if live:
-            return result
+            return project(result, [row['id'] for row in packets])
         result = {**result, 'steps': [dict(row) for row in result['steps']]}
         for row in result['steps']:
             if any(key in row for key in keys):
                 for key in keys:
                     row.pop(key, None)
                 row.update(content_review='needs_evidence', feedback_status='provenance_unavailable')
-        return result
+        return project(result)
+
+    def preview_evidence_repair(self, task_id, *, expected_revision):
+        """Turn live evidence work into an actual scoped replan, not prose.
+
+        Uses the same CAS preview/apply/run interfaces as a user-edited plan.
+        A status read cannot apply this or purchase another model attempt.
+        """
+        from .project_evidence_controller import repair_plan
+        task = self.review_current_feedback(self.store.get_task(task_id))
+        if task['revision'] != expected_revision:
+            raise ProjectTaskConflictError('Evidence work belongs to a different task revision')
+        progress = task['evidence_progress']
+        if progress.get('status') == 'unavailable':
+            raise ProjectTaskRuntimeError('Current evidence worklist is unavailable')
+        repair = repair_plan(task, progress)
+        proposal = self.store.preview_replan(task_id, expected_revision=expected_revision, **repair['plan'])
+        return {**repair, 'task_id': task_id, 'base_revision': expected_revision,
+                'ledger_fingerprint': progress['fingerprint'], 'proposal': proposal}
 
     async def render_report(self, task_id, artifact):
         """Hydrate immutable answer references under today's revocation checks."""
@@ -589,9 +631,10 @@ class ProjectTaskRuntime:
                 or stored_report.get('references') != payload):
             raise ProjectTaskRuntimeError('Report references unavailable')
         refs = payload.get('step_refs') if isinstance(payload, dict) else None
-        if not isinstance(refs, list) or not 1 <= len(refs) <= MAX_CALLS:
+        if not isinstance(refs, list) or not 1 <= len(refs) <= MAX_ANALYSIS_STEPS:
             raise ProjectTaskRuntimeError('Report references unavailable')
         steps = {item['id']: item for item in task['steps']}
+        superseded = superseded_step_ids(task['steps'])
         has_personal = any(row.get('input_kind') == 'personal' for row in task['steps'])
         lines = ['# ' + ('个人任务报告' if has_personal else '项目研究报告'), '', str(task['goal']), '', '## 约束', '', str(task['constraints']), '']
         complete = True
@@ -602,7 +645,9 @@ class ProjectTaskRuntime:
             step = steps.get(ref.get('step_id')) if isinstance(ref, dict) else None
             if step is None or step['kind'] != 'analysis':
                 raise ProjectTaskRuntimeError('Report references unavailable')
-            lines += ['## ' + step['title'], '', step['question'], '']
+            visible_step = step['id'] not in superseded
+            if visible_step:
+                lines += ['## ' + step['title'], '', step['question'], '']
             try:
                 stored = self.store.get_artifact(task_id, step['id'], version=ref['version'])
                 if not stored.get('available') or stored.get('status') != 'current':
@@ -643,15 +688,22 @@ class ProjectTaskRuntime:
                 if (not latest['available'] or await self._read_snapshot(_scope(step)) != current
                         or await self._step_context(step) != context):
                     raise ProjectTaskRuntimeError('Answer source snapshot changed')
-                lines += [*handoff_note, body, '', *legend, *feedback_note]
+                # A verification node keeps the immutable writer body; it is
+                # not another draft to print a second time in the same report.
+                already_rendered = any(item.get('id') == step.get('review_of') for item, _ in rendered)
+                visible = ('本步骤核对前序草稿，正文未改写；核对状态与缺口见下。'
+                           if step.get('purpose') == 'verify' and already_rendered else body)
+                if visible_step:
+                    lines += [*handoff_note, visible, '', *legend, *feedback_note]
                 rendered.append(({**step, 'answer_id': data['answer_id']}, current))
-                if feedback is not None:
+                if visible_step and feedback is not None:
                     evidence_feedback.append(feedback)
-                if task_feedback is not None:
+                if visible_step and task_feedback is not None:
                     task_review_feedback.append(task_feedback)
             except Exception:
                 complete = False
-                lines += ['本节原回答或当前有效依据不可用；未重新生成，不能视为完整结论。', '']
+                if visible_step:
+                    lines += ['本节原回答或当前有效依据不可用；未重新生成，不能视为完整结论。', '']
         # A later hydration may yield while another request revokes an earlier
         # section. Recheck before returning any accumulated content.
         current_report = self.store.get_artifact(task_id, 'report', version=stored_report['version'])
@@ -689,4 +741,15 @@ class ProjectTaskRuntime:
                 result['evidence_feedback'] = evidence_feedback
             if task_review_feedback:
                 result['task_review_feedback'] = task_review_feedback
+        # Recheck the complete lineage after all awaits, then project current
+        # obligations. Workflow completion alone cannot satisfy the goal.
+        projected = self.review_current_feedback(self.store.get_task(task_id))
+        progress = projected['evidence_progress']
+        result['evidence_progress'] = progress
+        if progress.get('next_action') != 'review':
+            result['content_review'] = 'needs_evidence'
+            result['delivery_status'] = 'draft_with_evidence_gaps'
+        else:
+            result['delivery_status'] = 'ready_for_user_review'
+            result['content_review'] = 'review_required'
         return result

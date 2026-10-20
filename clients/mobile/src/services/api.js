@@ -138,7 +138,9 @@ export function researchAnswerMetadata(result) {
     answer_mode:['evidence','explore','general','memory','insufficient_evidence'].includes(result.answer_mode) ? result.answer_mode : 'general',
     used_memory_count:Number.isInteger(result.used_memory_count) && result.used_memory_count >= 0 && result.used_memory_count <= 8 ? result.used_memory_count : 0,
     citation_validation:{missing_citations:value?.missing_citations === true, entailment_verified:false,
-      unknown_labels:Array.isArray(value?.unknown_labels) ? value.unknown_labels.filter(label=>typeof label === 'string' && /^[SK][0-9]{1,16}$/i.test(label)).slice(0,32) : [],
+      // Control IDs are not sources. Keep their citation-shaped misuse as
+      // bounded diagnostics instead of silently discarding the server warning.
+      unknown_labels:Array.isArray(value?.unknown_labels) ? value.unknown_labels.filter(label=>typeof label === 'string' && /^[SKCELPQAG][0-9]{1,16}$/i.test(label)).slice(0,32) : [],
       warnings:Array.isArray(value?.warnings) ? value.warnings.filter(warning=>['source_revoked','provenance_unavailable'].includes(warning?.code)).map(warning=>({code:warning.code})).slice(0,8) : []},
     retrieval_gaps:gaps};
 }

@@ -18,13 +18,19 @@ import stat
 import time
 import uuid
 
-MAX_ANALYSIS_STEPS = 6
+MAX_ANALYSIS_STEPS = 12
+MAX_COMPOSE_STEPS = 6
+MAX_VERIFY_STEPS = 6
+MAX_PAID_ATTEMPTS = 6
+MAX_DEPENDENCIES = 6
 MAX_TASKS = 100
 MAX_PROJECT_TASKS = 20
 MAX_ARTIFACT_VERSIONS = 32
 MAX_RUNS = 128
 MAX_STORAGE_BYTES = 64 * 1024 * 1024
-MAX_ARTIFACT_BYTES = 16384
+# Both the complete project/phase review and a conditional event-chain proof
+# must fit together. This is metadata only; source/answer bodies remain out.
+MAX_ARTIFACT_BYTES = 65536
 STATUSES = frozenset({'ready', 'running', 'completed', 'blocked', 'paused', 'cancelled', 'stale'})
 REASONS = frozenset({'provider_outcome_unknown', 'provider_failed', 'source_changed', 'source_revoked',
                      'source_unavailable', 'provenance_unavailable', 'budget_exhausted', 'process_restarted',
@@ -177,16 +183,28 @@ def _phase_handoff(value):
 
 def _questions(rows):
     if type(rows) is not list or not 1 <= len(rows) <= MAX_ANALYSIS_STEPS:
-        raise ProjectTaskLimitError('A task needs one to six analysis questions')
+        raise ProjectTaskLimitError('A task allows six composition and six explicit review steps')
     result, seen = [], set()
     for index, row in enumerate(rows):
-        if type(row) is not dict or set(row) - {'id', 'title', 'question', 'document_ids', 'depends_on', 'input_kind', 'memory_ids'}:
+        if type(row) is not dict or set(row) - {'id', 'title', 'question', 'document_ids', 'depends_on', 'input_kind', 'memory_ids', 'purpose', 'review_of', 'refine_of'}:
             raise ProjectTaskError('Invalid analysis step')
         key = row.get('id', 'q' + str(index + 1))
         if type(key) is not str or not re.fullmatch(r'[a-z][a-z0-9_-]{0,31}', key) or key in {'inventory', 'report'} or key in seen:
             raise ProjectTaskError('Invalid analysis identifier')
         question = _text(row.get('question'), 2000, required=True)
         title = _text(row.get('title', question[:80]), 120, required=True)
+        purpose = row.get('purpose', 'compose')
+        if type(purpose) is not str or purpose not in {'compose', 'verify'}:
+            raise ProjectTaskError('Invalid analysis purpose')
+        target = row.get('review_of')
+        refinement = row.get('refine_of')
+        if ((purpose == 'compose' and target is not None) or
+                (purpose == 'verify' and (type(target) is not str or
+                 not re.fullmatch(r'[a-z][a-z0-9_-]{0,31}', target)))):
+            raise ProjectTaskError('Invalid evidence review target')
+        if refinement is not None and (purpose != 'compose' or type(refinement) is not str or
+                not re.fullmatch(r'[a-z][a-z0-9_-]{0,31}', refinement)):
+            raise ProjectTaskError('Invalid explicit refinement target')
         scope = row.get('document_ids')
         input_kind = row.get('input_kind', 'documents')
         if type(input_kind) is not str or input_kind not in {'documents', 'personal'}:
@@ -202,14 +220,21 @@ def _questions(rows):
         if scope is not None:
             scope = _ids(scope, allow_empty=False)
         deps = row.get('depends_on', [])
-        if type(deps) is not list or len(deps) > MAX_ANALYSIS_STEPS:
+        if type(deps) is not list or len(deps) > MAX_DEPENDENCIES:
             raise ProjectTaskError('Invalid step dependencies')
         if any(type(dep) is not str for dep in deps) or len(set(deps)) != len(deps):
             raise ProjectTaskError('Invalid step dependencies')
         result.append({'id': key, 'title': title, 'question': question, 'document_ids': scope, 'depends_on': deps})
         if input_kind == 'personal':
             result[-1].update(input_kind='personal', memory_ids=list(memory_ids))
+        if purpose == 'verify':
+            result[-1].update(purpose='verify', review_of=target)
+        if refinement is not None:
+            result[-1]['refine_of'] = refinement
         seen.add(key)
+    if (sum(row.get('purpose', 'compose') == 'compose' for row in result) > MAX_COMPOSE_STEPS or
+            sum(row.get('purpose') == 'verify' for row in result) > MAX_VERIFY_STEPS):
+        raise ProjectTaskLimitError('A task allows six composition and six explicit review steps')
     deps = {row['id']: row['depends_on'] for row in result}
     for key, values in deps.items():
         if any(dep not in seen or dep == key for dep in values):
@@ -227,6 +252,28 @@ def _questions(rows):
         visited.add(key)
     for key in deps:
         visit(key)
+    by_id = {row['id']: row for row in result}
+    for row in result:
+        if 'refine_of' in row:
+            target = by_id.get(row['refine_of'])
+            if (target is None or target['id'] not in row['depends_on'] or row['question'] != target['question']
+                    or row.get('input_kind', 'documents') != target.get('input_kind', 'documents')
+                    or row['document_ids'] != target['document_ids']
+                    or set(row.get('memory_ids', [])) != set(target.get('memory_ids', []))):
+                raise ProjectTaskError('Refinement must preserve its target question and exact approved scope')
+        if row.get('purpose') != 'verify':
+            continue
+        target = by_id.get(row['review_of'])
+        if (target is None or target['id'] not in row['depends_on'] or
+                row['question'] != target['question'] or
+                row.get('input_kind', 'documents') != target.get('input_kind', 'documents')):
+            raise ProjectTaskError('Review must depend on its original question and input kind')
+        if row.get('input_kind') == 'personal':
+            if set(row['memory_ids']) != set(target['memory_ids']):
+                raise ProjectTaskError('Review must preserve the approved personal context')
+        elif (target['document_ids'] is not None and
+                (row['document_ids'] is None or not set(row['document_ids']) <= set(target['document_ids']))):
+            raise ProjectTaskError('Review scope cannot exceed its target scope')
     return result
 
 
@@ -269,6 +316,9 @@ class ProjectTaskStore:
         for name, declaration in (('input_kind', "TEXT NOT NULL DEFAULT 'documents'"),
                                   ('memory_ids', "TEXT NOT NULL DEFAULT '[]'"),
                                   ('context_snapshot', "TEXT NOT NULL DEFAULT '{}'"),
+                                  ('purpose', "TEXT NOT NULL DEFAULT 'compose'"),
+                                  ('review_of', 'TEXT'),
+                                  ('refine_of', 'TEXT'),
                                   ('retired', 'INTEGER NOT NULL DEFAULT 0')):
             if name not in columns:
                 db.execute(f'ALTER TABLE project_task_steps ADD COLUMN {name} {declaration}')
@@ -341,6 +391,11 @@ class ProjectTaskStore:
             item['document_ids'] = json.loads(item['document_ids']) if item['document_ids'] is not None else None
             item['depends_on'] = json.loads(item.pop('dependencies'))
             item['input_snapshot'] = json.loads(item['input_snapshot'])
+            if item.get('purpose', 'compose') == 'compose':
+                item.pop('purpose', None)
+                item.pop('review_of', None)
+            if item.get('refine_of') is None:
+                item.pop('refine_of', None)
             if item.get('input_kind') == 'personal':
                 item['memory_ids'] = json.loads(item['memory_ids'])
                 item['context_snapshot'] = json.loads(item['context_snapshot'])
@@ -448,12 +503,13 @@ class ProjectTaskStore:
 
     def _insert_step(self, db, task_id, row, ordinal):
         db.execute('INSERT INTO project_task_steps '
-            '(task_id,id,ordinal,kind,title,question,document_ids,dependencies,status,revision,generation,request_id,input_snapshot,claim_token,claim_boot,claim_run,reason,artifact_version,input_kind,memory_ids,context_snapshot,retired) '
-            'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)',
+            '(task_id,id,ordinal,kind,title,question,document_ids,dependencies,status,revision,generation,request_id,input_snapshot,claim_token,claim_boot,claim_run,reason,artifact_version,input_kind,memory_ids,context_snapshot,purpose,review_of,refine_of,retired) '
+            'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)',
             (task_id, row['id'], ordinal, row['kind'], row['title'], row['question'],
              _json(row['document_ids']) if row['document_ids'] is not None else None,
              _json(row['depends_on']), 'ready', 1, 1, str(uuid.uuid4()) if row['kind'] == 'analysis' else None,
-             '{}', None, None, None, None, 0, row.get('input_kind', 'documents'), _json(row.get('memory_ids', [])), '{}'))
+             '{}', None, None, None, None, 0, row.get('input_kind', 'documents'), _json(row.get('memory_ids', [])), '{}',
+             row.get('purpose', 'compose'), row.get('review_of'), row.get('refine_of')))
 
     def get_task(self, task_id):
         with self._db() as db:
@@ -467,7 +523,7 @@ class ProjectTaskStore:
             return [self._public(db, row) for row in rows]
 
     def begin_run(self, task_id, *, expected_revision, max_calls, source_snapshots, request_id=None, context_snapshots=None):
-        if type(max_calls) is not int or not 1 <= max_calls <= MAX_ANALYSIS_STEPS:
+        if type(max_calls) is not int or not 1 <= max_calls <= MAX_PAID_ATTEMPTS:
             raise ProjectTaskError('Run allows one to six paid attempts')
         _revision(expected_revision)
         snapshots = _snapshot(source_snapshots)
@@ -547,7 +603,7 @@ class ProjectTaskStore:
             raise ProjectTaskError('Invalid artifact references')
         kind = row['kind']
         if kind == 'analysis':
-            allowed = {'answer_id', 'source_ids', 'document_ids', 'source_refs', 'proof', 'handoff', 'phase_handoff', 'event_reasoning', 'task_review'}
+            allowed = {'answer_id', 'source_ids', 'document_ids', 'source_refs', 'proof', 'handoff', 'phase_handoff', 'event_reasoning', 'task_review', 'analysis_review'}
             if _personal(row):
                 allowed.update({'input_kind', 'context_refs'})
             if set(artifact) - allowed:
@@ -568,6 +624,12 @@ class ProjectTaskStore:
                     sum(dep != 'inventory' for dep in json.loads(row['dependencies'])))
             if 'phase_handoff' in artifact:
                 result['phase_handoff'] = _phase_handoff(artifact['phase_handoff'])
+            if 'analysis_review' in artifact:
+                from .research_review_stage import normalize_review_lineage
+                result['analysis_review'] = normalize_review_lineage(artifact['analysis_review'])
+            if 'purpose' in row.keys() and row['purpose'] == 'verify':
+                if result.get('analysis_review', {}).get('purpose') != 'verify':
+                    raise ProjectTaskError('A verification artifact needs its bound review lineage')
             if 'event_reasoning' in artifact:
                 from .project_evidence_feedback import normalize_event_reasoning
                 try:
@@ -633,6 +695,15 @@ class ProjectTaskStore:
 
     def _complete(self, db, task_id, row, artifact):
         payload = self._artifact_payload(row, artifact)
+        if 'purpose' in row.keys() and row['purpose'] == 'verify':
+            parent = db.execute("SELECT s.artifact_version,a.payload FROM project_task_steps s "
+                "JOIN project_task_artifacts a ON a.task_id=s.task_id AND a.step_id=s.id "
+                "AND a.version=s.artifact_version AND a.generation=s.generation AND a.status='current' "
+                "WHERE s.task_id=? AND s.id=? AND s.status='completed' AND s.retired=0",
+                (task_id, row['review_of'])).fetchone()
+            if (parent is None or payload['analysis_review'].get('target_answer_id') !=
+                    json.loads(parent['payload']).get('answer_id')):
+                raise ProjectTaskConflictError('The reviewed draft is no longer current')
         version = row['artifact_version'] + 1
         if version > MAX_ARTIFACT_VERSIONS:
             raise ProjectTaskLimitError('Artifact version capacity reached')
@@ -895,6 +966,8 @@ class ProjectTaskStore:
                 old_scope = json.loads(old['document_ids']) if old['document_ids'] is not None else None
                 if (item['question'] != old['question'] or item['document_ids'] != old_scope or
                         item.get('input_kind', 'documents') != old['input_kind'] or
+                        item.get('purpose', 'compose') != old['purpose'] or item.get('review_of') != old['review_of'] or
+                        item.get('refine_of') != old['refine_of'] or
                         item.get('memory_ids', []) != json.loads(old['memory_ids'])):
                     changed.add(item['id'])
                 if item['title'] != old['title']:
@@ -924,8 +997,8 @@ class ProjectTaskStore:
                 db.execute("UPDATE project_task_steps SET input_kind=?,memory_ids=? WHERE task_id=? AND kind IN ('inventory','report')",
                            (wrapper_kind, _json(wrapper_ids), task_id))
             for item in questions:
-                db.execute('UPDATE project_task_steps SET title=?,question=?,document_ids=?,input_kind=?,memory_ids=? WHERE task_id=? AND id=?', (item['title'], item['question'], _json(item['document_ids']) if item['document_ids'] is not None else None,
-                           item.get('input_kind', 'documents'), _json(item.get('memory_ids', [])), task_id, item['id']))
+                db.execute('UPDATE project_task_steps SET title=?,question=?,document_ids=?,input_kind=?,memory_ids=?,purpose=?,review_of=?,refine_of=? WHERE task_id=? AND id=?', (item['title'], item['question'], _json(item['document_ids']) if item['document_ids'] is not None else None,
+                           item.get('input_kind', 'documents'), _json(item.get('memory_ids', [])), item.get('purpose', 'compose'), item.get('review_of'), item.get('refine_of'), task_id, item['id']))
             for key in changed:
                 db.execute("UPDATE project_task_steps SET status='stale',reason='source_changed',claim_token=NULL,claim_boot=NULL,claim_run=NULL,revision=revision+1 WHERE task_id=? AND id=?", (task_id, key))
                 db.execute("UPDATE project_task_artifacts SET status='stale' WHERE task_id=? AND step_id=? AND status='current'", (task_id, key))
@@ -950,6 +1023,10 @@ class ProjectTaskStore:
                     'depends_on': [key for key in json.loads(row['dependencies']) if key != 'inventory']}
             if _personal(row):
                 item.update(input_kind='personal', memory_ids=json.loads(row['memory_ids']))
+            if 'purpose' in row.keys() and row['purpose'] == 'verify':
+                item.update(purpose='verify', review_of=row['review_of'])
+            if 'refine_of' in row.keys() and row['refine_of'] is not None:
+                item['refine_of'] = row['refine_of']
             previous.append(item)
         old, new = {row['id']: row for row in previous}, {row['id']: row for row in questions}
         all_rows = db.execute('SELECT * FROM project_task_steps WHERE task_id=?', (task['id'],)).fetchall()
@@ -959,7 +1036,7 @@ class ProjectTaskStore:
         added, retired = set(new) - set(old), set(old) - set(new)
         changed = {key for key in old.keys() & new.keys()
                    if any(old[key].get(field) != new[key].get(field) for field in
-                          ('question', 'document_ids', 'depends_on', 'input_kind', 'memory_ids'))}
+                          ('question', 'document_ids', 'depends_on', 'input_kind', 'memory_ids', 'purpose', 'review_of', 'refine_of'))}
         if goal != task['goal'] or constraints != task['constraints_text']:
             changed.update(old.keys() | new.keys())
         affected = changed | added | retired
@@ -1036,9 +1113,10 @@ class ProjectTaskStore:
             for ordinal, item in enumerate(proposed, 1):
                 dependencies = ['inventory', *item['depends_on']]
                 if item['id'] in existing:
-                    db.execute('UPDATE project_task_steps SET ordinal=?,title=?,question=?,document_ids=?,dependencies=?,input_kind=?,memory_ids=? WHERE task_id=? AND id=?',
+                    db.execute('UPDATE project_task_steps SET ordinal=?,title=?,question=?,document_ids=?,dependencies=?,input_kind=?,memory_ids=?,purpose=?,review_of=?,refine_of=? WHERE task_id=? AND id=?',
                         (ordinal, item['title'], item['question'], _json(item['document_ids']) if item['document_ids'] is not None else None,
-                         _json(dependencies), item.get('input_kind', 'documents'), _json(item.get('memory_ids', [])), task_id, item['id']))
+                         _json(dependencies), item.get('input_kind', 'documents'), _json(item.get('memory_ids', [])),
+                         item.get('purpose', 'compose'), item.get('review_of'), item.get('refine_of'), task_id, item['id']))
                 else:
                     self._insert_step(db, task_id, {**item, 'kind': 'analysis', 'depends_on': dependencies}, ordinal)
             db.execute("UPDATE project_task_steps SET ordinal=?,dependencies=? WHERE task_id=? AND id='report'",

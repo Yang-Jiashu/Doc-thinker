@@ -55,7 +55,7 @@ test('method provenance stays K not S, keeps unverified status and retains raw t
   assert.deepEqual(result.citation_validation,{entailment_verified:false,missing_citations:true,unknown_labels:['K99']});assert.equal(result.verified,undefined);assert.equal(result.confidence,undefined);
   assert.equal(researchAnswerMetadata({research_core:true,knowledge_skill:input,sources:[]}).knowledge_skill.sources[0].id,'investigate');assert.deepEqual(researchAnswerMetadata({knowledge_skill:input}),{});
   const top=researchAnswerMetadata({research_core:true,citation_validation:{unknown_labels:['S99','K99','A1','secret'],missing_citations:true},knowledge_skill:input});
-  assert.deepEqual(top.citation_validation.unknown_labels,['S99','K99']);assert.equal(top.citation_validation.missing_citations,true);assert.equal(top.citation_validation.entailment_verified,false);
+  assert.deepEqual(top.citation_validation.unknown_labels,['S99','K99','A1']);assert.equal(top.citation_validation.missing_citations,true);assert.equal(top.citation_validation.entailment_verified,false);
 });
 test('all original method packs survive metadata and answer export without invented historical provenance',()=>{
   for(const [id,name] of originalPacks) {

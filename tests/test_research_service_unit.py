@@ -142,6 +142,69 @@ async def test_citation_validation_checks_scope_not_entailment(workspace, answer
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize('answer,unknown', [
+    ('The source reports renewable supply [S1]. A claimed conclusion [C1].', ['C1']),
+    ('The source reports renewable supply [S1，C1, L2,E3,P1,Q1,A1,G1].',
+     ['C1', 'L2', 'E3', 'P1', 'Q1', 'A1', 'G1']),
+])
+async def test_real_service_control_id_citations_remain_visible_invalid_and_durable(workspace, answer, unknown):
+    root, manager, first, _ = workspace
+    service = ResearchService(root, extractor=text_extractor, context_assistance_enabled=False)
+    try:
+        await document(service, first)
+        model = FakeModel(answer)
+        result = await service.answer(request(first), model, manager)
+        assert len(model.prompts) == 1 and result['answer'] == answer
+        assert {row['label'] for row in result['sources']} == {'S1'}
+        validation = result['citation_validation']
+        assert validation['valid'] is False and validation['unknown_labels'] == unknown
+        assert validation['missing_citations'] is False and validation['entailment_verified'] is False
+        warning = next(row for row in validation['warnings'] if row['code'] == 'unknown_citation_labels')
+        assert warning['labels'] == unknown
+        assert warning['message'] == '回答包含未提供的引用标签，不能将其作为资料依据。'
+        assert '控制编号，不是引用' in model.options[0]['system_prompt']
+        persisted = ResearchStore(root).answer_metadata(first, [result['answer_id']])[result['answer_id']]
+        assert persisted['validation']['valid'] is False
+        assert persisted['validation']['unknown_labels'] == unknown
+        replayed = service.hydrate_history(first, manager.get_history(first))[-1]
+        assert replayed['content'] == answer and replayed['citation_validation']['valid'] is False
+        assert replayed['citation_validation']['unknown_labels'] == unknown
+        assert any(row['code'] == 'unknown_citation_labels' for row in replayed['citation_validation']['warnings'])
+    finally:
+        await service.stop()
+
+
+@pytest.mark.asyncio
+async def test_legacy_false_clean_citation_is_rechecked_on_history_and_status_without_a_model(workspace):
+    root, manager, first, _ = workspace
+    service = ResearchService(root, extractor=text_extractor, context_assistance_enabled=False)
+    try:
+        await document(service, first)
+        source = service.store.source_chunks(first)[0]
+        body = 'The paper reports renewable supply [S1]. An unsupported claim [C1].'
+        answer_id = manager.add_message(first, 'assistant', body)
+        service.store.record_answer(first, answer_id, [{'id': source['id'], 'label': 'S1'}],
+            {'valid': True, 'used_labels': ['S1'], 'unknown_labels': [],
+             'missing_citations': False, 'warnings': []}, 'evidence')
+        restarted = ResearchService(root, context_assistance_enabled=False)
+        try:
+            for messages in (manager.get_history(first),
+                             [{'id': answer_id, 'role': 'assistant', 'content': body}]):
+                replayed = restarted.hydrate_history(first, messages)[-1]
+                assert replayed['content'] == body
+                assert replayed['citation_validation']['valid'] is False
+                assert replayed['citation_validation']['unknown_labels'] == ['C1']
+                assert replayed['citation_validation']['warnings'][0]['code'] == 'unknown_citation_labels'
+            # Reading does not rewrite the historical DB or buy a repair call.
+            stored = restarted.store.answer_metadata(first, [answer_id])[answer_id]['validation']
+            assert stored['valid'] is True and stored['unknown_labels'] == []
+        finally:
+            await restarted.stop()
+    finally:
+        await service.stop()
+
+
+@pytest.mark.asyncio
 async def test_confirmed_memory_switch_and_correction_apply_on_next_query(workspace):
     root, manager, first, second = workspace
     service = ResearchService(root, extractor=text_extractor)

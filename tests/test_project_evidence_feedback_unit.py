@@ -31,7 +31,8 @@ def feedback(*, assessed=True, unknown=True):
             'unknown': int(unknown) + int(not assessed),
             'gaps': [{'obligation_id': 'A1', 'code': 'alternative_not_found'}] if unknown else [],
             'suggested_queries': ['查找交接延期的其他解释及反例'] if unknown else [],
-            'causality_verified': False, 'model_assessed': assessed, 'condition_schema': 2}
+            'causality_verified': False, 'model_assessed': assessed, 'condition_schema': 2,
+            'causal_review_schema': 2}
 
 
 def test_compact_receipt_is_copied_without_quotes_or_semantic_promotion():
@@ -86,7 +87,7 @@ def test_unbounded_or_promoted_feedback_is_rejected(mutation):
 
 def test_receipt_byte_limit_is_not_silently_truncated():
     value = feedback()
-    value['metadata'] = {f'key_{i}': '中' * 300 for i in range(10)}
+    value['metadata'] = {f'key_{i}': '中' * 300 for i in range(20)}
     with pytest.raises(ValueError, match='byte budget'):
         normalize_event_reasoning(value)
 
@@ -226,7 +227,10 @@ def test_supported_receipt_still_needs_review_not_semantic_or_goal_verification(
         store, task, bridge, rt, done = await with_feedback(tmp_path, value=feedback(unknown=False))
         assert step(done, 'work')['content_review'] == 'review_required'
         report = await rt.render_report(task['id'], store.get_artifact(task['id'], 'report'))
-        assert report['content_review'] == 'review_required'
+        # A fully assessed event receipt does not discharge the unassessed
+        # original task/goal. The new ledger must keep that work visible.
+        assert report['content_review'] == 'needs_evidence'
+        assert report['evidence_progress']['coverage']['not_assessed'] > 0
         assert report['goal_verified'] is False and report['semantic_verified'] is False
         assert report['next_step_suggestions'][0]['kind'] == 'review_evidence'
         assert done['status'] == 'completed' and len(bridge.calls) == 1
@@ -255,7 +259,8 @@ def test_final_sync_barrier_receives_actual_answer_before_commit_and_after_repor
         saved = store.get_artifact(task['id'], 'work')['references']
         assert checks[0][0]['answer_id'] == saved['answer_id']
         await rt.render_report(task['id'], store.get_artifact(task['id'], 'report'))
-        assert checks[-1][0]['answer_id'] == saved['answer_id'] and len(checks) == 2
+        assert checks[-1][0]['answer_id'] == saved['answer_id'] and len(checks) >= 2
+        assert all(row['answer_id'] == saved['answer_id'] for packet in checks for row in packet)
         rt.validate_inputs = lambda rows: False
         with pytest.raises(ProjectTaskRuntimeError, match='publication'):
             await rt.render_report(task['id'], store.get_artifact(task['id'], 'report'))
@@ -392,7 +397,7 @@ async def test_native_phase_without_events_reviews_every_original_criterion_and_
         assert 'EVENT_REASONING_DATA_JSON' not in prompt
         assert question in prompt and all(criterion in prompt for criterion in criteria)
         packet = json.JSONDecoder().raw_decode(prompt.split('TASK_REQUIREMENTS_DATA_JSON:\n', 1)[1].lstrip())[0]
-        assert [row['id'] for row in packet['requirements']] == ['Q1', 'C1', 'C2']
+        assert [row['id'] for row in packet['requirements']] == ['Q1', 'G1', 'P1', 'P2', 'C1', 'C2']
         packets.append(packet)
         answer = 'Private draft: the handover is Friday; do not send it.' + ('' if personal else ' [S1].')
         evidence = [] if personal else [{'label': 'S1', 'quote': text, 'start': 0}]
@@ -420,10 +425,11 @@ async def test_native_phase_without_events_reviews_every_original_criterion_and_
             current = await artifact(browser, task, step_id='work')
             review = current['references']['task_review']
             binding = current['references']['task_review_binding']
-            assert current['available'] and review['addressed'] == 2 and review['unknown'] == 1
+            assert current['available'] and review['addressed'] == 2 and review['unknown'] == 4
             assert review['supported'] == (0 if personal else 2)
-            assert [row['id'] for row in review['obligations']] == ['Q1', 'C1', 'C2']
-            assert review['obligations'][2]['status'] == 'unknown'
+            assert [row['id'] for row in review['obligations']] == ['Q1', 'G1', 'P1', 'P2', 'C1', 'C2']
+            assert review['obligations'][-1]['status'] == 'unknown'
+            assert all(review['obligations'][index]['status'] == 'unknown' for index in [1, 2, 3])
             assert review['requirements_sha256'] == packets[0]['requirements_sha256']
             assert binding['task_id'] == task['id'] and binding['artifact_version'] == current['version'] == 1
             report = await artifact(browser, task)
@@ -453,18 +459,37 @@ async def test_native_task_metadata_does_not_keep_old_support_after_event_revisi
     mobile.state.session_manager = manager
     document, events, chunks = material(mobile.service, SID)
     async def response(prompt, **kwargs):
-        packet = json.JSONDecoder().raw_decode(prompt.split('EVENT_REASONING_DATA_JSON:\n', 1)[1].lstrip())[0]
-        need = next(row for row in packet['needs'] if row['kind'] == 'relation')
         source = next(row for row in chunks if 'because' in row['content'])
-        label = next(row['label'] for row in packet['retained_sources'] if row['source_id'] == source['id'])
-        return json.dumps({'answer': 'The record reports added critical-path work and delay [' + label + '].',
+        if 'FROZEN_REVIEW_DATA_JSON:\n' not in prompt:
+            data = json.JSONDecoder().raw_decode(prompt.split('EVENT_REASONING_DATA_JSON:\n', 1)[1].lstrip())[0]
+            label = next(row['label'] for row in data['retained_sources'] if row['source_id'] == source['id'])
+            return json.dumps({'answer': 'The record reports added critical-path work and delay [' + label + '].'})
+        frozen = json.JSONDecoder().raw_decode(prompt.split('FROZEN_REVIEW_DATA_JSON:\n', 1)[1].lstrip())[0]
+        relations = [row for row in frozen['event_review']['needs'] if row['kind'] == 'relation']
+        if not relations:
+            # The first fair frontier visits occurrences/alternatives. Record
+            # those as genuinely unknown so the next explicit audit can reach
+            # the relation instead of fabricating an out-of-frontier check.
+            return json.dumps({'answer': 'Occurrence checks remain unknown.',
+                'event_assessment': {'checks': [{'id': row['id'], 'verdict': 'unknown',
+                    'missing_query': 'Retrieve the original chronology and competing explanation records.'}
+                    for row in frozen['event_review']['needs']]}})
+        need = relations[0]
+        label = next(row['label'] for row in frozen['source_quotes'] if row['id'] == source['id'])
+        return json.dumps({'answer': 'Review metadata does not replace the writer body.',
             'event_assessment': {'checks': [{'id': need['id'], 'verdict': 'support',
-                'evidence': [{'label': label, 'quote': source['content']}]}]}})
+                'evidence': [{'label': label}]}]}})
     mobile.model.side_effect = response
     try:
         async with mobile_client(mobile) as browser:
             question_rows = [{'id': 'work', 'question': 'What caused the Orion delivery delay?',
-                              'document_ids': [document['id']]}]
+                              'document_ids': [document['id']]},
+                             {'id': 'review_occurrence', 'purpose': 'verify', 'review_of': 'work',
+                              'question': 'What caused the Orion delivery delay?',
+                              'document_ids': [document['id']], 'depends_on': ['work']},
+                             {'id': 'review', 'purpose': 'verify', 'review_of': 'review_occurrence',
+                              'question': 'What caused the Orion delivery delay?',
+                              'document_ids': [document['id']], 'depends_on': ['review_occurrence']}]
             other = None
             if surface == 'list_race':
                 # The newer completed task is checked FIRST (the API sorts
@@ -479,14 +504,15 @@ async def test_native_task_metadata_does_not_keep_old_support_after_event_revisi
             else:
                 task = await create(browser, {'session_id': SID, 'goal': 'Review Orion delay records.',
                     'constraints': 'No external actions.', 'questions': question_rows})
-            await start(browser, task, calls=1)
+            await start(browser, task, calls=3)
             done = await settled(browser, task['id'])
             assert done['status'] == 'completed'
-            assert step(done, 'work')['evidence_feedback']['event_reasoning']['supported'] == 1
+            assert step(done, 'work')['evidence_feedback']['event_reasoning']['supported'] == 0
+            assert step(done, 'review')['evidence_feedback']['event_reasoning']['supported'] == 1
             if surface == 'legacy_artifact':
                 from docthinker.server.project_evidence_feedback import bind_feedback
                 _, runtime, _ = await project_tasks._context(SID)
-                saved = runtime.store.get_artifact(task['id'], 'work')
+                saved = runtime.store.get_artifact(task['id'], 'review')
                 refs = deepcopy(saved['references'])
                 legacy = refs['event_reasoning']
                 legacy.pop('condition_schema')
@@ -498,8 +524,8 @@ async def test_native_task_metadata_does_not_keep_old_support_after_event_revisi
                     ('task_id', 'task_revision', 'step_id', 'artifact_version')})
                 with runtime.store._db(write=True) as db:
                     db.execute('UPDATE project_task_artifacts SET payload=? WHERE task_id=? AND step_id=? AND version=1',
-                        (json.dumps(refs, ensure_ascii=False, sort_keys=True, separators=(',', ':')), task['id'], 'work'))
-                historical = await artifact(browser, task, step_id='work')
+                        (json.dumps(refs, ensure_ascii=False, sort_keys=True, separators=(',', ':')), task['id'], 'review'))
+                historical = await artifact(browser, task, step_id='review')
                 assert historical['available'] and historical['content']
                 assert historical['references'] == refs  # Original identity/hash remains immutable.
                 assert historical['references']['event_reasoning']['supported'] == 1
@@ -509,15 +535,16 @@ async def test_native_task_metadata_does_not_keep_old_support_after_event_revisi
                 assert historical['references_scope'] == 'immutable_historical_binding_not_current_assessment'
                 assert historical['task_review_feedback']['task_review'] == refs['task_review']
                 report = await artifact(browser, task)
-                assert report['available'] and report['evidence_feedback'][0]['event_reasoning']['supported'] == 0
-                assert mobile.model.await_count == 1
+                assert report['available'] and all(item['event_reasoning']['supported'] == 0
+                                                   for item in report['evidence_feedback'])
+                assert mobile.model.await_count == 3
                 return
             snapshots = mobile.service.store.document_snapshots(SID, [document['id']])
             changed = events[0]
             child = None
             if surface == 'selected_parent':
                 child = await phase(browser, SID, project, rows=question_rows,
-                    parents=[{'phase_id': added['phase']['id'], 'report_version': 1, 'step_ids': ['work']}])
+                    parents=[{'phase_id': added['phase']['id'], 'report_version': 1, 'step_ids': ['review']}])
                 _, runtime, _ = await project_tasks._context(SID)
                 assert runtime.long_projects.valid(child['task']['id']) is True
             def revise():
@@ -530,7 +557,7 @@ async def test_native_task_metadata_does_not_keep_old_support_after_event_revisi
                     value = await original(runtime, task_id, **options)
                     if task_id == task['id']:
                         state['positive_seen_before_later_await'] = (
-                            step(value, 'work')['evidence_feedback']['event_reasoning']['supported'] == 1)
+                            step(value, 'review')['evidence_feedback']['event_reasoning']['supported'] == 1)
                     if task_id == other['id']:
                         revise()
                         state['withdrawn'] = True
@@ -539,22 +566,22 @@ async def test_native_task_metadata_does_not_keep_old_support_after_event_revisi
                 listed = await browser.get(PREFIX + '/workbench/tasks', params={'session_id': SID})
                 assert listed.status_code == 200 and state['withdrawn'] and state['positive_seen_before_later_await']
                 listed_task = next(row for row in listed.json()['items'] if row['id'] == task['id'])
-                assert 'evidence_feedback' not in step(listed_task, 'work')
-                assert 'task_review_feedback' not in step(listed_task, 'work')
+                assert 'evidence_feedback' not in step(listed_task, 'review')
+                assert 'task_review_feedback' not in step(listed_task, 'review')
                 monkeypatch.setattr(project_tasks, '_current', original)
             else:
                 revise()
             assert mobile.service.store.document_snapshots(SID, [document['id']]) == snapshots
             if child is not None:
                 assert runtime.long_projects.valid(child['task']['id']) is False
-            assert (await artifact(browser, task, step_id='work'))['available'] is False
+            assert (await artifact(browser, task, step_id='review'))['available'] is False
             result = await browser.get(PREFIX + '/workbench/task', params={'session_id': SID, 'task_id': task['id']})
             assert result.status_code == 200
-            public = step(result.json()['task'], 'work')
+            public = step(result.json()['task'], 'review')
             assert 'evidence_feedback' not in public and 'task_review_feedback' not in public
             assert public['content_review'] == 'needs_evidence'
             assert public['feedback_status'] == 'provenance_unavailable'
-            assert mobile.model.await_count == 1
+            assert mobile.model.await_count == 3
     finally:
         await project_tasks.shutdown_project_tasks()
         await mobile.service.stop()

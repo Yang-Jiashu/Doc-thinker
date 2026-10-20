@@ -7,12 +7,62 @@ import pytest
 from docthinker.server.research_citation_syntax import (
     CITATION_GROUP_PATTERN, MAX_CITATION_SCAN_CHARS, MAX_CITATION_GROUPS,
     MAX_CITATION_LABELS, parse_citation_groups, extract_citation_labels, strip_citation_groups,
+    normalize_approved_citations,
 )
-from docthinker.server.research_retrieval import citation_validation
+from docthinker.server.research_retrieval import citation_validation, refresh_citation_validation
 from docthinker.server.research_knowledge import knowledge_receipt, select_task_knowledge
 from docthinker.server.insight_runtime import InsightRuntime
 from docthinker.server.research_provenance import audit_answer, hydrate_audit
 from docthinker.server.research_store import ResearchStore, ResearchStoreError
+
+
+def test_only_complete_current_approved_round_groups_are_canonicalized():
+    body = '🌿 原文（s1）。合看（S1、S2）；方法 (S2， K1)。另见 [S1]。'
+    normalized = normalize_approved_citations(body, ['S1', 'S2'], knowledge_labels=['K1'])
+    assert normalized == '🌿 原文[S1]。合看[S1, S2]；方法 [S2, K1]。另见 [S1]。'
+    assert normalize_approved_citations(normalized, ['S1', 'S2'], knowledge_labels=['K1']) == normalized
+    assert citation_validation(normalized, ['S1', 'S2'], knowledge_labels=['K1'])['valid']
+    assert normalize_approved_citations('(K1)', ['S1']) == '(K1)'
+    assert normalize_approved_citations('(K1)', ['K1']) == '(K1)'
+
+
+@pytest.mark.parametrize('literal', [
+    '(S999)', '(K999)', '(S01)', '(S0)', '（S1、S999）', '(S1-S2)', '(S1; S2)',
+    '(S1 only describes the earlier estimate)', '(S1\nS2)', '（S1)', '(S1）',
+    '(C1)', '(E1)', '(L1)', '(P1)', '(Q1)', '(A1)', '(G1)', '[C1]',
+    '`(S1)`', '``（S1）``', '```text\n(S1)\n```', '~~~text\n（S1）\n~~~',
+    '```text\n(S1)', '`unclosed (S1)', '\\(S1)', '\\（S1）',
+    '[example (S1)](https://example.invalid/(S1))', '![（S1）](/asset/(S1))',
+    '[example (S1)][doc]\n\n[doc]: https://example.invalid/(S1)',
+    '[example (S1)]\n\n[example (S1)]: https://example.invalid/(S1)',
+    'https://example.invalid/(S1)', 'www.example.invalid/（S1）', '/path/(S1)',
+])
+def test_normalizer_preserves_unknowns_controls_explanations_and_literal_contexts(literal):
+    assert normalize_approved_citations(literal, ['S1', 'S2'], knowledge_labels=['K1']) == literal
+
+
+def test_round_unknown_diagnostics_cannot_hide_behind_other_valid_citations():
+    body = '🌿 Known (S1). Unknown （S999、K999）. [S2]'
+    normalized = normalize_approved_citations(body, ['S1', 'S2'])
+    assert normalized == '🌿 Known [S1]. Unknown （S999、K999）. [S2]'
+    parsed = parse_citation_groups(body)
+    assert parsed['labels'] == ['S1', 'S999', 'K999', 'S2']
+    assert [body[g['start']:g['end']] for g in parsed['groups']] == ['(S1)', '（S999、K999）', '[S2]']
+    result = citation_validation(normalized, ['S1', 'S2'])
+    assert result['unknown_labels'] == ['S999', 'K999'] and not result['valid']
+    assert not citation_validation('[S1]\n```text\n(S999)', ['S1'])['valid']
+
+
+def test_round_capacity_is_visible_and_unscanned_text_is_never_erased():
+    oversized = '(S' + '1' * 2100 + ')'
+    body = '[S1] ' + oversized
+    assert normalize_approved_citations(body, ['S1']) == body
+    assert parse_citation_groups(body)['truncated']
+    assert citation_validation(body, ['S1'])['valid'] is False
+    assert citation_validation('[S1] (S999', ['S1'])['valid'] is False
+    groups = '(S1) ' * (MAX_CITATION_GROUPS + 1)
+    assert parse_citation_groups(groups)['truncated']
+    assert '(S1)' in normalize_approved_citations(groups, ['S1'])
 
 
 def test_comma_groups_have_exact_unicode_offsets_and_first_seen_labels():
@@ -67,6 +117,98 @@ def test_invalid_canonical_numbers_remain_unknown_in_groups():
     assert result['used_labels'] == ['S1', 'S01', 'S0', 'K01', 'K0']
     assert result['unknown_labels'] == ['S01', 'S0', 'K01', 'K0']
     assert result['valid'] is False
+
+
+@pytest.mark.parametrize('label', ['C1', 'L2', 'E3', 'P1', 'Q1', 'A1', 'G1', 'c01', 'l0'])
+def test_control_ids_cannot_masquerade_as_sources_even_if_supplied_as_allowed(label):
+    answer = f'Actual source [S1]. Unsupported claim [{label}].'
+    result = citation_validation(answer, ['S1', label.upper()], knowledge_labels=[label.upper()])
+    assert result['used_labels'] == ['S1', label.upper()]
+    assert result['unknown_labels'] == [label.upper()]
+    assert result['missing_citations'] is False and result['valid'] is False
+    assert result['warnings'][0]['code'] == 'unknown_citation_labels'
+    assert result['entailment_verified'] is False
+    assert f'[{label}]' in answer  # Detection never rewrites the actual answer.
+
+
+def test_mixed_control_groups_keep_exact_offsets_and_all_unknown_members():
+    answer = '🌿 Evidence [s1，C1, l2，E3, P1，Q1,A1, G1, K1].'
+    parsed = parse_citation_groups(answer)
+    assert parsed['labels'] == ['S1', 'C1', 'L2', 'E3', 'P1', 'Q1', 'A1', 'G1', 'K1']
+    assert answer[parsed['groups'][0]['start']:parsed['groups'][0]['end']] == '[s1，C1, l2，E3, P1，Q1,A1, G1, K1]'
+    assert CITATION_GROUP_PATTERN.fullmatch(answer[parsed['groups'][0]['start']:parsed['groups'][0]['end']])
+    result = citation_validation(answer, ['S1'], knowledge_labels=['K1'])
+    assert result['unknown_labels'] == ['C1', 'L2', 'E3', 'P1', 'Q1', 'A1', 'G1']
+    assert result['valid'] is False
+    assert strip_citation_groups(answer, prefixes='SK').endswith('[C1, L2, E3, P1, Q1, A1, G1].')
+
+
+@pytest.mark.parametrize('mention', [
+    'Check C1, L2, E3, P1, Q1, A1 and G1 as control IDs.',
+    '普通正文提到 C1 条件、L2 关联、E3 事件，不是在引用。',
+    'Literal `[C1]` and ``[L2，E3]`` are code examples.',
+    '```json\n{"need":"[C1]", "source":"[S999]"}\n```\n',
+    '~~~text\n[C1, S999]\n~~~\n',
+    '[C1](https://example.invalid/details) and ![E3](/image.png).',
+    '[S999](https://example.invalid/details) is a link, not a source citation.',
+    '[C1](https://example.invalid/[L2]) is a link whose URL contains brackets.',
+    '[C1][details]\n\n[details]: https://example.invalid/details\n',
+    '[C1]\n\n[C1]: https://example.invalid/details\n',
+    '\\[C1] is escaped Markdown.',
+    '[condition 1], [CLAIM1], [Z1], [C1 note], [C1-C3] and [C1;L2] are not this syntax.',
+])
+def test_normal_control_mentions_and_closed_markdown_are_not_citations(mention):
+    answer = mention + '\nActual evidence [S1].'
+    assert parse_citation_groups(answer)['labels'] == ['S1']
+    assert citation_validation(answer, ['S1'])['valid'] is True
+
+
+@pytest.mark.parametrize('malformed', [
+    '```text\n[C1]\nStill an unclosed fence. [L2]',
+    '~~~text\n[C1]\nStill an unclosed fence. [L2]',
+    '`unclosed inline [C1]. Later [L2]',
+    '[C1](https://example.invalid/unclosed [L2]',
+    '[C1](https://example.invalid "unclosed [L2])',
+    '[C1]: https://example.invalid "unclosed [L2]',
+    '[C1]((' + 'x' * 2100 + ') Later [L2]',
+])
+def test_unclosed_markdown_cannot_hide_later_fabricated_citations(malformed):
+    result = citation_validation('Actual evidence [S1].\n' + malformed, ['S1'])
+    assert result['valid'] is False
+    assert 'C1' in result['unknown_labels'] and 'L2' in result['unknown_labels']
+
+
+def test_code_and_links_do_not_satisfy_a_real_source_citation_requirement():
+    result = citation_validation('Example `[S1]`; link [S1](https://example.invalid).', ['S1'])
+    assert result['used_labels'] == [] and result['missing_citations'] is True
+    assert result['valid'] is False
+
+
+def test_control_diagnostics_survive_store_restart_without_becoming_source_refs(tmp_path):
+    store = ResearchStore(tmp_path)
+    answer_id = str(uuid4())
+    validation = citation_validation('Candidate [C1, L2，E3,P1,Q1,A1,G1].', [])
+    store.record_answer('#00001', answer_id, [], validation, 'general')
+    hydrated = ResearchStore(tmp_path).answer_metadata('#00001', [answer_id])[answer_id]
+    assert hydrated['source_refs'] == []
+    assert hydrated['validation']['unknown_labels'] == ['C1', 'L2', 'E3', 'P1', 'Q1', 'A1', 'G1']
+    assert hydrated['validation']['valid'] is False
+    assert hydrated['validation']['warnings'][0]['message'] == '回答包含未提供的引用标签，不能将其作为资料依据。'
+    with pytest.raises(ResearchStoreError, match='source label'):
+        store.record_answer('#00001', str(uuid4()), [{'id': str(uuid4()), 'label': 'C1'}],
+                            validation, 'general')
+
+
+def test_replay_recheck_never_clears_existing_revocation_limits_or_unknown_labels():
+    previous = {'valid': False, 'used_labels': ['S1', 'S999'], 'unknown_labels': ['S999'],
+                'missing_citations': False, 'metadata_truncated': True,
+                'warnings': [{'code': 'source_revoked', 'message': 'Original fixed warning.'},
+                             {'code': 'unknown_citation_labels', 'labels': ['S999'], 'message': 'Original unknown.'}]}
+    result = refresh_citation_validation('Current text [S1, C1].', ['S1'], previous)
+    assert result['valid'] is False and result['metadata_truncated'] is True
+    assert result['unknown_labels'] == ['C1', 'S999']
+    assert {row['code'] for row in result['warnings']} == {'source_revoked', 'unknown_citation_labels'}
+    assert result['warnings'][0]['labels'] == ['C1', 'S999']
 
 
 @pytest.mark.parametrize('answer', [

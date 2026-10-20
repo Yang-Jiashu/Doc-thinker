@@ -13,6 +13,7 @@ import re
 import time
 import unicodedata
 import uuid
+from collections import deque
 
 from .research_memory_dependencies import MemoryDependencies, _bindings_live
 from .research_retrieval import lexical_tokens
@@ -25,6 +26,9 @@ MAX_CONTEXT_EVENTS = 8
 MAX_CONTEXT_RELATIONS = 12
 MAX_CONTEXT_BYTES = 6000
 TARGET_CONTEXT_BYTES = 5500
+MAX_CONTEXT_BINDING_BYTES = 8192
+MAX_BRIDGE_STATES = 128
+MAX_BRIDGE_EDGES = 192
 
 
 def _digest(value):
@@ -478,6 +482,10 @@ class PersonalEvents:
                 trace['truncation'].append(code)
         def size(value):
             return len(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False).encode())
+        def evidence_size():
+            # Host-only revision/hash guards do not consume model context.
+            # They remain complete under their own constant memory bound.
+            return size({'events': packet['events'], 'relations': packet['relations']})
         with self.store._read() as db:
             if not self._exists(db) or explicit == frozenset():
                 return packet
@@ -531,19 +539,135 @@ class PersonalEvents:
                 live_rows[identifier] = (event, _event_binding(row))
                 return live_rows[identifier]
             selected = set()
-            def admit_event(value):
+            def admit_event(value, *, bundle_limit=None):
                 event, binding = value
                 if event['id'] in selected:
                     return True
                 if len(selected) >= MAX_CONTEXT_EVENTS:
                     gap('event_limit'); return False
                 packet['events'].append(event); bindings['events'].append(binding)
-                limit = MAX_CONTEXT_BYTES - 256 if not selected else TARGET_CONTEXT_BYTES - 256
-                if size(packet) > limit:
+                limit = bundle_limit if bundle_limit is not None else (MAX_CONTEXT_BYTES - 256 if not selected else TARGET_CONTEXT_BYTES - 256)
+                if size(bindings) > MAX_CONTEXT_BINDING_BYTES:
+                    packet['events'].pop(); bindings['events'].pop(); gap('binding_bytes'); return False
+                if evidence_size() > limit:
                     packet['events'].pop(); bindings['events'].pop(); gap('context_bytes'); return False
                 selected.add(event['id'])
                 return True
             relation_seen, checked = set(), 0
+
+            def edge_view(row):
+                left, right = read_event(row['source_id']), read_event(row['target_id'])
+                payload = json.loads(row['payload'])
+                if (not left or not right or left[0]['revision'] != row['source_revision']
+                        or right[0]['revision'] != row['target_revision'] or not self._context_origins_live(
+                            db, session_id, payload['origins'], at=at, seen=seen, sources=sources, memories=memories)):
+                    return None
+                return {'id': row['relation_id'], 'revision': 1, 'source_id': row['source_id'],
+                        'source_revision': row['source_revision'], 'target_id': row['target_id'],
+                        'target_revision': row['target_revision'], 'relation': row['relation'],
+                        'conditions': payload['conditions'], 'origins': payload['origins']}
+
+            def admit_path(path):
+                # A mechanism bridge is one evidence bundle. Do not keep its
+                # endpoints while silently dropping the critical middle edge.
+                before = (len(packet['events']), len(packet['relations']), len(bindings['events']),
+                          len(bindings['relations']), set(selected))
+                for row in path:
+                    edge = edge_view(row)
+                    if (edge is None or not admit_event(read_event(row['source_id']), bundle_limit=MAX_CONTEXT_BYTES - 256)
+                            or not admit_event(read_event(row['target_id']), bundle_limit=MAX_CONTEXT_BYTES - 256)):
+                        break
+                    if row['relation_id'] not in {value['id'] for value in packet['relations']}:
+                        if len(packet['relations']) >= MAX_CONTEXT_RELATIONS:
+                            gap('relation_limit'); break
+                        packet['relations'].append(edge)
+                        bindings['relations'].append(_relation_binding(row))
+                    if size(bindings) > MAX_CONTEXT_BINDING_BYTES:
+                        gap('binding_bytes'); break
+                    if evidence_size() > MAX_CONTEXT_BYTES - 256:
+                        gap('context_bytes'); break
+                else:
+                    relation_seen.update(row['relation_id'] for row in path)
+                    return True
+                packet['events'][before[0]:] = []; packet['relations'][before[1]:] = []
+                bindings['events'][before[2]:] = []; bindings['relations'][before[3]:] = []
+                selected.clear(); selected.update(before[4])
+                gap('bridge_capacity')
+                return False
+
+            # Find directed bridges BETWEEN query seeds before a local
+            # neighborhood can fill all slots. Reusing one adjacency cache
+            # bounds database work; no top-k expansion or invented edge occurs.
+            # depends_on is traversed prerequisite -> effect, while its stored
+            # direction and type remain unchanged in the returned bundle.
+            seeds = [value for row in rows[:32] if (value := read_event(row['event_id'], row))]
+            goal_rank = {value[0]['id']: index for index, value in enumerate(seeds)}
+            # Root selection covers distinct query terms and prefers actual
+            # explanatory endpoints over isolated repeated-keyword matches.
+            # All authorized lexical seeds remain goals, even if not roots.
+            root_candidates = []
+            for index, (value, _) in enumerate(seeds):
+                connected = db.execute('SELECT 1 FROM personal_event_relations WHERE session_id=? '
+                    "AND (source_id=? OR target_id=?) AND relation IN ('reported_cause','hypothesis','depends_on') LIMIT 1",
+                    (session_id, value['id'], value['id'])).fetchone() is not None
+                root_candidates.append((connected, index, value['id'], set(lexical_tokens(value['action'])) & set(tokens)))
+            terminals, covered_terms = [], set()
+            while root_candidates and len(terminals) < MAX_CONTEXT_EVENTS:
+                root_candidates.sort(key=lambda value: (-int(value[0]), -len(value[3] - covered_terms), value[1]))
+                _, _, identifier, terms = root_candidates.pop(0)
+                terminals.append(identifier); covered_terms.update(terms)
+            bridge_queue = deque((identifier, identifier, direction, [], frozenset({identifier}))
+                for identifier in terminals for direction in ('out', 'in'))
+            bridge_seen, adjacency, bridges = set(), {}, {}
+            bridge_states, bridge_edges = 0, 0
+            while bridge_queue and bridge_states < MAX_BRIDGE_STATES:
+                root, current, direction, path, visited = bridge_queue.popleft()
+                # Different directed edge paths are different mechanism
+                # candidates (including distinct source-bound parallel edges).
+                # A speculative shortcut must not hide a recorded mechanism.
+                state_key = root, current, direction, tuple(row['relation_id'] for row in path)
+                if state_key in bridge_seen:
+                    continue
+                bridge_seen.add(state_key); bridge_states += 1
+                if current != root and current in goal_rank:
+                    directed_path = path if direction == 'out' else list(reversed(path))
+                    key = tuple(row['relation_id'] for row in directed_path)
+                    bridges[key] = (goal_rank[root] + goal_rank[current], directed_path)
+                    continue
+                if len(path) >= MAX_CONTEXT_EVENTS - 1:
+                    continue
+                cache_key = current, direction
+                if cache_key not in adjacency:
+                    remaining_edges = MAX_BRIDGE_EDGES - bridge_edges
+                    if remaining_edges <= 0:
+                        gap('bridge_search_budget'); break
+                    causal_column, prerequisite_column = ('source_id', 'target_id') if direction == 'out' else ('target_id', 'source_id')
+                    raw_links = db.execute('SELECT * FROM personal_event_relations WHERE session_id=? AND '
+                        f"(({causal_column}=? AND relation IN ('reported_cause','hypothesis')) OR ({prerequisite_column}=? AND relation='depends_on')) "
+                        'ORDER BY relation_id LIMIT ?',
+                        (session_id, current, current, min(48, remaining_edges) + 1)).fetchall()
+                    if len(raw_links) > min(48, remaining_edges):
+                        gap('bridge_search_budget')
+                    raw_links = raw_links[:min(48, remaining_edges)]
+                    bridge_edges += len(raw_links)
+                    adjacency[cache_key] = [row for row in raw_links if edge_view(row) is not None]
+                for row in adjacency[cache_key]:
+                    reverse = (row['relation'] == 'depends_on') != (direction == 'in')
+                    other = row['source_id'] if reverse else row['target_id']
+                    if other not in visited:
+                        bridge_queue.append((root, other, direction, [*path, row], visited | {other}))
+            if bridge_queue:
+                gap('bridge_search_budget')
+            trace['bridge_search'] = {'states': bridge_states, 'edges': bridge_edges,
+                                      'candidate_paths': len(bridges), 'retained_paths': 0}
+            # Prefer complete recorded chains over speculative shortcuts;
+            # this orders candidate retrieval, never verifies a causal claim.
+            for _, path in sorted(bridges.values(), key=lambda value: (value[0],
+                                        sum(row['relation'] == 'hypothesis' for row in value[1]), len(value[1]),
+                                        tuple(row['relation_id'] for row in value[1]))):
+                if admit_path(path):
+                    trace['bridge_search']['retained_paths'] += 1
+
             def expand_bundle(seed):
                 nonlocal selected, checked
                 queued = [(seed, 0)]
@@ -579,10 +703,11 @@ class PersonalEvents:
                             'target_revision': row['target_revision'], 'relation': row['relation'],
                             'conditions': payload['conditions'], 'origins': payload['origins']}
                         packet['relations'].append(edge); bindings['relations'].append(_relation_binding(row))
-                        if size(packet) > TARGET_CONTEXT_BYTES - 256:
+                        if evidence_size() > TARGET_CONTEXT_BYTES - 256 or size(bindings) > MAX_CONTEXT_BINDING_BYTES:
+                            overflow = 'binding_bytes' if size(bindings) > MAX_CONTEXT_BINDING_BYTES else 'context_bytes'
                             packet['relations'].pop(); bindings['relations'].pop()
                             packet['events'][before[0]:] = []; bindings['events'][before[1]:] = []; selected = before[2]
-                            gap('context_bytes'); continue
+                            gap(overflow); continue
                         for endpoint in (row['source_id'], row['target_id']):
                             if endpoint not in before[2]:
                                 queued.append((endpoint, depth + 1))
@@ -599,6 +724,8 @@ class PersonalEvents:
                         'WHERE session_id=? AND alias=? AND entity_id IN (' + ','.join('?' for _ in entity_ids)
                         + ') GROUP BY kind HAVING count(DISTINCT entity_id)>1 LIMIT 8',
                         [session_id, _normal(token), *sorted(entity_ids)]).fetchall())
-            if size(packet) > MAX_CONTEXT_BYTES:
-                raise ResearchLimitError('Complete event context exceeds byte budget')
+            trace['evidence_bytes'], trace['binding_bytes'] = evidence_size(), size(bindings)
+            trace['evidence_byte_limit'], trace['binding_byte_limit'] = MAX_CONTEXT_BYTES, MAX_CONTEXT_BINDING_BYTES
+            if evidence_size() > MAX_CONTEXT_BYTES or size(bindings) > MAX_CONTEXT_BINDING_BYTES:
+                raise ResearchLimitError('Complete event context exceeds its evidence or host-binding byte budget')
             return packet

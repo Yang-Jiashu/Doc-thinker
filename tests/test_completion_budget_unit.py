@@ -12,17 +12,17 @@ from docthinker.server.invite_budget import (
 def test_task_allowance_is_bounded_nested_and_restored_on_error():
     assert current_output_tokens() == 2048 and not has_output_budget()
     with pytest.raises(RuntimeError):
-        with completion_output_budget(8192):
-            assert current_output_tokens() == 8192 and has_output_budget()
+        with completion_output_budget(16384):
+            assert current_output_tokens() == 16384 and has_output_budget()
             with completion_output_budget(1024):
-                with completion_output_budget(8192):
+                with completion_output_budget(16384):
                     assert current_output_tokens() == 1024
-            assert current_output_tokens() == 8192
+            assert current_output_tokens() == 16384
             raise RuntimeError('local test')
     assert current_output_tokens() == 2048 and not has_output_budget()
 
 
-@pytest.mark.parametrize('limit', [0, -1, 8193, True, 4096.0, '8192', None])
+@pytest.mark.parametrize('limit', [0, -1, 16385, True, 4096.0, '16384', None])
 def test_invalid_allowance_cannot_change_active_budget(limit):
     with pytest.raises(ValueError, match='Invalid completion budget'):
         with completion_output_budget(limit):
@@ -37,7 +37,7 @@ async def test_parallel_users_do_not_share_output_budget_and_cancellation_restor
         with completion_output_budget(limit):
             await release.wait()
             return current_output_tokens()
-    first = asyncio.create_task(request(8192))
+    first = asyncio.create_task(request(16384))
     second = asyncio.create_task(request(2048))
     cancelled = asyncio.create_task(request(4096))
     await asyncio.sleep(0)
@@ -46,7 +46,7 @@ async def test_parallel_users_do_not_share_output_budget_and_cancellation_restor
     with pytest.raises(asyncio.CancelledError):
         await cancelled
     release.set()
-    assert await asyncio.gather(first, second) == [8192, 2048]
+    assert await asyncio.gather(first, second) == [16384, 2048]
     assert not has_output_budget()
 
 
@@ -94,3 +94,18 @@ def test_provider_mapping_cannot_raise_small_nested_allowance():
             options = sdk_chat_request_options('https://provider.example/v1', model,
                                                 current_output_tokens(), 0.1)
             assert options.get('max_completion_tokens', options.get('max_tokens')) == 256
+
+
+@pytest.mark.parametrize('model,field', [
+    ('step-5-preview', 'max_tokens'), ('gpt-5.2', 'max_completion_tokens'),
+    ('o3', 'max_completion_tokens'), ('unknown-compatible-model', 'max_tokens'),
+])
+def test_reviewed_profile_is_provider_neutral_and_cannot_raise_an_outer_grounded_cap(model, field):
+    with completion_output_budget(16384):
+        options = sdk_chat_request_options('https://provider.example/v1', model, current_output_tokens(), 0.1)
+        assert options[field] == 16384
+        assert 'reasoning_effort' not in options
+    with completion_output_budget(8192):
+        with completion_output_budget(16384):
+            options = sdk_chat_request_options('https://provider.example/v1', model, current_output_tokens(), 0.1)
+            assert options[field] == 8192

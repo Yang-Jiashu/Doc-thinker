@@ -31,6 +31,51 @@ function proposalFor(value,overrides={}){
     affected:[...new Set([...added,...retired,'report'])].sort(),unaffected_completed:[],blocked:false,blocked_reason:null,
     modified:true,active_analysis_count:ids.length,max_analysis_count:6,execution_authorized:false,...overrides};
 }
+function evidenceProgress(overrides={}){
+  const binding={task_id:id,step_id:'q1',artifact_version:0,step_generation:1,answer_id:null,
+    input_sha256:'d'.repeat(64),receipt_sha256:null,requirements_sha256:'e'.repeat(64)};
+  const obligations=['b','c'].map((letter,index)=>({id:letter.repeat(64),owner_step_id:'q1',kind:'task_requirement',
+    requirement_id:index?'G1':'Q1',semantic_id:(index?'f':'a').repeat(64),status:index?'contradicted':'unresolved',
+    query:index?'Check the original goal against the absence roster.':'Retrieve the original workload change log.',
+    lookup_query:index?'Find the absence roster.':'Find the change log.',gaps:['missing_original_record'],
+    binding:{...binding},requirement_sha256:(index?'f':'a').repeat(64)}));
+  const work_items=obligations.map((row,index)=>({id:String(index+1).repeat(64),owner_step_id:'q1',kind:row.kind,
+    query:row.query,lookup_query:row.lookup_query,status:'unresolved',attempts:0,round:0,binding:{...binding},obligation_ids:[row.id]}));
+  return {schema_version:1,task_id:id,task_revision:1,fingerprint:'9'.repeat(64),obligations,work_items,
+    coverage:{total:2,ready_for_review:0,unresolved:1,contradicted:1,not_assessed:0,goal_verified:false},
+    next_action:'local_lookup',semantic_verified:false,goal_verified:false,...overrides};
+}
+function evidenceRepair(overrides={}){
+  const value=plan();value.questions[0].question+='\n\n核对缺失原始记录，并保留替代解释。';
+  return {task_id:id,base_revision:1,ledger_fingerprint:'9'.repeat(64),plan:value,
+    changed_steps:['q1'],deferred_work_count:1,capacity_steps:[],execution_authorized:false,automatic_execution:false,
+    next_action:'preview_replan',proposal:proposalFor(value,{changed:['q1'],affected:['q1','report']}),...overrides};
+}
+function pairedPlan(count=1,personal=false){
+  const questions=[];
+  for(let index=1;index<=count;index++){
+    const question={id:'q'+index,title:index===1?'Evidence':'Question '+index,question:index===1?plan().questions[0].question:'Original complete requirement '+index,
+      purpose:'compose',depends_on:index>1?['v_q'+(index-1)]:[],...(personal?{input_kind:'personal',memory_ids:[memoryId]}:{document_ids:[documentId]})};
+    questions.push(question,{...question,id:'v_q'+index,title:'核对证据',purpose:'verify',review_of:question.id,depends_on:[question.id]});
+  }
+  return {...plan(),questions};
+}
+function pairedTask(count=1,personal=false){const value=pairedPlan(count,personal),base=task();return {...base,goal:value.goal,constraints:value.constraints,
+  steps:[base.steps[0],...value.questions.map(row=>({...row,kind:'analysis',status:'ready',revision:1,generation:1,artifact_version:0,
+    document_ids:row.document_ids || null,depends_on:row.depends_on.length?row.depends_on:['inventory']})),{...base.steps[2],depends_on:value.questions.map(row=>row.id)}]};}
+function auditRepair(overrides={}){
+  const value=plan();value.questions.push({...value.questions[0],id:'v_q1',title:'核对证据',purpose:'verify',review_of:'q1',depends_on:['q1']});
+  return evidenceRepair({plan:value,changed_steps:['v_q1'],deferred_work_count:0,
+    proposal:proposalFor(value,{added:['v_q1'],changed:[],affected:['v_q1','report'],max_analysis_count:12}),...overrides});
+}
+function recomposeRepair(original=plan(),overrides={}){
+  const value=structuredClone(original),owner=value.questions[0],writer={...owner,id:'lookup_q1',title:'补查与重新整理',refine_of:owner.id,depends_on:[owner.id]};
+  delete writer.purpose;delete writer.review_of;
+  const reviewer={...writer,id:'verify_lookup',title:'核对新版草稿',purpose:'verify',review_of:writer.id,depends_on:[writer.id]};delete reviewer.refine_of;
+  value.questions.push(writer,reviewer);
+  return evidenceRepair({plan:value,changed_steps:[writer.id,'verify_lookup'],deferred_work_count:0,
+    proposal:proposalFor(value,{added:[writer.id,'verify_lookup'],changed:[],affected:[writer.id,'verify_lookup','report'],max_analysis_count:12}),...overrides});
+}
 
 function service(){
   let key='owner-a',prefs={mode:'connected'},active=0,maximum=0;
@@ -136,6 +181,7 @@ function mount(overrides={}){
   const hooks={},events=[],calls=[],dialogs=[],clipboard=[],downloads=[];let key='owner-a',confirmation=true;
   const handlers={load:async()=>({enabled:true,items:[task()]}),detail:async()=>task(),create:async()=>task(),update:async()=>({...task(),revision:2}),
     previewReplan:async(_sid,_id,_revision,value)=>proposalFor(value),replan:async()=>({...task('stale'),revision:2}),
+    previewEvidenceRepair:async()=>evidenceRepair(),
     run:async(_sid,_id,_revision,request)=>({...task('running'),run_id:request,run_remaining:2}),control:async()=>task('paused'),artifact:async()=>artifact(),documents:async()=>documents(),memories:async()=>memoryPage(),...overrides};
   const client=Object.fromEntries(Object.entries(handlers).map(([name,handler])=>[name,async(...args)=>{calls.push([name,...args]);return handler(...args);} ]));
   const scope={ref,computed,watch,createProjectTasksClient:()=>client,taskPlan,taskStateLabel,researchConnectionKey:()=>key,
@@ -160,7 +206,7 @@ test('creating an editable plan is separate from a quota-approved run',async()=>
 });
 test('new questions preview explicit dependencies, never call a planning model',async()=>{
   const f=mount();await f.ui.toggle();await f.ui.newPlan();f.ui.editor.value.questions[0].question='First check';f.ui.addQuestion();
-  assert.deepEqual(f.ui.editor.value.questions[1].depends_on,['q1']);f.ui.setDependency(f.ui.editor.value.questions[1],1,{detail:{value:0}});assert.deepEqual(f.ui.editor.value.questions[1].depends_on,[]);
+  assert.deepEqual(f.ui.editor.value.questions[1].depends_on,['v_q1']);f.ui.setDependency(f.ui.editor.value.questions[1],1,{detail:{value:0}});assert.deepEqual(f.ui.editor.value.questions[1].depends_on,[]);
   f.ui.addQuestion();f.ui.removeQuestion(1);assert.deepEqual(f.ui.editor.value.questions[1].depends_on,[]);assert.deepEqual(f.calls.map(row=>row[0]),['load']);f.dispose();
 });
 test('editing a saved plan preserves user question IDs and strips system inventory dependency',async()=>{
@@ -319,7 +365,7 @@ test('personal mode needs no upload or memory read and every added question star
   const f=mount();await f.ui.toggle();await f.ui.newPlan();assert.equal(f.ui.inputKind.value,'documents');await f.ui.setInputKind('personal');
   f.ui.editor.value.goal='安排本周客户交付';f.ui.editor.value.questions[0].question='先整理计划与需要我确认的事项';f.ui.addQuestion();f.ui.editor.value.questions[1].question='基于前一步列出交付检查表';
   for(const item of f.ui.editor.value.questions){assert.equal(item.input_kind,'personal');assert.deepEqual(item.memory_ids,[]);assert.equal('document_ids' in item,false);}
-  await f.ui.savePlan();const value=f.calls.find(row=>row[0]==='create')[2];assert.equal(value.questions.length,2);assert.equal(value.questions.every(item=>item.input_kind==='personal' && item.memory_ids.length===0),true);
+  await f.ui.savePlan();const value=f.calls.find(row=>row[0]==='create')[2];assert.equal(value.questions.length,4);assert.equal(value.questions.every(item=>item.input_kind==='personal' && item.memory_ids.length===0),true);
   assert.equal(f.calls.some(row=>['documents','memories','run'].includes(row[0])),false);f.dispose();
 });
 test('personal picker reads only on click, never auto-selects, enforces eight explicit choices and retains unlisted saved IDs',async()=>{
@@ -484,4 +530,420 @@ test('late or changed-draft UI previews cannot reappear after hide or session sw
 test('replan CAS conflict retains the complete draft, clears stale preview and never auto-refreshes or executes',async()=>{
   const f=mount({replan:async()=>{throw Object.assign(new Error('Conflict'),{status:409});}});await f.ui.toggle();await f.ui.openTask(id);await f.ui.editPlan();await f.ui.addQuestion();f.ui.editor.value.questions[1].question='Keep this complete new requirement.';
   await f.ui.savePlan();const draft=JSON.stringify(f.ui.editor.value);await f.ui.applyReplan();assert.equal(f.ui.replanPreview.value,null);assert.equal(f.ui.saveUncertain.value,false);assert.equal(JSON.stringify(f.ui.editor.value),draft);assert.match(f.ui.error.value,/版本或状态/);assert.equal(f.calls.filter(row=>row[0]==='detail').length,1);assert.equal(f.calls.some(row=>['run','control'].includes(row[0])),false);f.dispose();
+});
+
+test('current goal coverage and missing work survive client decoding instead of completed becoming accepted',async()=>{
+  const h=service();await h.client.load(sid);const value={...task('completed'),evidence_progress:evidenceProgress()};
+  h.handlers.request=async()=>({task:value});const result=await h.client.detail(sid,id);
+  assert.deepEqual(result.evidence_progress,value.evidence_progress);
+  assert.equal(result.evidence_progress.goal_verified,false);assert.equal(result.evidence_progress.coverage.contradicted,1);
+  result.evidence_progress.obligations[0].gaps.push('local display');assert.equal(value.evidence_progress.obligations[0].gaps.length,1);
+});
+
+test('grouped goal checks preserve the host group hash without duplicating project acceptance requirements',async()=>{
+  const h=service();await h.client.load(sid);const progress=evidenceProgress();
+  progress.obligations[1].binding.review_group_sha256='8'.repeat(64);
+  progress.work_items[1].binding.review_group_sha256='8'.repeat(64);
+  h.handlers.request=async()=>({task:{...task(),evidence_progress:progress}});
+  const result=await h.client.detail(sid,id);assert.equal(result.evidence_progress.obligations[1].binding.review_group_sha256,'8'.repeat(64));
+  assert.equal(result.evidence_progress.obligations.filter(row=>row.requirement_id==='G1').length,1);
+});
+
+test('unavailable evidence is a separate fail-closed state; old services may omit the new field',async()=>{
+  const h=service();await h.client.load(sid);
+  h.handlers.request=async()=>({task:task()});assert.equal('evidence_progress' in await h.client.detail(sid,id),false);
+  const unavailable={schema_version:1,task_id:id,task_revision:1,status:'unavailable',next_action:'collect_evidence',semantic_verified:false,goal_verified:false};
+  h.handlers.request=async()=>({task:{...task(),evidence_progress:unavailable}});
+  assert.deepEqual((await h.client.detail(sid,id)).evidence_progress,unavailable);
+  unavailable.coverage={ready_for_review:100};await assert.rejects(h.client.detail(sid,id),/不符合/);
+});
+
+for(const [label,mutate] of [
+  ['foreign task',v=>v.task_id=runId],['stale task revision',v=>v.task_revision=2],
+  ['claimed goal proof',v=>v.goal_verified=true],['claimed semantic proof',v=>v.semantic_verified=true],
+  ['miscounted coverage',v=>v.coverage.ready_for_review=1],['private answer body',v=>v.answer='PRIVATE'],
+  ['foreign owner',v=>v.obligations[0].owner_step_id='foreign'],['duplicate obligations',v=>v.obligations.push({...v.obligations[0]})],
+  ['missing work coverage',v=>v.work_items.pop()],['wrong artifact version',v=>v.obligations[0].binding.artifact_version=1],
+  ['source body in binding',v=>v.obligations[0].binding.content='PRIVATE'],['invalid group checksum',v=>v.obligations[0].binding.review_group_sha256='wrong'],
+  ['foreign work reference',v=>v.work_items[0].obligation_ids=['0'.repeat(64)]],['duplicate work identity',v=>v.work_items[1].id=v.work_items[0].id],
+  ['lookup as verification',v=>v.work_items[0].status='ready_for_review'],['invalid attempt count',v=>v.work_items[0].attempts=-1],
+  ['oversized UTF8 hint',v=>v.obligations[0].lookup_query='证'.repeat(200)],['ready with missing proof',v=>v.obligations[0].status='ready_for_review'],
+])test(`evidence progress rejects ${label} instead of displaying a stale positive badge`,async()=>{
+  const h=service();await h.client.load(sid);const progress=evidenceProgress();mutate(progress);
+  h.handlers.request=async()=>({task:{...task(),evidence_progress:progress}});await assert.rejects(h.client.detail(sid,id),/不符合/);
+});
+
+test('report delivery gap status remains distinct from acceptance and cannot assert verified completion',async()=>{
+  const h=service();await h.client.load(sid);
+  for(const delivery_status of ['draft_with_evidence_gaps','ready_for_user_review']){
+    h.handlers.request=async()=>({artifact:{...artifact(),acceptance_status:'review_required',goal_verified:false,delivery_status}});
+    assert.equal((await h.client.artifact(sid,id,1)).delivery_status,delivery_status);
+  }
+  h.handlers.request=async()=>({artifact:{...artifact(),acceptance_status:'review_required',goal_verified:false,delivery_status:'goal_verified'}});
+  await assert.rejects(h.client.artifact(sid,id,1),/不符合/);
+});
+
+test('evidence repair uses the real metadata preview and existing reviewed CAS apply, never execution',async()=>{
+  const h=service();await h.client.load(sid);const repair=evidenceRepair();
+  h.handlers.request=async path=>path==='/workbench/tasks/evidence/preview'?{repair}:{task:task('stale')};
+  const result=await h.client.previewEvidenceRepair(sid,id,1);
+  assert.deepEqual(h.calls.at(-1),['/workbench/tasks/evidence/preview',{session_id:sid,task_id:id,expected_revision:1},'POST']);
+  assert.equal(result.execution_authorized,false);assert.deepEqual(result.plan,taskPlan(repair.plan));
+  await h.client.replan(sid,id,1,result.plan,result.proposal.proposal_sha256);
+  assert.equal(h.calls.at(-1)[0],'/workbench/tasks/replan');assert.equal(h.calls.some(row=>row[0].endsWith('/run')),false);
+  await assert.rejects(h.client.replan(sid,id,1,result.plan,result.proposal.proposal_sha256),/重新预览/);
+});
+
+for(const [label,mutate] of [
+  ['wrong task',v=>v.task_id=runId],['stale revision',v=>v.base_revision=2],['automatic execution',v=>v.automatic_execution=true],
+  ['new authorization',v=>v.execution_authorized=true],['bad fingerprint',v=>v.ledger_fingerprint='wrong'],
+  ['hidden added node',v=>v.proposal.added=['q1']],['lost changed steps',v=>v.changed_steps=[]],
+  ['contradictory capacity',v=>v.capacity_steps=['q1']],['unexpected private body',v=>v.answer='PRIVATE'],
+])test(`repair preview rejects ${label} without arming a later apply`,async()=>{
+  const h=service();await h.client.load(sid);const repair=evidenceRepair();mutate(repair);
+  h.handlers.request=async()=>({repair});await assert.rejects(h.client.previewEvidenceRepair(sid,id,1),/不符合/);
+  await assert.rejects(h.client.replan(sid,id,1,evidenceRepair().plan,proposalSha),/重新预览/);
+  assert.equal(h.calls.some(row=>row[0]==='/workbench/tasks/replan'),false);
+});
+
+test('late evidence repair previews cannot arm replan for another owner or hidden page',async()=>{
+  for(const change of ['identity','hidden']){
+    const h=service();await h.client.load(sid);const wait=deferred();let current=true;h.handlers.request=()=>wait.promise;
+    const pending=h.client.previewEvidenceRepair(sid,id,1,{isCurrent:()=>current});
+    if(change==='identity')h.key('other');else current=false;wait.resolve({repair:evidenceRepair()});
+    await assert.rejects(pending,/身份或项目/);assert.equal(h.calls.length,3);
+  }
+});
+
+test('repair UI shows actual gaps then loads editable CAS preview without saving or running',async()=>{
+  const value={...task('completed'),evidence_progress:evidenceProgress()},f=mount({detail:async()=>value});
+  await f.ui.toggle();await f.ui.openTask(id);assert.equal(f.ui.evidenceGaps.value.length,2);
+  assert.equal(f.ui.evidenceRequirementLabel(f.ui.evidenceGaps.value[1]),'原始目标');
+  await f.ui.repairEvidence();assert.equal(f.calls.at(-1)[0],'previewEvidenceRepair');
+  assert.equal(f.ui.editorOpen.value,true);assert.equal(f.ui.editor.value.goal,value.goal);
+  assert.equal(f.ui.editor.value.constraints,value.constraints);assert.match(f.ui.editor.value.questions[0].question,/核对缺失原始记录/);
+  assert.equal(f.ui.evidenceRepair.value.deferred_work_count,1);assert.equal(f.ui.replanPreview.value.proposal_sha256,proposalSha);
+  assert.equal(f.ui.requiresReplan.value,true);assert.equal(f.calls.some(row=>['replan','update','run','control'].includes(row[0])),false);
+  f.confirm(false);await f.ui.applyReplan();assert.equal(f.calls.some(row=>row[0]==='replan'),false);
+  f.confirm(true);await f.ui.applyReplan();assert.equal(f.calls.at(-1)[0],'replan');
+  assert.equal(f.calls.some(row=>['update','run','control'].includes(row[0])),false);f.dispose();
+});
+
+test('editing a repair draft invalidates old CAS and saving requires a fresh preview rather than update',async()=>{
+  const f=mount({detail:async()=>({...task('completed'),evidence_progress:evidenceProgress()})});await f.ui.toggle();await f.ui.openTask(id);await f.ui.repairEvidence();
+  f.ui.editor.value.questions[0].question+=' Preserve this new condition.';assert.equal(f.ui.replanPreview.value,null);
+  await f.ui.applyReplan();assert.equal(f.calls.some(row=>row[0]==='replan'),false);
+  await f.ui.savePlan();assert.equal(f.calls.at(-1)[0],'previewReplan');assert.equal(f.calls.some(row=>['update','run'].includes(row[0])),false);f.dispose();
+});
+
+test('repair capacity and exhausted evidence keep original requirements and do not enter a retry loop',async()=>{
+  const repair=evidenceRepair({plan:plan(),changed_steps:[],deferred_work_count:4,capacity_steps:['q1'],next_action:'collect_evidence',
+    proposal:proposalFor(plan(),{changed:[],affected:[],modified:false})});
+  const f=mount({detail:async()=>({...task('completed'),evidence_progress:evidenceProgress()}),previewEvidenceRepair:async()=>repair});
+  await f.ui.toggle();await f.ui.openTask(id);const original=JSON.stringify(f.ui.editor.value);await f.ui.repairEvidence();
+  assert.equal(JSON.stringify(f.ui.editor.value),original);assert.equal(f.ui.replanPreview.value,null);
+  assert.deepEqual(f.ui.evidenceRepair.value.capacity_steps,['q1']);assert.match(f.ui.notice.value,/4 项.*原要求没有截断/);
+  assert.equal(f.calls.filter(row=>row[0]==='previewEvidenceRepair').length,1);assert.equal(f.calls.some(row=>['replan','update','run'].includes(row[0])),false);f.dispose();
+});
+
+test('unsaved user drafts require explicit replacement approval before preparing a repair',async()=>{
+  const f=mount({detail:async()=>({...task('completed'),evidence_progress:evidenceProgress()})});await f.ui.toggle();await f.ui.openTask(id);
+  await f.ui.newPlan();f.ui.editor.value.goal='Keep my unsaved task';f.confirm(false);await f.ui.repairEvidence();
+  assert.equal(f.calls.some(row=>row[0]==='previewEvidenceRepair'),false);assert.equal(f.ui.editor.value.goal,'Keep my unsaved task');
+  f.confirm(true);await f.ui.repairEvidence();assert.equal(f.calls.at(-1)[0],'previewEvidenceRepair');assert.equal(f.ui.editor.value.goal,plan().goal);f.dispose();
+});
+
+test('late repair drafts cannot overwrite hidden, switched or newly edited private state',async()=>{
+  for(const change of ['hide','session','draft']){
+    const wait=deferred(),f=mount({detail:async()=>({...task('completed'),evidence_progress:evidenceProgress()}),previewEvidenceRepair:()=>wait.promise});
+    await f.ui.toggle();await f.ui.openTask(id);const pending=f.ui.repairEvidence();
+    if(change==='hide')f.hooks.hide();else if(change==='session'){f.props.sessionId='#00002';await nextTick();}else f.ui.editor.value.goal='New unsaved goal';
+    wait.resolve(evidenceRepair());await pending;assert.equal(f.ui.evidenceRepair.value,null);assert.equal(f.ui.replanPreview.value,null);
+    assert.equal(f.calls.some(row=>['replan','run','update'].includes(row[0])),false);f.dispose();
+  }
+});
+
+for(const [label,change] of [
+  ['goal',p=>p.goal='An easier substituted goal'],['constraint',p=>p.constraints='Discard original assumptions'],
+  ['original question',p=>p.questions[0].question='Do a different easier task'],
+  ['document scope',p=>p.questions[0].document_ids=[documentId]],
+  ['input kind',p=>{p.questions[0].input_kind='personal';p.questions[0].memory_ids=[];}],
+  ['dependency',p=>p.questions[0].depends_on=['unapproved']],
+])test(`repair UI rejects changed ${label} before replacing the user draft`,async()=>{
+  const repair=evidenceRepair();change(repair.plan);
+  const f=mount({detail:async()=>({...task('completed'),evidence_progress:evidenceProgress()}),previewEvidenceRepair:async()=>repair});
+  await f.ui.toggle();await f.ui.openTask(id);const original=JSON.stringify(f.ui.editor.value);await f.ui.repairEvidence();
+  assert.equal(JSON.stringify(f.ui.editor.value),original);assert.equal(f.ui.evidenceRepair.value,null);
+  assert.match(f.ui.error.value,/改变了原目标.*没有替换、保存或执行/);assert.equal(f.calls.some(row=>['replan','update','run'].includes(row[0])),false);f.dispose();
+});
+
+test('six explicit compose/verify pairs preserve all requirements and twelve disclosed calls; legacy plans stay single stage',()=>{
+  const value=pairedPlan(6),result=taskPlan(value);
+  assert.equal(result.questions.length,12);assert.equal(result.questions.filter(row=>row.purpose==='compose').length,6);
+  assert.equal(result.questions.filter(row=>row.purpose==='verify').length,6);
+  for(const row of result.questions.filter(row=>row.purpose==='verify')){
+    const target=result.questions.find(item=>item.id===row.review_of);assert.equal(row.question,target.question);
+    assert.deepEqual(row.document_ids,target.document_ids);assert.deepEqual(row.depends_on,[target.id]);
+  }
+  assert.deepEqual(taskPlan(plan()),plan());
+  assert.throws(()=>taskPlan(pairedPlan(7)),/1–6/);
+});
+for(const [label,change] of [
+  ['unknown purpose',p=>p.questions[1].purpose='auto_prove'],
+  ['missing target',p=>delete p.questions[1].review_of],
+  ['foreign target',p=>p.questions[1].review_of='q_other'],
+  ['missing target dependency',p=>p.questions[1].depends_on=[]],
+  ['shortened original question',p=>p.questions[1].question='Check only a small fragment'],
+  ['broader document scope',p=>delete p.questions[1].document_ids],
+  ['different memory scope',p=>{for(const row of p.questions){delete row.document_ids;row.input_kind='personal';row.memory_ids=[memoryId];}p.questions[1].memory_ids=[];}],
+  ['review field on compose',p=>p.questions[0].review_of='q1'],
+])test(`explicit audit plan rejects ${label} without silently repairing or broadening it`,()=>{
+  const value=pairedPlan();change(value);assert.throws(()=>taskPlan(value));
+});
+test('review targets follow DAG dependencies, not display array order; cyclic reverse references still fail closed',async()=>{
+  const value=pairedPlan();value.questions.reverse();assert.deepEqual(taskPlan(value).questions.map(row=>row.id),['v_q1','q1']);
+  const h=service();await h.client.load(sid);const current=pairedTask();[current.steps[1],current.steps[2]]=[current.steps[2],current.steps[1]];
+  h.handlers.request=async()=>({task:current});const result=await h.client.detail(sid,id);assert.equal(result.steps[1].review_of,'q1');
+  current.steps[2].depends_on=['v_q1'];await assert.rejects(h.client.detail(sid,id),/不符合/);
+  value.questions[1].depends_on=['v_q1'];assert.throws(()=>taskPlan(value),/循环/);
+});
+
+test('task decoder accepts twelve explicit stages and full report dependencies while preserving role/target and legacy behavior',async()=>{
+  const h=service();await h.client.load(sid);const value=pairedTask(6);h.handlers.request=async()=>({task:value});
+  const result=await h.client.detail(sid,id);assert.equal(result.steps.length,14);assert.equal(result.steps[2].purpose,'verify');
+  assert.equal(result.steps[2].review_of,'q1');assert.equal(result.steps.at(-1).depends_on.length,12);
+  h.handlers.request=async()=>({task:task()});const legacy=await h.client.detail(sid,id);
+  assert.equal('purpose' in legacy.steps[1],false);assert.equal('review_of' in legacy.steps[1],false);
+});
+for(const [label,change] of [
+  ['scope mismatch',value=>value.steps[2].document_ids=null],
+  ['nonexistent reviewed step',value=>value.steps[2].review_of='foreign'],
+  ['missing dependency',value=>value.steps[2].depends_on=['inventory']],
+  ['different question',value=>value.steps[2].question='Ignore the original conditions'],
+  ['wrapper as a reviewer',value=>{value.steps[0].purpose='verify';value.steps[0].review_of='q1';}],
+])test(`task decoder rejects malformed audit ${label}`,async()=>{
+  const h=service();await h.client.load(sid);const value=pairedTask();change(value);h.handlers.request=async()=>({task:value});
+  await assert.rejects(h.client.detail(sid,id),/不符合/);
+});
+
+test('partially searched evidence remains unresolved/contradicted and does not masquerade as exhausted or proven coverage',async()=>{
+  const h=service();await h.client.load(sid);const progress=evidenceProgress();progress.work_items[0].status='partially_searched';progress.work_items[0].attempts=1;progress.work_items[0].round=1;
+  h.handlers.request=async()=>({task:{...task('completed'),evidence_progress:progress}});
+  const result=await h.client.detail(sid,id);assert.equal(result.evidence_progress.work_items[0].status,'partially_searched');
+  assert.equal(result.evidence_progress.coverage.ready_for_review,0);assert.equal(result.evidence_progress.coverage.unresolved,1);
+  assert.equal(result.evidence_progress.goal_verified,false);progress.work_items[0].attempts=0;progress.work_items[0].round=0;
+  await assert.rejects(h.client.detail(sid,id),/不符合/);
+});
+
+test('new ordinary plans explicitly disclose compose then verify, save both nodes, and still need a separate bounded grant',async()=>{
+  const f=mount();await f.ui.toggle();await f.ui.newPlan();f.ui.editor.value.goal=plan().goal;f.ui.editor.value.constraints=plan().constraints;
+  f.ui.editor.value.questions[0].question=plan().questions[0].question;
+  assert.equal(f.ui.editor.value.questions.length,1);assert.equal(f.ui.editor.value.reviews.length,1);assert.equal(f.ui.plannedCalls.value,2);
+  await f.ui.savePlan();const sent=f.calls.find(row=>row[0]==='create')[2];assert.deepEqual(sent.questions.map(row=>row.purpose),['compose','verify']);
+  assert.equal(sent.questions[1].review_of,sent.questions[0].id);assert.equal(sent.questions[1].question,sent.questions[0].question);
+  assert.equal(f.calls.some(row=>row[0]==='run'),false);assert.equal(f.ui.budgetOptions.length,6);
+  f.confirm(false);await f.ui.runTask();assert.equal(f.calls.some(row=>row[0]==='run'),false);
+  assert.match(source,/写作 \/ 整理 → 核对证据/);assert.match(source,/完整计划至多/);assert.match(source,/单批仍最多批准 6 次/);f.dispose();
+});
+
+test('new plan editing synchronizes exact question and explicit personal scope into every visible audit without duplicating editable questions',async()=>{
+  const f=mount();await f.ui.toggle();await f.ui.newPlan();await f.ui.setInputKind('personal');
+  f.ui.editor.value.goal='Prepare my week';const first=f.ui.editor.value.questions[0];first.question='完整保留所有条件，不发送消息。';first.memory_ids=[memoryId];
+  await f.ui.addQuestion();f.ui.editor.value.questions[1].question='基于核对后的第一步安排优先级。';
+  assert.equal(f.ui.editor.value.questions.length,2);assert.equal(f.ui.plannedCalls.value,4);
+  assert.deepEqual(f.ui.editor.value.questions[1].depends_on,['v_q1']);
+  first.question+=' 预算两小时。';const result=f.ui.planForEditor(f.ui.editor.value);
+  assert.deepEqual(result.questions.map(row=>row.id),['q1','v_q1','q2','v_q2']);
+  assert.equal(result.questions[1].question,first.question);assert.deepEqual(result.questions[1].memory_ids,[memoryId]);
+  assert.equal(result.questions.every(row=>row.input_kind==='personal'),true);assert.equal(f.calls.some(row=>row[0]==='memories'),false);f.dispose();
+});
+
+test('editing an existing audited plan preserves original order and roles while only compose questions are editable',async()=>{
+  const value=pairedTask(2),f=mount({detail:async()=>value});await f.ui.toggle();await f.ui.openTask(id);await f.ui.editPlan();
+  assert.equal(f.ui.editor.value.questions.length,2);assert.equal(f.ui.editor.value.reviews.length,2);
+  assert.deepEqual(f.ui.editor.value.order,['q1','v_q1','q2','v_q2']);
+  f.ui.editor.value.questions[0].question+=' Keep the alternative explanation unknown.';
+  f.ui.editor.value.questions[0].document_ids=[unavailableId];const result=f.ui.planForEditor(f.ui.editor.value);
+  assert.equal(result.questions[1].question,result.questions[0].question);assert.deepEqual(result.questions[1].document_ids,[unavailableId]);
+  assert.deepEqual(result.questions[2].depends_on,['v_q1']);assert.equal(f.ui.topologyChanged.value,false);
+  await f.ui.savePlan();assert.equal(f.calls.at(-1)[0],'update');assert.equal(f.calls.at(-1)[4].questions.length,4);
+  assert.equal(f.calls.some(row=>row[0]==='run'),false);f.dispose();
+});
+
+test('legacy editing never silently adds audit nodes or changes one-call questions into two-call work',async()=>{
+  const f=mount();await f.ui.toggle();await f.ui.openTask(id);await f.ui.editPlan();assert.equal(f.ui.editor.value.reviews,undefined);
+  await f.ui.addQuestion();f.ui.editor.value.questions[1].question='Keep this legacy follow-up.';
+  const result=f.ui.planForEditor(f.ui.editor.value);assert.equal(result.questions.length,2);assert.equal(result.questions.some(row=>row.purpose==='verify'),false);
+  assert.equal(f.ui.plannedCalls.value,2);await f.ui.savePlan();assert.equal(f.calls.at(-1)[0],'previewReplan');assert.equal(f.calls.some(row=>row[0]==='run'),false);f.dispose();
+});
+
+test('retiring a compose retires its attached audit lineage and dependencies, never reuses stale reviewer identities',async()=>{
+  const f=mount({detail:async()=>pairedTask(2)});await f.ui.toggle();await f.ui.openTask(id);await f.ui.editPlan();await f.ui.removeQuestion(0);
+  assert.deepEqual(f.ui.editor.value.questions.map(row=>row.id),['q2']);assert.deepEqual(f.ui.editor.value.reviews.map(row=>row.id),['v_q2']);
+  assert.deepEqual(f.ui.editor.value.questions[0].depends_on,[]);assert.equal(f.ui.plannedCalls.value,2);
+  assert.equal(f.ui.planForEditor(f.ui.editor.value).questions.some(row=>['q1','v_q1'].includes(row.id)),false);f.dispose();
+});
+
+test('new repair adds an explicit same-scope verify rather than changing writer requirements, then arms only the reviewed CAS draft',async()=>{
+  const h=service();await h.client.load(sid);const repair=auditRepair();h.handlers.request=async path=>path.endsWith('/evidence/preview')?{repair}:{task:{...task('stale'),revision:2}};
+  const result=await h.client.previewEvidenceRepair(sid,id,1);assert.deepEqual(result.proposal.added,['v_q1']);assert.equal(result.plan.questions[0].question,plan().questions[0].question);
+  await h.client.replan(sid,id,1,result.plan,result.proposal.proposal_sha256);assert.equal(h.calls.at(-1)[0],'/workbench/tasks/replan');
+  assert.equal(h.calls.some(row=>row[0].endsWith('/run')),false);
+});
+for(const [label,change] of [
+  ['unpaired new compose',repair=>{repair.plan.questions[1].purpose='compose';delete repair.plan.questions[1].review_of;}],
+  ['scope expansion',repair=>repair.plan.questions[1].document_ids=[documentId]],
+  ['writer question change',repair=>{repair.plan.questions[0].question+='\n\nDiscard old requirements';repair.plan.questions[1].question=repair.plan.questions[0].question;}],
+  ['writer dependency change',repair=>repair.plan.questions[0].depends_on=['v_q1']],
+  ['foreign reviewed target',repair=>repair.plan.questions[1].review_of='foreign'],
+  ['substituted goal',repair=>repair.plan.goal='A different easier goal'],
+])test(`new repair decoder rejects ${label} before permitting any CAS apply`,async()=>{
+  const h=service();await h.client.load(sid);const repair=auditRepair();change(repair);h.handlers.request=async()=>({repair});
+  await assert.rejects(h.client.previewEvidenceRepair(sid,id,1));await assert.rejects(h.client.replan(sid,id,1,plan(),proposalSha),/重新预览/);
+  assert.equal(h.calls.some(row=>row[0].endsWith('/run') || row[0].endsWith('/replan')),false);
+});
+
+test('repair scope uses immutable last-read metadata rather than caller-mutated task data or an unknown revision',async()=>{
+  const h=service(),loaded=await h.client.load(sid);loaded.items[0].goal='Mutated display object';const repair=auditRepair();repair.plan.goal='Mutated display object';
+  h.handlers.request=async()=>({repair});await assert.rejects(h.client.previewEvidenceRepair(sid,id,1),/不符合/);
+  const before=h.calls.length;await assert.rejects(h.client.previewEvidenceRepair(sid,id,2),/读取最新任务/);assert.equal(h.calls.length,before);
+});
+
+test('repair UI adds only a read-only audit card, preserves writer text and explicitly separates CAS save from run',async()=>{
+  const repair=auditRepair(),f=mount({detail:async()=>({...task('completed'),evidence_progress:evidenceProgress()}),previewEvidenceRepair:async()=>repair});
+  await f.ui.toggle();await f.ui.openTask(id);await f.ui.repairEvidence();assert.equal(f.ui.editor.value.questions.length,1);
+  assert.equal(f.ui.editor.value.questions[0].question,plan().questions[0].question);assert.equal(f.ui.editor.value.reviews.length,1);
+  assert.equal(f.ui.plannedCalls.value,2);assert.deepEqual(f.ui.replanPreview.value.added,['v_q1']);
+  assert.deepEqual(f.ui.planForEditor(f.ui.editor.value),taskPlan(repair.plan));await f.ui.applyReplan();assert.equal(f.calls.at(-1)[0],'replan');
+  assert.equal(f.calls.some(row=>['run','control','update'].includes(row[0])),false);f.dispose();
+});
+
+test('read-only chained verify stages synchronize recursively and retain the exact pre-reviewed CAS ordering',async()=>{
+  const value=pairedTask(),prior=value.steps[2],extra={...prior,id:'v_second',review_of:prior.id,depends_on:[prior.id]};
+  value.steps.splice(3,0,extra);value.steps.at(-1).depends_on.push(extra.id);
+  const f=mount({detail:async()=>value});await f.ui.toggle();await f.ui.openTask(id);await f.ui.editPlan();
+  assert.equal(f.ui.editor.value.questions.length,1);assert.equal(f.ui.editor.value.reviews.length,2);
+  assert.equal(f.ui.reviewsFor('q1').length,2);assert.equal(f.ui.plannedCalls.value,3);
+  f.ui.editor.value.questions[0].question+=' Keep every earlier condition and source attribution.';
+  f.ui.editor.value.questions[0].document_ids=[unavailableId];const result=f.ui.planForEditor(f.ui.editor.value);
+  assert.deepEqual(result.questions.map(row=>row.id),['q1','v_q1','v_second']);
+  assert.equal(result.questions.every(row=>row.question===result.questions[0].question),true);
+  assert.equal(result.questions.every(row=>JSON.stringify(row.document_ids)===JSON.stringify([unavailableId])),true);
+  assert.equal(result.questions[2].review_of,'v_q1');assert.equal(f.ui.taskCallCounts.value.total,3);f.dispose();
+});
+
+test('partial search and total stage cost stay visible on task detail without upgrading goal acceptance',async()=>{
+  const progress=evidenceProgress();progress.work_items[0]={...progress.work_items[0],status:'partially_searched',attempts:1,round:1};
+  const f=mount({detail:async()=>({...pairedTask(),evidence_progress:progress})});await f.ui.toggle();await f.ui.openTask(id);
+  assert.equal(f.ui.partiallySearched.value,true);assert.deepEqual(f.ui.taskCallCounts.value,{compose:1,verify:1,total:2});
+  assert.equal(f.ui.task.value.evidence_progress.goal_verified,false);assert.equal(f.ui.task.value.evidence_progress.coverage.ready_for_review,0);
+  assert.match(source,/只查看了部分候选，不代表资料已查尽/);assert.match(source,/保存计划不代表授权执行/);f.dispose();
+});
+
+test('host review lineage and work-only lookup policy round-trip without being mistaken for a proof mismatch',async()=>{
+  const h=service();await h.client.load(sid);const progress=evidenceProgress();
+  for(const row of progress.obligations)row.binding.review_lineage_sha256='7'.repeat(64);
+  for(const row of progress.work_items){row.binding.review_lineage_sha256='7'.repeat(64);row.binding.lookup_policy='goal_evidence_lookup_v2';}
+  h.handlers.request=async()=>({task:{...task(),evidence_progress:progress}});const result=await h.client.detail(sid,id);
+  assert.equal(result.evidence_progress.obligations[0].binding.review_lineage_sha256,'7'.repeat(64));
+  assert.equal(result.evidence_progress.work_items[0].binding.lookup_policy,'goal_evidence_lookup_v2');
+  assert.equal('lookup_policy' in result.evidence_progress.obligations[0].binding,false);
+  assert.equal(result.evidence_progress.goal_verified,false);
+  progress.work_items[0].binding.review_lineage_sha256='8'.repeat(64);await assert.rejects(h.client.detail(sid,id),/不符合/);
+});
+
+test('lineage policies cannot insert private data, unknown execution policy or stale malformed hashes into evidence metadata',async()=>{
+  const h=service();await h.client.load(sid);
+  for(const mutate of [
+    progress=>progress.obligations[0].binding.review_lineage_sha256='guess',
+    progress=>progress.work_items[0].binding.lookup_policy='auto_execute_and_verify',
+    progress=>progress.obligations[0].binding.lookup_policy='goal_evidence_lookup_v2',
+    progress=>progress.work_items[0].binding.raw_source='private source body',
+  ]){const progress=evidenceProgress();mutate(progress);h.handlers.request=async()=>({task:{...task(),evidence_progress:progress}});await assert.rejects(h.client.detail(sid,id),/不符合/);}
+});
+
+for(const inputKind of ['whole-project','scoped-documents','selected-memory'])test(`repair safely admits a disclosed retrieve/recompose then verify pair with unchanged ${inputKind} input`,async()=>{
+  const h=service();await h.client.load(sid);const before=task(),original=plan();
+  if(inputKind==='scoped-documents'){before.steps[1].document_ids=[documentId];original.questions[0].document_ids=[documentId];}
+  if(inputKind==='selected-memory'){Object.assign(before.steps[1],{input_kind:'personal',memory_ids:[memoryId]});Object.assign(original.questions[0],{input_kind:'personal',memory_ids:[memoryId]});}
+  h.handlers.request=async()=>({task:before});await h.client.detail(sid,id);const repair=recomposeRepair(original);
+  h.handlers.request=async path=>path.endsWith('/evidence/preview')?{repair}:{task:{...before,revision:2,status:'stale'}};
+  const result=await h.client.previewEvidenceRepair(sid,id,1);
+  assert.deepEqual(result.proposal.added,['lookup_q1','verify_lookup']);assert.deepEqual(result.changed_steps,['lookup_q1','verify_lookup']);
+  assert.equal(result.plan.questions[1].question,result.plan.questions[0].question);
+  assert.deepEqual(result.plan.questions[1].depends_on,['q1']);assert.equal(result.plan.questions[2].review_of,'lookup_q1');
+  assert.equal(result.execution_authorized,false);await h.client.replan(sid,id,1,result.plan,result.proposal.proposal_sha256);
+  assert.equal(h.calls.at(-1)[0],'/workbench/tasks/replan');assert.equal(h.calls.some(row=>row[0].endsWith('/run')),false);
+});
+
+for(const [label,change] of [
+  ['different requirement',r=>{r.plan.questions[1].question='A smaller easier substituted task';r.plan.questions[2].question=r.plan.questions[1].question;}],
+  ['broadened scope',r=>{r.plan.questions[1].document_ids=[documentId];r.plan.questions[2].document_ids=[documentId];}],
+  ['borrowed personal memory',r=>{for(const row of r.plan.questions.slice(1)){row.input_kind='personal';row.memory_ids=[memoryId];}}],
+  ['missing original owner',r=>r.plan.questions[1].depends_on=['foreign']],
+  ['missing typed replacement',r=>delete r.plan.questions[1].refine_of],
+  ['foreign typed replacement',r=>r.plan.questions[1].refine_of='foreign'],
+  ['extra predecessor',r=>r.plan.questions[1].depends_on=['q1','verify_lookup']],
+  ['missing review',r=>{r.plan.questions.pop();r.changed_steps=['lookup_q1'];r.proposal.added=['lookup_q1'];r.proposal.affected=['lookup_q1','report'];r.proposal.active_analysis_count=2;}],
+  ['reviewing only old draft',r=>{r.plan.questions[2].review_of='q1';r.plan.questions[2].depends_on=['q1'];}],
+  ['old definition changed',r=>{r.plan.questions[0].question+='\n\nChanged original';r.plan.questions[1].question=r.plan.questions[0].question;r.plan.questions[2].question=r.plan.questions[0].question;}],
+  ['old node in changed list',r=>{r.changed_steps.push('q1');r.proposal.changed=['q1'];r.proposal.affected.push('q1');}],
+])test(`repair retrieval pair rejects ${label} rather than inventing authority or weakening requirements`,async()=>{
+  const h=service();await h.client.load(sid);const repair=recomposeRepair();change(repair);h.handlers.request=async()=>({repair});
+  await assert.rejects(h.client.previewEvidenceRepair(sid,id,1));await assert.rejects(h.client.replan(sid,id,1,plan(),proposalSha),/重新预览/);
+  assert.equal(h.calls.some(row=>row[0].endsWith('/run') || row[0].endsWith('/replan')),false);
+});
+
+test('repair UI distinguishes two new paid stages from checking old windows, preserves original task, and requires independent grant',async()=>{
+  const repair=recomposeRepair(),f=mount({detail:async()=>({...task('completed'),evidence_progress:evidenceProgress()}),previewEvidenceRepair:async()=>repair});
+  await f.ui.toggle();await f.ui.openTask(id);await f.ui.repairEvidence();
+  assert.equal(f.ui.editor.value.questions.length,2);assert.equal(f.ui.editor.value.reviews.length,1);
+  assert.equal(f.ui.editor.value.questions[0].question,plan().questions[0].question);
+  assert.equal(f.ui.evidenceRepair.value.added_composition_count,1);assert.equal(f.ui.evidenceRepair.value.added_review_count,1);
+  assert.equal(f.ui.plannedCalls.value,3);assert.deepEqual(f.ui.planForEditor(f.ui.editor.value),taskPlan(repair.plan));
+  assert.match(source,/重新检索并整理新版草稿，再单独核对/);assert.match(source,/明确新建下一阶段/);
+  await f.ui.applyReplan();assert.equal(f.calls.at(-1)[0],'replan');assert.equal(f.calls.some(row=>['run','control','update'].includes(row[0])),false);
+  assert.equal(f.ui.budgetOptions.length,6);f.dispose();
+});
+
+test('repair UI refuses a recompose pair with altered owner requirement before replacing the draft',async()=>{
+  const repair=recomposeRepair();repair.plan.questions[1].question='Do an unrelated task';repair.plan.questions[2].question=repair.plan.questions[1].question;
+  const f=mount({detail:async()=>({...task('completed'),evidence_progress:evidenceProgress()}),previewEvidenceRepair:async()=>repair});
+  await f.ui.toggle();await f.ui.openTask(id);const original=JSON.stringify(f.ui.editor.value);await f.ui.repairEvidence();
+  assert.equal(JSON.stringify(f.ui.editor.value),original);assert.equal(f.ui.evidenceRepair.value,null);
+  assert.match(f.ui.error.value,/没有替换、保存或执行/);assert.equal(f.calls.some(row=>['replan','update','run'].includes(row[0])),false);f.dispose();
+});
+
+test('typed refinements round-trip as compose without guessing replacement from repeated question text',async()=>{
+  const repair=recomposeRepair(),value=task(),extra=repair.plan.questions.slice(1).map(row=>({...row,kind:'analysis',status:'ready',revision:1,generation:1,artifact_version:0,document_ids:null}));
+  value.steps.splice(2,0,...extra);value.steps.at(-1).depends_on=['q1','lookup_q1','verify_lookup'];
+  const h=service();await h.client.load(sid);h.handlers.request=async()=>({task:value});const decoded=await h.client.detail(sid,id);
+  assert.equal(decoded.steps[2].refine_of,'q1');assert.equal(decoded.steps[2].purpose,undefined);
+  assert.equal('refine_of' in decoded.steps[3],false);assert.equal(taskPlan(repair.plan).questions[1].refine_of,'q1');
+  const plain={...repair.plan.questions[1]};delete plain.refine_of;
+  assert.equal('refine_of' in taskPlan({...plan(),questions:[plan().questions[0],plain]}).questions[1],false);
+  extra[0].refine_of='foreign';await assert.rejects(h.client.detail(sid,id),/不符合/);
+});
+
+test('refinement can target an old verify, synchronizes inherited requirements recursively, and retains explicit lineage on save',async()=>{
+  const original=pairedPlan(),repair=recomposeRepair(original);repair.plan.questions[2].refine_of='v_q1';repair.plan.questions[2].depends_on=['v_q1'];
+  const f=mount({detail:async()=>({...pairedTask(),status:'completed',evidence_progress:evidenceProgress()}),previewEvidenceRepair:async()=>repair});
+  await f.ui.toggle();await f.ui.openTask(id);await f.ui.repairEvidence();assert.equal(f.ui.error.value,'');
+  const [owner,refiner]=f.ui.editor.value.questions;assert.equal(refiner.refine_of,'v_q1');
+  owner.question+=' Keep this new full qualification.';owner.document_ids=[unavailableId];
+  assert.equal(f.ui.inheritedQuestion(refiner),owner.question);const sent=f.ui.planForEditor(f.ui.editor.value);
+  assert.equal(sent.questions.every(row=>row.question===owner.question),true);
+  assert.equal(sent.questions.every(row=>JSON.stringify(row.document_ids)===JSON.stringify([unavailableId])),true);
+  assert.equal(sent.questions.find(row=>row.id==='lookup_q1').refine_of,'v_q1');
+  assert.equal(f.ui.replanPreview.value,null);await f.ui.savePlan();assert.equal(f.calls.at(-1)[0],'previewReplan');
+  assert.equal(f.calls.some(row=>row[0]==='run'),false);assert.match(source,/沿用其完整问题、资料或已选记忆/);f.dispose();
+});
+
+for(const [label,change] of [
+  ['review claiming replacement',p=>p.questions[2].refine_of='q1'],
+  ['replacement changing task',p=>{p.questions[1].question='A different task';p.questions[2].question='A different task';}],
+  ['replacement omitting original dependency',p=>p.questions[1].depends_on=[]],
+  ['replacement broadening selected scope',p=>{p.questions[0].document_ids=[documentId];}],
+])test(`typed replacement validation rejects ${label} without dropping the field`,()=>{
+  const value=recomposeRepair().plan;change(value);assert.throws(()=>taskPlan(value));
 });

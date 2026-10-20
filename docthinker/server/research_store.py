@@ -1171,11 +1171,13 @@ class ResearchStore:
                 raise ResearchStoreError("Invalid citation validation labels")
             bounded = []
             for label in value[:32]:
-                # Fabricated S/K syntax such as [S0]/[K0001] remains a warning,
+                # Fabricated citations, including host control IDs [C1]/[L2],
+                # remain warnings, never permission to bind a source.
+                # Noncanonical syntax such as [S0]/[K0001] remains a warning,
                 # not turn a paid answer into a metadata persistence failure.
                 # This metadata is not a source reference: record_answer below
                 # still accepts only canonical S labels for uploaded chunks.
-                if not isinstance(label, str) or not re.fullmatch(r"[SK][0-9]+", label):
+                if not isinstance(label, str) or not re.fullmatch(r"[SKCELPQAG][0-9]+", label):
                     raise ResearchStoreError("Invalid citation validation label")
                 if len(label) > 17:
                     clipped_labels = True

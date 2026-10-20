@@ -40,7 +40,7 @@ _query_tasks: dict[tuple[str, str, str], asyncio.Task] = {}
 _starting_query_keys: set[tuple[str, str, str]] = set()
 _query_background_tasks: set[asyncio.Task] = set()
 QUERY_WAIT_SECONDS = 5
-QUERY_EXECUTION_SECONDS = 110
+QUERY_EXECUTION_SECONDS = 240
 
 
 def _manager():

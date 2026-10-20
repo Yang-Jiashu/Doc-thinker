@@ -13,6 +13,15 @@ from docthinker.server.research_store import ResearchStore, ResearchStoreError
 from tests.test_personal_events_unit import memory, source, SID, no_network
 
 
+def assert_context_budgets(packet):
+    visible = {'events': packet['events'], 'relations': packet['relations']}
+    evidence_bytes = len(json.dumps(visible, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode())
+    binding_bytes = len(json.dumps(packet['bindings'], ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode())
+    assert packet['trace']['evidence_bytes'] == evidence_bytes <= 6000
+    assert packet['trace']['binding_bytes'] == binding_bytes <= 8192
+    assert len(packet['events']) <= 8 and len(packet['relations']) <= 12
+
+
 def event(store, *, action='Customer delivery moved to Friday.', origin=None, **fields):
     _, default = memory(store, action)
     return PersonalEvents(store).record_event(SID, event_type='decision', action=action,
@@ -220,7 +229,7 @@ def test_relevant_two_hop_bundle_precedes_twelve_isolated_lexical_seeds(tmp_path
     packet = events.retrieve_context(SID, 'Zephyr renewal')
     assert {start['id'], middle['id'], end['id']} <= {row['id'] for row in packet['events']}
     assert {first['id'], second['id']} <= {row['id'] for row in packet['relations']}
-    assert len(json.dumps(packet, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()) <= 6000
+    assert_context_budgets(packet)
     assert all(row['source_id'] in {event['id'] for event in packet['events']}
         and row['target_id'] in {event['id'] for event in packet['events']} for row in packet['relations'])
 
@@ -233,13 +242,146 @@ def test_bounded_packet_retains_whole_conditions_and_reports_omission_not_silent
         events.record_event(SID, event_type='observation', action=f'Zephyr observation {index}.', origins=[origin], conditions=['Only under the original limitation.'])
     packet = events.retrieve_context(SID, 'Zephyr')
     assert 1 <= len(packet['events']) <= 8 and len(packet['relations']) <= 12
-    assert len(json.dumps(packet, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()) <= 6000
+    assert_context_budgets(packet)
     assert packet['trace']['truncation']
     assert all(row['conditions'] == ['Only under the original limitation.'] for row in packet['events'])
     huge = events.record_event(SID, event_type='observation', action='巨大' * 500, origins=[origin],
         conditions=[str(index) + '限制' * 125 for index in range(16)])
     result = events.retrieve_context(SID, '巨大', event_ids=[huge['id']])
     assert not result['events'] and 'context_bytes' in result['trace']['truncation']
+
+
+@pytest.mark.parametrize('kind', ['reported_cause', 'hypothesis', 'depends_on'])
+def test_target_endpoint_bridge_keeps_intermediate_nodes_before_recent_distractions(tmp_path, kind):
+    store = ResearchStore(tmp_path)
+    events = PersonalEvents(store)
+    _, origin = memory(store)
+    actions = ['Zephyr change', 'Capacity rises', 'Queue grows', 'Slack vanishes', 'Orion delay']
+    chain = [events.record_event(SID, event_type='observation', action=action, origins=[origin]) for action in actions]
+    edges = []
+    for left, right in zip(chain, chain[1:]):
+        if kind == 'depends_on':
+            left, right = right, left
+        edges.append(events.relate(SID, left['id'], right['id'], kind))
+    # Newer unrelated neighborhoods must not occupy all graph slots before
+    # the only complete mechanism connecting the actual question endpoints.
+    for index in range(10):
+        noise = events.record_event(SID, event_type='observation', action=f'Unrelated note {index}', origins=[origin])
+        events.relate(SID, chain[0]['id'], noise['id'], 'related_to')
+    packet = events.retrieve_context(SID, 'Zephyr Orion')
+    assert {row['id'] for row in chain} <= {row['id'] for row in packet['events']}
+    assert {row['id'] for row in edges} <= {row['id'] for row in packet['relations']}
+    assert packet['trace']['bridge_search']['retained_paths'] >= 1
+    assert packet['trace']['bridge_search']['states'] <= 128
+    assert packet['trace']['bridge_search']['edges'] <= 192
+    assert_context_budgets(packet)
+    assert EventDependencies(store).live(SID, packet['bindings'])
+
+
+@pytest.mark.parametrize('blocked', ['scope', 'revision', 'withdrawn'])
+def test_bridge_cannot_connect_through_a_disallowed_or_stale_middle_event(tmp_path, blocked):
+    store = ResearchStore(tmp_path)
+    events = PersonalEvents(store)
+    _, allowed = memory(store, 'Permitted source')
+    note, hidden = memory(store, 'Hidden source')
+    chain = [events.record_event(SID, event_type='observation', action=action,
+        origins=[hidden if index == 2 else allowed]) for index, action in enumerate(
+            ['Zephyr input', 'First mechanism', 'Private mechanism', 'Last mechanism', 'Orion output'])]
+    edges = [events.relate(SID, left['id'], right['id'], 'reported_cause') for left, right in zip(chain, chain[1:])]
+    options = {}
+    if blocked == 'scope':
+        options = {'allowed_memory_ids': [allowed['memory_id']]}
+    elif blocked == 'revision':
+        events.revise_event(SID, chain[2]['id'], expected_revision=1, event_type='observation',
+            action='Corrected private mechanism', origins=[hidden])
+    else:
+        store.delete_memory(SID, note['id'], expected_revision=1)
+    packet = events.retrieve_context(SID, 'Zephyr Orion', **options)
+    assert packet['trace']['bridge_search']['retained_paths'] == 0
+    assert {row['id'] for row in edges} - {row['id'] for row in packet['relations']}
+    assert all(row['source_revision'] == next(value['revision'] for value in packet['events'] if value['id'] == row['source_id'])
+               for row in packet['relations'])
+
+
+def test_oversized_bridge_is_not_reported_as_retained_complete_path(tmp_path):
+    store = ResearchStore(tmp_path)
+    events = PersonalEvents(store)
+    _, origin = memory(store)
+    chain = [events.record_event(SID, event_type='observation', action=(
+        'Zephyr start ' if index == 0 else 'Orion finish ' if index == 6 else f'Mechanism {index} ')
+        + 'Detailed constraint text. ' * 15, origins=[origin]) for index in range(7)]
+    for left, right in zip(chain, chain[1:]):
+        events.relate(SID, left['id'], right['id'], 'reported_cause')
+    packet = events.retrieve_context(SID, 'Zephyr Orion')
+    assert packet['trace']['bridge_search']['candidate_paths'] >= 1
+    assert packet['trace']['bridge_search']['retained_paths'] == 0
+    assert 'bridge_capacity' in packet['trace']['truncation']
+    assert_context_budgets(packet)
+
+
+def test_eight_event_seven_edge_chain_reaches_prompt_with_all_host_bindings(tmp_path):
+    from docthinker.server.research_event_reasoning import (
+        prepare_event_frontier, build_event_obligations, render_event_reasoning)
+    store = ResearchStore(tmp_path)
+    events = PersonalEvents(store)
+    _, origin = memory(store)
+    actions = ['Climate goal', 'Policy tool', 'Investment', 'Local supply', 'Imports fall',
+               'Diversity', 'Risk falls', 'Energy security']
+    chain = [events.record_event(SID, event_type='observation', action=action, origins=[origin],
+        occurred_from=index * 2, occurred_until=index * 2 + 1) for index, action in enumerate(actions)]
+    edges = [events.relate(SID, left['id'], right['id'], 'reported_cause') for left, right in zip(chain, chain[1:])]
+    packet = events.retrieve_context(SID, 'Climate goal Energy security')
+    assert [row['action'] for row in packet['events']] == actions
+    assert {row['id'] for row in packet['bindings']['events']} == {row['id'] for row in chain}
+    assert {row['id'] for row in packet['bindings']['relations']} == {row['id'] for row in edges}
+    assert EventDependencies(store).live(SID, packet['bindings'])
+    assert_context_budgets(packet)
+    prepared = prepare_event_frontier('Climate goal Energy security', packet, [])
+    rendered = render_event_reasoning(prepared, build_event_obligations(prepared))
+    assert len(rendered.encode()) <= 7000
+    prompt = json.loads(rendered)
+    assert prompt['candidate_paths'][0]['event_ids'] == [row['id'] for row in chain]
+    assert {row['id'] for row in prompt['needs']} == {
+        *(f'L{index}' for index in range(1, 8)), *(f'E{index}' for index in range(1, 9)), 'P1', 'A1'}
+    assert not packet['trace']['truncation']
+
+
+def test_speculative_shortcut_does_not_hide_a_longer_recorded_mechanism(tmp_path):
+    store = ResearchStore(tmp_path)
+    events = PersonalEvents(store)
+    _, origin = memory(store)
+    chain = [events.record_event(SID, event_type='observation', action=action, origins=[origin])
+             for action in ['Zephyr input', 'Capacity rise', 'Work queue', 'Slack loss', 'Orion delay']]
+    recorded = [events.relate(SID, left['id'], right['id'], 'reported_cause') for left, right in zip(chain, chain[1:])]
+    events.relate(SID, chain[0]['id'], chain[-1]['id'], 'hypothesis')
+    parallel = events.relate(SID, chain[0]['id'], chain[1]['id'], 'hypothesis')
+    for index in range(10):
+        distractor = events.record_event(SID, event_type='observation', action=f'Unrelated recent note {index}', origins=[origin])
+        events.relate(SID, chain[0]['id'], distractor['id'], 'related_to')
+    packet = events.retrieve_context(SID, 'Zephyr Orion')
+    assert {row['id'] for row in chain} <= {row['id'] for row in packet['events']}
+    assert {row['id'] for row in recorded} <= {row['id'] for row in packet['relations']}
+    assert parallel['id'] in {row['id'] for row in packet['relations']}
+    assert packet['trace']['bridge_search']['candidate_paths'] >= 2
+    assert_context_budgets(packet)
+
+
+def test_host_binding_capacity_never_drops_revision_guards_to_keep_a_path(tmp_path, monkeypatch):
+    import docthinker.server.personal_events as module
+    store = ResearchStore(tmp_path)
+    events = PersonalEvents(store)
+    _, origin = memory(store)
+    chain = [events.record_event(SID, event_type='observation', action=action, origins=[origin])
+             for action in ['Zephyr start', 'Middle mechanism', 'Orion finish']]
+    for left, right in zip(chain, chain[1:]):
+        events.relate(SID, left['id'], right['id'], 'reported_cause')
+    monkeypatch.setattr(module, 'MAX_CONTEXT_BINDING_BYTES', 400)
+    packet = events.retrieve_context(SID, 'Zephyr Orion')
+    assert packet['trace']['binding_bytes'] <= 400
+    assert 'binding_bytes' in packet['trace']['truncation']
+    assert packet['trace']['bridge_search']['retained_paths'] == 0
+    assert {row['id'] for row in packet['events']} == {row['id'] for row in packet['bindings']['events']}
+    assert {row['id'] for row in packet['relations']} == {row['id'] for row in packet['bindings']['relations']}
 
 
 def test_optional_event_search_does_not_shrink_the_public_question_contract(tmp_path):

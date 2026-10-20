@@ -94,6 +94,7 @@ def test_public_contract_is_byte_caps_not_billed_token_estimate():
         "max_question_bytes": 8192, "max_history_messages": 6, "max_history_bytes": 8192,
         "max_input_bytes": 24576, "max_output_tokens": 2048,
         "max_grounded_output_tokens": 8192,
+        "max_reviewed_output_tokens": 16384,
         "automatic_retry": False, "history_policy": "recent_bounded",
     }
 

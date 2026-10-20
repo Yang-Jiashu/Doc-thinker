@@ -86,7 +86,7 @@ def generation_parameters(base_url, model, *, max_output_tokens=None, temperatur
 
 
 def generation_configuration(base_url, model, *, max_output_tokens=None, temperature=0.1):
-    from docthinker.server.invite_budget import MAX_OUTPUT_TOKENS, GROUNDED_OUTPUT_TOKENS
+    from docthinker.server.invite_budget import MAX_OUTPUT_TOKENS, GROUNDED_OUTPUT_TOKENS, REVIEWED_OUTPUT_TOKENS
 
     options = generation_parameters(base_url, model, max_output_tokens=max_output_tokens,
                                     temperature=temperature)
@@ -98,6 +98,7 @@ def generation_configuration(base_url, model, *, max_output_tokens=None, tempera
                                               else 'explicit_experiment_override'),
                                      'chat': MAX_OUTPUT_TOKENS,
                                      'grounded_research': GROUNDED_OUTPUT_TOKENS,
+                                     'evidence_review': REVIEWED_OUTPUT_TOKENS,
                                      'explicit_override': max_output_tokens,
                                      'actual_dispatch_parameters_in_each_receipt': True},
             'temperature_control': {'requested': temperature,

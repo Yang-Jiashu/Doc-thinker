@@ -250,13 +250,14 @@ def test_shared_policy_is_static_and_contains_no_model_or_development_paper_swit
 
 def test_claim_local_policy_is_bounded_explicit_and_not_a_semantic_verifier():
     # Editorial contract assertions only: these cannot prove LLM obedience.
-    assert POLICY_VERSION == 'grounded-answer-contract-v8'
+    assert POLICY_VERSION == 'grounded-answer-contract-v9'
     assert len(SYSTEM_POLICY.encode('utf-8')) <= 3800
     required = ('各分句分别挂直接支持它的引用', '同论文其他节选',
                 '数值和定性判断都绑定任务、对象、指标、对照、阶段及适用范围',
                 '示例、方法说明、拟分析项目与已报告结果要分开',
                 '缺词只是词形诊断，不能当作概念或关系缺失', '匹配也不证明支持',
-                '缺直接支持就拆句、缩小结论或说明未知', '不展示核对过程')
+                '缺直接支持就拆句、缩小结论或说明未知', '不展示核对过程',
+                '正文引用仅实际S#/已允许K#', '控制编号，不是引用')
     assert all(clause in SYSTEM_POLICY for clause in required)
     actual = receipt(fit())
     assert actual['semantic_support_verified'] is False
@@ -370,6 +371,37 @@ async def test_app_adapter_honors_trusted_research_allowance_not_arbitrary_kwarg
         assert adapter.create.call_args.kwargs[field] == fitted['budget']['max_output_tokens'] == 8192
         await complete("Hello", max_tokens=999999)
         assert adapter.create.call_args.kwargs[field] == 2048
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('parent_cap', [16384, 512])
+async def test_app_adapter_preserves_the_fitted_review_profile_and_a_smaller_parent_allowance(application_adapter, parent_cap):
+    from docthinker.server.invite_budget import completion_output_budget, current_output_tokens
+    from docthinker.server.research_task_review import (build_task_requirements, render_task_requirements,
+                                                       task_review_contract)
+    adapter = application_adapter
+    plan = plan_fixture()
+    question = 'Compare the two measurements, retaining their conditions.'
+    with completion_output_budget(parent_cap):
+        fitted = fit_research_prompt(question, plan, [], empty_assistance(plan['sources']), system_policy=SYSTEM_POLICY,
+            project_context=question,
+            task_review_context=render_task_requirements(build_task_requirements(question)),
+            task_review_contract=task_review_contract())
+        assert fitted['budget']['output_budget_profile'] == 'evidence_review'
+        assert fitted['budget']['profile_output_tokens'] == 16384
+        for name, field in [('step-5-preview', 'max_tokens'), ('gpt-5.4', 'max_completion_tokens'),
+                            ('another-compatible-model', 'max_tokens')]:
+            adapter.settings.llm_model = name
+            adapter.create.reset_mock()
+            complete = await adapter.server._get_llm_model_func()
+            with completion_output_budget(fitted['budget']['max_output_tokens']):
+                await complete(fitted['messages'][1]['content'], system_prompt=fitted['messages'][0]['content'],
+                               max_tokens=999999)
+            assert adapter.create.await_count == 1
+            assert adapter.create.call_args.kwargs[field] == fitted['budget']['max_output_tokens'] == parent_cap
+            assert adapter.create.call_args.kwargs['messages'] == fitted['messages']
+            assert current_output_tokens() == parent_cap
+    assert current_output_tokens() == 2048
 
 
 @pytest.mark.asyncio

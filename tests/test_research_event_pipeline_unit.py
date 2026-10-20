@@ -185,7 +185,10 @@ async def test_assessment_source_not_in_event_origins_still_revokes_receipt(setu
     try:
         result = await service.answer(req(sid), model, manager)
         if not withdraw_during_generation:
-            assert result['event_reasoning']['supported'] >= 1
+            # A compose node ignores unsolicited verdicts; actual support is
+            # assessed only by a separately approved frozen-answer review.
+            assert result['event_reasoning']['supported'] == 0
+            assert result['event_reasoning']['unknown'] > 0
             service.store.delete_document(sid, extra['id'])
         else:
             assert result['answer'] == WITHDRAWN_ANALYSIS

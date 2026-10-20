@@ -1,7 +1,8 @@
 """Request-local batch performance and unchanged provenance contracts, no provider.
 
-The two legacy functions below are the pre-batching read-only implementation,
-frozen as an equality oracle; they are not runtime alternatives.
+The two legacy functions below preserve the pre-batching read implementation,
+with the explicit current citation-namespace projection applied equally. They
+are equality/performance oracles, not runtime alternatives.
 """
 import copy
 import json
@@ -20,6 +21,7 @@ from docthinker.server.research_provenance import audit_answer
 from docthinker.server.research_reasoning_context import render_evidence, render_reasoning
 from docthinker.server.research_trial_delivery import unavailable_trial_receipt
 from docthinker.server.research_knowledge import unavailable_knowledge
+from docthinker.server.research_retrieval import refresh_citation_validation
 
 def legacy_answer_metadata(self, session_id: str, answer_ids: list[str]) -> dict:
     _session(session_id)
@@ -85,6 +87,16 @@ def legacy_hydrate_history(self, sid: str, messages: list[dict]) -> list[dict]:
             for field in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery'):
                 message.pop(field, None)
             message.update(proof_metadata)
+            # Namespace hardening is a deliberate return-time contract change,
+            # independent of batched reads. Keep the old read order and apply
+            # precisely that projection; body/source/invalidation stay exact.
+            knowledge = message.get('knowledge_skill') or {}
+            validation = refresh_citation_validation(
+                message.get('content', message.get('answer', '')),
+                [source['label'] for source in sources], validation,
+                knowledge_labels=[row['label'] for row in knowledge.get('sources', [])]
+                    if knowledge.get('status') == 'ready' else [])
+            message['citation_validation'] = validation
             trial_receipt = message.get('reasoning', {}).get('trace', {}).get('trial_delivery')
             if trial_receipt:
                 message['trial_delivery'] = trial_receipt
