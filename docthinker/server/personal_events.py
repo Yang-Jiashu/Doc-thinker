@@ -10,15 +10,41 @@ import hashlib
 import json
 import math
 import re
+import time
 import unicodedata
 import uuid
 
-from .research_memory_dependencies import MemoryDependencies
+from .research_memory_dependencies import MemoryDependencies, _bindings_live
+from .research_retrieval import lexical_tokens
 from .research_store import ResearchLimitError, ResearchNotFoundError, ResearchRevisionConflictError, ResearchStoreError, _identifier, _session
 
 EVENT_TYPES = frozenset({'decision', 'observation', 'task', 'meeting', 'milestone', 'change', 'incident', 'preference'})
 RELATIONS = frozenset({'before', 'supersedes', 'depends_on', 'contradicts', 'related_to', 'reported_cause', 'hypothesis'})
 MAX_ORIGINS = 16
+MAX_CONTEXT_EVENTS = 8
+MAX_CONTEXT_RELATIONS = 12
+MAX_CONTEXT_BYTES = 6000
+TARGET_CONTEXT_BYTES = 5500
+
+
+def _digest(value):
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True,
+        separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+
+
+def _event_binding(row):
+    return {'id': row['event_id'], 'revision': row['revision'],
+            'sha256': _digest([row['event_id'], row['revision'], row['recorded_at'], row['payload']])}
+
+
+def _relation_binding(row):
+    # Relations are immutable in the existing API. Revision 1 plus the complete
+    # typed-row digest does not silently retag a changed edge as the same claim.
+    return {'id': row['relation_id'], 'revision': 1, 'source_id': row['source_id'],
+        'source_revision': row['source_revision'], 'target_id': row['target_id'],
+        'target_revision': row['target_revision'], 'sha256': _digest([row['relation_id'],
+            row['source_id'], row['source_revision'], row['target_id'], row['target_revision'],
+            row['relation'], row['recorded_at'], row['payload']])}
 
 
 def _text(value, cap):
@@ -70,6 +96,20 @@ class PersonalEvents:
         )
         for statement in statements:
             db.execute(statement)
+        if not db.execute("SELECT 1 FROM sqlite_master WHERE name='personal_event_search'").fetchone():
+            db.execute('CREATE VIRTUAL TABLE personal_event_search USING fts5(event_id UNINDEXED,scope,tokens)')
+            # One upgrade backfill, never a last-100 recall window or a scan on
+            # every question. Revisions update this current-event projection.
+            for row in db.execute('SELECT event_id,session_id,payload FROM personal_events').fetchall():
+                PersonalEvents._index_event(db, row['event_id'], row['session_id'], json.loads(row['payload']))
+
+    @staticmethod
+    def _index_event(db, event_id, sid, payload):
+        fields = [payload['event_type'], payload['action'], *payload['conditions']]
+        fields.extend(payload[key]['name'] for key in ('actor', 'object') if payload.get(key))
+        db.execute('DELETE FROM personal_event_search WHERE event_id=?', (event_id,))
+        db.execute('INSERT INTO personal_event_search VALUES(?,?,?)',
+                   (event_id, 's' + sid[1:], ' '.join(lexical_tokens(' '.join(fields)))))
 
     @staticmethod
     def _exists(db):
@@ -117,7 +157,8 @@ class PersonalEvents:
         candidates = [{'id': row['entity_id'], 'kind': row['kind'], 'name': row['name']} for row in rows]
         return {'status': 'resolved' if len(rows) == 1 else 'ambiguous' if rows else 'not_found', 'candidates': candidates, 'auto_merged': False}
 
-    def _origins(self, db, sid, origins, *, validate=True, maximum=MAX_ORIGINS):
+    def _origins(self, db, sid, origins, *, validate=True, maximum=MAX_ORIGINS,
+                 at=None, seen=None, current_only=False):
         if type(origins) not in (tuple, list) or not 1 <= len(origins) <= maximum:
             raise ResearchStoreError('An event requires bounded explicit provenance')
         normalized = []
@@ -128,8 +169,15 @@ class PersonalEvents:
                 _identifier(origin['memory_id'])
                 if type(origin['revision']) is not int or origin['revision'] < 1:
                     raise ResearchStoreError('Invalid event memory revision')
-                if validate and not MemoryDependencies(self.store)._live(db, sid, [(origin['memory_id'], origin['revision'], None)]):
-                    raise ResearchStoreError('Event memory provenance unavailable')
+                if validate:
+                    if current_only:
+                        current = db.execute('SELECT revision,status FROM research_memories WHERE session_id=? AND memory_id=?',
+                                             (sid, origin['memory_id'])).fetchone()
+                        if current is None or current['status'] != 'active' or current['revision'] != origin['revision']:
+                            raise ResearchStoreError('Event memory provenance unavailable')
+                    if not _bindings_live(db, sid, [(origin['memory_id'], origin['revision'], None)],
+                            now=self.store.clock() if at is None else at, seen=seen):
+                        raise ResearchStoreError('Event memory provenance unavailable')
                 normalized.append(dict(origin))
             elif origin.get('kind') == 'source' and set(origin) == {'kind', 'source_id', 'span', 'sha256'}:
                 _identifier(origin['source_id'])
@@ -194,6 +242,7 @@ class PersonalEvents:
                 (identifier, session_id, payload['actor']['id'] if payload['actor'] else None, payload['object']['id'] if payload['object'] else None,
                  payload['occurred_from'], payload['occurred_until'], recorded, raw))
             db.execute('INSERT INTO personal_event_versions VALUES(?,?,1,?,?)', (identifier, session_id, recorded, raw))
+            self._index_event(db, identifier, session_id, payload)
             self.store._require_storage(db)
             return self._view(db, self._required_event(db, session_id, identifier))
 
@@ -212,6 +261,7 @@ class PersonalEvents:
                 (payload['actor']['id'] if payload['actor'] else None, payload['object']['id'] if payload['object'] else None,
                  payload['occurred_from'], payload['occurred_until'], recorded, raw, event_id))
             db.execute('INSERT INTO personal_event_versions VALUES(?,?,?,?,?)', (event_id, session_id, expected_revision + 1, recorded, raw))
+            self._index_event(db, event_id, session_id, payload)
             self.store._require_storage(db)
             return self._view(db, self._required_event(db, session_id, event_id))
 
@@ -334,3 +384,221 @@ class PersonalEvents:
                 params.extend([event_id, event_id])
             rows = db.execute('SELECT * FROM personal_event_relations WHERE ' + where + ' ORDER BY recorded_at DESC,relation_id LIMIT ?', [*params, limit]).fetchall()
             return [self._relation_view(db, row) for row in rows]
+
+    @staticmethod
+    def _scope(values, maximum):
+        if values is None:
+            return None
+        if (type(values) is not list or len(values) > maximum or any(type(value) is not str for value in values)
+                or len(set(values)) != len(values)):
+            raise ResearchLimitError('Invalid event context scope')
+        return frozenset(_identifier(value) for value in values)
+
+    def _context_origins_live(self, db, sid, origins, *, at, seen, sources=None, memories=None):
+        if any((origin.get('kind') == 'source' and sources is not None and origin.get('source_id') not in sources)
+               or (origin.get('kind') == 'memory' and memories is not None and origin.get('memory_id') not in memories)
+               for origin in origins):
+            return False
+        try:
+            self._origins(db, sid, origins, maximum=32, at=at, seen=seen, current_only=True)
+            return True
+        except (ValueError, TypeError, KeyError):
+            return False
+
+    @staticmethod
+    def _event_bindings_live(db, sid, bindings, *, at=None, seen=None, store=None):
+        """Connection-local exact reference check; never resolve names anew."""
+        from types import SimpleNamespace
+        at = time.time() if at is None else at
+        seen = seen if seen is not None else {'active': set(), 'memo': {}}
+        owner = PersonalEvents(store or SimpleNamespace(clock=lambda: at))
+        if not bindings['events'] and not bindings['relations']:
+            return True
+        if not owner._exists(db):
+            return False
+        versions = {}
+        for binding in bindings['events']:
+            row = db.execute('SELECT * FROM personal_events WHERE session_id=? AND event_id=?', (sid, binding['id'])).fetchone()
+            if row is None or _event_binding(row) != binding:
+                return False
+            payload = json.loads(row['payload'])
+            if not owner._context_origins_live(db, sid, payload['origins'], at=at, seen=seen):
+                return False
+            versions[binding['id']] = binding['revision']
+        for binding in bindings['relations']:
+            row = db.execute('SELECT * FROM personal_event_relations WHERE session_id=? AND relation_id=?', (sid, binding['id'])).fetchone()
+            if (row is None or _relation_binding(row) != binding
+                    or versions.get(row['source_id']) != row['source_revision']
+                    or versions.get(row['target_id']) != row['target_revision']):
+                return False
+            if not owner._context_origins_live(db, sid, json.loads(row['payload'])['origins'], at=at, seen=seen):
+                return False
+        return True
+
+    def retrieve_context(self, session_id, question, *, allowed_source_ids=None,
+                         allowed_memory_ids=None, event_ids=None):
+        """Relevant current seeds, then bounded directed adjacency.
+
+        Scopes constrain every origin, not just one convenient citation. An
+        explicit event_ids list is a hard subgraph allowlist, not permission to
+        borrow neighboring events. No relation type is promoted into proof.
+        """
+        _session(session_id)
+        # This is an optional index query, not a new public question contract.
+        # The caller retains the complete question (including any retrieval-only
+        # history suffix); only lexical search work is bounded locally.
+        if type(question) is not str:
+            raise ResearchStoreError('Invalid personal event text')
+        _text(question, len(question))
+        sources = self._scope(allowed_source_ids, 20000)
+        memories = self._scope(allowed_memory_ids, 128)
+        explicit = self._scope(event_ids, 100)
+        bindings = {'events': [], 'relations': [],
+            'source_scope_sha256': None if sources is None else _digest(sorted(sources)),
+            'memory_scope_sha256': None if memories is None else _digest(sorted(memories))}
+        trace = {'strategy': 'current_fts_seeds_bounded_adjacency', 'seed_candidates': 0,
+            'ambiguous_aliases': 0, 'truncation': [], 'semantic_verified': False, 'causality_verified': False}
+        packet = {'events': [], 'relations': [], 'bindings': bindings, 'trace': trace}
+        # Authorization belongs before the relevance candidate limit. Otherwise
+        # many higher-ranked records from another selected-document/memory
+        # scope can crowd out the first permitted event before live checks run.
+        # JSON parameters avoid one SQL variable per possible source ID.
+        origin_scope_sql, origin_scope_params = '', []
+        for kind, identifier, allowed in (('source', 'source_id', sources), ('memory', 'memory_id', memories)):
+            if allowed is not None:
+                origin_scope_sql += (
+                    " AND NOT EXISTS (SELECT 1 FROM json_each(e.payload,'$.origins') scoped_origin "
+                    "WHERE json_extract(scoped_origin.value,'$.kind')='" + kind + "' "
+                    "AND NOT EXISTS (SELECT 1 FROM json_each(?) allowed_origin "
+                    "WHERE allowed_origin.value=json_extract(scoped_origin.value,'$." + identifier + "')))"
+                )
+                origin_scope_params.append(json.dumps(sorted(allowed), separators=(',', ':')))
+        def gap(code):
+            if code not in trace['truncation']:
+                trace['truncation'].append(code)
+        def size(value):
+            return len(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False).encode())
+        with self.store._read() as db:
+            if not self._exists(db) or explicit == frozenset():
+                return packet
+            indexed = db.execute("SELECT 1 FROM sqlite_master WHERE name='personal_event_search'").fetchone() is not None
+        if not indexed:
+            with self.store._write() as db:
+                self._schema(db)
+                self.store._require_storage(db)
+        with self.store._read(timeout=.05) as db:
+            if not self._exists(db):
+                return packet
+            db.execute('BEGIN')
+            at, seen, live_rows = self.store.clock(), {'active': set(), 'memo': {}}, {}
+            tokens = list(dict.fromkeys(lexical_tokens(question[:16384])))[:24]
+            if len(question) > 16384:
+                gap('search_text_budget')
+            if explicit is not None:
+                rows = db.execute('SELECT e.* FROM personal_events e WHERE e.session_id=? AND e.event_id IN ('
+                    + ','.join('?' for _ in explicit) + ')' + origin_scope_sql
+                    + ' ORDER BY e.recorded_at DESC,e.event_id LIMIT 33',
+                    [session_id, *sorted(explicit), *origin_scope_params]).fetchall()
+            elif tokens:
+                expression = 'scope : "s' + session_id[1:] + '" AND tokens : (' + ' OR '.join(
+                    '"' + token.replace('"', '""') + '"' for token in tokens) + ')'
+                rows = db.execute('SELECT e.* FROM personal_event_search f JOIN personal_events e ON e.event_id=f.event_id '
+                    'WHERE personal_event_search MATCH ? AND e.session_id=?' + origin_scope_sql
+                    + ' ORDER BY bm25(personal_event_search),e.event_id LIMIT 33',
+                    [expression, session_id, *origin_scope_params]).fetchall()
+            else:
+                rows = []
+            trace['seed_candidates'] = min(len(rows), 32)
+            if len(rows) > 32:
+                gap('seed_candidate_budget')
+            def read_event(identifier, row=None):
+                if identifier in live_rows:
+                    return live_rows[identifier]
+                if explicit is not None and identifier not in explicit:
+                    return None
+                row = row or db.execute('SELECT * FROM personal_events WHERE session_id=? AND event_id=?', (session_id, identifier)).fetchone()
+                if row is None:
+                    return None
+                payload = json.loads(row['payload'])
+                if not self._context_origins_live(db, session_id, payload['origins'], at=at, seen=seen, sources=sources, memories=memories):
+                    return None
+                event = {'id': identifier, 'revision': row['revision'], 'event_type': payload['event_type'],
+                    'action': payload['action'], 'actor_id': payload['actor']['id'] if payload.get('actor') else None,
+                    'object_id': payload['object']['id'] if payload.get('object') else None,
+                    'actor': payload.get('actor'), 'object': payload.get('object'),
+                    'occurred_from': payload['occurred_from'], 'occurred_until': payload['occurred_until'],
+                    'recorded_at': row['recorded_at'], 'conditions': payload['conditions'], 'origins': payload['origins']}
+                live_rows[identifier] = (event, _event_binding(row))
+                return live_rows[identifier]
+            selected = set()
+            def admit_event(value):
+                event, binding = value
+                if event['id'] in selected:
+                    return True
+                if len(selected) >= MAX_CONTEXT_EVENTS:
+                    gap('event_limit'); return False
+                packet['events'].append(event); bindings['events'].append(binding)
+                limit = MAX_CONTEXT_BYTES - 256 if not selected else TARGET_CONTEXT_BYTES - 256
+                if size(packet) > limit:
+                    packet['events'].pop(); bindings['events'].pop(); gap('context_bytes'); return False
+                selected.add(event['id'])
+                return True
+            relation_seen, checked = set(), 0
+            def expand_bundle(seed):
+                nonlocal selected, checked
+                queued = [(seed, 0)]
+                while queued:
+                    identifier, depth = queued.pop(0)
+                    if depth >= 2:
+                        continue
+                    links = db.execute('SELECT * FROM personal_event_relations WHERE session_id=? '
+                        'AND (source_id=? OR target_id=?) ORDER BY recorded_at DESC,relation_id LIMIT 49',
+                        (session_id, identifier, identifier)).fetchall()
+                    if len(links) > 48:
+                        gap('adjacency_budget')
+                    for row in links[:48]:
+                        if row['relation_id'] in relation_seen:
+                            continue
+                        relation_seen.add(row['relation_id']); checked += 1
+                        if checked > 48:
+                            gap('adjacency_budget'); queued.clear(); return
+                        if len(packet['relations']) >= MAX_CONTEXT_RELATIONS:
+                            gap('relation_limit'); queued.clear(); return
+                        left, right = read_event(row['source_id']), read_event(row['target_id'])
+                        payload = json.loads(row['payload'])
+                        if (not left or not right or left[0]['revision'] != row['source_revision']
+                                or right[0]['revision'] != row['target_revision'] or not self._context_origins_live(
+                                    db, session_id, payload['origins'], at=at, seen=seen, sources=sources, memories=memories)):
+                            continue
+                        before = (len(packet['events']), len(bindings['events']), set(selected))
+                        if not admit_event(left) or not admit_event(right):
+                            packet['events'][before[0]:] = []; bindings['events'][before[1]:] = []; selected = before[2]
+                            continue
+                        edge = {'id': row['relation_id'], 'revision': 1, 'source_id': row['source_id'],
+                            'source_revision': row['source_revision'], 'target_id': row['target_id'],
+                            'target_revision': row['target_revision'], 'relation': row['relation'],
+                            'conditions': payload['conditions'], 'origins': payload['origins']}
+                        packet['relations'].append(edge); bindings['relations'].append(_relation_binding(row))
+                        if size(packet) > TARGET_CONTEXT_BYTES - 256:
+                            packet['relations'].pop(); bindings['relations'].pop()
+                            packet['events'][before[0]:] = []; bindings['events'][before[1]:] = []; selected = before[2]
+                            gap('context_bytes'); continue
+                        for endpoint in (row['source_id'], row['target_id']):
+                            if endpoint not in before[2]:
+                                queued.append((endpoint, depth + 1))
+            # Finish a relevant seed's bounded two-hop evidence bundle before
+            # unrelated lexical hits can consume all event/byte slots.
+            for row in rows[:32]:
+                value = read_event(row['event_id'], row)
+                if value and admit_event(value):
+                    expand_bundle(row['event_id'])
+            entity_ids = {value[key]['id'] for value in packet['events'] for key in ('actor', 'object') if value[key]}
+            if entity_ids:
+                for token in tokens[:16]:
+                    trace['ambiguous_aliases'] += len(db.execute('SELECT kind FROM personal_entity_aliases '
+                        'WHERE session_id=? AND alias=? AND entity_id IN (' + ','.join('?' for _ in entity_ids)
+                        + ') GROUP BY kind HAVING count(DISTINCT entity_id)>1 LIMIT 8',
+                        [session_id, _normal(token), *sorted(entity_ids)]).fetchall())
+            if size(packet) > MAX_CONTEXT_BYTES:
+                raise ResearchLimitError('Complete event context exceeds byte budget')
+            return packet

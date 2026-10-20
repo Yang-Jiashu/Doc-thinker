@@ -125,11 +125,24 @@ class LongProjectContext:
                     if len(selected) != len(versions):
                         raise ProjectTaskConflictError('Selected parent analysis is unavailable')
                     group = []
+                    selected_payloads = {}
                     for row in selected:
                         packet = {'input_kind': row['input_kind'],
                                   'document_ids': json.loads(row['document_ids']) if row['document_ids'] is not None else None,
                                   'input_snapshot': json.loads(row['input_snapshot']),
                                   'context_snapshot': json.loads(row['context_snapshot'])}
+                        saved = db.execute("SELECT payload FROM project_task_artifacts WHERE task_id=? "
+                            "AND step_id=? AND version=? AND status='current'",
+                            (parent['task_id'], row['id'], versions[row['id']])).fetchone()
+                        if saved is None:
+                            raise ProjectTaskConflictError('Selected parent analysis is unavailable')
+                        payload = json.loads(saved['payload'])
+                        selected_payloads[row['id']] = payload
+                        # Legacy callback artifacts lack review provenance.
+                        # Modern reviews must retain the exact originating
+                        # answer, including event-only revision invalidation.
+                        if 'event_reasoning' in payload or 'task_review' in payload:
+                            packet['answer_id'] = payload.get('answer_id')
                         encoded = json.dumps(packet, sort_keys=True, separators=(',', ':'), allow_nan=False)
                         budget.check(len(encoded.encode('utf-8')))
                         group.append(packet)
@@ -137,12 +150,8 @@ class LongProjectContext:
                     groups[encoded_group] = group
                     if include_dependencies and current == task_id:
                         for key, version in versions.items():
-                            saved = db.execute("SELECT payload FROM project_task_artifacts WHERE task_id=? "
-                                "AND step_id=? AND version=? AND status='current'", (ref['task_id'], key, version)).fetchone()
-                            if saved is None:
-                                raise ProjectTaskConflictError('Selected parent analysis is unavailable')
                             result.append({'step_id': 'p:' + ref['phase_id'] + ':' + key,
-                                'version': version, 'references': json.loads(saved['payload']),
+                                'version': version, 'references': selected_payloads[key],
                                 'phase_ref': {'phase_id': ref['phase_id'], 'task_id': ref['task_id'],
                                     'report_version': ref['report_version'], 'step_id': key, 'version': version}})
                     if ref['task_id'] not in pending and ref['task_id'] not in visited:

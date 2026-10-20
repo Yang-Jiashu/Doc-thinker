@@ -34,6 +34,8 @@ def test_bundle_rejects_non_build_inputs(name):
     "benchmarks/runtime_algorithms/long_project_personal_agent_result_20261020.json",
     "benchmarks/runtime_algorithms/long_project_context_benchmark_20261020.json",
     "benchmarks/runtime_algorithms/long_project_full_mainline_final_20261020.xml.gz",
+    "benchmarks/runtime_algorithms/event_evidence_runtime_20261020.json",
+    "benchmarks/runtime_algorithms/event_runtime_full_20261020.xml.gz",
     "docs/LONG_PROJECT_RUNTIME.md", "docs/RELEASE_ACCEPTANCE_2026-10-13.md",
     "docthinker/server/project_task_handoff.py",
     "benchmarks/research_real/result_insight_v5_targeted_review_20261012.md",
@@ -61,6 +63,7 @@ def test_bundle_rejects_non_build_inputs(name):
     "benchmarks/research_real/insight_operation_repair_v14_20261013.registration.json",
     "benchmarks/research_real/result_insight_operation_repair_v14_20261013.md",
     "scripts/benchmark_research_assist.py", "scripts/research_benchmark_contract.py",
+    "scripts/benchmark_event_reasoning.py",
     "docthinker/harness_runtime.py", "docthinker/server/insight_runtime.py",
     "docthinker/knowledge_skills/literature-synthesis/knowledge.json",
     "docthinker/knowledge_skills/literature-synthesis/SKILL.md"])

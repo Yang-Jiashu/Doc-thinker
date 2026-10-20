@@ -358,6 +358,20 @@ class ProjectTaskStore:
                 if 'phase_handoff' in payload:
                     phase = _phase_handoff(payload['phase_handoff'])
                     item['phase_handoff'] = {key: value for key, value in phase.items() if key != 'refs'}
+                if 'event_reasoning' in payload:
+                    from .project_evidence_feedback import feedback_view
+                    feedback = feedback_view(payload['event_reasoning'], payload.get('evidence_feedback_binding'),
+                        task_id=task['id'], step_id=item['id'], artifact_version=item['artifact_version'],
+                        current_task_revision=task['revision'])
+                    item.update(content_review=feedback['content_review'], evidence_feedback=feedback)
+                if 'task_review' in payload:
+                    from .project_evidence_feedback import feedback_view
+                    feedback = feedback_view(payload['task_review'], payload.get('task_review_binding'),
+                        task_id=task['id'], step_id=item['id'], artifact_version=item['artifact_version'],
+                        current_task_revision=task['revision'], review_kind='task')
+                    item['task_review_feedback'] = feedback
+                    item['content_review'] = ('needs_evidence' if item.get('content_review') == 'needs_evidence'
+                                              else feedback['content_review'])
             result['steps'].append(item)
         return result
 
@@ -533,7 +547,7 @@ class ProjectTaskStore:
             raise ProjectTaskError('Invalid artifact references')
         kind = row['kind']
         if kind == 'analysis':
-            allowed = {'answer_id', 'source_ids', 'document_ids', 'source_refs', 'proof', 'handoff', 'phase_handoff'}
+            allowed = {'answer_id', 'source_ids', 'document_ids', 'source_refs', 'proof', 'handoff', 'phase_handoff', 'event_reasoning', 'task_review'}
             if _personal(row):
                 allowed.update({'input_kind', 'context_refs'})
             if set(artifact) - allowed:
@@ -554,6 +568,18 @@ class ProjectTaskStore:
                     sum(dep != 'inventory' for dep in json.loads(row['dependencies'])))
             if 'phase_handoff' in artifact:
                 result['phase_handoff'] = _phase_handoff(artifact['phase_handoff'])
+            if 'event_reasoning' in artifact:
+                from .project_evidence_feedback import normalize_event_reasoning
+                try:
+                    result['event_reasoning'] = normalize_event_reasoning(artifact['event_reasoning'])
+                except (ValueError, TypeError, KeyError) as error:
+                    raise ProjectTaskError('Invalid evidence feedback receipt') from error
+            if 'task_review' in artifact:
+                from .research_task_review import normalize_task_review
+                try:
+                    result['task_review'] = normalize_task_review(artifact['task_review'])
+                except (ValueError, TypeError, KeyError) as error:
+                    raise ProjectTaskError('Invalid task review receipt') from error
             # Proof content is always rehydrated from answer_id. Do not persist
             # a model-authored free-form "proof" or a second evidence body.
             if 'source_refs' in artifact:
@@ -610,6 +636,18 @@ class ProjectTaskStore:
         version = row['artifact_version'] + 1
         if version > MAX_ARTIFACT_VERSIONS:
             raise ProjectTaskLimitError('Artifact version capacity reached')
+        if 'event_reasoning' in payload:
+            from .project_evidence_feedback import bind_feedback
+            payload['evidence_feedback_binding'] = bind_feedback(payload['event_reasoning'], task_id=task_id,
+                task_revision=self._task(db, task_id)['revision'] + 1, step_id=row['id'], artifact_version=version)
+            if len(_json(payload).encode()) > MAX_ARTIFACT_BYTES:
+                raise ProjectTaskLimitError('Artifact metadata exceeds its budget')
+        if 'task_review' in payload:
+            from .project_evidence_feedback import bind_feedback
+            payload['task_review_binding'] = bind_feedback(payload['task_review'], task_id=task_id,
+                task_revision=self._task(db, task_id)['revision'] + 1, step_id=row['id'], artifact_version=version)
+            if len(_json(payload).encode()) > MAX_ARTIFACT_BYTES:
+                raise ProjectTaskLimitError('Artifact metadata exceeds its budget')
         if row['kind'] == 'report':
             steps = {item['id']: item for item in self._steps(db, task_id)}
             if any(steps[ref['step_id']]['status'] != 'completed' or steps[ref['step_id']]['artifact_version'] != ref['version'] for ref in payload['step_refs']):

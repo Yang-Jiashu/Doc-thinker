@@ -22,6 +22,14 @@ from .research_corpus_index import PreparedCorpusCache, CorpusIndexTooLarge
 from .research_memory import select_confirmed_memories
 from .research_memory_dependencies import MemoryDependencies
 from .research_answer_dependencies import AnswerDependencies
+from .personal_events import PersonalEvents
+from .research_event_dependencies import EventDependencies
+from .research_event_reasoning import (build_event_obligations, supplement_event_gaps,
+                                       render_event_reasoning, parse_event_response,
+                                       prepare_event_frontier, event_source_window_guards,
+                                       event_trial_response, EVENT_RESPONSE_POLICY)
+from .research_task_review import (build_task_requirements, render_task_requirements,
+                                  task_review_contract, parse_task_response, hydrate_task_review)
 from .research_store import ResearchStore, ResearchNotFoundError
 from .research_source_contract import MAX_ANSWER_SOURCES
 from .research_parser_gate import ParserSlotUnavailable, offline_parser_slot
@@ -156,18 +164,24 @@ async def _extract_offline_unlocked(content: bytes, filename: str) -> dict:
 class ResearchService:
     def __init__(self, root: Path, *, extractor=extract_offline, context_assistance_enabled=True,
                  semantic_retriever=_AUTO_SEMANTIC, evidence_reranker=_AUTO_RERANKER,
-                 query_translator=_AUTO_TRANSLATOR):
+                 query_translator=_AUTO_TRANSLATOR, event_reasoning_enabled=True):
         if type(context_assistance_enabled) is not bool:
             raise ValueError('Context assistance flag must be boolean')
         # An operator/test ablation switch. The normal client still has one
         # conversational interface and does not select reasoning algorithms.
         self.context_assistance_enabled = context_assistance_enabled
+        if type(event_reasoning_enabled) is not bool:
+            raise ValueError('Event reasoning flag must be boolean')
+        # Operator/benchmark ablation only, not a separate user reasoning mode.
+        self.event_reasoning_enabled = event_reasoning_enabled
         quota = os.getenv('DOCTHINKER_RESEARCH_STORAGE_BYTES', str(512 * 1024 * 1024))
         if not re.fullmatch(r'[0-9]{1,16}', quota) or not 65536 <= int(quota) <= 2 ** 50:
             raise ValueError('Invalid research storage quota')
         self.store = ResearchStore(root, max_storage_bytes=int(quota))
         self.memory_dependencies = MemoryDependencies(self.store)
         self.answer_dependencies = AnswerDependencies(self.store)
+        self.events = PersonalEvents(self.store)
+        self.event_dependencies = EventDependencies(self.store)
         self.evidence = ResearchEvidenceIndex(self.store)
         # A derived, bounded lookup owned by this private service. It caches no
         # answer or generated relation and revalidates live source identities.
@@ -505,7 +519,7 @@ class ResearchService:
         """
         if type(groups) is not list:
             raise ValueError('Invalid task publication groups')
-        unique, memories = {}, {}
+        unique, memories, answers = {}, {}, set()
         for steps in groups:
             if deadline is not None and time.monotonic() >= deadline:
                 return False
@@ -517,6 +531,9 @@ class ResearchService:
                     return False
                 if type(step) is not dict:
                     raise ValueError('Invalid task publication step')
+                if step.get('answer_id') is not None:
+                    from .research_store import _identifier
+                    answers.add(_identifier(step['answer_id']))
                 kind = step.get('input_kind', 'documents')
                 packet = {key: step.get(key, default) for key, default in (
                     ('document_ids', None), ('input_snapshot', {}), ('context_snapshot', {}))}
@@ -571,15 +588,25 @@ class ResearchService:
                 if not _bindings_live(db, sid, [(mid, rev, None) for mid, rev in memories.items()],
                                       now=now, seen={'active': set(), 'memo': {}}):
                     return False
+            if answers:
+                if db is None:
+                    return False
+                from .research_memory_dependencies import source_answer_memory_live
+                seen = {'active': set(), 'memo': {}}
+                for identifier in answers:
+                    if deadline is not None and time.monotonic() >= deadline:
+                        return False
+                    if not source_answer_memory_live(db, sid, identifier, at=now, seen=seen):
+                        return False
             return deadline is None or time.monotonic() < deadline
 
     async def answer(self, request, model, manager, *, document_ids=None, project_instance_id=None,
                      project_context=None, task_context_refs=None, project_parent_answer_ids=None,
-                     project_parent_task_refs=None) -> dict:
+                     project_parent_task_refs=None, task_requirements=None) -> dict:
         # HTTP, mobile and direct service calls share one execution owner. A
         # transport that already entered the Harness is reused, not restarted.
         return await execute_run(lambda: self._answer(request, model, manager)
-                                 if document_ids is None and project_instance_id is None and project_context is None and task_context_refs is None and project_parent_answer_ids is None and project_parent_task_refs is None else
+                                 if document_ids is None and project_instance_id is None and project_context is None and task_context_refs is None and project_parent_answer_ids is None and project_parent_task_refs is None and task_requirements is None else
                                  self._answer(request, model, manager, document_ids=document_ids,
                                               project_instance_id=project_instance_id,
                                               project_context=project_context,
@@ -587,12 +614,13 @@ class ResearchService:
                                               **({'project_parent_answer_ids': project_parent_answer_ids}
                                                  if project_parent_answer_ids is not None else {}),
                                               **({'project_parent_task_refs': project_parent_task_refs}
-                                                 if project_parent_task_refs is not None else {})),
+                                                 if project_parent_task_refs is not None else {}),
+                                              **({'task_requirements': task_requirements} if task_requirements is not None else {})),
                                  session_id=request.session_id)
 
     async def _answer(self, request, model, manager, *, document_ids=None, project_instance_id=None,
                       project_context=None, task_context_refs=None, project_parent_answer_ids=None,
-                      project_parent_task_refs=None) -> dict:
+                      project_parent_task_refs=None, task_requirements=None) -> dict:
         run = current_run()
         sid, question = request.session_id, request.question
         parent_answer_ids = []
@@ -631,6 +659,16 @@ class ResearchService:
             validate_invite_question(project_context)
             if request.use_memory or request.use_conversation_context:
                 raise ValueError('Project task context must be explicit')
+        task_review_packet, task_review = None, None
+        if task_requirements is not None and (project_context is None or project_instance_id is None):
+            raise ValueError('Task requirements require an explicit project context')
+        if project_context is not None:
+            task_requirements = (build_task_requirements(question, input_kind='personal' if personal else 'documents')
+                                 if task_requirements is None else task_requirements)
+            if (type(task_requirements) is not dict or task_requirements.get('question') != question
+                    or task_requirements.get('input_kind') != ('personal' if personal else 'documents')):
+                raise ValueError('Task requirements differ from the current approved question')
+            task_review_packet = render_task_requirements(task_requirements)
         trial_contract = (trial_contract_packet() if requests_trial_delivery(
             question, literal=requested_mode == 'evidence') else None)
         # Cheap current-task routing precedes optional resource loading. This
@@ -700,7 +738,8 @@ class ResearchService:
             and not any(row.get('code') in {'memory_context_revoked', 'provenance_unavailable', 'source_revoked'}
                         for row in item.get('citation_validation', {}).get('warnings', []))]
         history_parent_ids = [item['id'] for item in raw_history if item.get('id') in history_dependency_ids
-                              and item.get('answer_dependency_required') is True]
+                              and (item.get('answer_dependency_required') is True
+                                   or item.get('used_event_count', 0) > 0)]
         history = bounded_invite_history(raw_history)
         history_text = json.dumps(history, ensure_ascii=False)
         if len(history_text.encode("utf-8")) > 4000:
@@ -710,6 +749,21 @@ class ResearchService:
         # One hybrid ranking. Formatting budget fallback never scans/ranks
         # documents again or schedules the same auxiliary job a second time.
         search_question = retrieval_question(question, history)
+        event_context, event_obligations, event_supplement = None, None, None
+        event_bindings, event_receipt = None, None
+        if (self.context_assistance_enabled and self.event_reasoning_enabled
+                and requested_mode != 'evidence' and memory_as_of is None):
+            # The event graph is a current, scoped index of assertions. It is
+            # never authority to borrow another task's documents or notes.
+            event_context = await asyncio.to_thread(self.events.retrieve_context, sid, search_question,
+                allowed_source_ids=[row['id'] for row in chunks],
+                allowed_memory_ids=([row['id'] for row in explicit_memories] if personal else
+                                    None if request.use_memory else []))
+            if event_context.get('events'):
+                event_bindings = event_context['bindings']
+                event_obligations = build_event_obligations(event_context)
+            else:
+                event_context = None
         run.checkpoint()
         run.emit('stage.started', 'retrieval')
         semantic = await self._semantic_operation(sid, chunks, search_question)
@@ -862,6 +916,19 @@ class ResearchService:
                 'status': work.status, 'model_calls': 0,
                 **({'timing': work.trace} if work.trace is not None else {})}
         run.checkpoint()
+        task_queries = ([value.encode('utf-8')[:400].decode('utf-8', errors='ignore')
+                         for value in task_requirements['acceptance_criteria'][:4]]
+                        if task_requirements is not None else [])
+        if event_context is not None or task_queries:
+            # Link witnesses and counterevidence get the existing two spare
+            # source slots BEFORE generic Insight extras. This does not evict
+            # primary evidence or increase the shared 10-source/12KB budget.
+            query_needs = {**(event_obligations or {}), 'suggested_queries': list(dict.fromkeys([
+                *(event_obligations or {}).get('suggested_queries', [])[:4], *task_queries]))[:8]}
+            event_supplement = await asyncio.to_thread(supplement_event_gaps, search_question,
+                assistance['sources'], chunks, query_needs, context=event_context)
+            assistance = {**assistance, 'sources': event_supplement['sources']}
+            plan = refresh_query_coverage(plan, event_supplement['sources'])
         supplement = {'status': 'skipped', 'reason': 'no_actions', 'retrieval_passes': 0,
                       'model_calls': 0, 'added_source_ids': [], 'action_ids': []}
         if proposal.get('actions'):
@@ -893,6 +960,15 @@ class ResearchService:
         # the initial pack must not survive solely because source IDs match.
         # The formatter repeats this cheap check for its final excerpt variant.
         plan = refresh_query_coverage(plan, plan['sources'])
+        event_prompt, event_source_guards = None, None
+        if event_context is not None:
+            # All obligations remain host-side; only a bounded, task-relevant
+            # review frontier consumes model attention this turn. Deferred
+            # checks remain unknown, never silently counted as complete.
+            event_context = prepare_event_frontier(search_question, event_context, assistance['sources'])
+            event_obligations = build_event_obligations(event_context)
+            event_prompt = render_event_reasoning(event_context, event_obligations)
+            event_source_guards = event_source_window_guards(event_context, event_prompt)
         run.emit('stage.completed', 'retrieval', {'source_count': len(assistance['sources'])})
         run.checkpoint()
         run.emit('stage.started', 'analysis')
@@ -900,6 +976,12 @@ class ResearchService:
                                      system_policy=knowledge_skill_system_policy(bool(knowledge_support and knowledge_support['prompt'])),
                                      memory_as_of=memory_as_of, knowledge_support=knowledge_support,
                                      insight_runtime=insight, trial_contract=trial_contract,
+                                     **({'event_context': event_prompt, 'event_contract': EVENT_RESPONSE_POLICY,
+                                         'event_source_guards': event_source_guards}
+                                        if event_prompt is not None else {}),
+                                     **({'task_review_context': task_review_packet,
+                                         'task_review_contract': task_review_contract()}
+                                        if task_review_packet is not None else {}),
                                      **({'project_context': project_context} if project_context is not None else {}))
         plan, prompt, reasoning = fitted['plan'], fitted['prompt'], fitted['reasoning']
         if fitted.get('history_included'):
@@ -918,6 +1000,10 @@ class ResearchService:
         reasoning['trace']['semantic_retrieval'] = semantic_trace
         reasoning['trace']['lexical_features'] = lexical_features
         reasoning['trace']['knowledge_skill_router'] = knowledge_route
+        if task_requirements is not None and event_supplement is not None:
+            reasoning['trace']['task_requirement_retrieval'] = event_supplement['trace']
+            if event_context is None:
+                reasoning['trace']['context_budget']['retrieval_passes'] += 1
         if knowledge_support:
             reasoning['trace']['knowledge_skill_retrieval'] = knowledge_support['trace']
         refs = plan['sources']
@@ -970,6 +1056,8 @@ class ResearchService:
             if project_parent_task_refs and not await asyncio.to_thread(
                     self.answer_dependencies.task_origins_live, sid, project_parent_task_refs):
                 raise ResearchNotFoundError('Parent task version changed before generation')
+            if event_bindings and not await asyncio.to_thread(self.event_dependencies.live, sid, event_bindings):
+                raise ResearchNotFoundError('Event context changed before generation')
             # Dispatch exactly the messages whose complete byte budget and
             # evidence receipt were checked, independent of provider/model.
             with run.stage('generation'), completion_output_budget(fitted['budget']['max_output_tokens']):
@@ -979,15 +1067,34 @@ class ResearchService:
                 raise ValueError("Chat model returned an invalid answer")
             answer_mode = mode if refs else "memory" if plan["confirmed_memories"] else "general"
         model_called = algorithm_answer is None and answer_mode != 'insufficient_evidence'
+        raw_event_response = answer
+        if event_context is not None and model_called:
+            answer, event_receipt = parse_event_response(answer, event_context, refs)
+            reasoning['trace']['event_reasoning'] = event_receipt
+            reasoning['trace']['event_retrieval'] = event_context['trace']
+            reasoning['trace']['event_frontier'] = event_context['_frontier_trace']
+            reasoning['trace']['event_supplement'] = event_supplement['trace']
+            reasoning['trace']['context_budget']['retrieval_passes'] += 1
+        elif event_context is not None:
+            # An insufficient-evidence/literal response did not use events.
+            event_bindings = None
+        if task_review_packet is not None and model_called:
+            answer, _ = parse_task_response(raw_event_response, task_requirements, refs)
         trial_receipt = None
         if trial_contract and model_called:
             from .research_trial_contract import parse_trial_response
             from .research_trial_renderer import render_trial_response
-            parsed_trial = parse_trial_response(answer)
+            trial_response = answer
+            if event_receipt is not None or task_review_packet is not None:
+                trial_response = event_trial_response(raw_event_response)
+            parsed_trial = parse_trial_response(trial_response)
             answer = render_trial_response(parsed_trial)
             trial_receipt = trial_delivery_receipt(parsed_trial, [source['id'] for source in refs],
                                                    trial_contract['schema_sha256'])
             reasoning['trace']['trial_delivery'] = trial_receipt
+        if task_review_packet is not None and model_called:
+            _, task_review = parse_task_response(raw_event_response, task_requirements, refs, final_answer=answer)
+            reasoning['trace']['task_review'] = task_review
         run.checkpoint()
         run.emit('stage.started', 'delivery')
         knowledge = knowledge_receipt(knowledge_support, included=fitted['knowledge_skill_included'],
@@ -995,6 +1102,17 @@ class ResearchService:
         knowledge_used = bool(knowledge and knowledge['status'] == 'ready')
         validation = citation_validation(answer, [source['label'] for source in refs],
                                         knowledge_labels=[row['label'] for row in knowledge['sources']] if knowledge_used else [])
+        if event_bindings:
+            try:
+                events_current = await asyncio.to_thread(self.event_dependencies.live, sid, event_bindings)
+            except Exception:
+                events_current = False
+            if not events_current:
+                answer = WITHDRAWN_ANALYSIS
+                event_receipt = None
+                reasoning['trace'].pop('event_reasoning', None)
+                validation = {**validation, 'valid': False, 'warnings': [*validation['warnings'],
+                    {'code': 'provenance_unavailable', 'message': '生成期间事件或其来源已改变，派生回答已收起。'}]}
         if parent_answer_ids and (not await asyncio.to_thread(self.answer_dependencies.parents_live, sid, parent_answer_ids)
                 or (project_parent_task_refs and not await asyncio.to_thread(
                     self.answer_dependencies.task_origins_live, sid, project_parent_task_refs))):
@@ -1044,20 +1162,25 @@ class ResearchService:
         if algorithm_answer is not None and requested_mode == 'evidence':
             answer = render_evidence(refs)
         if ((reasoning.get('status') == 'source_unavailable' and reasoning.get('mode') == 'context_assist')
-                or (knowledge_used and any(row['code'] in {'source_revoked', 'provenance_unavailable'}
+                or ((knowledge_used or event_bindings) and any(row['code'] in {'source_revoked', 'provenance_unavailable'}
                                           for row in validation['warnings']))):
             # Do not ask a model to repair or try to semantically redact a
             # generated passage after a premise is withdrawn. Hide it whole.
             answer = WITHDRAWN_ANALYSIS
             if knowledge:
                 knowledge = unavailable_knowledge(knowledge)
+        if answer in {WITHDRAWN_ANALYSIS, WITHDRAWN_MEMORY}:
+            event_receipt = None
+            task_review = None
+            reasoning['trace'].pop('event_reasoning', None)
+            reasoning['trace'].pop('task_review', None)
         reasoning['trace']['answer_model_calls'] = int(model_called)
         provenance_required = bool(trial_receipt) or knowledge_used or (reasoning.get('mode') == 'context_assist' and bool(
             reasoning.get('conclusions') or reasoning['trace'].get('hypothesis_support', {}).get('source_ids')
             or reasoning['trace'].get('graph_retrieval', {}).get('kept_source_ids')
             or reasoning.get('status') == 'source_unavailable'
             or insight_receipt.get('status') == 'ready'))
-        provenance_required = provenance_required or bool(memory_bindings) or bool(parent_answer_ids)
+        provenance_required = provenance_required or bool(memory_bindings) or bool(parent_answer_ids) or bool(event_bindings) or bool(task_review)
         audit = audit_answer(answer, refs)
         run.checkpoint()
         run.emit('stage.completed', 'delivery', {'model_calls': int(model_called), 'source_count': len(refs)})
@@ -1087,11 +1210,15 @@ class ResearchService:
             context_metadata['memory_dependency_required'] = True
         if parent_answer_ids:
             context_metadata['answer_dependency_required'] = True
+        if event_bindings:
+            context_metadata.update(self.event_dependencies.context_metadata(event_bindings))
         try:
             await asyncio.to_thread(self.store.record_answer, sid, answer_id,
                                    [{key: source[key] for key in ("id", "label", "excerpt_start", "excerpt_end", "truncated")} for source in refs],
                                    validation, answer_mode, context_metadata=context_metadata)
             await asyncio.to_thread(self.memory_dependencies.record, sid, answer_id, memory_bindings)
+            if event_bindings:
+                await asyncio.to_thread(self.event_dependencies.record, sid, answer_id, event_bindings)
             await asyncio.to_thread(self.answer_dependencies.record, sid, answer_id, parent_answer_ids,
                                     **({'task_refs': project_parent_task_refs} if project_parent_task_refs else {}))
             await asyncio.to_thread(self.evidence.record, sid, answer_id, reasoning=reasoning, audit=audit,
@@ -1106,6 +1233,10 @@ class ResearchService:
                 reasoning['trace']['trial_delivery'] = unavailable_trial_receipt()
             if provenance_required:
                 answer = WITHDRAWN_ANALYSIS
+                event_receipt = None
+                task_review = None
+                reasoning.get('trace', {}).pop('event_reasoning', None)
+                reasoning.get('trace', {}).pop('task_review', None)
             if knowledge:
                 knowledge = unavailable_knowledge(knowledge)
             audit = audit_answer(answer, [])
@@ -1124,7 +1255,21 @@ class ResearchService:
                 'reasoning': reasoning, 'claim_audit': audit, 'memory_as_of': memory_as_of, 'reasoning_mode': requested_mode,
                 **({'trial_delivery': reasoning['trace'].get('trial_delivery', unavailable_trial_receipt())} if trial_receipt else {}),
                 **({'knowledge_skill': knowledge} if knowledge else {}),
+                **({'event_reasoning': event_receipt} if event_receipt is not None else {}),
+                **({'task_review': task_review} if task_review is not None else {}),
                 }
+        if event_bindings:
+            try:
+                events_current = (await asyncio.to_thread(self.event_dependencies.states, sid, [answer_id])).get(answer_id) is True
+            except Exception:
+                events_current = False
+            if not events_current:
+                result.update(answer=WITHDRAWN_ANALYSIS, sources=[],
+                    citation_validation={**result['citation_validation'], 'valid': False,
+                        'warnings': [*result['citation_validation']['warnings'],
+                            {'code': 'provenance_unavailable', 'message': '事件依据已改变或无法核验，回答已收起。'}]})
+                for key in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery', 'event_reasoning', 'task_review'):
+                    result.pop(key, None)
         if memory_bindings:
             # Recheck after persistence too: a correction may race metadata
             # writes, not only the provider. No automatic paid repair/retry.
@@ -1137,7 +1282,7 @@ class ResearchService:
                     citation_validation={**result['citation_validation'], 'valid': False,
                         'warnings': [*result['citation_validation']['warnings'],
                             {'code': 'memory_context_revoked', 'message': '记忆已改变或无法核验，回答已收起。'}]})
-                for key in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery'):
+                for key in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery', 'event_reasoning', 'task_review'):
                     result.pop(key, None)
         if parent_answer_ids:
             try:
@@ -1149,7 +1294,7 @@ class ResearchService:
                     citation_validation={**result['citation_validation'], 'valid': False,
                         'warnings': [*result['citation_validation']['warnings'],
                             {'code': 'provenance_unavailable', 'message': '前序分析依据已改变，派生回答已收起。'}]})
-                for key in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery'):
+                for key in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery', 'event_reasoning', 'task_review'):
                     result.pop(key, None)
         return result
 
@@ -1190,6 +1335,12 @@ class ResearchService:
             parent_states = self.answer_dependencies.states(sid, parent_required_ids) if parent_required_ids else {}
         except Exception:
             parent_states = {}
+        event_required_ids = [identifier for identifier, item in metadata.items()
+                              if item.get('used_event_count', 0) or item.get('used_event_relation_count', 0)]
+        try:
+            event_states = self.event_dependencies.states(sid, event_required_ids) if event_required_ids else {}
+        except Exception:
+            event_states = {}
         result = []
         for message in messages:
             item = metadata.get(message.get("id"))
@@ -1202,15 +1353,26 @@ class ResearchService:
                                   {"code": "source_revoked", "message": "部分原文依据已被删除，无法继续核对。"}]}
                 message = {**message, "sources": sources, "answer_mode": item["answer_mode"],
                            "citation_validation": validation, "unavailable_source_count": unavailable,
-                           **{key: item[key] for key in ("retrieval_gaps", "used_memory_count", "memory_selection", "answer_dependency_required") if key in item},
+                           **{key: item[key] for key in ("retrieval_gaps", "used_memory_count", "memory_selection", "answer_dependency_required",
+                                                        "used_event_count", "used_event_relation_count") if key in item},
                            "research_core": True}
                 proof_metadata = proofs.get(message['id'], {})
                 # A request-status replay may carry an old response packet.
                 # Fresh proof metadata replaces that packet; a missing record
                 # must never leave cached quotes/methods visible in other cards.
-                for field in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery'):
+                for field in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery', 'event_reasoning', 'task_review'):
                     message.pop(field, None)
                 message.update(proof_metadata)
+                if message.get('reasoning', {}).get('trace', {}).get('event_reasoning'):
+                    message['event_reasoning'] = message['reasoning']['trace']['event_reasoning']
+                task_receipt = message.get('reasoning', {}).get('trace', {}).get('task_review')
+                if task_receipt is not None:
+                    task_receipt = hydrate_task_review(task_receipt, sources, message.get('content', message.get('answer', '')))
+                    if task_receipt is None:
+                        message['reasoning']['trace'].pop('task_review', None)
+                        message['reasoning']['status'] = 'source_unavailable'
+                    else:
+                        message['task_review'] = task_receipt
                 trial_receipt = message.get('reasoning', {}).get('trace', {}).get('trial_delivery')
                 if trial_receipt:
                     message['trial_delivery'] = trial_receipt
@@ -1224,6 +1386,10 @@ class ResearchService:
                     message['citation_validation'] = {**validation, 'valid': False, 'warnings': [*validation['warnings'],
                         {'code': 'provenance_unavailable', 'message': '推断依据不可用，本次分析已收起，不会重新请求模型。'}]}
                 if withdrawn_analysis:
+                    message.pop('event_reasoning', None)
+                    message.pop('task_review', None)
+                    message.get('reasoning', {}).get('trace', {}).pop('event_reasoning', None)
+                    message.get('reasoning', {}).get('trace', {}).pop('task_review', None)
                     if trial_receipt:
                         message['trial_delivery'] = unavailable_trial_receipt()
                     message.update(content=WITHDRAWN_ANALYSIS, claim_audit=audit_answer(WITHDRAWN_ANALYSIS, sources))
@@ -1241,7 +1407,7 @@ class ResearchService:
                 message = {**message, "sources": [], "citation_validation": {
                     "valid": False, "entailment_verified": False, "warnings": [{"code": "provenance_unavailable", "message": "依据记录不可用，不能继续核对本次引用。"}]}}
                 had_trial = bool(message.get('trial_delivery') or message.get('reasoning', {}).get('trace', {}).get('trial_delivery'))
-                for field in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery'):
+                for field in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery', 'event_reasoning', 'task_review'):
                     message.pop(field, None)
                 if had_trial:
                     message['trial_delivery'] = unavailable_trial_receipt()
@@ -1260,7 +1426,7 @@ class ResearchService:
                     'research_provenance_required': True, 'sources': [], 'used_memory_count': 0,
                     'citation_validation': {**previous, 'valid': False, 'warnings': [*previous.get('warnings', []),
                         {'code': 'memory_context_revoked', 'message': '相关记忆已改变或无法核验，旧回答已收起。'}]}}
-                for key in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery'):
+                for key in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery', 'event_reasoning', 'task_review'):
                     message.pop(key, None)
                 if 'answer' in message:
                     message['answer'] = WITHDRAWN_MEMORY
@@ -1270,7 +1436,17 @@ class ResearchService:
                     'research_provenance_required': True, 'answer_dependency_required': True,
                     'citation_validation': {**previous, 'valid': False, 'warnings': [*previous.get('warnings', []),
                         {'code': 'provenance_unavailable', 'message': '前序分析的依据已撤回或无法核对，派生回答已收起。'}]}}
-                for key in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery'):
+                for key in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery', 'event_reasoning', 'task_review'):
+                    message.pop(key, None)
+                if 'answer' in message:
+                    message['answer'] = WITHDRAWN_ANALYSIS
+            if message.get('id') in event_required_ids and event_states.get(message['id']) is not True:
+                previous = message.get('citation_validation', {})
+                message = {**message, 'content': WITHDRAWN_ANALYSIS, 'sources': [],
+                    'research_provenance_required': True,
+                    'citation_validation': {**previous, 'valid': False, 'warnings': [*previous.get('warnings', []),
+                        {'code': 'provenance_unavailable', 'message': '事件版本或来源已失效，旧回答已收起。'}]}}
+                for key in ('reasoning', 'claim_audit', 'knowledge_skill', 'trial_delivery', 'event_reasoning', 'task_review'):
                     message.pop(key, None)
                 if 'answer' in message:
                     message['answer'] = WITHDRAWN_ANALYSIS

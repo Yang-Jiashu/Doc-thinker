@@ -123,7 +123,7 @@ async def _context(session_id):
     return key, *_controllers[key]
 
 
-async def _current(runtime, task_id):
+async def _current(runtime, task_id, *, project_feedback=True):
     task = await _safe(runtime.store.get_task, task_id)
     has_documents = any(row['kind'] == 'analysis' and row.get('input_kind') != 'personal'
                         for row in task['steps'])
@@ -151,14 +151,19 @@ async def _current(runtime, task_id):
         await _safe(runtime.long_projects.invalidate_if_stale, task_id)
     task = await _safe(runtime.reconcile, task_id)
     task['artifact_versions'] = await _safe(runtime.store.artifact_history, task_id, 'report')
-    return task
+    # All asynchronous hydration has ended. Do not publish an old positive
+    # review after an event-only correction leaves document hashes unchanged.
+    return runtime.review_current_feedback(task) if project_feedback else task
 
 
 @router.get('/tasks')
 async def tasks(session_id: str):
     _, runtime, _ = await _safe(_context, session_id)
     items = await _safe(runtime.store.list_tasks)
-    return {'items': [await _current(runtime, item['id']) for item in items]}
+    current = [await _current(runtime, item['id'], project_feedback=False) for item in items]
+    # A later task hydration can yield after an earlier task's guard. Recheck
+    # every feedback projection only after the final asynchronous operation.
+    return {'items': [runtime.review_current_feedback(item) for item in current]}
 
 
 @router.get('/task')
@@ -280,7 +285,9 @@ async def control_task(body: ControlTask):
 async def artifact(session_id: str, task_id: str = Query(pattern=UUID4),
                    version: int = Query(ge=1, le=32), step_id: str = Query(default='report', pattern=r'^[a-z][a-z0-9_-]{0,31}$')):
     _, runtime, bridge = await _safe(_context, session_id)
-    await _current(runtime, task_id)
+    # Detail/export has its own final answer/source barrier after hydration;
+    # it does not publish the intermediate task-metadata projection.
+    await _current(runtime, task_id, project_feedback=False)
     stored = await _safe(runtime.store.get_artifact, task_id, step_id, version=version)
     result = {**stored, 'content': None, 'sources': []}
     if stored['available']:
@@ -295,6 +302,8 @@ async def artifact(session_id: str, task_id: str = Query(pattern=UUID4),
                 result['content'] = rendered['content']
                 result.update(acceptance_status=rendered['acceptance_status'],
                               goal_verified=rendered['goal_verified'])
+                result.update({key: rendered[key] for key in ('evidence_feedback', 'task_review_feedback', 'content_review', 'next_step_suggestions')
+                               if key in rendered})
             else:
                 result.update(available=False, references=None, status='withdrawn')
         else:
@@ -304,9 +313,27 @@ async def artifact(session_id: str, task_id: str = Query(pattern=UUID4),
             selected = next(row for row in current['steps'] if row['id'] == step_id)
             latest = runtime.store.get_artifact(task_id, step_id, version=version)
             if (answer and latest['available'] and latest['references'] == stored['references']
-                    and bridge.validate_inputs([selected])
+                    and bridge.validate_inputs([{**selected, 'answer_id': refs.get('answer_id')}])
                     and (runtime.validate_task is None or runtime.validate_task(task_id))):
-                result['content'] = answer['content']
+                feedback = {}
+                try:
+                    from ..project_evidence_feedback import feedback_view
+                    for receipt_key, binding_key, output_key, kind in (
+                            ('event_reasoning', 'evidence_feedback_binding', 'evidence_feedback', 'event'),
+                            ('task_review', 'task_review_binding', 'task_review_feedback', 'task')):
+                        if receipt_key in refs:
+                            feedback[output_key] = feedback_view(refs[receipt_key], refs.get(binding_key),
+                                task_id=task_id, step_id=step_id, artifact_version=version,
+                                current_task_revision=current['revision'], review_kind=kind)
+                except (ValueError, TypeError, KeyError):
+                    result.update(available=False, references=None, status='withdrawn')
+                else:
+                    result['content'] = answer['content']
+                    if feedback:
+                        result.update(feedback,
+                            content_review=('needs_evidence' if any(row['content_review'] == 'needs_evidence'
+                                for row in feedback.values()) else 'review_required'),
+                            references_scope='immutable_historical_binding_not_current_assessment')
             else:
                 result.update(available=False, references=None, status='withdrawn')
     return {'artifact': result}

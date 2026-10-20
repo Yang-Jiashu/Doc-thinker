@@ -1,0 +1,679 @@
+{
+  "version": 1,
+  "date": "2026-10-20",
+  "scope": "Implemented event-evidence and task-feedback wiring; not production, independent semantic verification, or general causal-reasoning certification.",
+  "implementation": {
+    "source_code_fingerprint": "8c033f1c44c794493cbf3e223853cb5075c4fa9dbcb398638247bd0b92ac04f2",
+    "normal_chat_and_tasks_use_scoped_event_context": true,
+    "directed_evidence_obligations_and_local_gap_lookup": true,
+    "condition_schema": 2,
+    "condition_axes": [
+      "rule_support",
+      "satisfaction_with_separate_source_witness"
+    ],
+    "missing_conditions_or_reviews_remain_unknown": true,
+    "task_requirements_are_host_fixed": true,
+    "task_feedback_is_version_bound_manual_replan_only": true,
+    "final_source_carriers_and_revocation_barriers": true,
+    "single_generation_per_approved_step": true,
+    "automatic_retries": false,
+    "ordinary_answer_priority_sparse_optional_annotations": true,
+    "logo_demo_client_style_and_harness_preserved": true
+  },
+  "bounds": {
+    "events": 8,
+    "relations": 12,
+    "event_context_bytes": 6000,
+    "active_event_checks": 2,
+    "optional_task_annotations": 2,
+    "source_excerpts": 10,
+    "source_bytes": 12000,
+    "prompt_utf8_bytes": 24576,
+    "event_receipt_bytes": 6144,
+    "task_receipt_bytes": 4096,
+    "extra_provider_critic_calls": 0
+  },
+  "software_verification": {
+    "backend": {
+      "passed": 6669,
+      "subtests_passed": 13,
+      "skipped": 9,
+      "failed": 0,
+      "duration_seconds": 147.65,
+      "command": "env PYTHONPATH=. PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHON_DOTENV_DISABLED=1 PYTHONDONTWRITEBYTECODE=1 DOCTHINKER_RESEARCH_SEMANTIC=off DOCTHINKER_RESEARCH_MEMORY_SEMANTIC=off DOCTHINKER_RESEARCH_MEMORY_RERANK=off OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 python -B -m pytest -q --tb=short -p no:cacheprovider -p pytest_asyncio.plugin tests/test_*unit.py tests/test_docthinker_memory_package.py",
+      "junit_archive": "benchmarks/runtime_algorithms/event_runtime_full_20261020.xml.gz",
+      "raw_xml_sha256": "6f3870814e242c4d2920b6a08dcd4ef5ae9cb828e3ded835c85ca1399d349161",
+      "gzip_sha256": "34bc205155f4cba9c5e1f607bae8760d6e01454ef938e2f4ac9cdc4cf2812cd2",
+      "warnings": [
+        "Existing Starlette/httpx test-client deprecation; not a failure"
+      ],
+      "skip_scope": "Optional environment-dependent checks; actual provider calls disclosed separately"
+    },
+    "client": {
+      "passed": 897,
+      "failed": 0,
+      "duration_ms": 5241.362625,
+      "command": "cd clients/mobile && node --test --test-reporter=spec tests/*.test.js"
+    },
+    "packaging": {
+      "passed": 83,
+      "included_in_backend_total": true,
+      "scope": "Explicit source archive inputs, manifest, imports, and safety; not a hosted service or prebuilt app"
+    }
+  },
+  "real_model_trials": {
+    "version": 1,
+    "scope": "Sixteen unique paid calls across the initial pilot and three explicitly exposed candidates. No holdout, statistical, universal speedup or semantic-proof claim.",
+    "parameters_all_calls": {
+      "max_tokens": 8192,
+      "temperature": 0.1,
+      "reasoning_effort": "low",
+      "timeout_seconds": 120,
+      "stream": false
+    },
+    "model_requested_and_actual_all_calls": "step-5-preview",
+    "base_url": "https://api.stepfun.com/step_plan/v1",
+    "previous_fourteen_safe_aggregate_sha256": "6fa43daf8878ba7e73d6beeb0588c34169c472a42ab7ae3a91dea5e484ffe82e",
+    "previous_fourteen_unchanged": {
+      "version": 1,
+      "scope": "Initial six-call pilot, separately predeclared four-call frontier repair, then separately predeclared four-call condition-semantics candidate. All exposed development evidence, not holdout evaluation. Earlier failures remain failures.",
+      "model_requested_and_actual_all_calls": "step-5-preview",
+      "base_url": "https://api.stepfun.com/step_plan/v1",
+      "parameters_all_calls": {
+        "max_tokens": 8192,
+        "temperature": 0.1,
+        "reasoning_effort": "low",
+        "timeout_seconds": 120,
+        "stream": false
+      },
+      "versions": [
+        {
+          "id": "initial_work",
+          "code_sha256": "1a34219d36b65adb3652de945ed702a3b13cea318f85e946faed5ed21ec4491f",
+          "prepared_raw_sha256": "c2569a4bacba777e687b538aaaf37792a77f7837d6af2314c8d6fa70e3781d6c",
+          "prepared_canonical_sha256": "abe42faecb3836815602e598417649ef57d53ed8a4299b98a897b2a884d1eb56",
+          "summary_raw_sha256": "60e7f499014f66859768c49785561c96b7db04cac2948da28ea2ca9c479ec34c",
+          "summary_canonical_sha256": "20a4259074dc5f3db81952154cd38d6e3ef4c0b546def6cc6cc0457a17448413",
+          "note": "Pre-withdrawal-fix/pre-compact-contract development pair; not current-software evidence."
+        },
+        {
+          "id": "initial_home_paper",
+          "code_sha256": "93e442495f156c46f59b5f173b7ef624fda6fd6cf3babea7aca36e5fbc66bc02",
+          "prepared_raw_sha256": "ecbfefb3b4e412a216fd99fe0bfd1b48c3c1b4ca1ede6d60d111a7ba20f6b8aa",
+          "prepared_canonical_sha256": "da78ab57883e3c66044217f205a2cd4a4d2ea012adb877aabfac40445b17d86b",
+          "summary_raw_sha256": "62f507caf19c11c68a908beabc249f8ebba8d1293f12436c5b36edfd328194de",
+          "summary_canonical_sha256": "33e15bb1be2764329c151c7ad9144471b9e2e3f9fdfeab8e1260222ce92d42da",
+          "note": "Paper.ON empty visible answer remains primary delivery FAIL."
+        },
+        {
+          "id": "frontier_repair",
+          "code_sha256": "620e9a75e593f810e2f0f7d003a53e90d8c330f5bb7cdf4a8ec8c45bf93eb64f",
+          "prepared_raw_sha256": "c1168812e71cb19cdd7ff51be4d0ad803a7a46174466b9d582a2f71f4cec4738",
+          "prepared_canonical_sha256": "15cff53f770c00954ed94eae297cb1236aa2d2425cc5f105b594281f0f6295e1",
+          "summary_raw_sha256": "a7f4fe98c5f751559de4a725619ebd94aa37655f67a6c33b8162b62c9dcbbc92",
+          "summary_canonical_sha256": "26e816cb0f5b497cc87ff08865b5076b8b3a7cc5bb3827844cbc72bf69143e8f",
+          "note": "All four delivered, but rule support was conflated with premise satisfaction in the old condition receipt; normal delivery/citation syntax does not erase this disclosed semantic-schema defect."
+        },
+        {
+          "id": "condition_semantics_candidate",
+          "code_sha256": "51957675c0cbff5e6cb79ace3c16a3d344893cee6337f58984c135c330601982",
+          "code_sha256_after_calls": "51957675c0cbff5e6cb79ace3c16a3d344893cee6337f58984c135c330601982",
+          "script_sha256": "1ea9dde8122521daf7032b9f964e246f369a629bc1f25929b77678cfe5ecc073",
+          "prepared_raw_sha256": "e843dd6f7227d2459726266a4879c19b3328d9598b1195d0c171b6cbec21d832",
+          "prepared_canonical_sha256": "56b1a2b7dc9750dab431641be642d6b00838d25cfee6febbdc7f5a98a7401729",
+          "summary_raw_sha256": "1b76c0f3445cf93a8c8b297174a14ffed74fbec03d58670b82e1199ada399e33",
+          "summary_canonical_sha256": "f22880819e8258b25e66851dc0bf98fdecd476d2d1aadfa0fa85df7382c32a1e",
+          "note": "Separates support for a condition rule from met/unmet/unknown satisfaction with independent evidence; no source, case or model-budget substitution. Household ON nevertheless failed visible delivery."
+        }
+      ],
+      "previous_ten_calls": [
+        {
+          "version": "initial_work",
+          "id": "work.off",
+          "prompt_tokens": 1391,
+          "completion_tokens": 1966,
+          "total_tokens": 3357,
+          "provider_model_latency_ms": 25862.09254199639,
+          "end_to_end_ms": 26762.12112500798,
+          "finish_reason": "stop",
+          "delivered": true,
+          "citation_valid": true
+        },
+        {
+          "version": "initial_work",
+          "id": "work.on",
+          "prompt_tokens": 2881,
+          "completion_tokens": 4944,
+          "total_tokens": 7825,
+          "provider_model_latency_ms": 56831.860833000974,
+          "end_to_end_ms": 56873.56612501026,
+          "finish_reason": "stop",
+          "delivered": true,
+          "citation_valid": true
+        },
+        {
+          "version": "initial_home_paper",
+          "id": "home.on",
+          "prompt_tokens": 2843,
+          "completion_tokens": 6863,
+          "total_tokens": 9706,
+          "provider_model_latency_ms": 80701.15937500668,
+          "end_to_end_ms": 81534.27708300296,
+          "finish_reason": "stop",
+          "delivered": true,
+          "citation_valid": true
+        },
+        {
+          "version": "initial_home_paper",
+          "id": "home.off",
+          "prompt_tokens": 1341,
+          "completion_tokens": 2629,
+          "total_tokens": 3970,
+          "provider_model_latency_ms": 34123.08533300529,
+          "end_to_end_ms": 34152.53408299759,
+          "finish_reason": "stop",
+          "delivered": true,
+          "citation_valid": true
+        },
+        {
+          "version": "initial_home_paper",
+          "id": "paper.off",
+          "prompt_tokens": 1522,
+          "completion_tokens": 2100,
+          "total_tokens": 3622,
+          "provider_model_latency_ms": 29896.71741699567,
+          "end_to_end_ms": 30157.792917001643,
+          "finish_reason": "stop",
+          "delivered": true,
+          "citation_valid": false,
+          "citation_warning": "missing_citations"
+        },
+        {
+          "version": "initial_home_paper",
+          "id": "paper.on",
+          "prompt_tokens": 3418,
+          "completion_tokens": 8192,
+          "total_tokens": 11610,
+          "provider_model_latency_ms": 103452.07225000195,
+          "end_to_end_ms": 103676.88787500083,
+          "finish_reason": "length",
+          "delivered": false,
+          "citation_valid": null,
+          "visible_content_characters": 0,
+          "verdict": "FAIL_NO_USABLE_ANSWER"
+        },
+        {
+          "version": "frontier_repair",
+          "id": "home.on",
+          "prompt_tokens": 2560,
+          "completion_tokens": 4079,
+          "total_tokens": 6639,
+          "provider_model_latency_ms": 54212.715040994226,
+          "end_to_end_ms": 55167.25066700019,
+          "finish_reason": "stop",
+          "delivered": true,
+          "citation_valid": true
+        },
+        {
+          "version": "frontier_repair",
+          "id": "home.off",
+          "prompt_tokens": 1341,
+          "completion_tokens": 1005,
+          "total_tokens": 2346,
+          "provider_model_latency_ms": 16958.561666004243,
+          "end_to_end_ms": 16996.52304200572,
+          "finish_reason": "stop",
+          "delivered": true,
+          "citation_valid": true
+        },
+        {
+          "version": "frontier_repair",
+          "id": "paper.off",
+          "prompt_tokens": 1522,
+          "completion_tokens": 1753,
+          "total_tokens": 3275,
+          "provider_model_latency_ms": 25445.2512919961,
+          "end_to_end_ms": 25766.70741698763,
+          "finish_reason": "stop",
+          "delivered": true,
+          "citation_valid": true
+        },
+        {
+          "version": "frontier_repair",
+          "id": "paper.on",
+          "prompt_tokens": 3347,
+          "completion_tokens": 1507,
+          "total_tokens": 4854,
+          "provider_model_latency_ms": 24443.83612499223,
+          "end_to_end_ms": 24709.45770799881,
+          "finish_reason": "stop",
+          "delivered": true,
+          "citation_valid": true
+        }
+      ],
+      "new_condition_candidate_calls": [
+        {
+          "version": "condition_semantics_candidate",
+          "id": "home.on",
+          "http_status": 200,
+          "finish_reason": "length",
+          "provider_status": "empty_provider_answer",
+          "prompt_tokens": 2623,
+          "completion_tokens": 8192,
+          "total_tokens": 10815,
+          "provider_model_latency_ms": 94026.36812500714,
+          "end_to_end_ms": 94839.7002920101,
+          "delivered": false,
+          "citation_valid": null,
+          "visible_content_characters": 0,
+          "prompt_sha256": "b984af1fe00faef0c4a600e247ceff8c50626d5d99f0c49be685f2e52136861d",
+          "answer_file_sha256": null,
+          "verdict": "FAIL_NO_USABLE_ANSWER"
+        },
+        {
+          "version": "condition_semantics_candidate",
+          "id": "home.off",
+          "http_status": 200,
+          "finish_reason": "stop",
+          "prompt_tokens": 1341,
+          "completion_tokens": 876,
+          "total_tokens": 2217,
+          "provider_model_latency_ms": 12425.955707993126,
+          "end_to_end_ms": 12464.869083007216,
+          "delivered": true,
+          "citation_valid": true,
+          "used_labels": [
+            "S1"
+          ],
+          "prompt_sha256": "3fd960e9d41dcc82313f77c7b91e25ebe5e0910a8b09aa3daa0c72f5763ae977",
+          "answer_file_sha256": "a2dee615bf04c87703b986debc7fff11a11d96847dfbe659878162cfdceacd95"
+        },
+        {
+          "version": "condition_semantics_candidate",
+          "id": "paper.off",
+          "http_status": 200,
+          "finish_reason": "stop",
+          "prompt_tokens": 1522,
+          "completion_tokens": 1596,
+          "total_tokens": 3118,
+          "provider_model_latency_ms": 26044.81620900333,
+          "end_to_end_ms": 26302.555332993506,
+          "delivered": true,
+          "citation_valid": true,
+          "used_labels": [
+            "S1"
+          ],
+          "prompt_sha256": "0d2bccef4b603173d9cb14460a0ff8aa19a6d3fe4afc3eaaf515fd7b861efd61",
+          "answer_file_sha256": "26792da002239eb028164461337a5cbcc87aac58f32cce36a7a58d6feee15fee"
+        },
+        {
+          "version": "condition_semantics_candidate",
+          "id": "paper.on",
+          "http_status": 200,
+          "finish_reason": "stop",
+          "prompt_tokens": 3410,
+          "completion_tokens": 4184,
+          "total_tokens": 7594,
+          "provider_model_latency_ms": 56031.805791993975,
+          "end_to_end_ms": 56315.401792002376,
+          "delivered": true,
+          "citation_valid": true,
+          "used_labels": [
+            "S1",
+            "S2",
+            "S3"
+          ],
+          "prompt_sha256": "b3a366006a97f3a5b123bb183d38c9f650397d3fa0078d70845a6a8f7d341cde",
+          "answer_file_sha256": "6c81520181053a7f010086a7b7e92f322425a86265a137cc7b6f8180a36b3a6f"
+        }
+      ],
+      "source_geometry": {
+        "original_template_complete_corpus_questions_events_ids_and_scope_unchanged": true,
+        "off_messages_exactly_original": true,
+        "new_on_source_windows_same_as_previous_on": true,
+        "original_primary_windows_preserved": true,
+        "household_both": [
+          {
+            "source_id": "67135886-3c78-4efb-8ae6-21b77ac867e9",
+            "label": "S1",
+            "page": null,
+            "span": [
+              0,
+              687
+            ],
+            "sha256": "c40e5cb338fbc7a66d6f85c03853da39cb78483ad06a561855ff4d745735ad95"
+          }
+        ],
+        "paper_off_to_on_added_windows": 2,
+        "paper": [
+          {
+            "source_id": "905d34c8-94d8-4403-9f6a-ef82ae0b189b",
+            "label": "S1",
+            "page": 5,
+            "span": [
+              152,
+              1187
+            ],
+            "sha256": "f793a9bb71d3d0966fce79ac20f1a83712b3eb50dbbf4343dada9948efb34071",
+            "arms": [
+              "off",
+              "on"
+            ]
+          },
+          {
+            "source_id": "a016c607-42ed-41f2-9b52-cbff90e8d2ac",
+            "label": "S2",
+            "page": 1,
+            "span": [
+              165,
+              1129
+            ],
+            "sha256": "2b9208e5736df0105ff305b7052c8f2bc4e252c33fac4da791a64530cc8015df",
+            "arms": [
+              "on"
+            ]
+          },
+          {
+            "source_id": "bd9b2636-5947-4333-9f2c-0871a43f2a3e",
+            "label": "S3",
+            "page": 1,
+            "span": [
+              327,
+              1263
+            ],
+            "sha256": "29e72e6bb3e0080c27bbad873cce9df5573b78a042879a7d459fe6327bc0efc6",
+            "arms": [
+              "on"
+            ]
+          }
+        ],
+        "selection_claim": "ON adds two actual original-paper windows versus OFF, but these same windows already existed in earlier ON preparations; not a claim that this condition-schema repair newly improved recall."
+      },
+      "totals": {
+        "previous_ten": {
+          "dispatches": 10,
+          "prompt_tokens": 22166,
+          "completion_tokens": 35038,
+          "total_tokens": 57204,
+          "delivered": 9,
+          "failed_delivery": 1
+        },
+        "condition_candidate_four": {
+          "dispatches": 4,
+          "prompt_tokens": 8896,
+          "completion_tokens": 14848,
+          "total_tokens": 23744,
+          "delivered": 3,
+          "failed_delivery": 1,
+          "citation_syntax_valid": 3
+        },
+        "all_disclosed": {
+          "dispatches": 14,
+          "retries": 0,
+          "continuations": 0,
+          "replacement_samples": 0,
+          "prompt_tokens": 31062,
+          "completion_tokens": 49886,
+          "total_tokens": 80948,
+          "delivered": 12,
+          "failed_delivery": 2,
+          "citation_syntax_valid": 11,
+          "citation_syntax_invalid": 1,
+          "citation_not_assessable": 2
+        }
+      },
+      "paper": {
+        "url": "https://arxiv.org/pdf/2307.03172v1",
+        "sha256": "c8070998fc12d9652d4f3b2e3094a4d6f438ed47a18539e04f07e5dbb9891f9e",
+        "actual_full_pdf_ingested": true,
+        "extracted_chunks": 39,
+        "extracted_characters": 58009
+      },
+      "previous_ten_safe_aggregate_sha256": "eca7326e427530ab83860daf07267106a82b3e7f24de3e366446b9e86567a387",
+      "interpretation": {
+        "condition_candidate_delivery": "FAIL as a stable-delivery acceptance: household ON exhausted 8192 output tokens with zero visible answer. Paper ON delivered, which does not repair or erase the household failure.",
+        "cost": "Both current ON calls used more total tokens and provider time than their paired OFF calls. No efficiency improvement established.",
+        "semantic_quality": "Normal stop, source geometry and citation syntax do not prove answer correctness or causal/condition entailment. Independent review of normal visible paper.ON is required; home.ON cannot be semantically accepted because it has no answer.",
+        "old_semantic_defect": "Previous fused rule-support/premise-satisfaction semantics remain a disclosed defect, not relabeled as passed by the new schema.",
+        "privacy": "No prompts, answer or source text, credentials, SQLite payloads, failed partial prose or hidden reasoning in this safe aggregate.",
+        "time": "Provider time is adapter-measured exchange latency; end-to-end additionally includes workspace/service setup and native processing.",
+        "usage": "Actual reported provider usage; reasoning_tokens=0 does not establish absence of internal reasoning or partition completion tokens."
+      }
+    },
+    "latest_sparse_candidate": {
+      "scope": "fourth exposed sparse candidate; two ON generations only, historical OFF references, not fresh pairs",
+      "code_sha256_at_preparation_and_dispatch": "e3da38f38ae935e2807d294fced8217c05a171b7616e5cbf5022dcc941c359f7",
+      "post_run_observed_code_sha256": "6765d8d4487e0a992cc61885624a8696d506a07d614f60d165c73f141425abc4",
+      "post_run_scope_note": "Root subsequently authorized a decoder-only change. This observed later hash is not the generation software binding and is not retroactively substituted for it.",
+      "script_sha256": "acdcd94e10bea3219ec71e8e634827ac4d6d587e72b4a7be3e098c3906966f84",
+      "prepared_raw_sha256": "2a4be60c4e50b4c453dad8d39e8ada475519faaa6a4fb52ec86a001e1132226f",
+      "prepared_canonical_sha256": "4923083958994d151b17bc5039bf70eacc34d5eddbea6d25f33f0809d7befd38",
+      "summary_raw_sha256": "037180a04731ade7364f9ad257da09a8ffe1c887692669dd81edc4072d8a8c04",
+      "summary_canonical_sha256": "9417b4c7f5252b91ebad6d010725583b3280b51fc3361e81df8c6888c6079f1a",
+      "material_scope": "Same original templates, complete corpus, questions, source IDs, graph assertions, primary windows and final source-carrier guards. No helper disabled.",
+      "baseline_scope": "Only the -5 historical OFF responses are references; no new OFF model calls, no fresh paired comparison.",
+      "historical_baselines": [
+        {
+          "id": "home.off",
+          "version": "condition_semantics_candidate",
+          "prompt_tokens": 1341,
+          "completion_tokens": 876,
+          "total_tokens": 2217,
+          "provider_model_latency_ms": 12425.955707993126,
+          "end_to_end_ms": 12464.869083007216,
+          "prompt_sha256": "3fd960e9d41dcc82313f77c7b91e25ebe5e0910a8b09aa3daa0c72f5763ae977",
+          "new_model_calls": 0
+        },
+        {
+          "id": "paper.off",
+          "version": "condition_semantics_candidate",
+          "prompt_tokens": 1522,
+          "completion_tokens": 1596,
+          "total_tokens": 3118,
+          "provider_model_latency_ms": 26044.81620900333,
+          "end_to_end_ms": 26302.555332993506,
+          "prompt_sha256": "0d2bccef4b603173d9cb14460a0ff8aa19a6d3fe4afc3eaaf515fd7b861efd61",
+          "new_model_calls": 0
+        }
+      ],
+      "calls": [
+        {
+          "id": "home.on",
+          "version": "sparse_candidate",
+          "http_status": 200,
+          "finish_reason": "stop",
+          "model_actual": "step-5-preview",
+          "prompt_tokens": 2655,
+          "completion_tokens": 2866,
+          "total_tokens": 5521,
+          "provider_model_latency_ms": 42690.871499988134,
+          "end_to_end_ms": 44860.64966699632,
+          "delivery_gate_passed": true,
+          "citation_valid": true,
+          "used_labels": [
+            "S1"
+          ],
+          "prompt_sha256": "7e275e5006f0e94d495ab60fc0f8725926c8d84fb69b47cf31436d73281a0949",
+          "answer_file_sha256": "9cb205961b012f08434db4e22bda3ef26ea6c18d4ee2b36254b498314cf8d20f",
+          "primary_native_wire_verdict": "FAIL_MIXED_PROSE_PLUS_JSON_NOT_NORMALIZED",
+          "annotation_primary": {
+            "status": "not_assessed",
+            "supported": 0,
+            "counterevidence": 0,
+            "unknown": 2,
+            "causality_verified": false,
+            "model_assessed": false
+          }
+        },
+        {
+          "id": "paper.on",
+          "version": "sparse_candidate",
+          "http_status": 200,
+          "finish_reason": "stop",
+          "model_actual": "step-5-preview",
+          "prompt_tokens": 3442,
+          "completion_tokens": 1992,
+          "total_tokens": 5434,
+          "provider_model_latency_ms": 35196.03995799844,
+          "end_to_end_ms": 35753.32558299124,
+          "delivery_gate_passed": true,
+          "citation_valid": true,
+          "used_labels": [
+            "S3",
+            "S2"
+          ],
+          "prompt_sha256": "b3e8c17d91bcb1b6143ef2cfe888bf44ba795064123fe660908763fdd41eb7cb",
+          "answer_file_sha256": "78ffae70463782f7970648d22b9a9e67919b75cb99d50ae77922774c9a5c9b83",
+          "primary_native_wire_verdict": "FAIL_MIXED_PROSE_PLUS_JSON_NOT_NORMALIZED",
+          "annotation_primary": {
+            "status": "not_assessed",
+            "supported": 0,
+            "counterevidence": 0,
+            "unknown": 2,
+            "causality_verified": false,
+            "model_assessed": false
+          }
+        }
+      ],
+      "ordinary_answer_quality": "Separate source-grounded independent review. Provider stop and citation syntax do not establish correct or clean user-facing delivery.",
+      "annotation_quality": "Original native decoder reported every obligation unknown. Do not call empty or unrecognized annotations semantic PASS.",
+      "wire_defect": "Root identified generic mixed prose plus a unique trailing JSON wrapper incompatibility. Original generation and native outputs remain immutable primary evidence; any later 0API visible-wire replay is posthoc software validation, not new generation and not replacement.",
+      "totals": {
+        "new_model_calls": 2,
+        "prompt_tokens": 6097,
+        "completion_tokens": 4858,
+        "total_tokens": 10955,
+        "normal_provider_stops": 2,
+        "delivery_gate_passed": 2,
+        "clean_native_wire_acceptance": 0,
+        "retries": 0
+      }
+    },
+    "totals_all_disclosed": {
+      "dispatches": 16,
+      "retries": 0,
+      "continuations": 0,
+      "replacement_samples": 0,
+      "prompt_tokens": 37159,
+      "completion_tokens": 54744,
+      "total_tokens": 91903,
+      "normal_provider_visible_responses": 14,
+      "empty_visible_answer_failures": 2,
+      "additional_original_native_wire_failures": 2,
+      "citation_syntax_valid": 13,
+      "citation_syntax_invalid": 1,
+      "citation_not_assessable": 2
+    },
+    "conclusions": {
+      "cost": "Latest ON calls still cost more reported tokens and time than the historical OFF references. No general efficiency improvement established.",
+      "failure_retention": "Initial paper.ON and condition-candidate home.ON length/empty-answer failures remain FAIL. Earlier fused rule-support/premise-satisfaction defect remains disclosed. Latest mixed-wire native decoder defect remains primary FAIL.",
+      "quality_separation": "Ordinary answer quality, citation syntax and evidence-annotation/condition quality are separate. Unknown is safe abstention, never verified semantic success.",
+      "posthoc_replay": "Not yet performed at aggregation time; requires separate frozen-decoder GO and zero provider calls, with exact prepared-message SHA verification.",
+      "privacy": "Safe metadata only: no prompts, answers, source text, credentials, SQLite or hidden reasoning.",
+      "time_definition": "Provider exchange latency and end-to-end native latency are recorded separately. End-to-end includes workspace and service setup.",
+      "token_definition": "Actual provider-reported usage; reasoning_tokens=0 does not establish absence of internal reasoning or partition completion tokens."
+    }
+  },
+  "posthoc_delivery_normalization": {
+    "provider_calls": 0,
+    "network_attempts": 0,
+    "scope": "Two saved visible responses replayed through actual Service; no hidden/provider journal/key reads.",
+    "receipts": [
+      {
+        "call_id": "home.on",
+        "scope": "posthoc_current_decoder_replay_not_new_generation",
+        "provider_calls": 0,
+        "stub_visible_responses": 1,
+        "network_attempts": 0,
+        "decoder_code_sha256": "8c033f1c44c794493cbf3e223853cb5075c4fa9dbcb398638247bd0b92ac04f2",
+        "original_generation_code_sha256": "e3da38f38ae935e2807d294fced8217c05a171b7616e5cbf5022dcc941c359f7",
+        "actual_messages_sha256": "7e275e5006f0e94d495ab60fc0f8725926c8d84fb69b47cf31436d73281a0949",
+        "exact_original_messages": true,
+        "original_result_file_sha256": "9cb205961b012f08434db4e22bda3ef26ea6c18d4ee2b36254b498314cf8d20f",
+        "original_visible_wire_sha256": "b2b162fc706b779f2eaa48c272f1acd7f5ed4cf39eca79e1352f0a50a36b9565",
+        "new_body_sha256": "366055f8605fffd733749703f80c304e7a19fcf31a4bd711494da3ccdb2b4054",
+        "body_changed_by_decoder": true,
+        "old_annotation_counts": {
+          "status": "not_assessed",
+          "supported": 0,
+          "counterevidence": 0,
+          "unknown": 2,
+          "causality_verified": false,
+          "model_assessed": false
+        },
+        "new_annotation_counts": {
+          "status": "evidence_gaps",
+          "supported": 1,
+          "counterevidence": 0,
+          "unknown": 1,
+          "causality_verified": false,
+          "model_assessed": true
+        },
+        "citation_valid": true,
+        "quality": "independent_review_required_not_inferred_from_parsing",
+        "original_native_wire_defect": "retained_as_primary_FAIL_not_rewritten"
+      },
+      {
+        "call_id": "paper.on",
+        "scope": "posthoc_current_decoder_replay_not_new_generation",
+        "provider_calls": 0,
+        "stub_visible_responses": 1,
+        "network_attempts": 0,
+        "decoder_code_sha256": "8c033f1c44c794493cbf3e223853cb5075c4fa9dbcb398638247bd0b92ac04f2",
+        "original_generation_code_sha256": "e3da38f38ae935e2807d294fced8217c05a171b7616e5cbf5022dcc941c359f7",
+        "actual_messages_sha256": "b3e8c17d91bcb1b6143ef2cfe888bf44ba795064123fe660908763fdd41eb7cb",
+        "exact_original_messages": true,
+        "original_result_file_sha256": "78ffae70463782f7970648d22b9a9e67919b75cb99d50ae77922774c9a5c9b83",
+        "original_visible_wire_sha256": "c56d23b4077e92d61ce16f4de541cedb0a31adab40e1c8d91ffd10ebe4a9ab2a",
+        "new_body_sha256": "91efb94ea9c60295b4ad021025a53c3b2850457738648052196893122b855fce",
+        "body_changed_by_decoder": true,
+        "old_annotation_counts": {
+          "status": "not_assessed",
+          "supported": 0,
+          "counterevidence": 0,
+          "unknown": 2,
+          "causality_verified": false,
+          "model_assessed": false
+        },
+        "new_annotation_counts": {
+          "status": "not_assessed",
+          "supported": 0,
+          "counterevidence": 0,
+          "unknown": 2,
+          "causality_verified": false,
+          "model_assessed": false
+        },
+        "citation_valid": true,
+        "quality": "independent_review_required_not_inferred_from_parsing",
+        "original_native_wire_defect": "retained_as_primary_FAIL_not_rewritten"
+      }
+    ],
+    "quality": "ordinary_body_and_annotations_require_separate_review"
+  },
+  "source_grounded_review": {
+    "method": "Independent agent review of ordinary visible answers, public assessments, and actual retained sources; not human expert review, not blinded, not held out.",
+    "work": "Earlier implementation only: both answers usable; no new final-version work generation.",
+    "household": "Normal factual/permission boundaries generally correct. Earlier fused condition support was ambiguous; a later typed candidate produced no answer. Sparse candidate delivered mixed prose/JSON, fixed locally by replay, not retroactively a successful original wire.",
+    "paper": "ON retained original S1 and added abstract/figure-caption S2/S3. Evidence coverage improved in this known example, but some answer/task-range ambiguity remains; no universal semantic pass.",
+    "delivery_and_quality_are_separate": true,
+    "costs": "ON still costs more tokens; household remains slower. Historical OFF references in the last candidate are not newly paired samples. No general efficiency win established.",
+    "no_causality_or_goal_certificate": true
+  },
+  "remaining_limits": [
+    "Natural-language entailment and causal identification remain model-assessed, not independently verified.",
+    "Sparse annotations may abstain; every omitted host requirement remains unknown rather than completed.",
+    "Sixteen exposed-development provider calls do not establish cross-domain generalization or commercial readiness.",
+    "No unlimited physical storage, unattended paid actions, completed RSI, or public deployment is claimed."
+  ],
+  "privacy": "No credentials, raw prompts, answer bodies, source text, user databases, or hidden reasoning.",
+  "posthoc_independent_review": {
+    "sha256": "7b9e7d96fe42fd92529210d3bf1a850a13e556b5c85fd9b0f4d8c84400065d15",
+    "method": "Independent agent, visible outputs and bound receipts only; not human expert or blind review.",
+    "findings": [
+      "No internal JSON or duplicate envelope in current replayed answer bodies.",
+      "Household unmet prerequisite remains unknown and blocks link uplift; met timing constraints do not authorize action or imply causality.",
+      "Paper unassessed items remain unknown; the original numeric-example task-scope ambiguity remains in model content."
+    ],
+    "scope": "Post-hoc local delivery/condition-state validation, zero new provider calls; original generation failures retained."
+  }
+}

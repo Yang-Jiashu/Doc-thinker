@@ -307,7 +307,7 @@ def _query_response(result: dict) -> dict:
         r"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}", answer_id,
     ):
         response["answer_id"] = answer_id
-    for name in ("research_core", "answer_mode", "citation_validation", "retrieval_gaps", "used_memory_count", "memory_selection", "reasoning", "claim_audit", "memory_as_of", "reasoning_mode", "knowledge_skill", "trial_delivery", "research_memory_required"):
+    for name in ("research_core", "answer_mode", "citation_validation", "retrieval_gaps", "used_memory_count", "memory_selection", "reasoning", "claim_audit", "memory_as_of", "reasoning_mode", "knowledge_skill", "trial_delivery", "research_memory_required", "used_event_count", "used_event_relation_count", "event_reasoning", "task_review"):
         if name in result:
             response[name] = result[name]
     if result.get('research_provenance_required') is True:

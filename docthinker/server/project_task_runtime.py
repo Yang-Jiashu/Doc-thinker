@@ -9,7 +9,9 @@ from __future__ import annotations
 import asyncio
 import html
 import inspect
+import json
 import re
+import sqlite3
 from collections.abc import Mapping
 
 from .project_task_store import ProjectTaskConflictError
@@ -97,6 +99,18 @@ def _artifact(receipt):
     if 'phase_handoff' in receipt:
         from .project_task_store import _phase_handoff
         result['phase_handoff'] = _phase_handoff(receipt['phase_handoff'])
+    if 'event_reasoning' in receipt:
+        from .project_evidence_feedback import normalize_event_reasoning
+        try:
+            result['event_reasoning'] = normalize_event_reasoning(receipt['event_reasoning'])
+        except (ValueError, TypeError, KeyError) as error:
+            raise ProjectTaskRuntimeError('Evidence feedback is unavailable') from error
+    if 'task_review' in receipt:
+        from .research_task_review import normalize_task_review
+        try:
+            result['task_review'] = normalize_task_review(receipt['task_review'])
+        except (ValueError, TypeError, KeyError) as error:
+            raise ProjectTaskRuntimeError('Task review is unavailable') from error
     if receipt.get('input_kind') == 'personal':
         refs = receipt.get('context_refs')
         if (type(refs) is not dict or len(refs) > 8 or result['source_ids'] or result['document_ids']
@@ -421,6 +435,10 @@ class ProjectTaskRuntime:
             if self.validate_task is not None and self.validate_task(task_id) is not True:
                 self._block(task_id, step, 'source_changed')
                 return
+            if (step['kind'] == 'analysis' and self.validate_inputs is not None
+                    and self.validate_inputs([{**step, 'answer_id': artifact['answer_id']}]) is not True):
+                self._block(task_id, step, 'source_changed')
+                return
             self.store.complete_step(task_id, step['id'], token, artifact, context_snapshots=final_context)
         except ProjectTaskConflictError:
             # Revocation/cancel may win while an already accepted call runs.
@@ -517,6 +535,48 @@ class ProjectTaskRuntime:
         return self.store.refresh_task(task_id, expected_revision=expected_revision, source_snapshots=snapshot,
                                        context_snapshots=contexts)
 
+    def review_current_feedback(self, task):
+        """Final synchronous metadata projection, never a retry or state rewrite.
+
+        Execution completion is durable history. Its cached positive review is
+        not current evidence after an answer's event/source lineage is revoked.
+        One task snapshot supplies the exact answer IDs to one batch barrier.
+        """
+        keys = ('evidence_feedback', 'task_review_feedback')
+        if self.validate_inputs is None or not any(any(key in row for key in keys) for row in task['steps']):
+            return task
+        result, live = task, False
+        try:
+            with self.store._db() as db:
+                if db is None:
+                    raise ProjectTaskRuntimeError('Task feedback snapshot unavailable')
+                db.execute('PRAGMA busy_timeout=50')
+                db.execute('BEGIN')
+                current = self.store._public(db, self.store._task(db, task['id']))
+                result = {**task, **current}
+                packets = []
+                for row in current['steps']:
+                    if row['kind'] != 'analysis' or row['status'] != 'completed':
+                        continue
+                    saved = db.execute("SELECT payload FROM project_task_artifacts WHERE task_id=? AND step_id=? "
+                        "AND version=? AND status='current'", (current['id'], row['id'], row['artifact_version'])).fetchone()
+                    data = json.loads(saved['payload']) if saved else {}
+                    if type(data.get('answer_id')) is not str or not _UUID4.fullmatch(data['answer_id']):
+                        raise ProjectTaskRuntimeError('Task feedback answer unavailable')
+                    packets.append({**row, 'answer_id': data['answer_id']})
+                live = bool(packets) and self.validate_inputs(packets) is True
+        except (ValueError, KeyError, TypeError, sqlite3.Error):
+            live = False
+        if live:
+            return result
+        result = {**result, 'steps': [dict(row) for row in result['steps']]}
+        for row in result['steps']:
+            if any(key in row for key in keys):
+                for key in keys:
+                    row.pop(key, None)
+                row.update(content_review='needs_evidence', feedback_status='provenance_unavailable')
+        return result
+
     async def render_report(self, task_id, artifact):
         """Hydrate immutable answer references under today's revocation checks."""
         task = self.store.get_task(task_id)
@@ -536,6 +596,8 @@ class ProjectTaskRuntime:
         lines = ['# ' + ('个人任务报告' if has_personal else '项目研究报告'), '', str(task['goal']), '', '## 约束', '', str(task['constraints']), '']
         complete = True
         rendered = []
+        evidence_feedback = []
+        task_review_feedback = []
         for ref in refs:
             step = steps.get(ref.get('step_id')) if isinstance(ref, dict) else None
             if step is None or step['kind'] != 'analysis':
@@ -562,12 +624,31 @@ class ProjectTaskRuntime:
                     ['### 本节依据类型', '', '用户任务指令与明确选择的确认记忆；不是文档证据，不证明外部事实。', '',
                      *[f'- 确认记忆 `{key}` · 版本 {revision}。' for key, revision in context.items()], ''])
                 handoff_note = _handoff_note(data)
+                feedback_note = []
+                feedback = None
+                if 'event_reasoning' in data:
+                    from .project_evidence_feedback import feedback_view, feedback_lines
+                    feedback = feedback_view(data['event_reasoning'], data.get('evidence_feedback_binding'),
+                        task_id=task_id, step_id=step['id'], artifact_version=ref['version'],
+                        current_task_revision=task['revision'])
+                    feedback_note = feedback_lines(feedback)
+                task_feedback = None
+                if 'task_review' in data:
+                    from .project_evidence_feedback import feedback_view, feedback_lines
+                    task_feedback = feedback_view(data['task_review'], data.get('task_review_binding'),
+                        task_id=task_id, step_id=step['id'], artifact_version=ref['version'],
+                        current_task_revision=task['revision'], review_kind='task')
+                    feedback_note += feedback_lines(task_feedback)
                 latest = self.store.get_artifact(task_id, step['id'], version=ref['version'])
                 if (not latest['available'] or await self._read_snapshot(_scope(step)) != current
                         or await self._step_context(step) != context):
                     raise ProjectTaskRuntimeError('Answer source snapshot changed')
-                lines += [*handoff_note, body, '', *legend]
-                rendered.append((step, current))
+                lines += [*handoff_note, body, '', *legend, *feedback_note]
+                rendered.append(({**step, 'answer_id': data['answer_id']}, current))
+                if feedback is not None:
+                    evidence_feedback.append(feedback)
+                if task_feedback is not None:
+                    task_review_feedback.append(task_feedback)
             except Exception:
                 complete = False
                 lines += ['本节原回答或当前有效依据不可用；未重新生成，不能视为完整结论。', '']
@@ -594,7 +675,18 @@ class ProjectTaskRuntime:
         content = '\n'.join(lines)
         if len(content.encode()) > MAX_REPORT_BYTES:
             raise ProjectTaskRuntimeError('Report exceeds export budget')
-        return {'content': content, 'complete': complete, 'format': 'markdown',
+        result = {'content': content, 'complete': complete, 'format': 'markdown',
                 'acceptance_status': 'review_required', 'goal_verified': False,
                 'composition': 'deterministic_answer_references', 'model_calls': 0,
                 'semantic_verified': False}
+        all_feedback = [*evidence_feedback, *task_review_feedback]
+        if all_feedback:
+            result.update(content_review=('needs_evidence' if any(row['content_review'] == 'needs_evidence'
+                    for row in all_feedback) else 'review_required'),
+                next_step_suggestions=[{'binding': row['binding'], **row['next_step_suggestion']}
+                    for row in all_feedback])
+            if evidence_feedback:
+                result['evidence_feedback'] = evidence_feedback
+            if task_review_feedback:
+                result['task_review_feedback'] = task_review_feedback
+        return result

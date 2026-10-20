@@ -15,6 +15,7 @@ from .research_answer_contract import answer_contract_receipt, SYSTEM_POLICY, IN
 from .research_knowledge import compile_task_knowledge
 from .knowledge_skills import MAX_PROMPT_BYTES
 from .research_need_ledger import build_need_ledger, fallback_source_variants, final_need_ledger
+from .research_event_reasoning import validate_event_source_guards, event_source_guards_live
 
 INSIGHT_DATA_MARKER = "\nINSIGHT_CONTEXT_DATA_JSON:\n"
 MAX_INSIGHT_BYTES = 1200
@@ -61,7 +62,9 @@ def requires_document_evidence(question):
 
 def fit_research_prompt(question, plan, history, assistance, *, system_policy, memory_as_of=None,
                         knowledge_support=None, insight_runtime=None, trial_contract=None,
-                        project_context=None, required_needs=None):
+                        project_context=None, required_needs=None, event_context=None,
+                        event_contract=None, task_review_context=None, task_review_contract=None,
+                        event_source_guards=None):
     """Keep current question intact; shed whole optional blocks deterministically.
 
     Rank once upstream. Never repeat BM25, index reads, background operators or
@@ -79,6 +82,25 @@ def fit_research_prompt(question, plan, history, assistance, *, system_policy, m
     if not valid_question:
         raise ValueError("Research prompt exceeds its budget")
     baseline = plan["sources"]
+    if event_context is not None and (type(event_context) is not str or not event_context.strip()
+            or len(event_context.encode('utf-8')) > 7000 or type(event_contract) is not str
+            or not event_contract.strip() or len(event_contract.encode('utf-8')) > 3500):
+        raise ValueError('Invalid event reasoning context')
+    if event_context is None and event_contract is not None:
+        raise ValueError('Event response contract requires event context')
+    if event_context is None and event_source_guards is not None:
+        raise ValueError('Event source guards require event context')
+    guarded_events = validate_event_source_guards(event_source_guards) if event_source_guards is not None else []
+    event_data = json.loads(event_context) if event_context is not None else None
+    if event_data is not None and type(event_data) is not dict:
+        raise ValueError('Invalid event reasoning context')
+    if task_review_context is not None and (type(task_review_context) is not str
+            or not task_review_context.strip() or len(task_review_context.encode()) > 4096
+            or type(task_review_contract) is not str or not task_review_contract.strip()
+            or len(task_review_contract.encode()) > 3500 or project_context is None):
+        raise ValueError('Invalid task review context')
+    if task_review_context is None and task_review_contract is not None:
+        raise ValueError('Task review contract requires task context')
     if project_context is not None and (not isinstance(project_context, str) or not project_context.strip()
                                         or len(project_context.encode('utf-8')) > 8192):
         raise ValueError('Invalid project context')
@@ -92,6 +114,11 @@ def fit_research_prompt(question, plan, history, assistance, *, system_policy, m
                 (assistance["sources"], memory, [], assistance),
                 (baseline, memory, [], empty_assistance(baseline, reason="prompt_budget")),
                 (baseline, [], [], empty_assistance(baseline, reason="prompt_budget"))]
+    if guarded_events:
+        # A source that carries an omitted event is no longer a hint-only
+        # extra. Shed optional analysis before considering a smaller packet.
+        attempts.insert(2, (assistance['sources'], memory, [],
+                           empty_assistance(assistance['sources'], reason='prompt_budget')))
     attempts.extend((sources, [], [], empty_assistance(sources, reason="prompt_budget"))
                     for sources in fallback_source_variants(need_ledger, baseline))
     has_skill = bool((knowledge_support or {}).get('prompt', ''))
@@ -125,8 +152,15 @@ def fit_research_prompt(question, plan, history, assistance, *, system_policy, m
     base_source_key = None
     conversation_variants = {}
     project_json = None
+    event_variants = {}
+    event_guard_variants = {}
     for sources, kept_memory, conversation, support, include_skill, include_insight, card_limit, component_locators in attempts:
         source_key = tuple(id(row) for row in sources)
+        if guarded_events:
+            if source_key not in event_guard_variants:
+                event_guard_variants[source_key] = event_source_guards_live(guarded_events, sources)
+            if not event_guard_variants[source_key]:
+                continue  # Never silently lose an omitted event's source carrier.
         if source_key != base_source_key:
             # Attempts move on to shorter packets. Release prior renderings
             # immediately instead of retaining every prefix until return.
@@ -206,6 +240,19 @@ def fit_research_prompt(question, plan, history, assistance, *, system_policy, m
                 if project_json is None:
                     project_json = _json({'context': project_context})
                 prompt += '\nPROJECT_TASK_DATA_JSON:\n' + project_json
+            if event_context is not None:
+                # Version-bound event data is mandatory for an event-bearing
+                # answer, not an optional hint that may disappear at packing.
+                # Witness assessments are checked against THIS final excerpt
+                # packet after generation, never pre-fit source candidates.
+                if source_key not in event_variants:
+                    event_variants[source_key] = _json({**event_data, 'retained_sources': [
+                        {'source_id': source['id'], 'label': source['label'],
+                         'span': [source.get('excerpt_start', 0), source.get('excerpt_end', len(source['content']))]}
+                        for source in sources]})
+                prompt += '\nEVENT_REASONING_DATA_JSON:\n' + event_variants[source_key]
+            if task_review_context is not None:
+                prompt += '\nTASK_REQUIREMENTS_DATA_JSON:\n' + task_review_context
             if conversation:
                 conversation_key = tuple(id(row) for row in conversation)
                 if conversation_key not in conversation_variants:
@@ -232,6 +279,10 @@ def fit_research_prompt(question, plan, history, assistance, *, system_policy, m
                 used_policy += INSIGHT_POLICY
             if trial_contract:
                 used_policy += trial_contract['policy']
+            if event_context is not None:
+                used_policy += '\n' + event_contract
+            if task_review_context is not None:
+                used_policy += '\n' + task_review_contract
             messages = [{"role": "system", "content": used_policy}, {"role": "user", "content": prompt}]
             validate_invite_messages(messages)
         except ValueError:
@@ -261,6 +312,12 @@ def fit_research_prompt(question, plan, history, assistance, *, system_policy, m
             budget['trial_contract_bytes'] = len(trial_contract['prompt'].encode()) + len(trial_contract['policy'].encode())
         if project_context is not None:
             budget['project_context_bytes'] = len(project_json.encode('utf-8'))
+        if event_context is not None:
+            budget['event_context_bytes'] = len(event_variants[source_key].encode('utf-8'))
+            budget['event_contract_bytes'] = len(event_contract.encode('utf-8'))
+            budget['event_source_guard_count'] = len(guarded_events)
+        if task_review_context is not None:
+            budget['task_review_bytes'] = len(task_review_context.encode()) + len(task_review_contract.encode())
         receipt = answer_contract_receipt(messages, sources, original_source_count=len(assistance['sources']),
                                          question=question, include_component_locators=component_locators)
         if trial_contract:

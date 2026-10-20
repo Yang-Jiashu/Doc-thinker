@@ -16,6 +16,8 @@ from docthinker.harness_runtime import execute_run
 from .invite_budget import validate_invite_question
 from .model_response_error import ModelResponseError
 from .project_task_handoff import build_handoff, DependencyContextUnavailable
+from .project_evidence_feedback import normalize_event_reasoning
+from .research_task_review import build_task_requirements, normalize_task_review
 from .request_journal import request_fingerprint
 from .schemas import QueryRequest
 
@@ -110,6 +112,24 @@ class ProjectTaskBridge:
             receipt['phase_handoff'] = result['project_phase_handoff']
         if personal:
             receipt.update(input_kind='personal', context_refs=dict(contexts))
+        if 'event_reasoning' in answer or 'event_reasoning' in result:
+            try:
+                feedback = normalize_event_reasoning(answer.get('event_reasoning', result.get('event_reasoning')))
+                if ('event_reasoning' in answer and 'event_reasoning' in result
+                        and feedback != normalize_event_reasoning(result['event_reasoning'])):
+                    raise ValueError('Evidence feedback differs from its saved answer')
+                receipt['event_reasoning'] = feedback
+            except (ValueError, TypeError, KeyError):
+                return {'request_status': 'failed', 'code': 'provenance_unavailable'}
+        if 'task_review' in answer or 'task_review' in result:
+            try:
+                review = normalize_task_review(answer.get('task_review', result.get('task_review')))
+                if ('task_review' in answer and 'task_review' in result
+                        and review != normalize_task_review(result['task_review'])):
+                    raise ValueError('Task review differs from its saved answer')
+                receipt['task_review'] = review
+            except (ValueError, TypeError, KeyError):
+                return {'request_status': 'failed', 'code': 'provenance_unavailable'}
         return receipt
 
     async def reconcile_request(self, *, session_id, request_id):
@@ -174,6 +194,9 @@ class ProjectTaskBridge:
                 prompt += '\n长期项目与阶段验收标准（用户要求，不是事实或已完成声明）：\n' + json.dumps(
                     phase_context, ensure_ascii=False, separators=(',', ':'), allow_nan=False)
                 validate_invite_question(prompt)
+            task_requirements = build_task_requirements(question,
+                phase_context.get('phase_acceptance_criteria', []) if isinstance(phase_context, dict) else None,
+                input_kind=input_kind)
         except (ValueError, UnicodeError, KeyError):
             return {'request_status': 'failed', 'code': 'inputs_unavailable'}
         scoped = [row for row in documents if document_ids is None or row['id'] in document_ids]
@@ -249,7 +272,7 @@ class ProjectTaskBridge:
                 'use_conversation_context': False, 'use_llm_cache': False,
                 'use_self_evolution': False, 'knowledge_skill_mode': 'auto', 'insight_mode': 'auto'}
         binding = {'request': request_fingerprint(body), 'document_ids': document_ids,
-                   'inputs': input_snapshot, 'project_context': prompt}
+                   'inputs': input_snapshot, 'project_context': prompt, 'task_requirements': task_requirements}
         if personal:
             binding.update(input_kind='personal', context_refs=context_snapshot)
         if origin_task_id is not None:
@@ -293,6 +316,7 @@ class ProjectTaskBridge:
             result = await execute_run(lambda: self.service.answer(
                 QueryRequest(**body), tracked_model, self.manager, document_ids=document_ids,
                 project_instance_id=getattr(self, 'instance_id', None), project_context=prompt,
+                task_requirements=task_requirements,
                 **({'task_context_refs': context_snapshot} if personal else {}),
                 **({'project_parent_answer_ids': list(dict.fromkeys(row['answer_id'] for row in prior))}
                    if prior and getattr(self, 'instance_id', None) is not None else {}),
@@ -306,6 +330,10 @@ class ProjectTaskBridge:
             stored.pop('claim_audit', None)
             stored['_research_session_id'] = session_id
             stored['project_handoff'] = handoff
+            if 'event_reasoning' in result:
+                stored['event_reasoning'] = normalize_event_reasoning(result['event_reasoning'])
+            if 'task_review' in result:
+                stored['task_review'] = normalize_task_review(result['task_review'])
             if personal:
                 stored.update(project_input_kind='personal', project_context_refs=dict(context_snapshot))
             if phase_handoff is not None:

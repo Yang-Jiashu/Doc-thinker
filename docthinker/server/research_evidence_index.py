@@ -299,6 +299,26 @@ def hydrate_reasoning(reasoning, sources):
         else:
             missing = True
     trace = dict(reasoning.get('trace', {}))
+    if 'event_reasoning' in trace:
+        from .research_event_reasoning import hydrate_event_receipt
+        current_receipt = hydrate_event_receipt(trace['event_reasoning'], sources)
+        if current_receipt is None:
+            # A live event origin is not permission to keep a stale assessment
+            # whose *different* supporting source was removed or changed.
+            trace.pop('event_reasoning', None)
+            trace['event_reasoning_revoked'] = True
+            missing = True
+        else:
+            trace['event_reasoning'] = current_receipt
+    if 'task_review' in trace:
+        from .research_task_review import hydrate_task_review
+        current_review = hydrate_task_review(trace['task_review'], sources)
+        if current_review is None:
+            trace.pop('task_review', None)
+            trace['task_review_revoked'] = True
+            missing = True
+        else:
+            trace['task_review'] = current_review
     # Exploration scaffolds and graph paths are dependencies too, even when a
     # model (rather than the strict grammar) composed the final hypothesis.
     # Never retain old source-derived trace text after a source is withdrawn.

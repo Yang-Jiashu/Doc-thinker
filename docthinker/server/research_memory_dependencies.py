@@ -50,6 +50,9 @@ def source_answer_memory_live(db, session_id, answer_id, *, at=None, seen=None):
 
 
 def _source_answer_memory_live(db, session_id, answer_id, *, at, seen):
+    from .research_event_dependencies import answer_events_live
+    if not answer_events_live(db, session_id, answer_id, at=at, seen=seen):
+        return False
     if not MemoryDependencies._exists(db):
         row = None
     else:

@@ -1229,9 +1229,20 @@ class ResearchStore:
         """Persist bounded limitation codes/counts, never query or memory text."""
         if value is None:
             return {}
-        if not isinstance(value, dict) or set(value) - {"retrieval_gaps", "used_memory_count", "memory_selection", "memory_dependency_required", "answer_dependency_required"}:
+        event_keys = {'event_dependency_required', 'event_bindings_sha256', 'used_event_count', 'used_event_relation_count'}
+        if not isinstance(value, dict) or set(value) - {"retrieval_gaps", "used_memory_count", "memory_selection", "memory_dependency_required", "answer_dependency_required", *event_keys}:
             raise ResearchStoreError("Invalid answer context metadata")
         normalized = {}
+        if event_keys.intersection(value):
+            if (not event_keys <= set(value) or type(value['event_dependency_required']) is not bool
+                    or type(value['event_bindings_sha256']) is not str
+                    or not re.fullmatch('[0-9a-f]{64}', value['event_bindings_sha256'])):
+                raise ResearchStoreError('Invalid event dependency metadata')
+            count = _integer(value['used_event_count'], 0, 8, 'Invalid event count')
+            relations = _integer(value['used_event_relation_count'], 0, 12, 'Invalid event relation count')
+            if value['event_dependency_required'] != bool(count or relations) or relations and count < 2:
+                raise ResearchStoreError('Inconsistent event dependency metadata')
+            normalized.update({key: value[key] for key in event_keys})
         if 'answer_dependency_required' in value:
             if type(value['answer_dependency_required']) is not bool:
                 raise ResearchStoreError('Invalid analysis dependency flag')
@@ -1276,6 +1287,8 @@ class ResearchStore:
     @staticmethod
     def _public_answer_context(value: dict) -> dict:
         result = dict(value)
+        result.pop('event_bindings_sha256', None)
+        result.pop('event_dependency_required', None)
         if "retrieval_gaps" in result:
             result["retrieval_gaps"] = [{**gap, "message": ANSWER_GAP_MESSAGES[gap["code"]]} for gap in result["retrieval_gaps"]]
         return result
