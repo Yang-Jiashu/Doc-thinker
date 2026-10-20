@@ -1,0 +1,210 @@
+{
+  "version": "goal-first-protocol-20261020-v1",
+  "scope": "One unchanged complex private-assistant research memo. Not general product acceptance, an auxiliary-on/off A/B, semantic proof, or arbitrary long-horizon memory validation.",
+  "changes": {
+    "original_task_hypothesis_and_observable_preserved": true,
+    "explicit_model_nominated_fields": [
+      "baseline",
+      "fixed_tasks",
+      "decision_rule"
+    ],
+    "host_does_not_invent_test_controls_or_hypotheses": true,
+    "contract_version": 12,
+    "flat_fields": 17,
+    "quantity_guard": "One bounded packet-local inverted index of exact quantity/unit/comparator source spans. Unsupported cited quantities mark draft and withhold their whole field; explicit proposed choices remain separate. No entailment, implicit unit conversion or second model call.",
+    "quantity_guard_extra_model_calls": 0,
+    "quantity_guard_changes_raw_model_text": false,
+    "legacy_contracts_reinterpreted": false,
+    "consent_and_source_withdrawal_preserved": true
+  },
+  "input_integrity": {
+    "original_user_data_equal_to_source26_and_source24": true,
+    "differing_data_keys": [],
+    "source_chunks_stored": 125,
+    "successful_prior_stages_stored": 7,
+    "active_prior_analysis_units": 4,
+    "whole_confirmed_memories": 4,
+    "selected_source_windows": 8,
+    "source_window_bytes": 8697,
+    "trusted_labor_budget_minutes": 120,
+    "message_content_bytes": 24449,
+    "messages_sha256": "b05b48481798bd7792d3b9cb655ff17e7e624a137b317bc095ac7ba78a3c9f28",
+    "prepared_sha256": "63306909e70db6436166412600da16497622e0a0abb6f05b857f9456c6b3820b",
+    "source_packet_sha256": "b18a30d6c7b9a110dd0ffd0c7d201ea4fe4b2c6fe751f7d47a1fb5648a0fcba5",
+    "memory_packet_sha256": "83d0aa187d309fad94cdd1ac6d050a64479f3e1d7b66e072c15c90bab40f8fa2",
+    "source_or_memory_text_compressed": false,
+    "source_selection_complete_for_every_prior_obligation": false,
+    "unresolved": "The six previously uncovered query evidence obligations remain explicit; protocol and exact-quantity checks do not fix recall."
+  },
+  "verification": {
+    "candidate_targeted": {
+      "passed": 1103,
+      "seconds": 8.6,
+      "xml": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/native-grouped-memory-integration-20261020-20/source27-final-focused.xml"
+    },
+    "current_checkout_pure_and_neighbors": {
+      "passed": 172,
+      "seconds": 2.22,
+      "xml": "benchmarks/runtime_algorithms/decision_protocol_focused_20261020.xml"
+    },
+    "pinned_native_mock": {
+      "strict_actual_schema_and_exact_messages": true,
+      "synthetic": true,
+      "model_callbacks": 1,
+      "wire_calls": 1,
+      "client_closed": true,
+      "semantic_quality_verified": false
+    },
+    "latest_full_backend_suite_rerun": false
+  },
+  "generation": {
+    "base_url": "https://api.stepfun.com/step_plan/v1",
+    "fallback": false,
+    "max_output_tokens": 8192,
+    "model": "step-5-preview",
+    "reasoning_effort": "low",
+    "repair": false,
+    "requests": 1,
+    "resume": false,
+    "retries": 0,
+    "temperature": 0.1,
+    "timeout_seconds": 180
+  },
+  "delivery": {
+    "native_candidate": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/native-grouped-memory-integration-20261020-20/docthinker-invite",
+    "native_activation": "Existing operator-only opt-in, default disabled, only the project decision-memo lane. Not every chat.",
+    "current_checkout": "Pure protocol and quantity modules and unit tests added; full native integration is in the frozen candidate, not the older dirty checkout or live preview.",
+    "logo_demo_ui_readme_changed": false,
+    "github_pushed": false,
+    "live_preview_updated": false,
+    "production_readiness_claimed": false,
+    "source_package": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/native-grouped-memory-integration-20261020-20/source27-protocol-source-1.zip",
+    "source_package_sha256": "f1757c1b4c84440d52c1a0fa66db135257bacd6ba0814799f4207735662249f4",
+    "source_package_inputs": 981,
+    "source_package_kind": "Source/Docker deployment ZIP, not installer, image or public deployment."
+  },
+  "comparisons": {
+    "source19_previous_complete": {
+      "quality": "fail",
+      "total_tokens": 13791,
+      "model_seconds": 114.784455959
+    },
+    "source26_previous_complete": {
+      "quality": "fail",
+      "prompt_tokens": 6080,
+      "completion_tokens": 5209,
+      "total_tokens": 11289,
+      "model_seconds": 139.385113667,
+      "failures": [
+        "Invented ≤3 options / ≤2 document lines attributed to papers.",
+        "Comparative hypothesis lacks actual baseline, fixed tasks and H-linked acceptance."
+      ]
+    },
+    "statistical_or_component_ablation_claimed": false,
+    "faster_failure_counts_as_better_quality": false,
+    "source27_current": {
+      "status": "normal_completion_quality_fail",
+      "quality": "FAIL",
+      "customer_ready": false,
+      "model": "step-5-preview",
+      "http_status": 200,
+      "finish_reason": "stop",
+      "prompt_tokens": 6082,
+      "completion_tokens": 6575,
+      "total_tokens": 12657,
+      "model_seconds": 84.633911792,
+      "pre_model_seconds": 0.393010458,
+      "wire_calls": 1,
+      "model_calls": 1,
+      "retries": 0,
+      "client_closed": true,
+      "answer_id": "d8864103-98d6-4669-b10a-d3a46ccc1157",
+      "quantity_guard_visible_withheld_fields": [
+        "do_now",
+        "hypothesis"
+      ],
+      "guard_hardening_is_not_answer_quality_success": true,
+      "canonical_path": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/paper-source27-final-only-20261020.real-1/canonical-final.json",
+      "canonical_sha256": "42628af6df42764848435df5a8827839be8aabf7a07c4021144bdcd7b7c38994",
+      "report_sha256": "e3b3fbbb9576cc24a78a4ed31497d6688c6424f413142b4ca54dd9ae0bc47fbc",
+      "independent_review_path": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/paper-source27-final-only-20261020.real-1/independent-quality-review.json",
+      "independent_review_sha256": "09cec8dcc8f045c0de375e7e0ba0e8ca9b626c98d82d51810455ce89e0b7f87a",
+      "hard_criteria_passed": 3,
+      "hard_criteria_failed": 5,
+      "failures": [
+        "Required now-action and hypothesis fields are withheld, so the requested usable memo is incomplete.",
+        "The opening attaches the 12.5% versus 3.8% prior retrieval-system comparison to the default Linux shell; exact numeric/unit matching cannot validate comparator identity.",
+        "An example 300-problem SWE-bench subset is not concrete available fixed tasks. The decisive model experiment is deferred beyond the actual two-hour design-only activities.",
+        "Undefined significant improvement and inability to distinguish are conflated with refutation; insufficient observations must remain inconclusive.",
+        "Alternatives are named but lack operational controls; typed fields do not establish hypothesis-test alignment."
+      ],
+      "passed_boundaries": [
+        "60+60=120-minute scheduled manual design and review, not proof of future benchmark feasibility.",
+        "Per-action code/write/screenshot consent, no unredacted upload, no sandbox exemption.",
+        "Unknown details, unexecuted work and lack of evidence coverage are not presented as achieved results."
+      ],
+      "provider_raw_hidden_or_failed_body_read": false
+    },
+    "observed_vs_source26": {
+      "model_time_percent": -39.280523173948225,
+      "total_tokens_percent": 12.117990964655867,
+      "quality_improvement_accepted": false
+    },
+    "observed_vs_source19": {
+      "model_time_percent": -26.267096807750256,
+      "total_tokens_percent": -8.222753969980424,
+      "quality_improvement_accepted": false
+    },
+    "latency_causally_attributed_to_architecture": false
+  },
+  "result": {
+    "status": "normal_completion_quality_fail",
+    "quality": "FAIL",
+    "customer_ready": false,
+    "model": "step-5-preview",
+    "http_status": 200,
+    "finish_reason": "stop",
+    "prompt_tokens": 6082,
+    "completion_tokens": 6575,
+    "total_tokens": 12657,
+    "model_seconds": 84.633911792,
+    "pre_model_seconds": 0.393010458,
+    "wire_calls": 1,
+    "model_calls": 1,
+    "retries": 0,
+    "client_closed": true,
+    "answer_id": "d8864103-98d6-4669-b10a-d3a46ccc1157",
+    "quantity_guard_visible_withheld_fields": [
+      "do_now",
+      "hypothesis"
+    ],
+    "guard_hardening_is_not_answer_quality_success": true,
+    "canonical_path": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/paper-source27-final-only-20261020.real-1/canonical-final.json",
+    "canonical_sha256": "42628af6df42764848435df5a8827839be8aabf7a07c4021144bdcd7b7c38994",
+    "report_sha256": "e3b3fbbb9576cc24a78a4ed31497d6688c6424f413142b4ca54dd9ae0bc47fbc",
+    "independent_review_path": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/paper-source27-final-only-20261020.real-1/independent-quality-review.json",
+    "independent_review_sha256": "09cec8dcc8f045c0de375e7e0ba0e8ca9b626c98d82d51810455ce89e0b7f87a",
+    "hard_criteria_passed": 3,
+    "hard_criteria_failed": 5,
+    "failures": [
+      "Required now-action and hypothesis fields are withheld, so the requested usable memo is incomplete.",
+      "The opening attaches the 12.5% versus 3.8% prior retrieval-system comparison to the default Linux shell; exact numeric/unit matching cannot validate comparator identity.",
+      "An example 300-problem SWE-bench subset is not concrete available fixed tasks. The decisive model experiment is deferred beyond the actual two-hour design-only activities.",
+      "Undefined significant improvement and inability to distinguish are conflated with refutation; insufficient observations must remain inconclusive.",
+      "Alternatives are named but lack operational controls; typed fields do not establish hypothesis-test alignment."
+    ],
+    "passed_boundaries": [
+      "60+60=120-minute scheduled manual design and review, not proof of future benchmark feasibility.",
+      "Per-action code/write/screenshot consent, no unredacted upload, no sandbox exemption.",
+      "Unknown details, unexecuted work and lack of evidence coverage are not presented as achieved results."
+    ],
+    "provider_raw_hidden_or_failed_body_read": false
+  },
+  "remaining_work": [
+    "Task-aware feasibility planning must separate the current deliverable's acceptance from a future scientific hypothesis test without replacing the original user hypothesis.",
+    "Retrieval/composition must retain which comparator, population and condition each measured result belongs to; matching a number and unit is insufficient.",
+    "The six prior uncovered query-evidence obligations remain unresolved.",
+    "Candidate native changes have not been promoted into the older dirty checkout/live preview or GitHub, and no production-readiness claim is made."
+  ],
+  "no_additional_paid_retry_after_this_result": true
+}

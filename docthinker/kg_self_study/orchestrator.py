@@ -9,7 +9,9 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import math
 import time
+from contextvars import ContextVar
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
@@ -17,12 +19,17 @@ from .experience_manager import ExperienceManager
 from .prompts import ANSWER_AND_REASON_PROMPT, KNOWLEDGE_SYNTHESIS_PROMPT
 from .question_generator import QuestionGenerator
 from .subgraph_selector import SubgraphSelector
+from .work_budget import StudyBudgetStop, StudyWorkBudget
 
 _log = logging.getLogger("docthinker.kg_self_study")
 
 
 def _safe_json_parse(raw: str) -> Any:
     text = raw.strip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
     for sc, ec in [("{", "}"), ("[", "]")]:
         s = text.find(sc)
         e = text.rfind(ec)
@@ -38,12 +45,38 @@ def _safe_json_parse(raw: str) -> Any:
 class SelfStudyConfig:
     max_rounds: int = 5
     max_tokens: int = 50000
+    max_llm_calls: int = 24
+    max_output_tokens_per_call: int = 2048
+    llm_timeout_seconds: float = 30.0
+    audit_only: bool = False
     questions_per_round: int = 3
     min_new_knowledge_to_continue: int = 1
     strategy_weights: Optional[Dict[str, float]] = None
     max_entities_per_round: int = 40
     experience_store_path: Optional[str] = None
     writeback_confidence_threshold: float = 0.80
+
+    def __post_init__(self) -> None:
+        self.validate()
+
+    def validate(self) -> None:
+        for name, minimum in (
+            ("max_rounds", 0), ("questions_per_round", 1),
+            ("max_entities_per_round", 1), ("min_new_knowledge_to_continue", 0),
+        ):
+            value = getattr(self, name)
+            if type(value) is not int or value < minimum:
+                raise ValueError(f"{name} must be an integer >= {minimum}")
+        if type(self.audit_only) is not bool:
+            raise ValueError("audit_only must be boolean")
+        threshold = self.writeback_confidence_threshold
+        if type(threshold) not in (int, float) or not math.isfinite(threshold) or not 0 <= threshold <= 1:
+            raise ValueError("writeback_confidence_threshold must be finite and in [0, 1]")
+        StudyWorkBudget(
+            max_tokens=self.max_tokens, max_calls=self.max_llm_calls,
+            output_tokens_per_call=self.max_output_tokens_per_call,
+            timeout_seconds=self.llm_timeout_seconds,
+        )
 
 
 @dataclass
@@ -68,6 +101,7 @@ class StudySessionResult:
     total_experiences: int = 0
     elapsed_seconds: float = 0.0
     stopped_reason: str = ""
+    llm_usage: Dict[str, Any] = field(default_factory=dict)
 
 
 class SelfStudyOrchestrator:
@@ -85,8 +119,9 @@ class SelfStudyOrchestrator:
         """
         Args:
             llm_func: async (prompt: str) -> str
-            kg_query_func: async (question: str) -> dict with
+            kg_query_func: retrieval-only async (question: str) -> dict with
                            retrieved_entities, retrieved_relations, retrieved_chunks
+                           (must not perform hidden unbudgeted LLM calls)
             kg_write_func: async (operations: dict) -> None
                            accepts the P4 synthesis output format
             kg_read_nodes_func: async () -> list[dict]  (all KG nodes)
@@ -98,13 +133,19 @@ class SelfStudyOrchestrator:
         self.kg_read_nodes = kg_read_nodes_func
         self.kg_read_edges = kg_read_edges_func
         self.config = config or SelfStudyConfig()
+        self._active_budget: ContextVar[Optional[StudyWorkBudget]] = ContextVar(
+            f"self_study_budget_{id(self)}", default=None,
+        )
+        # Diagnostic snapshot of whichever operation completed most recently.
+        # Concurrent callers must use their own StudySessionResult.llm_usage.
+        self.last_llm_usage: Dict[str, Any] = {}
 
         self.selector = SubgraphSelector(
             strategy_weights=self.config.strategy_weights,
             max_entities_per_round=self.config.max_entities_per_round,
         )
         self.question_gen = QuestionGenerator(
-            llm_func=llm_func,
+            llm_func=self._call_llm,
             questions_per_strategy=self.config.questions_per_round,
         )
         self.experience_mgr = ExperienceManager(
@@ -113,63 +154,94 @@ class SelfStudyOrchestrator:
 
     async def run_session(self) -> StudySessionResult:
         """Execute a full self-study session (multiple rounds)."""
-        t0 = time.time()
+        t0 = time.monotonic()
         session = StudySessionResult()
+        budget = self._new_budget()
+        token = self._active_budget.set(budget)
         consecutive_empty = 0
-
-        _log.info("[self_study] session starting (max_rounds=%d)", self.config.max_rounds)
-
-        all_nodes = await self.kg_read_nodes()
-        all_edges = await self.kg_read_edges()
-
-        if len(all_nodes) < 3:
-            session.stopped_reason = "too_few_entities"
-            _log.info("[self_study] only %d entities, skipping", len(all_nodes))
-            return session
-
-        for round_idx in range(self.config.max_rounds):
-            _log.info("[self_study] round %d/%d", round_idx + 1, self.config.max_rounds)
-
-            result = await self._run_round(round_idx, all_nodes, all_edges)
-            session.rounds.append(result)
-            session.total_new_edges += result.new_edges_proposed
-            session.total_entity_updates += result.entity_updates_proposed
-            session.total_contradictions += result.contradictions_found
-            session.total_experiences += result.experiences_extracted
-
-            if result.new_edges_proposed + result.entity_updates_proposed == 0:
-                consecutive_empty += 1
-            else:
-                consecutive_empty = 0
-
-            if consecutive_empty >= 2:
-                session.stopped_reason = "no_new_knowledge"
-                _log.info("[self_study] 2 empty rounds, early stopping")
-                break
-
+        try:
+            if self.config.max_rounds == 0:
+                session.stopped_reason = "max_rounds_reached"
+                return session
+            budget.ensure_available()
             all_nodes = await self.kg_read_nodes()
             all_edges = await self.kg_read_edges()
+            if len(all_nodes) < 3:
+                session.stopped_reason = "too_few_entities"
+                return session
 
-        if not session.stopped_reason:
-            session.stopped_reason = "max_rounds_reached"
-
-        session.elapsed_seconds = time.time() - t0
-        _log.info(
-            "[self_study] session done in %.1fs: %d edges, %d updates, "
-            "%d contradictions, %d experiences",
-            session.elapsed_seconds,
-            session.total_new_edges,
-            session.total_entity_updates,
-            session.total_contradictions,
-            session.total_experiences,
-        )
+            for round_idx in range(self.config.max_rounds):
+                budget.ensure_available()
+                result = StudyRoundResult(round_idx=round_idx, strategy="")
+                session.rounds.append(result)
+                try:
+                    await self._run_round(round_idx, all_nodes, all_edges, result=result)
+                finally:
+                    # P4 may already have produced an audit record when P5 runs
+                    # out of budget; retain the completed portion of that round.
+                    session.total_new_edges += result.new_edges_proposed
+                    session.total_entity_updates += result.entity_updates_proposed
+                    session.total_contradictions += result.contradictions_found
+                    session.total_experiences += result.experiences_extracted
+                if result.new_edges_proposed + result.entity_updates_proposed == 0:
+                    consecutive_empty += 1
+                else:
+                    consecutive_empty = 0
+                if consecutive_empty >= 2:
+                    session.stopped_reason = "no_new_knowledge"
+                    break
+                if round_idx + 1 < self.config.max_rounds and not self.config.audit_only:
+                    budget.ensure_available()
+                    # A general writer may modify the graph; only callers that
+                    # explicitly guarantee audit-only writes reuse the snapshot.
+                    all_nodes = await self.kg_read_nodes()
+                    all_edges = await self.kg_read_edges()
+            if not session.stopped_reason:
+                session.stopped_reason = "max_rounds_reached"
+        except StudyBudgetStop as exc:
+            session.stopped_reason = exc.reason
+        except asyncio.CancelledError:
+            session.stopped_reason = "cancelled"
+            budget.stop_reason = "cancelled"
+            raise
+        except Exception:
+            session.stopped_reason = "pipeline_error"
+            budget.stop_reason = "pipeline_error"
+            raise
+        finally:
+            session.elapsed_seconds = time.monotonic() - t0
+            session.llm_usage = budget.report()
+            self.last_llm_usage = {**session.llm_usage, "stop_reason": session.stopped_reason}
+            self._active_budget.reset(token)
         return session
+
+    def _new_budget(self) -> StudyWorkBudget:
+        # Validate again in case a caller modified this mutable config between runs.
+        try:
+            self.config.validate()
+        except Exception:
+            self.last_llm_usage = {"llm_calls": 0, "stop_reason": "invalid_config"}
+            raise
+        return StudyWorkBudget(
+            max_tokens=self.config.max_tokens,
+            max_calls=self.config.max_llm_calls,
+            output_tokens_per_call=self.config.max_output_tokens_per_call,
+            timeout_seconds=self.config.llm_timeout_seconds,
+        )
+
+    async def _call_llm(self, prompt: str) -> str:
+        budget = self._active_budget.get()
+        if budget is None:
+            raise StudyBudgetStop("no_active_study_budget")
+        return await budget.call(self.llm_func, prompt)
 
     async def _run_round(
         self,
         round_idx: int,
         all_nodes: List[Dict],
         all_edges: List[Dict],
+        *,
+        result: Optional[StudyRoundResult] = None,
     ) -> StudyRoundResult:
         # Step 1: Select subgraph
         selection = self.selector.select(all_nodes, all_edges)
@@ -177,7 +249,8 @@ class SelfStudyOrchestrator:
         relations = selection["relations"]
         strategy = selection["strategy"]
 
-        result = StudyRoundResult(round_idx=round_idx, strategy=strategy)
+        result = result or StudyRoundResult(round_idx=round_idx, strategy=strategy)
+        result.strategy = strategy
 
         if not entities:
             return result
@@ -197,6 +270,7 @@ class SelfStudyOrchestrator:
         # Step 4: P3 — Answer each question using KG retrieval
         qa_records = []
         for q in questions:
+            self._active_budget.get().ensure_available()
             question_text = q.get("question", "")
             if not question_text:
                 continue
@@ -219,6 +293,8 @@ class SelfStudyOrchestrator:
         if synthesis:
             try:
                 await self.kg_write_func(synthesis)
+            except StudyBudgetStop:
+                raise
             except Exception as exc:
                 _log.error("[self_study] writeback failed: %s", exc)
 
@@ -235,7 +311,7 @@ class SelfStudyOrchestrator:
             },
         }
         exp_result = await self.experience_mgr.extract_experiences(
-            session_record, self.llm_func,
+            session_record, self._call_llm,
         )
         for cat in ("retrieval_experiences", "reasoning_experiences",
                      "failure_experiences", "structural_experiences",
@@ -251,6 +327,8 @@ class SelfStudyOrchestrator:
 
         try:
             retrieval = await self.kg_query_func(question_text)
+        except StudyBudgetStop:
+            raise
         except Exception as exc:
             _log.warning("[self_study] KG query failed: %s", exc)
             retrieval = {}
@@ -270,11 +348,13 @@ class SelfStudyOrchestrator:
         )
 
         try:
-            raw = await self.llm_func(prompt)
+            raw = await self._call_llm(prompt)
             parsed = _safe_json_parse(raw)
             if isinstance(parsed, dict):
                 parsed["original_question"] = question
                 return parsed
+        except StudyBudgetStop:
+            raise
         except Exception as exc:
             _log.warning("[self_study] P3 LLM call failed: %s", exc)
 
@@ -292,15 +372,17 @@ class SelfStudyOrchestrator:
         prompt = KNOWLEDGE_SYNTHESIS_PROMPT.format(
             all_qa_records_json=json.dumps(
                 qa_records, ensure_ascii=False, indent=2,
-            )[:15000],
+            ),
         )
 
         try:
-            raw = await self.llm_func(prompt)
+            raw = await self._call_llm(prompt)
             parsed = _safe_json_parse(raw)
             if isinstance(parsed, dict):
                 self._filter_by_confidence(parsed)
                 return parsed
+        except StudyBudgetStop:
+            raise
         except Exception as exc:
             _log.error("[self_study] P4 LLM call failed: %s", exc)
 
@@ -322,5 +404,24 @@ class SelfStudyOrchestrator:
             ]
 
     async def run_refinement(self) -> int:
-        """Run P6 experience refinement (call periodically)."""
-        return await self.experience_mgr.refine_experiences(self.llm_func)
+        """Run P6 with a fresh budget; accounting is exposed in last_llm_usage."""
+        budget = self._new_budget()
+        token = self._active_budget.set(budget)
+        refined = 0
+        try:
+            refined = await self.experience_mgr.refine_experiences(self._call_llm)
+        except StudyBudgetStop as exc:
+            refined = exc.completed_items
+        except asyncio.CancelledError as exc:
+            refined = getattr(exc, "completed_items", 0)
+            budget.stop_reason = "cancelled"
+            raise
+        except Exception:
+            budget.stop_reason = "pipeline_error"
+            raise
+        finally:
+            self.last_llm_usage = budget.report()
+            self.last_llm_usage["refined_experiences"] = refined
+            self.last_llm_usage["stop_reason"] = budget.stop_reason or "completed"
+            self._active_budget.reset(token)
+        return refined

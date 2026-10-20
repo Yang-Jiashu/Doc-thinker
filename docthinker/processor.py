@@ -689,7 +689,9 @@ class ProcessorMixin:
                 get_namespace_lock,
             )
 
-            workspace = getattr(self.graphcore, "workspace", None)
+            workspace = getattr(
+                self.graphcore, "pipeline_workspace", getattr(self.graphcore, "workspace", None)
+            )
             # Get pipeline status and lock from shared storage
             pipeline_status = await get_namespace_data(
                 "pipeline_status", workspace=workspace
@@ -1425,7 +1427,9 @@ class ProcessorMixin:
         )
         from graphcore.coregraph.operate import extract_entities
 
-        workspace = getattr(self.graphcore, "workspace", None)
+        workspace = getattr(
+            self.graphcore, "pipeline_workspace", getattr(self.graphcore, "workspace", None)
+        )
         # Get pipeline status (consistent with GraphCore)
         pipeline_status = await get_namespace_data(
             "pipeline_status", workspace=workspace
@@ -1677,7 +1681,9 @@ class ProcessorMixin:
         )
         from graphcore.coregraph.operate import merge_nodes_and_edges
 
-        workspace = getattr(self.graphcore, "workspace", None)
+        workspace = getattr(
+            self.graphcore, "pipeline_workspace", getattr(self.graphcore, "workspace", None)
+        )
         pipeline_status = await get_namespace_data(
             "pipeline_status", workspace=workspace
         )
@@ -2316,7 +2322,9 @@ class ProcessorMixin:
                 get_namespace_lock,
             )
 
-            workspace = getattr(self.graphcore, "workspace", None)
+            workspace = getattr(
+                self.graphcore, "pipeline_workspace", getattr(self.graphcore, "workspace", None)
+            )
             pipeline_status = await get_namespace_data(
                 "pipeline_status", workspace=workspace
             )
@@ -2565,4 +2573,3 @@ class ProcessorMixin:
             )
 
         self.logger.info(f"Content list insertion complete for: {file_path}")
-

@@ -1,0 +1,31 @@
+{
+  "name":"DocThinker",
+  "appid":"",
+  "description":"DocThinker 移动开发预览：知识问答与语音交互",
+  "versionName":"0.1.0","versionCode":"100",
+  "vueVersion":"3",
+  "uniStatistics":{"enable":false},
+  "app-plus":{
+    "usingComponents":true,
+    "modules":{"Audio":{}},
+    "distribute":{
+      "icons":{
+        "android":{"mdpi":"static/brand/icon-48.png","hdpi":"static/brand/icon-72.png","xhdpi":"static/brand/icon-96.png","xxhdpi":"static/brand/icon-144.png","xxxhdpi":"static/brand/icon-192.png"},
+        "ios":{
+          "appstore":"static/brand/icon-1024.png",
+          "iphone":{"app@2x":"static/brand/icon-120.png","app@3x":"static/brand/icon-180.png","spotlight@2x":"static/brand/icon-80.png","spotlight@3x":"static/brand/icon-120.png","settings@2x":"static/brand/icon-58.png","settings@3x":"static/brand/icon-87.png","notification@2x":"static/brand/icon-40.png","notification@3x":"static/brand/icon-60.png"},
+          "ipad":{"app":"static/brand/icon-76.png","app@2x":"static/brand/icon-152.png","proapp@2x":"static/brand/icon-167.png","spotlight":"static/brand/icon-40.png","spotlight@2x":"static/brand/icon-80.png","settings":"static/brand/icon-29.png","settings@2x":"static/brand/icon-58.png","notification":"static/brand/icon-20.png","notification@2x":"static/brand/icon-40.png"}
+        }
+      },
+      "android":{"permissions":["<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>","<uses-permission android:name=\"android.permission.INTERNET\"/>"]},
+      "ios":{"privacyDescription":{"NSMicrophoneUsageDescription":"仅在你主动录音时，将语音发送到你配置的私人服务转成文字。","NSPhotoLibraryUsageDescription":"仅在你主动选择图片资料时访问相册，选中的图片由你上传到私人服务。"}}
+    }
+  },
+  "mp-weixin":{
+    "appid":"",
+    "setting":{"urlCheck":true},
+    "requiredPrivateInfos":[]
+  },
+  "h5":{"title":"DocThinker · 移动预览","router":{"mode":"hash"}},
+  "networkTimeout":{"request":120000,"uploadFile":120000,"downloadFile":60000}
+}

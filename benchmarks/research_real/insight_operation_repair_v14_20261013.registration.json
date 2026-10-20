@@ -1,0 +1,76 @@
+{
+  "registration_version": "operation-repair-development-v14b",
+  "prepared_date": "2026-10-13",
+  "prepared_before_new_model_requests": true,
+  "registered_inputs": {
+    "code_fingerprint": "a5eac4ff5df3f1f0187fb64dc2ca7999f22a878bc9726d3c23ca00caa7bae349",
+    "system_policy_sha256": "40d3ba37bfc02fbd8c1f244397aadcceb6b522f8e15860e3ae4a9d8adaf486d2",
+    "files": {
+      "benchmarks/research_real/plan_insight_operation_repair_v14_20261013.md": "0504e6a79e752c9bfbba2cac032e4d5915fb35ce2c4717405254d94ffc7bff9e",
+      "benchmarks/research_real/insight_newpapers_smoke_20261013.json": "77fb46475ffa6d3b1b6d09e1066f8e73eda5ec30913233d9b5a63d4b8a762f2d",
+      "benchmarks/research_real/insight_transfer_v11_20261013.json": "23cd37162721dc33ae395371d72f34c641163dd3f31db5001e3aaa8f635fe17f",
+      "benchmarks/research_real/plan_insight_newpapers_smoke_20261013.md": "e2c37f5934a398389980438c868bb3e978a08e84eb1a3ddecff60ca3c9be5fff",
+      "benchmarks/research_real/plan_insight_transfer_v11_20261013.json": "8df6c1c51c18199fad9be90cc9181fe820f88f825319860567288f4823103485"
+    },
+    "papers": {
+      "dist/insight-newpapers-smoke-20261013/papers/memorybank_2305.10250v1.pdf": "5bac0c9588b7999c9ae3821af027bee832964aaab787cf8fa8111b905e4b48fb",
+      "dist/insight-newpapers-smoke-20261013/papers/longmem_2306.07174v1.pdf": "6036d59b87763ef304b2bef4e6bc1ee295abf83604b88fd5b854d46ba2ca4f61",
+      "dist/insight-sealed-transfer-20261013/papers/paper-a.pdf": "5d94b7aa544ca07c2653d75b79ee6043a6843ed1508633299e1227258025f630",
+      "dist/insight-sealed-transfer-20261013/papers/paper-b.pdf": "d26f7eb599540e8b14d75e7efda58a07661abbb1b864e58323b5768475a15d42"
+    },
+    "accepted_inputs": {
+      "newpapers_personal_assistant_roadmap.r1.off": {
+        "prompt_digest": "dbffbe789d309900fc79277532b91f73afe2ae3e7910d49681fc7698cac77baf",
+        "source_packet_sha256": "3bb129120cbe7571213aa214859152e3ad28d0f8dcd499cce1d48364921d5120",
+        "input_bytes": 20402, "source_count": 8, "source_bytes": 8440
+      },
+      "newpapers_personal_assistant_roadmap.r1.on": {
+        "prompt_digest": "2963398b921c9ee20c6161f8dfbaa46c67e738a25c5e975eb0ed9034eead86ed",
+        "source_packet_sha256": "fdaefeba0cc051f5fb9557ce8757bdd7108bdc8d77d7b6c7c437ff3d3b7d4a90",
+        "input_bytes": 24083, "source_count": 10, "source_bytes": 10642
+      },
+      "changing_user_memory_design.r1.off": {
+        "prompt_digest": "2df7fdc07181b15a75e6a625daebfe68b604b1081ef8bf69fe27fe1e33b1262b",
+        "source_packet_sha256": "502454e21c54e840f539cc20ef0af5026e1150c34299497ac37d9015b32a14e4",
+        "input_bytes": 20566, "source_count": 8, "source_bytes": 8887
+      },
+      "changing_user_memory_design.r1.on": {
+        "prompt_digest": "40eea579efdffb063d5dd3390817c7dc13a06894a2605c0ea89fcbccc2440ced",
+        "source_packet_sha256": "0a2e28281d0416b373ec9fee421ffa55fd74a2382db6df925114e5c24845b6d5",
+        "input_bytes": 24115, "source_count": 10, "source_bytes": 10777
+      },
+      "memory_product_research_brief.r1.off": {
+        "prompt_digest": "a49a8c9d347ebae91cf2d8e63f057295f21c300de23a1dccc33d6e21ac3e6779",
+        "source_packet_sha256": "e254b610093d3d8de960555167363ec7e72ae3d0609039dc1aaa5c672f3c41c4",
+        "input_bytes": 22525, "source_count": 8, "source_bytes": 8501
+      },
+      "memory_product_research_brief.r1.on": {
+        "prompt_digest": "ce0d9792cf125fac032d21e77b29dc8387cf5a2bae65c754352a2fab16b98474",
+        "source_packet_sha256": "2adc9f45032791fbd42468401a53bd7c99aaec36962fecb7813c822a3b26d924",
+        "input_bytes": 24242, "source_count": 10, "source_bytes": 10045
+      }
+    }
+  },
+  "combined_sha256_algorithm": "SHA256 of UTF-8 json.dumps(registered_inputs, sort_keys=True, separators=(',', ':'))",
+  "combined_sha256": "2080740c44cbcb04a6c8c5498544663f6db47b77cc693c0167fd1c03fb3555d1",
+  "input_acceptance": "Independent development AI checked original questions, actual fitted messages, exact SQLite source coordinates and original PDF pages. Finite source adequacy passed; temporal implementation is available for design, not complete in brief. No assertion of semantic completeness or answer quality.",
+  "controls": {
+    "base_url": "https://api.stepfun.com/step_plan/v1",
+    "model": "step-5-preview", "temperature": 0.1,
+    "reasoning_effort": "low", "stream": false,
+    "max_tokens": 8192, "timeout_seconds": 180,
+    "repetitions": 1, "contrast": "insight",
+    "static_knowledge_cards": "auto in both arms; actual fitted cards may differ under shared byte budget",
+    "context_assistance": "enabled in both arms",
+    "memory": false, "conversation_context": false, "llm_cache": false,
+    "self_evolution": false
+  },
+  "pre_dispatch_check": "Actual adapter message digest and raw source projection equal accepted V14b prepare; frozen code fingerprint also matches. Mismatch aborts before socket dispatch, without retries, continuation, replacement or resampling.",
+  "schedule": "Original newpapers OFF then AUTO; transfer design OFF then AUTO, then brief AUTO then OFF. Identical full messages are a no-op with no dispatch, not forced activation.",
+  "maximum_new_provider_requests": 6,
+  "maximum_reported_tokens_soft_stop": 65000,
+  "automatic_retries": 0,
+  "stop_on_unknown_usage_failure_or_indeterminate_dispatch": true,
+  "quality_gate": "Original six 0-4 dimensions weighted 25/25/20/10/10/10; complete delivery, no critical fact/citation/feasibility error, method and provenance >=3, total >=80. Visible answers, actual excerpts and PDF pages only; no hidden provider reasoning read.",
+  "scope": "Exposed development regression, non-blind AI source review, not expert/statistical holdout, universal efficiency, commercial release or RSI. V12/V13/V14 zero-call failures/diagnostics remain unchanged. This registration supersedes historic fixture code fingerprints only for this run. Usage stop is observed between requests, not a hard monetary cap. Provider cache differences must be disclosed."
+}

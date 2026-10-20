@@ -1,0 +1,114 @@
+{
+  "version": "goal-first-brief-20261020-v1",
+  "scope": "One unchanged complex private-assistant research task; not population-level acceptance, auxiliary-on/off A/B, or product readiness.",
+  "diagnosis": [
+    "The previous contract forced a private-assistant decision memo into manual paper-review protocol comparisons.",
+    "The host replaced the model hypothesis and observation target with a constant whole-bundle all-samples comparison; structural success did not establish goal alignment.",
+    "The system assigned full-memo ownership to a host renderer that only rendered an experiment table and arithmetic.",
+    "Legacy method and nested-JSON limits disagreed at downstream character/byte boundaries; the legacy experimental contracts remain unchanged for saved-history compatibility.",
+    "Chinese enumeration punctuation could prevent an explicit new-hypothesis request from routing to its contract."
+  ],
+  "implemented": {
+    "algorithm": "The actual task owns a complete decision brief. The model supplies the unmodified hypothesis, conditions, strongest rival, actual observation target, concrete validation plan and refuting observation. The host binds current source coordinates, checks field limits and budget arithmetic, and renders the user's requested deliverable without inventing a replacement hypothesis.",
+    "contract_version": 11,
+    "flat_fields": 14,
+    "nested_encoded_json": false,
+    "uniform_text_limit_unit": "Unicode code points; byte-level whole-response transport bound is separate",
+    "unknown_minutes_are_zero": false,
+    "budget_automatically_filled": false,
+    "source_revocation_hides_full_brief": true,
+    "render_sections": 6,
+    "new_provider_optional_parameters": false,
+    "old_contracts_reinterpreted": false,
+    "semantic_or_measurement_truth_certified_by_structure": false,
+    "execution_authorized": false
+  },
+  "input_integrity": {
+    "original_user_data_equal_to_source24": true,
+    "differing_data_keys": [],
+    "original_source_chunks_stored": 125,
+    "successful_prior_stages_stored": 7,
+    "active_prior_analysis_units": 4,
+    "whole_confirmed_memories": 4,
+    "selected_source_windows": 8,
+    "source_window_bytes": 8697,
+    "trusted_labor_budget_minutes": 120,
+    "message_content_bytes": 24533,
+    "messages_sha256": "479fb8299cb0871868e01b37c85338df4aef1e7843f33cede4866f1324a0ec61",
+    "source_packet_sha256": "b18a30d6c7b9a110dd0ffd0c7d201ea4fe4b2c6fe751f7d47a1fb5648a0fcba5",
+    "memory_packet_sha256": "83d0aa187d309fad94cdd1ac6d050a64479f3e1d7b66e072c15c90bab40f8fa2",
+    "user_source_or_memory_text_compressed": false,
+    "initial_local_preflight": "Rejected before any provider/key/network call; retained failed workspace and diagnostic. Only duplicate host instructions were compacted before fresh local preparation.",
+    "source_selection_complete_for_every_prior_obligation": false,
+    "remaining_coverage_warning": "The previous six uncovered query evidence obligations remain explicit; this change does not claim to solve them."
+  },
+  "verification": {
+    "pre_compaction_integrated_targeted_tests": {"passed": 1027, "seconds": 8.95, "xml": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/native-grouped-memory-integration-20261020-19/source26-focused-final.xml"},
+    "post_compaction_direct_contract_native_and_routing_tests": {"passed": 104, "seconds": 2.23, "xml": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/native-grouped-memory-integration-20261020-19/source26-compact-policy-focused-2.xml"},
+    "current_checkout_pure_algorithms_deadline_and_backoff_neighbors": {"passed": 202, "seconds": 1.65, "xml": "benchmarks/runtime_algorithms/goal_brief_compact_focused_20261020.xml"},
+    "pinned_native_mock": {"completed": true, "synthetic": true, "wire_calls": 1, "client_closed": true, "strict_actual_schema_and_exact_messages_verified": true, "semantic_quality_verified": false},
+    "full_backend_suite_rerun": false
+  },
+  "generation_configuration": {
+    "model": "step-5-preview", "base_url": "https://api.stepfun.com/step_plan/v1",
+    "temperature": 0.1, "reasoning_effort": "low", "max_output_tokens": 8192,
+    "timeout_seconds": 180, "calls": 1, "retries": 0, "repair": false, "fallback": false, "resume": false
+  },
+  "comparisons": {
+    "source19_previous_complete_report": {"quality": "fail", "model_seconds": 114.784455959, "prompt_tokens": 6229, "completion_tokens": 7562, "total_tokens": 13791},
+    "source24_previous_length_failure": {"quality": "not_evaluable", "model_seconds": 132.323997166, "prompt_tokens": 6009, "completion_tokens": 8192, "total_tokens": 14201, "failed_body_reviewed": false},
+    "source26_goal_first_brief": {
+      "status": "completed",
+      "native_completed": true,
+      "finish_reason": "stop",
+      "client_closed": true,
+      "quality": "fail",
+      "usable_prose": "pass",
+      "model_seconds": 139.385113667,
+      "prompt_tokens": 6080,
+      "completion_tokens": 5209,
+      "total_tokens": 11289,
+      "provider_calls": 1,
+      "automatic_retry": false,
+      "faster_than_source19": false,
+      "runtime_metadata_source": "Root-verified runtime summary; not independently remeasured here",
+      "quality_findings": [
+        "The complete original decision brief, unmodified hypothesis and observation target are now delivered, with current resource arithmetic and per-action privacy boundaries retained.",
+        "FAIL: Proposed numerical interface caps (at most three command options and two documentation lines) were attached to paper citations without clearly identifying them as newly chosen, unvalidated settings; those cited excerpts only support qualitative simplicity and concision.",
+        "FAIL: The efficacy hypothesis lacks an operational original-workflow baseline, fixed matched tasks, a counting unit and a hypothesis-linked comparison rule. Format conformance and absence of unauthorized operations cannot establish fewer human turns and citation errors or distinguish the stated learning rival."
+      ],
+      "canonical": {
+        "path": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/paper-source26-final-only-20261020.real-1/canonical-final.json",
+        "sha256": "b338ab7efdde2ff03d598c76edbe644e1cc0536e3806296585dd14329ff570dd",
+        "answer_id": "f18bc6c0-a97b-43e6-ab36-bca2b35b89a8",
+        "semantic_verified": false
+      },
+      "task_report": {
+        "path": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/paper-source26-final-only-20261020.real-1/task-report.json",
+        "sha256": "ef4615cf310e3116d6ff8e5b8aa76695fb43fc63339c910acd9dd90ba1019f55",
+        "complete": true,
+        "format": "markdown",
+        "report_assembly_model_calls": 0,
+        "report_assembly_model_calls_are_not_provider_generation_calls": true,
+        "semantic_verified": false
+      },
+      "independent_quality_review": {
+        "path": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/paper-source26-final-only-20261020.real-1/independent-quality-review.json",
+        "sha256": "85b65d79d3ae810731b28c25e392d1bbda78f0c90c8d85323d3b1991ec500ef1",
+        "overall": "FAIL"
+      },
+      "scope": "One completed candidate run, not a current-checkout native run, statistical comparison, validated hypothesis or production acceptance. Fewer tokens than Source19 did not produce a speedup or passing answer quality."
+    },
+    "statistical_or_component_ablation_claimed": false,
+    "faster_failure_counts_as_improved_quality": false
+  },
+  "delivery": {
+    "native_candidate": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/native-grouped-memory-integration-20261020-19/docthinker-invite",
+    "native_activation": "Existing operator-only DOCTHINKER_VALIDATION_DESIGN_ENABLED opt-in; default disabled. This project memo lane is not advertised as every personal-agent interaction.",
+    "current_checkout": "New pure decision-brief module and its unit tests added in place; unrelated dirty edits preserved. Full native service integration remains in the candidate.",
+    "logo_demo_mobile_and_readme_changed": false,
+    "github_pushed": false,
+    "live_preview_updated": false,
+    "production_readiness_claimed": false
+  }
+}

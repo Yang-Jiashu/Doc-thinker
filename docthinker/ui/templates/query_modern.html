@@ -3,512 +3,45 @@
 {% block title %}对话与记忆 - DocThinker{% endblock %}
 
 {% block extra_css %}
-<style>
-    :root {
-        --dt-ink: #292520;
-        --dt-muted: #766f66;
-        --dt-hairline: #ded8cc;
-        --dt-paper: #fbfaf7;
-        --dt-copper: #b85c38;
-        --dt-sage: #54746b;
-        --dt-lake: #4b6f8f;
-        --dt-ochre: #b7892d;
-    }
-    .query-shell {
-        background: linear-gradient(180deg, #FAF8F5 0%, #F7F1EA 100%);
-    }
-    .mode-card {
-        min-height: 76px;
-        transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        border: 1px solid rgba(232, 221, 211, 0.78);
-        background: rgba(255, 255, 255, 0.86);
-        position: relative;
-        overflow: hidden;
-        border-radius: 20px !important;
-    }
-    .mode-card:hover {
-        border-color: rgba(217, 119, 87, 0.32);
-        background: #FFFFFF;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(193, 165, 140, 0.14);
-    }
-    .mode-card.active {
-        border-color: rgba(217, 119, 87, 0.45);
-        background: #F5E6D3;
-        box-shadow: inset 0 0 0 1px rgba(217, 119, 87, 0.1), 0 10px 26px rgba(193, 165, 140, 0.16);
-    }
-    .mode-card.active::before {
-        content: "";
-        position: absolute;
-        left: 10px;
-        right: 10px;
-        top: 0;
-        height: 3px;
-        border-radius: 0 0 999px 999px;
-        background: #D97757;
-    }
-    .mode-icon {
-        width: 28px;
-        height: 28px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-        background: #f7f3ea;
-        border: 1px solid #e7dfd1;
-    }
-    .composer-bar {
-        border: 1px solid #ded8cc;
-        border-radius: 18px;
-        background: #FFFFFF;
-        box-shadow: 0 10px 32px rgba(193, 165, 140, 0.16);
-    }
-    .composer-bar textarea {
-        min-height: 56px;
-        max-height: 112px;
-        padding: 11px 82px 11px 16px !important;
-        line-height: 1.45;
-    }
-    .composer-action {
-        width: 32px;
-        height: 32px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-        transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-    .composer-action:hover {
-        transform: translateY(-2px);
-    }
-    .assistant-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 14px;
-        background: linear-gradient(180deg, #fff7ed 0%, #f7f3ea 100%);
-        color: #292520;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        border: 1px solid #ded8cc;
-        box-shadow: 0 8px 18px rgba(193, 165, 140, 0.18);
-    }
-    .assistant-avatar::before {
-        content: "D";
-        width: 18px;
-        height: 18px;
-        border-radius: 7px;
-        display: grid;
-        place-items: center;
-        background: #292520;
-        color: #fffefa;
-        font-size: 8.8px;
-        font-weight: 760;
-    }
+<link rel="stylesheet" href="/static/query-workspace.css?v=2">
+{% endblock %}
 
-    .message-user {
-        background: #292520;
-        color: #fffefa;
-        max-width: min(62%, 520px) !important;
-    }
-
-    .message-bot {
-        background: #fffefa;
-        border: 1px solid #ded8cc;
-    }
-
-    .message-user,
-    .message-bot {
-        padding: 8px 12px !important;
-        border-radius: 13px !important;
-        line-height: 1.45;
-    }
-
-    .file-tag {
-        background: #fbede6;
-        color: #8f4329;
-        padding: 4px 9px;
-        border: 1px solid #efcfc0;
-        border-radius: 999px;
-        font-size: 9.6px;
-        margin-right: 4px;
-    }
-
-    .processing-ring {
-        width: 20px;
-        height: 20px;
-        border: 2px solid #ded8cc;
-        border-top-color: #b85c38;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-
-    .progress-container {
-        background: #e7dfd1;
-        border-radius: 999px;
-        overflow: hidden;
-        height: 6px;
-    }
-
-    .progress-fill {
-        background: linear-gradient(90deg, #b85c38, #54746b);
-        height: 100%;
-        transition: width 0.3s ease;
-    }
-
-    .status-processing {
-        color: #b85c38;
-    }
-
-    .status-done {
-        color: #54746b;
-    }
-
-    .status-error {
-        color: #ef4444;
-    }
-
-    /* GPT-style deep thinking block */
-    .deep-think-block {
-        border-left: 2px solid #ded8cc;
-        margin-bottom: 10px;
-        padding-left: 14px;
-        position: relative;
-    }
-    .deep-think-header {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-        user-select: none;
-        font-size: 10.4px;
-        color: #766f66;
-        padding: 4px 0;
-    }
-    .deep-think-header:hover { color: #b85c38; }
-    .deep-think-header .dt-icon { font-size: 9.6px; }
-    .deep-think-header .dt-arrow {
-        font-size: 8px;
-        transition: transform 0.2s;
-        margin-left: 2px;
-    }
-    .deep-think-header .dt-arrow.open { transform: rotate(180deg); }
-    .deep-think-body {
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-    }
-    .deep-think-body.collapsed { max-height: 0 !important; }
-    .deep-think-steps {
-        padding: 4px 0 8px 0;
-    }
-    .deep-think-step {
-        font-size: 10.4px;
-        color: #766f66;
-        font-style: italic;
-        line-height: 1.6;
-        padding: 1px 0;
-    }
-    @keyframes dt-pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-    }
-    .deep-think-block.thinking .deep-think-header {
-        animation: dt-pulse 1.5s ease-in-out infinite;
-    }
-    .memory-inspector {
-        width: 360px;
-        border-left: 1px solid #ded8cc;
-        background: rgba(255, 254, 250, 0.96);
-    }
-    .memory-metric {
-        background: linear-gradient(180deg, #fffefa 0%, #f7f3ea 100%);
-        border: 1px solid #ded8cc;
-        border-radius: 8px;
-        padding: 10px;
-    }
-    .memory-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        max-width: 100%;
-        border-radius: 999px;
-        border: 1px solid #ded8cc;
-        background: #f8f2e8;
-        color: #5f584f;
-        padding: 3px 8px;
-        font-size: 8.8px;
-        line-height: 1.4;
-    }
-    .memory-timeline-item {
-        position: relative;
-        padding-left: 18px;
-        color: #5f584f;
-        font-size: 9.6px;
-        line-height: 1.45;
-    }
-    .memory-timeline-item::before {
-        content: "";
-        position: absolute;
-        left: 4px;
-        top: 5px;
-        width: 7px;
-        height: 7px;
-        border-radius: 999px;
-        background: #b85c38;
-    }
-    .memory-timeline-item::after {
-        content: "";
-        position: absolute;
-        left: 7px;
-        top: 14px;
-        bottom: -10px;
-        width: 1px;
-        background: #ded8cc;
-    }
-    .memory-timeline-item:last-child::after {
-        display: none;
-    }
-    .workspace-header {
-        min-height: 66px;
-        background: rgba(255, 254, 250, 0.92);
-        backdrop-filter: blur(16px);
-    }
-    .workspace-eyebrow {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--dt-sage);
-        font-size: 8.8px;
-        font-weight: 750;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-    }
-    .workspace-eyebrow::before {
-        content: "";
-        width: 7px;
-        height: 7px;
-        border-radius: 999px;
-        background: #6f9187;
-        box-shadow: 0 0 0 5px rgba(84, 116, 107, .10);
-    }
-    .workspace-header .dt-header-button { min-height: 36px; }
-    .workspace-header .input-field { min-height: 36px; }
-    .chat-column { background: rgba(251, 250, 247, .72); }
-    .chat-stream {
-        width: min(100%, 920px);
-        margin: 0 auto;
-        padding: 26px 32px 18px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-    .chat-stream > * + * {
-        margin-top: 0 !important;
-    }
-    .chat-stream > .animate-fadeIn {
-        flex: 0 0 auto;
-        align-items: flex-start;
-    }
-    .chat-stream > .animate-fadeIn > .max-w-2xl {
-        max-width: min(72%, 600px);
-    }
-    .welcome-panel {
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-        box-shadow: none;
-        padding: 16px 4px 10px;
-    }
-    .welcome-mark {
-        width: 38px;
-        height: 38px;
-        display: grid;
-        place-items: center;
-        border-radius: 15px;
-        color: #fff;
-        background: linear-gradient(145deg, #3f6259, #6d8b82);
-        box-shadow: 0 10px 24px rgba(84, 116, 107, .24);
-    }
-    .starter-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
-        margin-top: 18px;
-    }
-    .starter-card {
-        border: 1px solid #e4ded3;
-        border-radius: 12px;
-        background: rgba(255,254,250,.72);
-        padding: 10px 12px;
-        text-align: left;
-        color: #5f584f;
-        font-size: 9.6px;
-        line-height: 1.45;
-        transition: .18s ease;
-    }
-    .starter-card:hover {
-        transform: translateY(-2px);
-        border-color: rgba(184, 92, 56, .35);
-        background: #fffefa;
-        color: #292520;
-    }
-    .starter-card i { display: inline-block; margin: 0 7px 0 0; color: var(--dt-copper); }
-    .composer-dock {
-        background: linear-gradient(180deg, rgba(251,250,247,0) 0%, #fbfaf7 22%);
-        padding: 10px 24px 14px;
-    }
-    .composer-inner { width: min(100%, 920px); margin: 0 auto; }
-    .mode-segment {
-        display: inline-flex;
-        gap: 3px;
-        padding: 3px;
-        border: 1px solid #ded8cc;
-        border-radius: 12px;
-        background: #f2eee7;
-    }
-    .mode-card {
-        min-height: 0;
-        border: 0 !important;
-        border-radius: 9px !important;
-        background: transparent;
-        box-shadow: none !important;
-        padding: 7px 11px !important;
-        transform: none !important;
-    }
-    .mode-card p, .mode-card .mode-icon { display: none; }
-    .mode-card.active { background: #fffefa; color: #292520; }
-    .mode-card.active::before { display: none; }
-    .memory-write-control {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #5f584f;
-        font-size: 9.6px;
-    }
-    .advanced-controls {
-        margin-top: 9px;
-        border-top: 1px solid #eee9e1;
-        padding-top: 9px;
-    }
-    .advanced-controls summary {
-        cursor: pointer;
-        color: #8c8378;
-        font-size: 8.8px;
-        list-style: none;
-        user-select: none;
-    }
-    .advanced-controls summary::-webkit-details-marker { display: none; }
-    .memory-inspector {
-        width: 328px;
-        background: #f6f3ee;
-        border-left-color: #d8d1c5;
-        transition: width .24s ease, opacity .18s ease;
-    }
-    .memory-inspector.is-collapsed {
-        width: 0;
-        flex-basis: 0;
-        border-left-width: 0;
-        opacity: 0;
-        overflow: hidden;
-        pointer-events: none;
-    }
-    .memory-inspector-toggle.has-trace {
-        color: var(--dt-sage);
-        border-color: rgba(84, 116, 107, .30);
-        background: #f1f6f3;
-    }
-    .trace-ready-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 999px;
-        background: #b85c38;
-    }
-    .inspector-header {
-        position: sticky;
-        top: 0;
-        z-index: 2;
-        padding: 17px 16px 14px;
-        background: rgba(246, 243, 238, .94);
-        backdrop-filter: blur(14px);
-        border-bottom: 1px solid #ded8cc;
-    }
-    .inspector-body { padding: 14px 14px 24px; }
-    .memory-metric {
-        border-radius: 14px;
-        background: rgba(255,254,250,.85);
-        padding: 11px;
-    }
-    .memory-section {
-        background: rgba(255,254,250,.9);
-        border: 1px solid #ded8cc;
-        border-radius: 16px;
-        padding: 14px;
-    }
-    .memory-empty-state {
-        padding: 28px 18px;
-        border-color: #dcd5ca;
-        background: rgba(255, 254, 250, .48);
-    }
-    @media (max-width: 1024px) {
-        .memory-inspector {
-            display: none;
-        }
-    }
-    @media (max-width: 720px) {
-        .workspace-header { padding: 14px 16px !important; }
-        .workspace-header p:last-child { display: none; }
-        .workspace-header .input-field { min-width: 130px !important; max-width: 155px; }
-        .chat-stream { padding: 20px 16px; }
-        .starter-grid { grid-template-columns: 1fr; }
-        .composer-dock { padding: 10px 12px 14px; }
-        .memory-write-control #remember-toggle-hint { display: none; }
-    }
-</style>
+{% block sidebar_content %}
+<section class="sidebar-conversations" aria-label="会话列表">
+    <button class="sidebar-new-chat" onclick="clearChat()" aria-label="新建会话"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>新对话</button>
+    <div class="session-list-heading"><span>最近对话</span><span id="session-count"></span></div>
+    <div id="sidebar-session-list" class="sidebar-session-list"><p class="sidebar-session-empty">正在加载…</p></div>
+</section>
 {% endblock %}
 
 {% block content %}
-<header class="workspace-header border-b border-[#ded8cc] px-6 py-3 flex items-center justify-between gap-5 shrink-0">
-    <div class="min-w-0">
-        <p class="workspace-eyebrow">Dynamic memory workspace</p>
-        <h2 class="text-lg font-semibold text-[#292520] mt-1">对话与记忆</h2>
-        <p class="text-xs text-[#766f66] mt-0.5 truncate">让每次交互形成可观察、可修正的长期状态</p>
-    </div>
-    <div class="flex items-center gap-2 shrink-0">
-        <select id="session-selector" class="input-field px-3 py-2 text-sm min-w-[190px]" onchange="handleSessionSwitch(this.value)"></select>
+<header class="workspace-header">
+    <h2 id="current-session-title" class="workspace-title">新对话</h2>
+    <select id="session-selector" aria-label="当前会话" class="mobile-session-picker" onchange="handleSessionSwitch(this.value)"></select>
+    <div class="workspace-actions">
         <button id="delete-session-button" onclick="deleteCurrentSession()" class="dt-header-button dt-icon-button" title="删除当前会话" aria-label="删除当前会话">
             <i class="fa-solid fa-trash-can"></i>
         </button>
-        <button id="memory-inspector-toggle" onclick="toggleMemoryInspector()" class="memory-inspector-toggle dt-header-button" title="查看本轮调用的记忆和证据" aria-expanded="false">
-            <i class="fa-solid fa-route"></i><span>记忆路径</span><span id="trace-ready-dot" class="trace-ready-dot hidden"></span>
+        <button id="memory-inspector-toggle" onclick="toggleMemoryInspector()" class="memory-inspector-toggle dt-header-button" title="查看本轮记忆、证据和上下文预算" aria-expanded="false" aria-controls="memory-inspector">
+            <i class="fa-solid fa-route"></i><span>回答依据</span><span id="trace-ready-dot" class="trace-ready-dot hidden"></span>
         </button>
-        <button onclick="clearChat()" class="dt-header-button" title="创建新的记忆空间">
-            <i class="fa-solid fa-plus"></i><span class="hidden sm:inline">新会话</span>
+        <button onclick="clearChat()" class="dt-header-button mobile-new-session" title="新建会话" aria-label="新建会话">
+            <i class="fa-regular fa-pen-to-square"></i>
         </button>
     </div>
 </header>
 
 <div class="flex-1 flex overflow-hidden query-shell">
-    <div class="chat-column flex-1 flex flex-col min-w-0">
+    <div id="chat-column" class="chat-column is-empty">
         <div id="chat-messages" class="flex-1 overflow-y-auto">
             <div class="chat-stream space-y-5">
                 <div class="welcome-panel">
-                    <div class="flex items-start gap-4">
-                        <div class="welcome-mark"><i class="fa-solid fa-wave-square"></i></div>
-                        <div>
-                            <p class="text-[11px] font-semibold uppercase tracking-[.14em] text-[#54746b]">Plastic memory runtime</p>
-                            <h3 class="text-xl font-semibold text-[#292520] mt-1">记忆不只是被保存，也会在使用中变化。</h3>
-                            <p class="text-sm text-[#766f66] mt-2 leading-6">告诉我一条长期偏好、继续一个项目，或检查本轮回答调用了哪些记忆。右侧会同步展示召回与证据路径。</p>
-                        </div>
-                    </div>
+                    <h2>今天想研究什么？</h2>
+                    <p>从一个问题开始，或上传资料一起思考。</p>
                     <div class="starter-grid">
-                        <button class="starter-card" onclick="setExamplePrompt('请记住：我的内容表达要克制、可信，不使用无法验证的夸张比较。')"><i class="fa-solid fa-bookmark"></i>写入一条长期偏好</button>
-                        <button class="starter-card" onclick="setExamplePrompt('根据我们之前确定的原则，下一步应该怎么做？')"><i class="fa-solid fa-arrow-rotate-left"></i>让历史状态参与判断</button>
-                        <button class="starter-card" onclick="setExamplePrompt('这次回答调用了哪些记忆和证据？')"><i class="fa-solid fa-route"></i>检查本轮记忆路径</button>
+                        <button class="starter-card" onclick="document.getElementById('file-input').click()"><i class="fa-solid fa-paperclip"></i>读一份资料</button>
+                        <button class="starter-card" onclick="setExamplePrompt('请根据资料梳理关键结论之间的因果关系，并指出缺少证据的环节。')"><i class="fa-solid fa-diagram-project"></i>梳理思路</button>
+                        <button class="starter-card" onclick="setExamplePrompt('请记住：我的回答偏好是简洁、准确，区分原文事实与推测。')"><i class="fa-regular fa-bookmark"></i>记住偏好</button>
                     </div>
                 </div>
             </div>
@@ -516,96 +49,116 @@
 
         <div class="composer-dock shrink-0">
             <div class="composer-inner">
-                <div class="flex items-center justify-between gap-3 mb-2">
-                    <div class="mode-segment" aria-label="回答模式">
-                        <button onclick="setMode('quick')" id="mode-quick" class="mode-card text-left" title="轻量检索">
-                            <span class="font-medium text-xs">快速</span><span class="mode-icon"></span><p></p>
-                        </button>
-                        <button onclick="setMode('standard')" id="mode-standard" class="mode-card active text-left" title="记忆与知识联合检索">
-                            <span class="font-medium text-xs">标准</span><span class="mode-icon"></span><p></p>
-                        </button>
-                        <button onclick="setMode('deep')" id="mode-deep" class="mode-card text-left" title="记忆、图谱与证据联合召回">
-                            <span class="font-medium text-xs">深度记忆</span><span class="mode-icon"></span><p></p>
-                        </button>
-                    </div>
+                <div id="attached-files" class="hidden flex flex-wrap gap-2 mb-2"></div>
+                <div id="processing-list" class="space-y-2 mb-2"></div>
+                <div class="composer-bar">
+                    <textarea id="message-input" aria-label="输入问题" aria-describedby="send-keyboard-hint policy-description" placeholder="提问，或添加资料…" rows="2" onkeydown="handleKeyDown(event)"></textarea>
+                    <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(this)">
+                    <div class="composer-toolbar">
+                    <div class="composer-options">
+                    <label class="answer-policy" for="evolution-mode"><span class="sr-only">回答方式</span>
+                        <select id="evolution-mode" onchange="updateQueryControls()" aria-describedby="policy-description">
+                            <option value="auto">自动选择</option>
+                            <option value="faithful">忠实原文</option>
+                            <option value="path">梳理推理链</option>
+                            <option value="explore">探索关联</option>
+                            <option value="off">关闭知识扩展</option>
+                        </select>
+                    </label>
                     <div class="memory-write-control">
-                        <button onclick="toggleRememberTurn()" id="remember-toggle" class="dt-mini-button flex items-center gap-2" title="控制本轮是否写入长期、情节和对话记忆">
-                            <i id="remember-toggle-icon" class="fa-solid fa-toggle-on text-[#54746b]"></i>
-                            <span id="remember-toggle-text">写入记忆</span>
+                        <button onclick="toggleRememberTurn()" id="remember-toggle" class="dt-mini-button flex items-center gap-2" title="允许记录本轮；关闭不会影响读取已有记忆" aria-pressed="true">
+                            <i id="remember-toggle-icon" class="fa-solid fa-toggle-on text-[#64666e]"></i>
+                            <span id="remember-toggle-text">记录记忆</span>
                         </button>
                         <span id="remember-toggle-hint">本轮会被巩固</span>
                     </div>
-                </div>
-
-                <div id="attached-files" class="hidden flex flex-wrap gap-2 mb-2"></div>
-                <div id="processing-list" class="space-y-2 mb-2"></div>
-
-                <div class="relative composer-bar">
-                    <textarea id="message-input" placeholder="告诉 DocThinker 现在发生了什么，或继续之前的任务…" class="w-full px-5 py-4 pr-24 rounded-[24px] resize-none text-[#292520] bg-transparent placeholder:text-[#9b9287] focus:outline-none" rows="2" onkeydown="handleKeyDown(event)"></textarea>
-                    <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(this)">
-                    <div class="absolute right-3 bottom-3 flex items-center gap-1">
-                        <button onclick="document.getElementById('file-input').click()" class="composer-action text-[#9b9287] hover:text-[#b85c38] hover:bg-[#fbede6]" title="添加记忆来源"><i class="fa-solid fa-paperclip"></i></button>
-                        <button onclick="sendMessage()" class="composer-action btn-primary shadow-sm" title="发送"><i class="fa-solid fa-arrow-up text-sm"></i></button>
+                    </div>
+                    <div class="composer-actions">
+                        <button onclick="document.getElementById('file-input').click()" class="composer-action text-[#989aa2] hover:text-[#4b4d55] hover:bg-[#f2f2f4]" title="上传资料" aria-label="上传资料"><i class="fa-solid fa-paperclip"></i></button>
+                        <button onclick="sendMessage()" class="composer-action btn-primary" title="发送" aria-label="发送问题"><i class="fa-solid fa-arrow-up text-sm"></i></button>
+                    </div>
                     </div>
                 </div>
+                <div class="composer-footer">
+                    <span id="request-status" class="request-status" data-state="idle" role="status" aria-live="polite">准备就绪</span>
+                    <span id="send-keyboard-hint">Enter 发送 · Shift + Enter 换行</span>
+                </div>
 
-                <details class="advanced-controls">
-                    <summary><i class="fa-solid fa-sliders mr-1"></i>高级运行控制</summary>
-                    <div class="mt-2 flex flex-wrap gap-2 text-xs" aria-label="实验控制">
-                        <button onclick="toggleRunControl('memory')" id="control-memory" class="dt-mini-button" title="关闭记忆召回和记忆写入">记忆：开</button>
-                        <button onclick="toggleRunControl('context')" id="control-context" class="dt-mini-button" title="关闭历史对话注入，仍保留界面聊天记录">上下文：开</button>
-                        <button onclick="toggleRunControl('cache')" id="control-cache" class="dt-mini-button" title="本轮绕过 LLM 缓存读取和写入">缓存：开</button>
-                        <button onclick="toggleRunControl('evolution')" id="control-evolution" class="dt-mini-button" title="关闭补边和扩展节点参与查询">自进化：开</button>
+                <details id="query-settings" class="advanced-controls">
+                    <summary><i class="fa-solid fa-sliders" aria-hidden="true"></i>回答设置 <span id="settings-summary" class="settings-summary">默认设置</span></summary>
+                    <div class="settings-panel">
+                        <p id="policy-description" class="policy-help">根据问题选择回答方式；不确定时优先忠实原文。</p>
+                        <div class="settings-heading"><span>检索范围</span><button onclick="resetQueryControls()" class="dt-mini-button" type="button">恢复默认</button></div>
+                        <div class="mode-segment" role="group" aria-label="检索范围">
+                            <button onclick="setMode('quick')" id="mode-quick" class="mode-card text-left" aria-pressed="false" title="侧重文本片段，减少检索开销"><span class="font-medium text-xs">快速</span></button>
+                            <button onclick="setMode('standard')" id="mode-standard" class="mode-card active text-left" aria-pressed="true" title="文本与本地知识图谱联合检索"><span class="font-medium text-xs">标准</span></button>
+                            <button onclick="setMode('deep')" id="mode-deep" class="mode-card text-left" aria-pressed="false" title="扩大检索范围，并启用更多记忆召回"><span class="font-medium text-xs">深入检索</span></button>
+                        </div>
+                        <p id="retrieval-description" class="policy-help mt-2">文本与本地知识图谱联合检索，适合日常提问。</p>
+                        <div class="experiment-grid" role="group" aria-label="四个实验开关">
+                            <div class="experiment-control"><div><strong>记忆</strong><p>召回长期信息，并允许记住本轮。</p></div><button onclick="toggleRunControl('memory')" id="control-memory" class="dt-mini-button" role="switch" aria-checked="true" aria-label="记忆">已开启</button></div>
+                            <div class="experiment-control"><div><strong>对话上下文</strong><p>使用近期消息；关闭仍保留聊天记录。</p></div><button onclick="toggleRunControl('context')" id="control-context" class="dt-mini-button" role="switch" aria-checked="true" aria-label="对话上下文">已开启</button></div>
+                            <div class="experiment-control"><div><strong>LLM 缓存</strong><p>复用相同条件下的结果，减少重复调用。</p></div><button onclick="toggleRunControl('cache')" id="control-cache" class="dt-mini-button" role="switch" aria-checked="true" aria-label="LLM 缓存">已开启</button></div>
+                            <div class="experiment-control"><div><strong>自进化知识</strong><p>允许本轮使用扩展知识；不控制后台整理。</p></div><button onclick="toggleRunControl('evolution')" id="control-evolution" class="dt-mini-button" role="switch" aria-checked="true" aria-label="自进化知识">已开启</button></div>
+                        </div>
+                        <div class="settings-options">
+                            <label class="settings-option"><input id="adaptive-context" type="checkbox" checked onchange="updateQueryControls()"><span>精简上下文<small>按问题类型收紧检索上限，减少无关内容。</small></span></label>
+                            <label class="settings-option"><input id="path-completion" type="checkbox" onchange="updateQueryControls()"><span>允许模型补链<small>仅推理链不足时最多额外调用一次模型；仍需原文核对。</small></span></label>
+                            <label class="settings-option"><input id="include-discovered" type="checkbox" onchange="updateQueryControls()"><span>使用已审核补边<small>允许推导关系参与路径或关联探索，默认关闭。</small></span></label>
+                        </div>
+                        <p class="policy-help mt-3 mb-0">设置作用于下一次提问，不会修改已有回答。</p>
                     </div>
                 </details>
             </div>
         </div>
     </div>
 
-    <aside id="memory-inspector" class="memory-inspector is-collapsed shrink-0 overflow-y-auto" aria-hidden="true">
+    <button id="memory-inspector-backdrop" class="inspector-backdrop hidden" onclick="setMemoryInspectorOpen(false)" tabindex="-1" aria-hidden="true"></button>
+    <aside id="memory-inspector" class="memory-inspector is-collapsed shrink-0 overflow-y-auto" aria-hidden="true" aria-labelledby="inspector-title" inert>
         <div class="inspector-header">
             <div class="flex items-center justify-between gap-3">
                 <div>
-                    <p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#8a5f87]">Memory trace</p>
-                    <h3 class="text-sm font-semibold text-[#292520] mt-1">本轮记忆路径</h3>
+                    <p class="text-[12px] font-bold uppercase tracking-[.14em] text-[#6f7179]">Memory trace</p>
+                    <h3 id="inspector-title" class="text-sm font-semibold text-[#25262a] mt-1">本轮回答依据</h3>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span id="memory-inspector-mode" class="text-[10px] px-2 py-1 rounded-full bg-[#e8e3d9] text-[#5f584f]">等待提问</span>
+                    <span id="memory-inspector-mode" class="text-[12px] px-2 py-1 rounded-full bg-[#eeeeF0] text-[#64666e]">等待提问</span>
                     <button onclick="setMemoryInspectorOpen(false)" class="dt-mini-button" title="收起记忆路径" aria-label="收起记忆路径"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             </div>
-            <p class="text-xs text-[#766f66] mt-2">看见系统想起了什么、为什么想起，以及答案依据来自哪里。</p>
+            <p class="text-xs text-[#81838b] mt-2">看见系统想起了什么、为什么想起，以及答案依据来自哪里。</p>
         </div>
         <div class="inspector-body">
             <div id="memory-empty" class="memory-empty-state border border-dashed rounded-2xl text-center">
-                <i class="fa-solid fa-route text-[#bdb3a5] text-xl"></i>
-                <p class="text-sm font-medium text-[#5f584f] mt-3">尚无召回记录</p>
-                <p class="text-xs text-[#9b9287] mt-1 leading-5">发送问题后，这里会按顺序展示记忆规划、召回、证据与写入状态。</p>
+                <i class="fa-solid fa-route text-[#b9bbc1] text-xl"></i>
+                <p class="text-sm font-medium text-[#64666e] mt-3">尚无召回记录</p>
+                <p class="text-xs text-[#989aa2] mt-1 leading-5">发送问题后，这里会按顺序展示记忆规划、召回、证据与写入状态。</p>
             </div>
 
             <div id="memory-content" class="hidden space-y-3">
+                <section class="memory-section"><h4 class="text-xs font-semibold text-[#25262a]">本轮设置与预算</h4><div id="memory-budget" class="budget-summary mt-2">等待本轮检索信息。</div></section>
                 <div class="grid grid-cols-4 gap-2">
-                    <div class="memory-metric"><p class="text-[10px] text-[#766f66]">记忆层</p><p id="memory-metric-sources" class="text-lg font-semibold text-[#292520]">0</p></div>
-                    <div class="memory-metric"><p class="text-[10px] text-[#766f66]">历史情节</p><p id="memory-metric-episodic" class="text-lg font-semibold text-[#54746b]">0</p></div>
-                    <div class="memory-metric"><p class="text-[10px] text-[#766f66]">候选知识</p><p id="memory-metric-expanded" class="text-lg font-semibold text-[#8a5f87]">0</p></div>
-                    <div class="memory-metric"><p class="text-[10px] text-[#766f66]">长期状态</p><p id="memory-metric-long" class="text-lg font-semibold text-[#b85c38]">0</p></div>
+                    <div class="memory-metric"><p class="text-[12px] text-[#81838b]">记忆层</p><p id="memory-metric-sources" class="text-lg font-semibold text-[#25262a]">0</p></div>
+                    <div class="memory-metric"><p class="text-[12px] text-[#81838b]">历史情节</p><p id="memory-metric-episodic" class="text-lg font-semibold text-[#64666e]">0</p></div>
+                    <div class="memory-metric"><p class="text-[12px] text-[#81838b]">候选知识</p><p id="memory-metric-expanded" class="text-lg font-semibold text-[#6f7179]">0</p></div>
+                    <div class="memory-metric"><p class="text-[12px] text-[#81838b]">长期状态</p><p id="memory-metric-long" class="text-lg font-semibold text-[#4b4d55]">0</p></div>
                 </div>
 
-                <section class="memory-section"><h4 class="text-xs font-semibold text-[#292520] flex items-center gap-2"><i class="fa-solid fa-route text-[#4b6f8f]"></i>召回顺序</h4><div id="memory-timeline" class="mt-3 space-y-3"></div></section>
-                <section class="memory-section"><h4 class="text-xs font-semibold text-[#292520] flex items-center gap-2"><i class="fa-solid fa-infinity text-[#b85c38]"></i>长期状态</h4><div id="memory-long-horizon" class="mt-3 space-y-2"></div></section>
-                <section class="memory-section"><h4 class="text-xs font-semibold text-[#292520] flex items-center gap-2"><i class="fa-solid fa-lightbulb text-[#b7892d]"></i>认知层</h4><div id="memory-cognitions" class="mt-3 space-y-2"></div></section>
-                <section class="memory-section"><h4 class="text-xs font-semibold text-[#292520] flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-[#54746b]"></i>相似经历</h4><div id="memory-episodic" class="mt-3 space-y-2"></div></section>
-                <section class="memory-section"><h4 class="text-xs font-semibold text-[#292520] flex items-center gap-2"><i class="fa-solid fa-seedling text-[#8a5f87]"></i>候选知识</h4><div id="memory-expanded" class="mt-3 space-y-2"></div></section>
-                <section class="memory-section"><h4 class="text-xs font-semibold text-[#292520] flex items-center gap-2"><i class="fa-solid fa-link text-[#4b6f8f]"></i>证据来源</h4><div id="memory-sources" class="mt-3 space-y-2"></div></section>
+                <section class="memory-section"><h4 class="text-xs font-semibold text-[#25262a] flex items-center gap-2"><i class="fa-solid fa-route text-[#686a72]"></i>召回顺序</h4><div id="memory-timeline" class="mt-3 space-y-3"></div></section>
+                <section class="memory-section"><h4 class="text-xs font-semibold text-[#25262a] flex items-center gap-2"><i class="fa-solid fa-infinity text-[#4b4d55]"></i>长期状态</h4><div id="memory-long-horizon" class="mt-3 space-y-2"></div></section>
+                <section class="memory-section"><h4 class="text-xs font-semibold text-[#25262a] flex items-center gap-2"><i class="fa-solid fa-lightbulb text-[#72747c]"></i>认知层</h4><div id="memory-cognitions" class="mt-3 space-y-2"></div></section>
+                <section class="memory-section"><h4 class="text-xs font-semibold text-[#25262a] flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-[#64666e]"></i>相似经历</h4><div id="memory-episodic" class="mt-3 space-y-2"></div></section>
+                <section class="memory-section"><h4 class="text-xs font-semibold text-[#25262a] flex items-center gap-2"><i class="fa-solid fa-seedling text-[#6f7179]"></i>候选知识</h4><div id="memory-expanded" class="mt-3 space-y-2"></div></section>
+                <section class="memory-section"><h4 class="text-xs font-semibold text-[#25262a] flex items-center gap-2"><i class="fa-solid fa-link text-[#686a72]"></i>证据来源</h4><div id="memory-sources" class="mt-3 space-y-2"></div></section>
             </div>
         </div>
     </aside>
 </div>
 
 <div id="loading" class="hidden absolute inset-0 bg-black/10 flex items-center justify-center z-50">
-    <div class="bg-[#fffefa] border border-[#ded8cc] rounded-xl p-4 flex items-center gap-3 shadow-lg">
-        <i class="fa-solid fa-circle-notch fa-spin text-[#b85c38]"></i>
-        <span class="text-sm text-[#5f584f]">思考中...</span>
+    <div class="bg-[#ffffff] border border-[#e3e3e7] rounded-xl p-4 flex items-center gap-3 shadow-lg">
+        <i class="fa-solid fa-circle-notch fa-spin text-[#4b4d55]"></i>
+        <span class="text-sm text-[#64666e]">思考中...</span>
     </div>
 </div>
 
@@ -615,6 +168,9 @@ let currentFile = null;
 let currentFileSessionId = null;
 let currentSessionId = null;
 let rememberTurn = true;
+let knownSessions = [];
+let followLatestMessage = true;
+const sessionDrafts = new Map();
 const runControls = {
     memory: true,
     context: true,
@@ -625,6 +181,8 @@ let processingFilesCount = 0;
 let defaultWelcomeHtml = '';
 let latestMemoryInspector = null;
 let memoryInspectorAutoOpened = false;
+const answerPolicyLabels = { auto: '自动选择', faithful: '忠实原文', path: '梳理推理链', explore: '探索关联', off: '关闭知识扩展' };
+let inspectorReturnFocus = null;
 
 function setMemoryInspectorOpen(open) {
     const inspector = document.getElementById('memory-inspector');
@@ -632,6 +190,22 @@ function setMemoryInspectorOpen(open) {
     if (!inspector) return;
     inspector.classList.toggle('is-collapsed', !open);
     inspector.setAttribute('aria-hidden', String(!open));
+    inspector.inert = !open;
+    const mobile = window.matchMedia('(max-width: 1024px)').matches;
+    const backdrop = document.getElementById('memory-inspector-backdrop');
+    if (backdrop) backdrop.classList.toggle('hidden', !open || !mobile);
+    if (open && mobile) {
+        inspectorReturnFocus = document.activeElement;
+        inspector.setAttribute('role', 'dialog');
+        inspector.setAttribute('aria-modal', 'true');
+        inspector.querySelector('button')?.focus();
+    } else {
+        inspector.removeAttribute('role');
+        inspector.removeAttribute('aria-modal');
+        if (!open && (inspector.contains(document.activeElement) || document.activeElement === backdrop)) {
+            (inspectorReturnFocus || toggle)?.focus();
+        }
+    }
     if (toggle) toggle.setAttribute('aria-expanded', String(open));
 }
 
@@ -677,6 +251,22 @@ function renderWelcome() {
     const container = document.getElementById('chat-messages');
     if (!container) return;
     container.innerHTML = defaultWelcomeHtml;
+    document.getElementById('chat-column')?.classList.add('is-empty');
+    followLatestMessage = true;
+}
+
+function scrollChatToLatest(force = false) {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    if (force) followLatestMessage = true;
+    if (followLatestMessage) container.scrollTop = container.scrollHeight;
+}
+
+function restoreFailedDraft(sessionId, text) {
+    if (String(currentSessionId || '') !== sessionId) return;
+    const input = document.getElementById('message-input');
+    if (input && !input.value) input.value = text;
+    if (text) sessionDrafts.set(sessionId, text);
 }
 
 function getChatStream() {
@@ -709,30 +299,31 @@ function formatScore(value) {
 function summarizeTraceEvent(event) {
     const type = String(event?.type || 'event');
     if (type === 'memory_context') {
-        return `Claw 对话记忆注入，约 ${event.chars || 0} 字符`;
+        return `加入对话摘要，约 ${event.chars || 0} 字符`;
     }
     if (type === 'episodic_recall') {
-        return `Neuro Memory 召回 ${event.count || 0} 条相似 episode`;
+        return `找到 ${event.count || 0} 条相似历史经历`;
     }
     if (type === 'expanded_match') {
-        return `Expanded KG 匹配 ${event.count || 0} 个候选节点`;
+        return `匹配 ${event.count || 0} 条候选知识`;
     }
     if (type === 'recall_plan') {
-        return `Recall Plan: ${event.question_type || 'general'} · ${(event.layers || []).join(' / ')}`;
+        return `检索计划：${event.question_type || 'general'} · ${(event.layers || []).join(' / ')}`;
     }
     if (type === 'long_horizon_recall') {
-        return `Long-horizon Memory 召回 ${event.count || 0} 条长期线索`;
+        return `找到 ${event.count || 0} 条长期记忆`;
     }
     if (type === 'memory_graph_recall') {
-        return `Memory Graph 沿关系边扩散召回 ${event.count || 0} 条记忆`;
+        return `沿已有关系找到 ${event.count || 0} 条相关记忆`;
     }
     if (type === 'cognition_recall') {
-        return `Cognition Layer 召回 ${event.count || 0} 条沉淀认知`;
+        return `找到 ${event.count || 0} 条整理后的认知`;
     }
     if (type === 'memory_reasoning') {
         const conclusions = Array.isArray(event.conclusions) ? event.conclusions.join(' / ') : '';
-        return `Memory Reasoning: ${event.question_type || 'general'}${conclusions ? ' · ' + conclusions : ''}`;
+        return `记忆推理：${event.question_type || 'general'}${conclusions ? ' · ' + conclusions : ''}`;
     }
+    if (type === 'memory_skipped') return '本轮未使用记忆';
     return `${type}: ${JSON.stringify(event)}`;
 }
 
@@ -744,7 +335,7 @@ function resetMemoryInspector(mode = 'idle') {
     const modeEl = document.getElementById('memory-inspector-mode');
     if (empty) empty.classList.remove('hidden');
     if (content) content.classList.add('hidden');
-    if (modeEl) modeEl.textContent = mode;
+    if (modeEl) modeEl.textContent = mode === 'recalling' ? '正在检索' : '等待提问';
     const toggle = document.getElementById('memory-inspector-toggle');
     const dot = document.getElementById('trace-ready-dot');
     if (toggle) toggle.classList.remove('has-trace');
@@ -763,16 +354,19 @@ function renderMemoryInspector(metaPatch = {}) {
     const longHorizon = Array.isArray(meta.long_horizon_matches) ? meta.long_horizon_matches : [];
     const cognitions = Array.isArray(meta.cognition_matches) ? meta.cognition_matches : [];
     const sources = Array.isArray(meta.sources) ? meta.sources : [];
+    const questionPolicy = meta.question_policy || {};
+    const graphReasoning = meta.graph_reasoning || {};
+    for (const [id, items] of [['memory-episodic', episodic], ['memory-long-horizon', longHorizon], ['memory-cognitions', cognitions], ['memory-expanded', expanded]]) {
+        document.getElementById(id)?.closest('.memory-section')?.classList.toggle('hidden', items.length === 0);
+    }
     const hasTrace = events.length > 0 || episodic.length > 0 || expanded.length > 0 || longHorizon.length > 0 || cognitions.length > 0 || sources.length > 0;
 
     const toggle = document.getElementById('memory-inspector-toggle');
     const dot = document.getElementById('trace-ready-dot');
     if (toggle) toggle.classList.toggle('has-trace', hasTrace);
     if (dot) dot.classList.toggle('hidden', !hasTrace);
-    if (hasTrace && !memoryInspectorAutoOpened) {
-        memoryInspectorAutoOpened = true;
-        setMemoryInspectorOpen(true);
-    }
+    // Signal that evidence is available without moving focus or shrinking the answer.
+    if (hasTrace) memoryInspectorAutoOpened = true;
 
     const empty = document.getElementById('memory-empty');
     const content = document.getElementById('memory-content');
@@ -780,8 +374,10 @@ function renderMemoryInspector(metaPatch = {}) {
     if (empty) empty.classList.add('hidden');
     if (content) content.classList.remove('hidden');
     if (modeEl) {
-        modeEl.textContent = meta.mode || meta.answer_mode || 'session';
-        modeEl.className = 'text-[11px] px-2 py-1 rounded-full bg-[#fbede6] text-[#8f4329]';
+        const baseMode = meta.mode || meta.answer_mode || 'session';
+        const retrievalLabels = { naive: '快速检索', local: '标准检索', mix: '深入检索', session: '会话', identity: '日常对话', conversation: '日常对话', insufficient_evidence: '证据不足', context_budget_exceeded: '预算不足' };
+        modeEl.textContent = questionPolicy.mode ? (answerPolicyLabels[questionPolicy.mode] || questionPolicy.mode) : (retrievalLabels[baseMode] || baseMode);
+        modeEl.className = 'text-[12px] px-2 py-1 rounded-full bg-[#f2f2f4] text-[#4e5058]';
     }
 
     const memorySources = recall.memory_sources ?? meta.memory_summaries?.length ?? 0;
@@ -789,13 +385,40 @@ function renderMemoryInspector(metaPatch = {}) {
     document.getElementById('memory-metric-episodic').textContent = recall.episodic_hits ?? episodic.length;
     document.getElementById('memory-metric-expanded').textContent = recall.expanded_hits ?? expanded.length;
     document.getElementById('memory-metric-long').textContent = recall.long_horizon_hits ?? longHorizon.length;
+    const budgetBox = document.getElementById('memory-budget');
+    if (budgetBox) {
+        const budget = meta.context_budget || {};
+        const limits = budget.retrieval_limits || {};
+        const controls = meta.run_controls || {};
+        const controlLabels = { use_memory: '记忆', use_conversation_context: '对话上下文', use_llm_cache: '缓存', use_self_evolution: '自进化知识' };
+        const controlText = Object.entries(controlLabels)
+            .filter(([key]) => typeof controls[key] === 'boolean')
+            .map(([key, label]) => `${label}${controls[key] ? '开' : '关'}`).join(' · ');
+        budgetBox.innerHTML = [
+            questionPolicy.mode ? `<p><strong>${escapeHtml(answerPolicyLabels[questionPolicy.mode] || questionPolicy.mode)}</strong>${graphReasoning.applied ? ' · 已加入图谱推理信息' : ''}</p>` : '',
+            controlText ? `<p>${escapeHtml(controlText)}</p>` : '',
+            Number.isFinite(limits.max_total_tokens) ? `<p>文本输入上限 <strong>${escapeHtml(limits.max_total_tokens.toLocaleString())}</strong> token</p>` : '',
+            Number.isFinite(limits.chunk_top_k) ? `<p>最多 ${escapeHtml(limits.chunk_top_k)} 个片段 · ${escapeHtml(limits.max_relations ?? '—')} 条关系</p>` : '',
+            Number.isFinite(budget.history_tokens) ? `<p>历史消息 ${escapeHtml(budget.history_tokens)} / ${escapeHtml(budget.history_limit ?? '—')} token</p>` : '',
+            Number.isFinite(budget.instruction_tokens) ? `<p>附加信息 ${escapeHtml(budget.instruction_tokens)} / ${escapeHtml(budget.instruction_limit ?? '—')} token${budget.instruction_truncated ? '（已精简）' : ''}</p>` : '',
+            '<p class="text-[12px] text-[#81838b] mt-2">这里展示文本预算，不是实际费用；图片和输出用量另计。</p>',
+        ].join('');
+    }
 
     const timeline = document.getElementById('memory-timeline');
     if (timeline) {
-        if (events.length === 0) {
-            timeline.innerHTML = '<p class="text-xs text-[#9b9287]">本轮没有记忆事件。</p>';
+        const policyEvent = questionPolicy.mode
+            ? `<div class="memory-timeline-item">回答方式：${escapeHtml(answerPolicyLabels[questionPolicy.mode] || questionPolicy.mode)} · 图推理${graphReasoning.applied ? '已应用' : '未应用'}</div>`
+            : '';
+        const budget = meta.context_budget || {};
+        const limits = budget.retrieval_limits || {};
+        const budgetEvent = limits.chunk_top_k
+            ? `<div class="memory-timeline-item">本轮最多 ${escapeHtml(limits.chunk_top_k)} 个片段 · ${escapeHtml(limits.max_relations)} 条关系${budget.instruction_truncated ? ' · 附加上下文已截短' : ''}</div>`
+            : '';
+        if (events.length === 0 && !policyEvent) {
+            timeline.innerHTML = '<p class="text-xs text-[#989aa2]">本轮没有记忆事件。</p>';
         } else {
-            timeline.innerHTML = events.map((event) => (
+            timeline.innerHTML = policyEvent + budgetEvent + events.map((event) => (
                 `<div class="memory-timeline-item">${escapeHtml(summarizeTraceEvent(event))}</div>`
             )).join('');
         }
@@ -805,31 +428,31 @@ function renderMemoryInspector(metaPatch = {}) {
     if (episodicEl) {
         episodicEl.innerHTML = episodic.length ? episodic.map((item) => {
             const concepts = Array.isArray(item.concepts) ? item.concepts.slice(0, 3) : [];
-            return `<div class="rounded-lg border border-[#d9e3d6] bg-[#eef3ed] p-2">
+            return `<div class="rounded-lg border border-[#e2e2e6] bg-[#f5f5f7] p-2">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="text-xs font-medium text-[#292520] line-clamp-2">${escapeHtml(item.summary || 'Episode')}</p>
-                    <span class="text-[11px] text-[#54746b]">${formatScore(item.score)}</span>
+                    <p class="text-xs font-medium text-[#25262a] line-clamp-2">${escapeHtml(item.summary || 'Episode')}</p>
+                    <span class="text-[12px] text-[#64666e]">${formatScore(item.score)}</span>
                 </div>
-                ${item.reason ? `<p class="text-[11px] text-[#766f66] mt-1">${escapeHtml(item.reason)}</p>` : ''}
+                ${item.reason ? `<p class="text-[12px] text-[#81838b] mt-1">${escapeHtml(item.reason)}</p>` : ''}
                 ${concepts.length ? `<div class="mt-2 flex flex-wrap gap-1">${concepts.map((c) => `<span class="memory-chip">${escapeHtml(c)}</span>`).join('')}</div>` : ''}
             </div>`;
-        }).join('') : '<p class="text-xs text-[#9b9287]">没有 episode 匹配。</p>';
+        }).join('') : '<p class="text-xs text-[#989aa2]">没有 episode 匹配。</p>';
     }
 
     const longEl = document.getElementById('memory-long-horizon');
     if (longEl) {
         longEl.innerHTML = longHorizon.length ? longHorizon.map((item) => {
             const concepts = Array.isArray(item.concepts) ? item.concepts.slice(0, 4) : [];
-            return `<div class="rounded-lg border border-[#ead8ca] bg-[#fff7f0] p-2">
+            return `<div class="rounded-lg border border-[#e5e5e8] bg-[#f7f7f9] p-2">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="text-xs font-medium text-[#292520] line-clamp-2">${escapeHtml(item.summary || 'Long-horizon insight')}</p>
-                    <span class="text-[11px] text-[#b85c38]">${formatScore(item.score || item.confidence)}</span>
+                    <p class="text-xs font-medium text-[#25262a] line-clamp-2">${escapeHtml(item.summary || 'Long-horizon insight')}</p>
+                    <span class="text-[12px] text-[#4b4d55]">${formatScore(item.score || item.confidence)}</span>
                 </div>
-                <p class="text-[11px] text-[#766f66] mt-1">${escapeHtml(item.kind || 'insight')} · ${escapeHtml(item.scope || 'session')}</p>
-                ${item.recall_origin === 'graph' ? `<p class="text-[11px] text-[#4b6f8f] mt-1">沿图召回 · ${escapeHtml((item.graph_path || []).map((edge) => edge.relation_type).join(' → '))}</p>` : ''}
+                <p class="text-[12px] text-[#81838b] mt-1">${escapeHtml(item.kind || 'insight')} · ${escapeHtml(item.scope || 'session')}</p>
+                ${item.recall_origin === 'graph' ? `<p class="text-[12px] text-[#686a72] mt-1">沿图召回 · ${escapeHtml((item.graph_path || []).map((edge) => edge.relation_type).join(' → '))}</p>` : ''}
                 ${concepts.length ? `<div class="mt-2 flex flex-wrap gap-1">${concepts.map((c) => `<span class="memory-chip">${escapeHtml(c)}</span>`).join('')}</div>` : ''}
             </div>`;
-        }).join('') : '<p class="text-xs text-[#9b9287]">没有长期线索匹配。</p>';
+        }).join('') : '<p class="text-xs text-[#989aa2]">没有长期线索匹配。</p>';
     }
 
     const cognitionEl = document.getElementById('memory-cognitions');
@@ -837,16 +460,16 @@ function renderMemoryInspector(metaPatch = {}) {
         cognitionEl.innerHTML = cognitions.length ? cognitions.map((item) => {
             const evidenceIds = Array.isArray(item.evidence_memory_ids) ? item.evidence_memory_ids.slice(0, 4) : [];
             const conditions = Array.isArray(item.conditions) ? item.conditions.slice(0, 3) : [];
-            return `<div class="rounded-lg border border-[#e4d7b9] bg-[#fff9e8] p-2">
+            return `<div class="rounded-lg border border-[#e2e2e6] bg-[#f7f7f9] p-2">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="text-xs font-medium text-[#292520]">${escapeHtml(item.statement || 'Derived cognition')}</p>
-                    <span class="text-[11px] text-[#b7892d]">${formatScore(item.score || item.confidence)}</span>
+                    <p class="text-xs font-medium text-[#25262a]">${escapeHtml(item.statement || 'Derived cognition')}</p>
+                    <span class="text-[12px] text-[#72747c]">${formatScore(item.score || item.confidence)}</span>
                 </div>
-                <p class="text-[11px] text-[#766f66] mt-1">${escapeHtml(item.cognition_type || 'induction')} · 独立认知节点</p>
-                ${conditions.length ? `<p class="text-[11px] text-[#766f66] mt-1">条件：${conditions.map(escapeHtml).join('；')}</p>` : ''}
+                <p class="text-[12px] text-[#81838b] mt-1">${escapeHtml(item.cognition_type || 'induction')} · 独立认知节点</p>
+                ${conditions.length ? `<p class="text-[12px] text-[#81838b] mt-1">条件：${conditions.map(escapeHtml).join('；')}</p>` : ''}
                 ${evidenceIds.length ? `<div class="mt-2 flex flex-wrap gap-1">${evidenceIds.map((id) => `<span class="memory-chip">证据 ${escapeHtml(id)}</span>`).join('')}</div>` : ''}
             </div>`;
-        }).join('') : '<p class="text-xs text-[#9b9287]">没有认知节点匹配。</p>';
+        }).join('') : '<p class="text-xs text-[#989aa2]">没有认知节点匹配。</p>';
     }
 
     const expandedEl = document.getElementById('memory-expanded');
@@ -854,37 +477,37 @@ function renderMemoryInspector(metaPatch = {}) {
         expandedEl.innerHTML = expanded.length ? expanded.map((item) => {
             const roots = Array.isArray(item.root_ids) ? item.root_ids.slice(0, 3) : [];
             const entity = item.entity || item.name || 'Expanded node';
-            return `<div class="rounded-lg border border-[#e3d6df] bg-[#f5eef3] p-2">
+            return `<div class="rounded-lg border border-[#e2e2e6] bg-[#f5f5f7] p-2">
                 <div class="flex items-start justify-between gap-2">
-                    <p class="text-xs font-semibold text-[#292520]">${escapeHtml(entity)}</p>
-                    <span class="text-[11px] text-[#8a5f87]">${formatScore(item.score)}</span>
+                    <p class="text-xs font-semibold text-[#25262a]">${escapeHtml(entity)}</p>
+                    <span class="text-[12px] text-[#6f7179]">${formatScore(item.score)}</span>
                 </div>
-                ${item.description ? `<p class="text-[11px] text-[#766f66] mt-1 line-clamp-3">${escapeHtml(item.description)}</p>` : ''}
-                ${item.reason ? `<p class="text-[11px] text-[#766f66] mt-1">${escapeHtml(item.reason)}</p>` : ''}
-                <div class="mt-2 flex items-center gap-1 text-[11px] text-[#766f66]">
-                    <span class="px-2 py-0.5 rounded bg-[#fffefa] border border-[#e3d6df]">candidate</span>
+                ${item.description ? `<p class="text-[12px] text-[#81838b] mt-1 line-clamp-3">${escapeHtml(item.description)}</p>` : ''}
+                ${item.reason ? `<p class="text-[12px] text-[#81838b] mt-1">${escapeHtml(item.reason)}</p>` : ''}
+                <div class="mt-2 flex items-center gap-1 text-[12px] text-[#81838b]">
+                    <span class="px-2 py-0.5 rounded bg-[#ffffff] border border-[#e2e2e6]">candidate</span>
                     <span>-></span>
-                    <span class="px-2 py-0.5 rounded bg-[#fffefa] border border-[#e3d6df]">active</span>
+                    <span class="px-2 py-0.5 rounded bg-[#ffffff] border border-[#e2e2e6]">active</span>
                     <span>-></span>
-                    <span class="px-2 py-0.5 rounded bg-[#fffefa] border border-[#e3d6df]">promoted</span>
+                    <span class="px-2 py-0.5 rounded bg-[#ffffff] border border-[#e2e2e6]">promoted</span>
                 </div>
                 ${roots.length ? `<div class="mt-2 flex flex-wrap gap-1">${roots.map((r) => `<span class="memory-chip">${escapeHtml(r)}</span>`).join('')}</div>` : ''}
             </div>`;
-        }).join('') : '<p class="text-xs text-[#9b9287]">没有 expanded node 匹配。</p>';
+        }).join('') : '<p class="text-xs text-[#989aa2]">没有 expanded node 匹配。</p>';
     }
 
     const sourcesEl = document.getElementById('memory-sources');
     if (sourcesEl) {
         sourcesEl.innerHTML = sources.length ? sources.slice(0, 5).map((item, index) => {
             const content = item.content || item.text || item.source || `Source ${index + 1}`;
-            return `<div class="rounded-lg border border-[#d7e2e5] bg-[#edf3f4] p-2">
+            return `<div class="rounded-lg border border-[#e2e2e6] bg-[#f5f5f7] p-2">
                 <div class="flex items-center justify-between gap-2">
-                    <p class="text-[11px] font-medium text-[#4b6f8f]">Source ${index + 1}</p>
-                    <span class="text-[11px] text-[#766f66]">${formatScore(item.confidence)}</span>
+                    <p class="text-[12px] font-medium text-[#686a72]">Source ${index + 1}</p>
+                    <span class="text-[12px] text-[#81838b]">${formatScore(item.confidence)}</span>
                 </div>
-                <p class="text-xs text-[#5f584f] mt-1 line-clamp-3">${escapeHtml(content)}</p>
+                <p class="text-xs text-[#64666e] mt-1 line-clamp-3">${escapeHtml(content)}</p>
             </div>`;
-        }).join('') : '<p class="text-xs text-[#9b9287]">答案生成后会显示证据来源。</p>';
+        }).join('') : '<p class="text-xs text-[#989aa2]">答案生成后会显示证据来源。</p>';
     }
 }
 
@@ -907,11 +530,13 @@ function renderSessionSelector(sessions, selectedId) {
     selector.innerHTML = '';
 
     const normalizedSelected = selectedId ? String(selectedId) : '';
+    knownSessions = sessions;
 
     sessions.forEach((session) => {
         const option = document.createElement('option');
         option.value = String(session.id);
-        option.textContent = `${session.id} | ${session.title || '新对话'}`;
+        option.textContent = session.title || '新对话';
+        option.title = String(session.id);
         selector.appendChild(option);
     });
 
@@ -927,6 +552,27 @@ function renderSessionSelector(sessions, selectedId) {
     } else if (sessions.length > 0) {
         selector.value = String(sessions[0].id);
     }
+
+    const list = document.getElementById('sidebar-session-list');
+    if (list) {
+        list.innerHTML = '';
+        sessions.forEach((session) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'sidebar-session';
+            button.textContent = session.title || '新对话';
+            button.title = `${session.title || '新对话'} · ${session.id}`;
+            if (String(session.id) === selector.value) button.setAttribute('aria-current', 'page');
+            button.addEventListener('click', () => handleSessionSwitch(String(session.id)));
+            list.appendChild(button);
+        });
+        if (!sessions.length) list.innerHTML = '<p class="sidebar-session-empty">还没有对话</p>';
+    }
+    const selected = sessions.find((session) => String(session.id) === selector.value);
+    const title = document.getElementById('current-session-title');
+    if (title) title.textContent = selected?.title || '新对话';
+    const count = document.getElementById('session-count');
+    if (count) count.textContent = sessions.length || '';
 }
 
 async function createSession(title = '新对话') {
@@ -979,8 +625,17 @@ async function handleSessionSwitch(sessionId) {
     if (!sid || sid === currentSessionId) {
         return;
     }
+    if (_isSending || processingFilesCount > 0) {
+        document.getElementById('session-selector').value = currentSessionId;
+        showToast('请等待当前回答或文件处理完成后再切换对话', 'info');
+        return;
+    }
+    const input = document.getElementById('message-input');
+    if (input && currentSessionId) sessionDrafts.set(String(currentSessionId), input.value);
     currentSessionId = sid;
+    if (input) input.value = sessionDrafts.get(sid) || '';
     setStoredSessionId(currentSessionId);
+    renderSessionSelector(knownSessions, sid);
     clearUiAttachments();
     resetMemoryInspector('idle');
     renderWelcome();
@@ -988,6 +643,10 @@ async function handleSessionSwitch(sessionId) {
 }
 
 async function deleteCurrentSession() {
+    if (_isSending || processingFilesCount > 0) {
+        showToast('请等待当前回答或文件处理完成后再删除对话', 'info');
+        return;
+    }
     const sessionId = String(currentSessionId || '');
     if (!sessionId) return;
     if (!window.confirm(`确定删除会话 ${sessionId}？该会话的聊天、文件和会话记忆都会被删除。`)) return;
@@ -1012,7 +671,9 @@ async function deleteCurrentSession() {
             if (created) sessions = [created];
         }
         const next = sessions[0];
+        sessionDrafts.delete(sessionId);
         currentSessionId = next ? String(next.id) : null;
+        document.getElementById('message-input').value = sessionDrafts.get(String(currentSessionId)) || '';
         setStoredSessionId(currentSessionId);
         renderSessionSelector(sessions, currentSessionId);
         clearUiAttachments();
@@ -1034,7 +695,9 @@ async function loadHistory(sessionId) {
     }
     try {
         const resp = await fetch(`/api/v1/sessions/${encodeURIComponent(sessionId)}/history`);
+        if (!resp.ok) throw new Error('无法加载聊天记录');
         const data = await resp.json();
+        if (String(currentSessionId) !== String(sessionId)) return;
         const history = Array.isArray(data.history) ? data.history : [];
 
         const container = document.getElementById('chat-messages');
@@ -1049,69 +712,128 @@ async function loadHistory(sessionId) {
             const role = (msg.role === 'user' || msg.role === 'question') ? 'user' : 'bot';
             addMessage(msg.content || '', role, false, msg.created_at || msg.timestamp);
         });
+        scrollChatToLatest(true);
     } catch (e) {
+        if (String(currentSessionId) !== String(sessionId)) return;
         console.warn('Load history failed:', e);
-        renderWelcome();
+        setRequestStatus('error', '聊天记录加载失败，请重新选择对话重试');
+        showToast('聊天记录暂时无法加载，已有记录不会被删除', 'error');
     }
 }
 
 function setMode(mode) {
+    if (!['quick', 'standard', 'deep'].includes(mode)) return;
     currentMode = mode;
-    document.querySelectorAll('.mode-card').forEach((c) => c.classList.remove('active'));
+    document.querySelectorAll('.mode-card').forEach((c) => {
+        c.classList.remove('active');
+        c.setAttribute('aria-pressed', 'false');
+    });
     const target = document.getElementById(`mode-${mode}`);
-    if (target) target.classList.add('active');
+    if (target) { target.classList.add('active'); target.setAttribute('aria-pressed', 'true'); }
+    updateQueryControls();
+}
+
+function updateQueryControls() {
+    const policy = document.getElementById('evolution-mode')?.value || 'auto';
+    const descriptions = {
+        auto: '根据问题选择回答方式；不确定时优先忠实原文。',
+        faithful: '优先依据原文回答，不把推导关系当作事实。适合查证、摘要和对比。',
+        path: '沿已有证据梳理前因后果；缺少哪一环就明确说明。',
+        explore: '寻找更多相关思路，并区分原文支持与探索性推测。',
+        off: '本轮关闭进化知识参与，保留原始资料检索。',
+    };
+    const description = document.getElementById('policy-description');
+    if (description) description.textContent = !runControls.evolution
+        ? '自进化知识已关闭：不应用新增的路径或关联扩展，仍可使用已开启的记忆。'
+        : descriptions[policy];
+    const retrieval = document.getElementById('retrieval-description');
+    if (retrieval) retrieval.textContent = {
+        quick: '检索侧重文本片段，适合简单查找，减少检索开销。',
+        standard: '文本与本地知识图谱联合检索，适合日常提问。',
+        deep: '扩大检索范围并召回更多记忆，可能需要更长时间。',
+    }[currentMode];
+    for (const [name, enabled] of Object.entries(runControls)) {
+        const button = document.getElementById(`control-${name}`);
+        if (button) {
+            button.textContent = enabled ? '已开启' : '已关闭';
+            button.setAttribute('aria-checked', String(enabled));
+        }
+    }
+    const allowExpansion = runControls.evolution && !['faithful', 'off'].includes(policy);
+    const completion = document.getElementById('path-completion');
+    const discovered = document.getElementById('include-discovered');
+    if (completion) completion.disabled = !allowExpansion || policy === 'explore';
+    if (discovered) discovered.disabled = !allowExpansion;
+    const changed = Object.values(runControls).filter((enabled) => !enabled).length
+        + (currentMode !== 'standard' ? 1 : 0)
+        + (document.getElementById('adaptive-context')?.checked === false ? 1 : 0)
+        + (completion?.checked && !completion.disabled ? 1 : 0)
+        + (discovered?.checked && !discovered.disabled ? 1 : 0);
+    const summary = document.getElementById('settings-summary');
+    if (summary) summary.textContent = changed ? `${changed} 项已调整` : '默认设置';
+    updateRememberControl();
+}
+
+function resetQueryControls() {
+    for (const name of Object.keys(runControls)) runControls[name] = true;
+    rememberTurn = true;
+    document.getElementById('evolution-mode').value = 'auto';
+    document.getElementById('adaptive-context').checked = true;
+    document.getElementById('path-completion').checked = false;
+    document.getElementById('include-discovered').checked = false;
+    setMode('standard');
+}
+
+function setRequestStatus(state, message) {
+    const status = document.getElementById('request-status');
+    if (status) { status.dataset.state = state; status.textContent = message; }
+    document.getElementById('chat-messages')?.setAttribute('aria-busy', String(state === 'busy'));
+}
+
+function getEnabledCheckbox(id) {
+    const input = document.getElementById(id);
+    return Boolean(input?.checked && !input.disabled);
 }
 
 function updateRememberControl(hintOverride = '') {
     const icon = document.getElementById('remember-toggle-icon');
     const text = document.getElementById('remember-toggle-text');
     const hint = document.getElementById('remember-toggle-hint');
+    const button = document.getElementById('remember-toggle');
+    if (button) {
+        button.setAttribute('aria-pressed', String(rememberTurn && runControls.memory));
+        button.disabled = !runControls.memory;
+        button.title = !runControls.memory
+            ? '记忆总开关已关闭；如需记录，请在回答设置中开启记忆。'
+            : '仅控制是否记录本轮，不影响读取已有记忆。';
+    }
     if (icon) {
         icon.className = rememberTurn
-            ? 'fa-solid fa-toggle-on text-[#54746b]'
-            : 'fa-solid fa-toggle-off text-[#9b9287]';
+            ? 'fa-solid fa-toggle-on text-[#64666e]'
+            : 'fa-solid fa-toggle-off text-[#989aa2]';
     }
-    if (text) text.textContent = rememberTurn ? '写入记忆' : '不写入记忆';
-    if (hint) hint.textContent = hintOverride || (rememberTurn ? '本轮会进入可控记忆巩固' : '本轮只回答，不进入记忆层');
+    if (text) text.textContent = rememberTurn && runControls.memory ? '记录记忆' : '不记录记忆';
+    if (hint) hint.textContent = hintOverride || (!runControls.memory ? '不召回，也不写入' : (rememberTurn ? '允许记住本轮' : '本轮只读已有记忆'));
 }
 
 function toggleRememberTurn() {
-    if (!runControls.memory) {
-        runControls.memory = true;
-        const memoryButton = document.getElementById('control-memory');
-        if (memoryButton) {
-            memoryButton.textContent = '记忆：开';
-            memoryButton.classList.remove('opacity-50');
-        }
-        rememberTurn = true;
-    } else {
-        rememberTurn = !rememberTurn;
-    }
-    updateRememberControl();
+    if (!runControls.memory) return;
+    rememberTurn = !rememberTurn;
+    updateQueryControls();
 }
 
 function toggleRunControl(name) {
     if (!(name in runControls)) return;
     runControls[name] = !runControls[name];
-    const labels = {
-        memory: '记忆',
-        context: '上下文',
-        cache: '缓存',
-        evolution: '自进化',
-    };
-    const button = document.getElementById(`control-${name}`);
-    if (button) {
-        button.textContent = `${labels[name]}：${runControls[name] ? '开' : '关'}`;
-        button.classList.toggle('opacity-50', !runControls[name]);
-    }
     if (name === 'memory') {
         rememberTurn = runControls.memory;
         updateRememberControl(runControls.memory ? '' : '记忆已关闭：不召回，也不写入');
     }
+    updateQueryControls();
 }
 
 function handleKeyDown(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) {
         e.preventDefault();
         sendMessage();
     }
@@ -1165,17 +887,17 @@ function addProcessingItem(fileId, filename) {
     const item = document.createElement('div');
     item.id = fileId;
     item.dataset.processingActive = '1';
-    item.className = 'bg-[#fffefa] rounded-lg p-3 border border-[#ded8cc]';
+    item.className = 'bg-[#ffffff] rounded-lg p-3 border border-[#e3e3e7]';
     item.innerHTML = `
         <div class="flex items-center gap-3">
             <div class="mode-icon">
-                <i class="fa-solid fa-file text-[#b85c38] text-sm"></i>
+                <i class="fa-solid fa-file text-[#4b4d55] text-sm"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-[#292520] truncate">${filename}</p>
+                <p class="text-sm font-medium text-[#25262a] truncate">${filename}</p>
                 <div class="flex items-center gap-2 mt-1">
                     <div class="processing-ring"></div>
-                    <span class="status-text text-xs text-[#b85c38]">上传中...</span>
+                    <span class="status-text text-xs text-[#4b4d55]">上传中...</span>
                 </div>
                 <div class="progress-container mt-2">
                     <div class="progress-bar" style="width: 0%"></div>
@@ -1308,6 +1030,7 @@ function _lockInput() {
     input.disabled = true;
     input.style.opacity = '0.5';
     if (sendBtn) { sendBtn.disabled = true; sendBtn.style.opacity = '0.4'; }
+    setRequestStatus('busy', '正在检索资料与记忆…');
 }
 
 function _unlockInput() {
@@ -1317,7 +1040,8 @@ function _unlockInput() {
     input.disabled = false;
     input.style.opacity = '1';
     if (sendBtn) { sendBtn.disabled = false; sendBtn.style.opacity = '1'; }
-    input.focus();
+    const active = document.activeElement;
+    if (active === document.body || active === input || active === sendBtn) input.focus();
 }
 
 async function sendMessage() {
@@ -1347,13 +1071,17 @@ async function sendMessage() {
     }
 
     const requestSessionId = String(currentSessionId || '');
+    if (!requestSessionId) {
+        showToast('会话尚未就绪，请稍后重试；输入内容已保留', 'error');
+        return;
+    }
 
     _lockInput();
     resetMemoryInspector('recalling');
 
     let displayMessage = message;
     if (currentFile) {
-        displayMessage = `<span class="file-tag"><i class="fa-solid fa-file"></i> ${currentFile.name}</span> ${message}`;
+        displayMessage = `📎 ${currentFile.name}\n${message}`;
     }
 
     addMessage(displayMessage, 'user', false, new Date().toISOString());
@@ -1366,9 +1094,10 @@ async function sendMessage() {
     currentFileSessionId = null;
 
     try {
-        const queryMode = currentMode === 'quick'
+        const requestMode = currentMode;
+        const queryMode = requestMode === 'quick'
             ? { mode: 'naive', enableThinking: false, enableRerank: false }
-            : currentMode === 'deep'
+            : requestMode === 'deep'
                 ? { mode: 'mix', enableThinking: true, enableRerank: true }
                 : { mode: 'local', enableThinking: false, enableRerank: true };
         const response = await fetch('/api/v1/query/stream', {
@@ -1385,7 +1114,11 @@ async function sendMessage() {
                 use_memory: runControls.memory,
                 use_conversation_context: runControls.context,
                 use_llm_cache: runControls.cache,
-                use_self_evolution: runControls.evolution
+                use_self_evolution: runControls.evolution,
+                evolution_mode: document.getElementById('evolution-mode')?.value || 'auto',
+                adaptive_context: document.getElementById('adaptive-context')?.checked ?? true,
+                enable_path_completion: getEnabledCheckbox('path-completion'),
+                include_discovered_edges: getEnabledCheckbox('include-discovered')
             })
         });
 
@@ -1396,6 +1129,8 @@ async function sendMessage() {
                 errorMsg = data.response || errorMsg;
             } catch (e) {}
             addMessage(errorMsg, 'bot', true, new Date().toISOString());
+            restoreFailedDraft(requestSessionId, message);
+            setRequestStatus('error', '请求未完成 · 草稿已保留，可直接重试');
             _unlockInput();
             return;
         }
@@ -1406,7 +1141,7 @@ async function sendMessage() {
         let metadata = null;
         let responseText = '';
         const thinkStartTime = Date.now();
-        const isDeepMode = (currentMode === 'deep');
+        const isDeepMode = (requestMode === 'deep');
 
         const container = document.getElementById('chat-messages');
         const msgDiv = document.createElement('div');
@@ -1418,14 +1153,14 @@ async function sendMessage() {
             </div>
             <div class="flex-1 max-w-2xl" id="${uid}_wrapper">
                 <div class="message-bot rounded-2xl rounded-tl-sm px-4 py-3 hidden" id="${uid}_answer">
-                    <div class="text-[#292520]" id="${uid}_text"></div>
-                    <p class="text-xs text-[#9b9287] mt-1">${formatTimestamp(new Date().toISOString())}</p>
+                    <div class="text-[#25262a]" id="${uid}_text"></div>
+                    <p class="text-xs text-[#989aa2] mt-1">${formatTimestamp(new Date().toISOString())}</p>
                 </div>
             </div>
         `;
         const stream = getChatStream();
         if (stream) stream.appendChild(msgDiv);
-        container.scrollTop = container.scrollHeight;
+        scrollChatToLatest();
 
         const wrapper = document.getElementById(uid + '_wrapper');
         let thinkBlock = null;
@@ -1496,6 +1231,7 @@ async function sendMessage() {
                     } else if (parsed.type === 'meta') {
                         metadata = { ...(metadata || {}), ...(parsed.data || {}) };
                         renderMemoryInspector(metadata);
+                        if (!thinkingDone) setRequestStatus('busy', '已收到检索信息，正在组织回答…');
                         if (stepsContainer && metadata.memory_summaries && metadata.memory_summaries.length > 0) {
                             metadata.memory_summaries.forEach(m => {
                                 const step = document.createElement('div');
@@ -1514,6 +1250,7 @@ async function sendMessage() {
                         }
                     } else if (parsed.type === 'chunk') {
                         if (!thinkingDone) {
+                            setRequestStatus('busy', '正在生成回答…');
                             thinkingDone = true;
                             const elapsed = ((Date.now() - thinkStartTime) / 1000).toFixed(1);
                             thinkBlock.classList.remove('thinking');
@@ -1533,12 +1270,12 @@ async function sendMessage() {
                         let html = responseText
                             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                         html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                        html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-[#292520] text-[#fffefa] p-3 rounded-lg overflow-x-auto text-sm my-2"><code>$1</code></pre>');
-                        html = html.replace(/`([^`]+)`/g, '<code class="bg-[#f7f3ea] text-[#8f4329] px-1 py-0.5 rounded text-sm">$1</code>');
+                        html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-[#25262a] text-[#ffffff] p-3 rounded-lg overflow-x-auto text-sm my-2"><code>$1</code></pre>');
+                        html = html.replace(/`([^`]+)`/g, '<code class="bg-[#f3f3f5] text-[#4e5058] px-1 py-0.5 rounded text-sm">$1</code>');
                         html = html.replace(/\n/g, '<br>');
                         document.getElementById(uid + '_text').innerHTML = html;
                     }
-                    container.scrollTop = container.scrollHeight;
+                    scrollChatToLatest();
                 } catch (e) {
                     console.error("SSE parse error:", e, dataStr);
                 }
@@ -1563,10 +1300,25 @@ async function sendMessage() {
             }
         }
 
+        if (!responseText.trim()) {
+            restoreFailedDraft(requestSessionId, message);
+            setRequestStatus('error', '没有收到完整回答，请重试');
+        } else if (responseText.startsWith('上下文预算不足')) {
+            restoreFailedDraft(requestSessionId, message);
+            setRequestStatus('error', '上下文预算不足，请查看回答中的提示');
+        } else if (responseText.startsWith('抱歉，检索或生成超时') || responseText.startsWith('生成过程发生错误:')) {
+            restoreFailedDraft(requestSessionId, message);
+            setRequestStatus('error', '生成未完成，请查看提示后重试');
+        } else {
+            sessionDrafts.delete(requestSessionId);
+            setRequestStatus('done', '回答已完成 · 可查看回答依据');
+        }
         _unlockInput();
 
     } catch (error) {
+        restoreFailedDraft(requestSessionId, message);
         _unlockInput();
+        setRequestStatus('error', '连接中断 · 草稿已保留，可直接重试');
         addMessage('网络错误，请稍后重试。', 'bot', true, new Date().toISOString());
     }
 }
@@ -1629,14 +1381,14 @@ function addMessage(content, role, isError = false, timestamp = null, meta = nul
     const div = document.createElement('div');
     div.className = 'flex gap-3 animate-fadeIn';
     const timeStr = formatTimestamp(timestamp);
-    const safeContent = String(content || '');
+    const safeContent = escapeHtml(content || '');
 
     if (role === 'user') {
         div.innerHTML = `
             <div class="flex-1 flex justify-end">
                 <div class="message-user rounded-2xl rounded-tr-sm px-4 py-3 max-w-xl">
                     <p>${safeContent}</p>
-                    <p class="text-xs text-[#eadfd2] mt-1">${timeStr}</p>
+                    <p class="text-xs text-[#989aa2] mt-1">${timeStr}</p>
                 </div>
             </div>
         `;
@@ -1648,29 +1400,43 @@ function addMessage(content, role, isError = false, timestamp = null, meta = nul
             <div class="flex-1 max-w-2xl">
                 ${thinkingHtml}
                 <div class="message-bot rounded-2xl rounded-tl-sm px-4 py-3 ${isError ? 'border-red-200 bg-red-50' : ''}">
-                    <p class="${isError ? 'text-red-600' : 'text-[#292520]'}">${safeContent.replace(/\n/g, '<br>')}</p>
-                    <p class="text-xs text-[#9b9287] mt-1">${timeStr}</p>
+                    <p class="${isError ? 'text-red-600' : 'text-[#25262a]'}">${safeContent.replace(/\n/g, '<br>')}</p>
+                    <p class="text-xs text-[#989aa2] mt-1">${timeStr}</p>
                 </div>
             </div>
         `;
     }
 
     const stream = getChatStream();
-    if (stream) stream.appendChild(div);
-    container.scrollTop = container.scrollHeight;
+    if (stream) {
+        stream.querySelector('.welcome-panel')?.remove();
+        stream.appendChild(div);
+    }
+    document.getElementById('chat-column')?.classList.remove('is-empty');
+    scrollChatToLatest(role === 'user');
 }
 
 async function clearChat() {
-    clearUiAttachments();
-    resetMemoryInspector('idle');
-    renderWelcome();
-
+    if (_isSending || processingFilesCount > 0) {
+        showToast('请等待当前回答或文件处理完成后再新建对话', 'info');
+        return;
+    }
     const session = await createSession('新对话');
     if (session && session.id) {
+        const input = document.getElementById('message-input');
+        if (currentSessionId) sessionDrafts.set(String(currentSessionId), input.value);
+        input.value = '';
+        clearUiAttachments();
+        resetMemoryInspector('idle');
+        renderWelcome();
         currentSessionId = String(session.id);
         setStoredSessionId(currentSessionId);
         await refreshSessionSelector(currentSessionId);
         await loadHistory(currentSessionId);
+        setRequestStatus('idle', '新对话已准备好');
+        input.focus();
+    } else {
+        showToast('新建对话失败，当前对话和草稿已保留', 'error');
     }
 }
 
@@ -1745,7 +1511,26 @@ function uploadFileWithProgress(file, fileId, uploadSessionId, onStatusChange) {
 document.addEventListener('DOMContentLoaded', async () => {
     const messagesContainer = document.getElementById('chat-messages');
     defaultWelcomeHtml = messagesContainer ? messagesContainer.innerHTML : '';
+    messagesContainer?.addEventListener('scroll', () => {
+        followLatestMessage = messagesContainer.scrollHeight - messagesContainer.clientHeight - messagesContainer.scrollTop < 80;
+    }, { passive: true });
+    updateQueryControls();
     await ensureSessionReady();
+});
+
+document.addEventListener('keydown', (event) => {
+    const inspector = document.getElementById('memory-inspector');
+    if (!inspector || inspector.classList.contains('is-collapsed')) return;
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        setMemoryInspectorOpen(false);
+    } else if (event.key === 'Tab' && window.matchMedia('(max-width: 1024px)').matches) {
+        const focusable = Array.from(inspector.querySelectorAll('button, a[href], input, select, textarea, [tabindex="0"]')).filter((element) => !element.disabled);
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    }
 });
 </script>
 {% endblock %}

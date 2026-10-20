@@ -1,0 +1,37 @@
+{
+  "name": "docthinker-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:h5": "uni --host 127.0.0.1 --port 5174",
+    "preview:h5": "python3 -m http.server 5175 --bind 127.0.0.1 --directory dist/build/h5",
+    "build:h5": "uni build && node scripts/build-pwa.mjs",
+    "build:mp-weixin": "node scripts/build-weixin.mjs",
+    "build:app": "uni build -p app",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "3.0.0-5020620260917001",
+    "@dcloudio/uni-app-plus": "3.0.0-5020620260917001",
+    "@dcloudio/uni-components": "3.0.0-5020620260917001",
+    "@dcloudio/uni-h5": "3.0.0-5020620260917001",
+    "@dcloudio/uni-mp-weixin": "3.0.0-5020620260917001",
+    "vue": "3.4.21"
+  },
+  "overrides": {
+    "@intlify/core-base": "9.14.5",
+    "@intlify/message-resolver": "9.1.11",
+    "adm-zip": "0.6.1",
+    "jpeg-js": "0.4.4",
+    "postcss@^8.0.0": "8.5.28",
+    "postcss-selector-parser@^6.0.0": "6.1.3",
+    "ws": "8.21.0"
+  },
+  "devDependencies": {
+    "@dcloudio/vite-plugin-uni": "3.0.0-5020620260917001",
+    "@dcloudio/uni-cli-shared": "3.0.0-5020620260917001",
+    "@vue/compiler-sfc": "3.4.21",
+    "vite": "5.2.8"
+  }
+}

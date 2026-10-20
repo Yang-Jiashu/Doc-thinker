@@ -1,0 +1,4 @@
+Synthetic algorithm fixture, not empirical research.
+Case: Learning
+Practice supports memory.
+Memory supports performance.

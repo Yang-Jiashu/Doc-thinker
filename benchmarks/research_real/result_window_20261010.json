@@ -1,0 +1,1437 @@
+{
+  "schema": "research-real-ab-window-v3-audit-v1",
+  "date": "2026-10-10",
+  "generated_at": "2026-10-10T06:47:43.346799+00:00",
+  "status": "completed_failure_selected_development_followup_not_held_out_validation",
+  "conclusion_zh": "本轮后台辅助确实向 3/4 个主问题增加了同一来源的原文组织材料，但没有证明效果更好：盲评均分 OFF 77.19、ON 71.25，ON 1 胜、2 负、1 平；关键事实完整性两边均为 2/4。总 token 均值略增。原文窗口定位与保留基础引文的工程改进可保留，辅助扩写应继续默认关闭、仅实验性显式启用。",
+  "method": {
+    "fixture": "benchmarks/research_real/research_window_followup_v1.json",
+    "fixture_digest": "4006bc4b0b0bff390b9daff52d2f9760110cf28659402f959ac7ea0760a2f22c",
+    "fixture_purpose": "Failure-selected development follow-up: test localized semantic windows, intact attribution/conditions and optional same-source evidence expansion; not held-out validation or an unbiased general-effect estimate.",
+    "papers": [
+      {
+        "id": "rag",
+        "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+        "authors": "Patrick Lewis et al.",
+        "arxiv_version": "2005.11401v4",
+        "pdf_url": "https://arxiv.org/pdf/2005.11401v4",
+        "landing_url": "https://arxiv.org/abs/2005.11401v4",
+        "page_count": 19,
+        "file": "rag.pdf",
+        "sha256": "23e3249e9a1e75418d82efecab0ea8c4d033b89c93742f63208d47ce01f21233",
+        "byte_size": 885323
+      },
+      {
+        "id": "lost_middle",
+        "title": "Lost in the Middle: How Language Models Use Long Contexts",
+        "authors": "Nelson F. Liu et al.",
+        "arxiv_version": "2307.03172v1",
+        "pdf_url": "https://arxiv.org/pdf/2307.03172v1",
+        "landing_url": "https://arxiv.org/abs/2307.03172v1",
+        "page_count": 15,
+        "file": "lost_middle.pdf",
+        "sha256": "c8070998fc12d9652d4f3b2e3094a4d6f438ed47a18539e04f07e5dbb9891f9e",
+        "byte_size": 804284
+      },
+      {
+        "id": "graphrag",
+        "title": "From Local to Global: A Graph RAG Approach to Query-Focused Summarization",
+        "authors": "Darren Edge et al.",
+        "arxiv_version": "2404.16130v1",
+        "pdf_url": "https://arxiv.org/pdf/2404.16130v1",
+        "landing_url": "https://arxiv.org/abs/2404.16130v1",
+        "page_count": 15,
+        "file": "graphrag.pdf",
+        "sha256": "33524b3b56910c513affdad8dbf67d14e68edf0572e4debdb09a9f1916463b06",
+        "byte_size": 6782285
+      },
+      {
+        "id": "memgpt",
+        "title": "MemGPT: Towards LLMs as Operating Systems",
+        "authors": "Charles Packer et al.",
+        "arxiv_version": "2310.08560v1",
+        "pdf_url": "https://arxiv.org/pdf/2310.08560v1",
+        "landing_url": "https://arxiv.org/abs/2310.08560v1",
+        "page_count": 15,
+        "file": "memgpt.pdf",
+        "sha256": "03723007dae7c2bde235893864a3282d4c41af7ecad85277f935360658dc4d43",
+        "byte_size": 602501
+      }
+    ],
+    "configuration_digest": "5938e3c34807d4e4aa90d115905fedefd8aabafe3ed93c09af429964a93b030b",
+    "code_fingerprint": "2af3b88732b5386e7298bad0357c99e798cba885c41ce5caf2f0e94cd11f39d1",
+    "run_started_at": "2026-10-10T06:32:17.704488+00:00",
+    "run_completed_at": "2026-10-10T06:41:36.290130+00:00",
+    "model_requested": "step-5-preview",
+    "actual_returned_model": "step-5-preview",
+    "endpoint": "https://api.stepfun.com/step_plan/v1",
+    "parameters": {
+      "temperature": 0,
+      "max_tokens": 8192,
+      "stream": false,
+      "reasoning_effort": "low"
+    },
+    "product_default_output_cap": 2048,
+    "output_cap_scope": "Experimental 8192 overrides the unchanged 2048 product answer cap; these results are not default-cap production measurements.",
+    "primary_unique_questions": 4,
+    "repetitions_per_question": 1,
+    "primary_paired_generation_trials": 4,
+    "main_provider_calls": 8,
+    "diagnostic_provider_calls": 2,
+    "total_provider_calls": 10,
+    "retrieval_configuration": {
+      "semantic_environment": "local",
+      "embedding_directory_override": false,
+      "model": "intfloat/multilingual-e5-small",
+      "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "model_file": "onnx/model.onnx",
+      "pinned_model_sha256": "ca456c06b3a9505ddfd9131408916dd79290368331e7d76bb621f1cba6bc8665",
+      "index_version": "e5-local-window-v2",
+      "candidate_gate_min_cosine": 0.78,
+      "storage_target_chars": 2000,
+      "semantic_passage_window_tokens": 256,
+      "semantic_passage_stride_tokens": 192,
+      "semantic_query_max_tokens": 448,
+      "gate_scope": "heuristic_not_universal_calibration",
+      "local_manifest_sha256": "c9850297efddb0a14a4b2bc895b880b68f995211ae6ad78255f922a1fb8cfcf9",
+      "declared_asset_hashes": {
+        "onnx/model.onnx": "ca456c06b3a9505ddfd9131408916dd79290368331e7d76bb621f1cba6bc8665",
+        "config.json": "69137736cab8b8903a07fe8afaafdda25aac55415a12a55d1bffa9f581abf959",
+        "tokenizer.json": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39",
+        "tokenizer_config.json": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b",
+        "special_tokens_map.json": "d05497f1da52c5e09554c0cd874037a083e1dc1b9cfd48034d1c717f1afc07a7"
+      },
+      "model_verification_basis": "runtime_setup_trace_not_manifest_presence",
+      "source_budget_shared_by_both_arms": {
+        "max_sources": 8,
+        "max_source_bytes": 12000,
+        "max_excerpt_chars": 1000
+      },
+      "document_prewarm": "each_fresh_storage_namespace_before_answer_timer",
+      "query_prewarm": false,
+      "setup_cost_accounting": "separate_elapsed_ms_and_trace_not_free_or_included_in_answer_latency"
+    },
+    "controls": [
+      "Same pinned original PDFs, frozen per-pair corpus clones and original chunk identities. No scoring notes, fabricated chains, or question-specific rules ingested.",
+      "History and memory disabled; response cache disabled; same model parameters, budgets, local semantic retrieval and document prewarm in both arms.",
+      "Two OFF-first and two ON-first main pairs, executed serially without automatic retry.",
+      "Both arms share localized semantic-window and sentence-boundary fixes. Treatment is the optional source-organization pass, not those shared baseline fixes.",
+      "All eight baseline quotes are retained within the eight ON sources for each of five pairs; ON can expand existing source excerpts rather than replacing the baseline.",
+      "Document prewarm excluded from answer timer; every query newly encoded inside its answer timer."
+    ],
+    "quality_method": {
+      "rubric": [
+        {
+          "id": "factual_accuracy",
+          "weight": 25
+        },
+        {
+          "id": "evidence_support",
+          "weight": 25
+        },
+        {
+          "id": "key_fact_completeness",
+          "weight": 20
+        },
+        {
+          "id": "scope_and_uncertainty",
+          "weight": 15
+        },
+        {
+          "id": "task_usefulness",
+          "weight": 15
+        }
+      ],
+      "score_scale": "0..100; weighted five-dimensional score, not keyword overlap",
+      "basis": "Pinned original-paper facts and the exact supplied source excerpts; reviewer records semantic completeness, citation support and inference conditions.",
+      "blinding": "Random-label packets hide arms, usage, timing and helper traces; actual evidence excerpts remain visible.",
+      "reviewer_count": 2,
+      "reviewer_pairs": {
+        "window_blind_b": 2,
+        "window_blind_a": 2
+      },
+      "reviewer_kind": "agent_blind_review",
+      "candidate_score_count": 8,
+      "reviewers_per_pair": 1,
+      "human_evaluation": false,
+      "inter_rater_reliability_established": false,
+      "question_weighting": "Four distinct questions, equally weighted, one generation per arm."
+    },
+    "selection_scope": "Four previously observed failure questions, selected for development and re-used while designing the fixes. One pure-Chinese diagnostic is excluded from the quality and efficiency main averages. Not a random or held-out sample; no statistical significance or general improvement claim.",
+    "version_scope": "Frozen research and runner fingerprint shown above. Subsequent app/worker/deployment opt-in release gates are outside this paid-run fingerprint and were not performance evaluated here."
+  },
+  "quality": {
+    "off_mean": 77.1875,
+    "on_mean": 71.25,
+    "paired_delta_mean": -5.9375,
+    "paired_delta_median": -5,
+    "wins_on": 1,
+    "wins_off": 2,
+    "ties": 1,
+    "exposure_strata": {
+      "identical_prompt": {
+        "scored_reviewer_pair_count": 1,
+        "off_mean": 86.25,
+        "on_mean": 86.25,
+        "paired_delta_mean": 0,
+        "paired_delta_median": 0,
+        "wins_on": 0,
+        "wins_off": 0,
+        "ties": 1
+      },
+      "source_organization": {
+        "scored_reviewer_pair_count": 3,
+        "off_mean": 74.16666666666667,
+        "on_mean": 66.25,
+        "paired_delta_mean": -7.916666666666667,
+        "paired_delta_median": -10,
+        "wins_on": 1,
+        "wins_off": 2,
+        "ties": 0
+      }
+    },
+    "score_errors": [],
+    "partial_reviews": [],
+    "dimension_means": {
+      "factual_accuracy": {
+        "off": 3.75,
+        "on": 3.25
+      },
+      "evidence_support": {
+        "off": 3.25,
+        "on": 3.25
+      },
+      "key_fact_completeness": {
+        "off": 2,
+        "on": 2
+      },
+      "scope_and_uncertainty": {
+        "off": 3.5,
+        "on": 3
+      },
+      "task_usefulness": {
+        "off": 2.75,
+        "on": 2.5
+      }
+    },
+    "dimension_scale": "0..4",
+    "critical_error_flags": 0
+  },
+  "exposure": {
+    "main_identical_prompt_pairs": 1,
+    "main_source_organization_pairs": 3,
+    "main_formal_auxiliary_pairs": 0,
+    "diagnostic_source_organization_pairs": 1,
+    "on_source_organization_items_main": 9,
+    "on_source_organization_items_diagnostic": 3,
+    "all_baseline_quotes_retained_per_pair": 8,
+    "same_source_count_not_same_prompt": true,
+    "interpretation": "The support label means extractive source selection/organization, not verified entailment, a complete causal chain, or a proof from analogy/deduction/induction."
+  },
+  "primary_efficiency": {
+    "pair_count": 4,
+    "unique_question_count": 4,
+    "repetition_count": 1,
+    "usage": {
+      "prompt_tokens": {
+        "pair_count": 4,
+        "measured_pair_count": 4,
+        "unavailable_pair_count": 0,
+        "off_mean": 2924.25,
+        "on_mean": 3248,
+        "paired_delta_mean": 323.75,
+        "off_median": 2903,
+        "on_median": 3200,
+        "paired_delta_median": 387,
+        "delta_direction": "on_minus_off"
+      },
+      "completion_tokens": {
+        "pair_count": 4,
+        "measured_pair_count": 4,
+        "unavailable_pair_count": 0,
+        "off_mean": 3681.25,
+        "on_mean": 3416.25,
+        "paired_delta_mean": -265,
+        "off_median": 3773.5,
+        "on_median": 3336.5,
+        "paired_delta_median": -93,
+        "delta_direction": "on_minus_off"
+      },
+      "total_tokens": {
+        "pair_count": 4,
+        "measured_pair_count": 4,
+        "unavailable_pair_count": 0,
+        "off_mean": 6605.5,
+        "on_mean": 6664.25,
+        "paired_delta_mean": 58.75,
+        "off_median": 6719,
+        "on_median": 6727,
+        "paired_delta_median": 109.5,
+        "delta_direction": "on_minus_off"
+      },
+      "cached_tokens": {
+        "pair_count": 4,
+        "measured_pair_count": 4,
+        "unavailable_pair_count": 0,
+        "off_mean": 320,
+        "on_mean": 768,
+        "paired_delta_mean": 448,
+        "off_median": 384,
+        "on_median": 256,
+        "paired_delta_median": -256,
+        "delta_direction": "on_minus_off"
+      },
+      "reasoning_tokens": {
+        "pair_count": 4,
+        "measured_pair_count": 4,
+        "unavailable_pair_count": 0,
+        "off_mean": 0,
+        "on_mean": 0,
+        "paired_delta_mean": 0,
+        "off_median": 0,
+        "on_median": 0,
+        "paired_delta_median": 0,
+        "delta_direction": "on_minus_off"
+      }
+    },
+    "latency_ms": {
+      "pre_model_latency_ms": {
+        "pair_count": 4,
+        "measured_pair_count": 4,
+        "unavailable_pair_count": 0,
+        "off_mean": 63.607176998630166,
+        "on_mean": 194.19782276963815,
+        "paired_delta_mean": 130.59064577100798,
+        "off_median": 63.653354067355394,
+        "on_median": 180.11814553756267,
+        "paired_delta_median": 136.03829150088131,
+        "delta_direction": "on_minus_off"
+      },
+      "model_latency_ms": {
+        "pair_count": 4,
+        "measured_pair_count": 4,
+        "unavailable_pair_count": 0,
+        "off_mean": 47104.74417702062,
+        "on_mean": 40349.59637525026,
+        "paired_delta_mean": -6755.147801770363,
+        "off_median": 46291.93414596375,
+        "on_median": 42075.870271539316,
+        "paired_delta_median": -9294.23172911629,
+        "delta_direction": "on_minus_off"
+      },
+      "post_model_latency_ms": {
+        "pair_count": 4,
+        "measured_pair_count": 4,
+        "unavailable_pair_count": 0,
+        "off_mean": 21.171437459997833,
+        "on_mean": 21.218749694526196,
+        "paired_delta_mean": 0.04731223452836275,
+        "off_median": 19.72833345644176,
+        "on_median": 18.925083451904356,
+        "paired_delta_median": -0.6309164455160499,
+        "delta_direction": "on_minus_off"
+      },
+      "total_answer_latency_ms": {
+        "pair_count": 4,
+        "measured_pair_count": 4,
+        "unavailable_pair_count": 0,
+        "off_mean": 47189.52279147925,
+        "on_mean": 40565.01294771442,
+        "paired_delta_mean": -6624.509843764827,
+        "off_median": 46358.80087502301,
+        "on_median": 42279.500833014026,
+        "paired_delta_median": -9169.719645520672,
+        "delta_direction": "on_minus_off"
+      }
+    },
+    "setup_latency_ms": {
+      "retrieval_setup_latency_ms": {
+        "pair_count": 4,
+        "measured_pair_count": 4,
+        "unavailable_pair_count": 0,
+        "off_mean": 6508.720729267225,
+        "on_mean": 8354.05859380262,
+        "paired_delta_mean": 1845.337864535395,
+        "off_median": 4252.567375078797,
+        "on_median": 5060.680916532874,
+        "paired_delta_median": 808.1135414540768,
+        "delta_direction": "on_minus_off"
+      },
+      "per_arm_setup_latency_ms": {
+        "pair_count": 4,
+        "measured_pair_count": 4,
+        "unavailable_pair_count": 0,
+        "off_mean": 6514.125906745903,
+        "on_mean": 8357.834385242313,
+        "paired_delta_mean": 1843.70847849641,
+        "off_median": 4255.011417088099,
+        "on_median": 5062.747561954893,
+        "paired_delta_median": 807.7361448667943,
+        "delta_direction": "on_minus_off"
+      },
+      "upfront_setup_latency_ms": {
+        "pair_count": 4,
+        "measured_pair_count": 4,
+        "unavailable_pair_count": 0,
+        "off_mean": 16808.212031784933,
+        "on_mean": 18651.920510281343,
+        "paired_delta_mean": 1843.70847849641,
+        "off_median": 11269.19008337427,
+        "on_median": 11918.556625023484,
+        "paired_delta_median": 807.7361448667943,
+        "delta_direction": "on_minus_off"
+      }
+    },
+    "semantic_retrieval": {
+      "off": {
+        "record_count": 4,
+        "status_counts": {
+          "ready": 4
+        },
+        "available_count": 4,
+        "busy_count": 0,
+        "timed_out_count": 0,
+        "missing_count": 0,
+        "availability_definition": "ready means the recorded retrieval operation ran; it does not establish relevant evidence or answer quality"
+      },
+      "on": {
+        "record_count": 4,
+        "status_counts": {
+          "ready": 4
+        },
+        "available_count": 4,
+        "busy_count": 0,
+        "timed_out_count": 0,
+        "missing_count": 0,
+        "availability_definition": "ready means the recorded retrieval operation ran; it does not establish relevant evidence or answer quality"
+      }
+    }
+  },
+  "efficiency_changes_percent": {
+    "mean_total_tokens": 0.8894103398682915,
+    "mean_total_answer_latency": -14.038094585184018
+  },
+  "latency_interpretation": "ON full non-streaming answers were descriptively 6.62 s faster on average, while pre-model work increased by 130.59 ms and completion tokens decreased by 265 on average. All four main pairs have different vendor cache hits and output content differs. This does not establish a scheduling, intrinsic speed or quality-adjusted efficiency gain; it is not first-token latency.",
+  "provider_cache_comparison": [
+    {
+      "question_id": "q02_lost_middle_setup",
+      "repetition": 1,
+      "exposure": "identical_prompt",
+      "off_cached_tokens": 0,
+      "on_cached_tokens": 2560,
+      "cache_hit_changed": true
+    },
+    {
+      "question_id": "q06_memgpt_os_analogy",
+      "repetition": 1,
+      "exposure": "source_organization",
+      "off_cached_tokens": 512,
+      "on_cached_tokens": 256,
+      "cache_hit_changed": true
+    },
+    {
+      "question_id": "q08_synthesis_memory_patterns",
+      "repetition": 1,
+      "exposure": "source_organization",
+      "off_cached_tokens": 256,
+      "on_cached_tokens": 0,
+      "cache_hit_changed": true
+    },
+    {
+      "question_id": "q11_query_aware_counterexample",
+      "repetition": 1,
+      "exposure": "source_organization",
+      "off_cached_tokens": 512,
+      "on_cached_tokens": 256,
+      "cache_hit_changed": true
+    }
+  ],
+  "consumption": {
+    "all_v3_provider_consumption": {
+      "dispatched_call_count": 10,
+      "provider_receipt_count": 10,
+      "indeterminate_call_count": 0,
+      "usage_including_failed_and_incomplete_calls": {
+        "prompt_tokens": {
+          "reported_total": 31134,
+          "known_reported_subtotal": 31134,
+          "known_call_count": 10,
+          "unknown_call_count": 0
+        },
+        "completion_tokens": {
+          "reported_total": 35238,
+          "known_reported_subtotal": 35238,
+          "known_call_count": 10,
+          "unknown_call_count": 0
+        },
+        "total_tokens": {
+          "reported_total": 66372,
+          "known_reported_subtotal": 66372,
+          "known_call_count": 10,
+          "unknown_call_count": 0
+        },
+        "cached_tokens": {
+          "reported_total": 5888,
+          "known_reported_subtotal": 5888,
+          "known_call_count": 10,
+          "unknown_call_count": 0
+        },
+        "reasoning_tokens": {
+          "reported_total": 0,
+          "known_reported_subtotal": 0,
+          "known_call_count": 10,
+          "unknown_call_count": 0
+        }
+      },
+      "provider_status_counts": {
+        "ok": 10
+      },
+      "non_ok_calls": [],
+      "journal_errors": [],
+      "definition": "All provider-reported consumption, including failed or truncated attempts. Not currency charges; unknown usage is not zero. Separate from successful matched-pair averages."
+    },
+    "main_8_call_total_tokens": 53079,
+    "diagnostic_2_call_total_tokens": 13293,
+    "actual_model_counts": {
+      "step-5-preview": 10
+    },
+    "finish_reason_counts": {
+      "stop": 10
+    },
+    "automatic_retries": 0,
+    "new_calls_from_this_audit": 0,
+    "current_repair_round_v2_plus_v3": {
+      "v2_calls": 26,
+      "v2_reported_total_tokens": 150765,
+      "v3_calls": 10,
+      "v3_reported_total_tokens": 66372,
+      "calls": 36,
+      "reported_total_tokens": 217137,
+      "scope": "Accounting sum only; different fixtures/code fingerprints must not be pooled as one quality experiment."
+    },
+    "earlier_experiment_separate": {
+      "report": "benchmarks/research_real/result_real_20261010.json",
+      "known_reported_tokens_including_main_pilot_smoke": 306914,
+      "not_included_in_current_round": true,
+      "prior_402_403_usage": "Not reported; remains unknown, not silently assigned zero."
+    },
+    "cost_scope": "Provider usage only, not currency charges. Local embedding uses CPU and memory; AI blind reviewers are outside the Step-5 product-runtime call count. Reported zero reasoning tokens do not prove absence of internal model reasoning."
+  },
+  "latency_definition": "Wall-clock pre-model, full non-streaming HTTP model call, post-model and total answer; not first-token latency. New runs exclude PDF ingestion, corpus cloning and document-vector prewarm from the answer timer and record them separately. Query encoding and retrieval remain inside the answer timer. Legacy missing setup measurements stay null.",
+  "setup_cost_definition": "retrieval_setup_latency_ms measures document-vector prewarm in each fresh storage namespace; per_arm_setup_latency_ms adds that arm's corpus clone. upfront_setup_latency_ms additionally includes the shared, amortizable frozen-corpus ingestion cost. Its paired mean describes cold-start-equivalent cost, not total run expenditure: never sum upfront_setup_latency_ms across answers. corpus_ingestion retains each corpus once; setup is local work with real elapsed cost, not free provider tokens.",
+  "corpus_ingestion_once_per_corpus": {
+    "ec7ac197034e5ed6dedfbde5575214114632f59949d79ff64753268aada5526e": {
+      "ingestion_latency_ms": 8862.355042016134
+    },
+    "b2bac016579c53585d1380b0691a891707b3f9cf7857d6979615be86c6f6ec96": {
+      "ingestion_latency_ms": 7168.715582927689
+    },
+    "4d69275061f4843b8da5fe7fba58004e5ef28f4b6a9188a2e4c6c48f126c52f7": {
+      "ingestion_latency_ms": 4929.580042138696
+    },
+    "7b9086cfcba6b9e2c2a25d016cdb09f404b83ed8c9c906fa1c4ce28ee38d5986": {
+      "ingestion_latency_ms": 21909.333292162046
+    }
+  },
+  "setup_interpretation": "Per-fresh-clone document-vector setup averaged 6.51 s OFF and 8.35 s ON, outside answer latency. Shared ingestion is amortizable and must not be counted once per answer in total-run expenditure.",
+  "prepared_source_audit": [
+    {
+      "question_id": "q02_lost_middle_setup",
+      "diagnostic_only": false,
+      "source_counts": {
+        "off": 8,
+        "on": 8
+      },
+      "baseline_quotes_retained_in_on": 8,
+      "retained_source_labels": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "S6",
+        "S7",
+        "S8"
+      ],
+      "source_bytes": {
+        "off": 7489,
+        "on": 7489
+      },
+      "on_minus_off_source_bytes": 0,
+      "prompt_input_bytes": {
+        "off": 12385,
+        "on": 12385
+      },
+      "on_minus_off_prompt_input_bytes": 0,
+      "on_source_organization_items": 0,
+      "prepared_quotes_and_prompt_bytes_match_paid_artifacts": true,
+      "finding": "No source or prompt expansion. Both answers still omit fixed-answer and distractor manipulations, especially key-value controls."
+    },
+    {
+      "question_id": "q06_memgpt_os_analogy",
+      "diagnostic_only": false,
+      "source_counts": {
+        "off": 8,
+        "on": 8
+      },
+      "baseline_quotes_retained_in_on": 8,
+      "retained_source_labels": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "S6",
+        "S7",
+        "S8"
+      ],
+      "source_bytes": {
+        "off": 7574,
+        "on": 8122
+      },
+      "on_minus_off_source_bytes": 548,
+      "prompt_input_bytes": {
+        "off": 12354,
+        "on": 13902
+      },
+      "on_minus_off_prompt_input_bytes": 1548,
+      "on_source_organization_items": 3,
+      "prepared_quotes_and_prompt_bytes_match_paid_artifacts": true,
+      "finding": "Adds virtual-memory analogy and external-context paging language, but still omits the continuation flag/function-chaining mechanism. ON additionally invents an incorrect section location (chapters 3-4 rather than section 2.4) and is less useful to the requested nontechnical audience."
+    },
+    {
+      "question_id": "q08_synthesis_memory_patterns",
+      "diagnostic_only": false,
+      "source_counts": {
+        "off": 8,
+        "on": 8
+      },
+      "baseline_quotes_retained_in_on": 8,
+      "retained_source_labels": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "S6",
+        "S7",
+        "S8"
+      ],
+      "source_bytes": {
+        "off": 6564,
+        "on": 7361
+      },
+      "on_minus_off_source_bytes": 797,
+      "prompt_input_bytes": {
+        "off": 11506,
+        "on": 13326
+      },
+      "on_minus_off_prompt_input_bytes": 1820,
+      "on_source_organization_items": 3,
+      "prepared_quotes_and_prompt_bytes_match_paid_artifacts": true,
+      "finding": "Adds RAG aggregation language, a broad MemGPT motivation sentence, and a RAG societal-benefits paragraph; the latter is weakly targeted evidence for architecture. Joint training and MemGPT editable/main/external-memory and event-control mechanisms remain missing. ON is in English despite the Chinese writing task and drops important comparison conditions."
+    },
+    {
+      "question_id": "q11_query_aware_counterexample",
+      "diagnostic_only": false,
+      "source_counts": {
+        "off": 8,
+        "on": 8
+      },
+      "baseline_quotes_retained_in_on": 8,
+      "retained_source_labels": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "S6",
+        "S7",
+        "S8"
+      ],
+      "source_bytes": {
+        "off": 7150,
+        "on": 8281
+      },
+      "on_minus_off_source_bytes": 1131,
+      "prompt_input_bytes": {
+        "off": 12126,
+        "on": 14392
+      },
+      "on_minus_off_prompt_input_bytes": 2266,
+      "on_source_organization_items": 3,
+      "prepared_quotes_and_prompt_bytes_match_paid_artifacts": true,
+      "finding": "Adds background architecture and study-description sentences but not the decisive perfect key-value retrieval result for GPT-3.5-Turbo 16K with 300 UUID pairs. ON is a little more readable, not more complete."
+    },
+    {
+      "question_id": "d01_chinese_retrieval_control",
+      "diagnostic_only": true,
+      "source_counts": {
+        "off": 8,
+        "on": 8
+      },
+      "baseline_quotes_retained_in_on": 8,
+      "retained_source_labels": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "S6",
+        "S7",
+        "S8"
+      ],
+      "source_bytes": {
+        "off": 7393,
+        "on": 8107
+      },
+      "on_minus_off_source_bytes": 714,
+      "prompt_input_bytes": {
+        "off": 12344,
+        "on": 14020
+      },
+      "on_minus_off_prompt_input_bytes": 1676,
+      "on_source_organization_items": 3,
+      "prepared_quotes_and_prompt_bytes_match_paid_artifacts": true,
+      "finding": "Adds MemGPT persona-baseline and conversation-evaluation discussion rather than establishing a complete memory-management causal chain. This diagnostic is not blind quality scored."
+    }
+  ],
+  "diagnostic": {
+    "question_id": "d01_chinese_retrieval_control",
+    "excluded_from_main_averages": true,
+    "quality_reviewed": false,
+    "source_audit": {
+      "question_id": "d01_chinese_retrieval_control",
+      "diagnostic_only": true,
+      "source_counts": {
+        "off": 8,
+        "on": 8
+      },
+      "baseline_quotes_retained_in_on": 8,
+      "retained_source_labels": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "S6",
+        "S7",
+        "S8"
+      ],
+      "source_bytes": {
+        "off": 7393,
+        "on": 8107
+      },
+      "on_minus_off_source_bytes": 714,
+      "prompt_input_bytes": {
+        "off": 12344,
+        "on": 14020
+      },
+      "on_minus_off_prompt_input_bytes": 1676,
+      "on_source_organization_items": 3,
+      "prepared_quotes_and_prompt_bytes_match_paid_artifacts": true,
+      "finding": "Adds MemGPT persona-baseline and conversation-evaluation discussion rather than establishing a complete memory-management causal chain. This diagnostic is not blind quality scored."
+    },
+    "off": {
+      "status": "completed",
+      "answer_mode": "evidence",
+      "source_count": 8,
+      "actual_model_calls": 1,
+      "assistance": {
+        "requested": false,
+        "has_actual_support": false,
+        "support_item_count": 0,
+        "status": "not_requested",
+        "algorithm_modes": [],
+        "skipped_reason": "operator_disabled",
+        "scheduler_status": null
+      },
+      "support_kind": {
+        "category": "none",
+        "item_counts": {}
+      },
+      "semantic_retrieval_status": "ready",
+      "usage": {
+        "prompt_tokens": 3029,
+        "completion_tokens": 4240,
+        "total_tokens": 7269,
+        "cached_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "setup_latency_ms": {
+        "retrieval_setup_latency_ms": 7531.115459045395,
+        "per_arm_setup_latency_ms": 7533.345208968967,
+        "upfront_setup_latency_ms": 16395.7002509851
+      },
+      "total_answer_latency_ms": 53438.569124788046,
+      "source_pages": [
+        {
+          "label": "S1",
+          "paper_id": "lost_middle",
+          "page": 2
+        },
+        {
+          "label": "S2",
+          "paper_id": "memgpt",
+          "page": 12
+        },
+        {
+          "label": "S3",
+          "paper_id": "lost_middle",
+          "page": 5
+        },
+        {
+          "label": "S4",
+          "paper_id": "memgpt",
+          "page": 8
+        },
+        {
+          "label": "S5",
+          "paper_id": "lost_middle",
+          "page": 11
+        },
+        {
+          "label": "S6",
+          "paper_id": "memgpt",
+          "page": 1
+        },
+        {
+          "label": "S7",
+          "paper_id": "lost_middle",
+          "page": 10
+        },
+        {
+          "label": "S8",
+          "paper_id": "memgpt",
+          "page": 6
+        }
+      ]
+    },
+    "on": {
+      "status": "completed",
+      "answer_mode": "evidence",
+      "source_count": 8,
+      "actual_model_calls": 1,
+      "assistance": {
+        "requested": true,
+        "has_actual_support": true,
+        "support_item_count": 3,
+        "status": "source_organized",
+        "algorithm_modes": [
+          "deduction",
+          "source_evidence"
+        ],
+        "skipped_reason": null,
+        "scheduler_status": "completed"
+      },
+      "support_kind": {
+        "category": "source_organization",
+        "item_counts": {
+          "source_organization": 3
+        }
+      },
+      "semantic_retrieval_status": "ready",
+      "usage": {
+        "prompt_tokens": 3416,
+        "completion_tokens": 2608,
+        "total_tokens": 6024,
+        "cached_tokens": 1280,
+        "reasoning_tokens": 0
+      },
+      "setup_latency_ms": {
+        "retrieval_setup_latency_ms": 7690.1980000548065,
+        "per_arm_setup_latency_ms": 7694.489542162046,
+        "upfront_setup_latency_ms": 16556.84458417818
+      },
+      "total_answer_latency_ms": 35848.92875002697,
+      "source_pages": [
+        {
+          "label": "S1",
+          "paper_id": "lost_middle",
+          "page": 2
+        },
+        {
+          "label": "S2",
+          "paper_id": "memgpt",
+          "page": 12
+        },
+        {
+          "label": "S3",
+          "paper_id": "lost_middle",
+          "page": 5
+        },
+        {
+          "label": "S4",
+          "paper_id": "memgpt",
+          "page": 8
+        },
+        {
+          "label": "S5",
+          "paper_id": "lost_middle",
+          "page": 11
+        },
+        {
+          "label": "S6",
+          "paper_id": "memgpt",
+          "page": 1
+        },
+        {
+          "label": "S7",
+          "paper_id": "lost_middle",
+          "page": 10
+        },
+        {
+          "label": "S8",
+          "paper_id": "memgpt",
+          "page": 6
+        }
+      ]
+    }
+  },
+  "per_question": [
+    {
+      "question_id": "q02_lost_middle_setup",
+      "repetition": 1,
+      "quality": {
+        "off": 86.25,
+        "on": 86.25,
+        "on_minus_off": 0
+      },
+      "exposure": "identical_prompt",
+      "first_called_arm": "off",
+      "cached_token_match": "different_known",
+      "source_content_identical": true,
+      "on_assistance": {
+        "requested": true,
+        "has_actual_support": false,
+        "support_item_count": 0,
+        "status": "not_requested",
+        "algorithm_modes": [],
+        "skipped_reason": "ordinary_retrieval_sufficient",
+        "scheduler_status": "completed"
+      },
+      "support_kind": {
+        "off": {
+          "category": "none",
+          "item_counts": {}
+        },
+        "on": {
+          "category": "none",
+          "item_counts": {}
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "off": 2955,
+          "on": 2955,
+          "delta": 0
+        },
+        "completion_tokens": {
+          "off": 2439,
+          "on": 2619,
+          "delta": 180
+        },
+        "total_tokens": {
+          "off": 5394,
+          "on": 5574,
+          "delta": 180
+        },
+        "cached_tokens": {
+          "off": 0,
+          "on": 2560,
+          "delta": 2560
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 82.91162503883243,
+          "on": 74.13083291612566,
+          "delta": -8.780792122706771
+        },
+        "model_latency_ms": {
+          "off": 35986.03858309798,
+          "on": 29586.41245798208,
+          "delta": -6399.626125115901
+        },
+        "post_model_latency_ms": {
+          "off": 18.68624985218048,
+          "on": 17.31249992735684,
+          "delta": -1.3737499248236418
+        },
+        "total_answer_latency_ms": {
+          "off": 36087.63645798899,
+          "on": 29677.85579082556,
+          "delta": -6409.780667163432
+        }
+      },
+      "source_audit": {
+        "question_id": "q02_lost_middle_setup",
+        "diagnostic_only": false,
+        "source_counts": {
+          "off": 8,
+          "on": 8
+        },
+        "baseline_quotes_retained_in_on": 8,
+        "retained_source_labels": [
+          "S1",
+          "S2",
+          "S3",
+          "S4",
+          "S5",
+          "S6",
+          "S7",
+          "S8"
+        ],
+        "source_bytes": {
+          "off": 7489,
+          "on": 7489
+        },
+        "on_minus_off_source_bytes": 0,
+        "prompt_input_bytes": {
+          "off": 12385,
+          "on": 12385
+        },
+        "on_minus_off_prompt_input_bytes": 0,
+        "on_source_organization_items": 0,
+        "prepared_quotes_and_prompt_bytes_match_paid_artifacts": true,
+        "finding": "No source or prompt expansion. Both answers still omit fixed-answer and distractor manipulations, especially key-value controls."
+      }
+    },
+    {
+      "question_id": "q06_memgpt_os_analogy",
+      "repetition": 1,
+      "quality": {
+        "off": 76.25,
+        "on": 66.25,
+        "on_minus_off": -10
+      },
+      "exposure": "source_organization",
+      "first_called_arm": "on",
+      "cached_token_match": "different_known",
+      "source_content_identical": false,
+      "on_assistance": {
+        "requested": true,
+        "has_actual_support": true,
+        "support_item_count": 3,
+        "status": "source_organized",
+        "algorithm_modes": [
+          "analogy",
+          "source_evidence"
+        ],
+        "skipped_reason": null,
+        "scheduler_status": "completed"
+      },
+      "support_kind": {
+        "off": {
+          "category": "none",
+          "item_counts": {}
+        },
+        "on": {
+          "category": "source_organization",
+          "item_counts": {
+            "source_organization": 3
+          }
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "off": 2775,
+          "on": 3144,
+          "delta": 369
+        },
+        "completion_tokens": {
+          "off": 4223,
+          "on": 2971,
+          "delta": -1252
+        },
+        "total_tokens": {
+          "off": 6998,
+          "on": 6115,
+          "delta": -883
+        },
+        "cached_tokens": {
+          "off": 512,
+          "on": 256,
+          "delta": -256
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 43.764624977484345,
+          "on": 174.18995802290738,
+          "delta": 130.42533304542303
+        },
+        "model_latency_ms": {
+          "off": 54744.379749987274,
+          "on": 37136.74008403905,
+          "delta": -17607.639665948227
+        },
+        "post_model_latency_ms": {
+          "off": 26.54283307492733,
+          "on": 16.643290873616934,
+          "delta": -9.899542201310396
+        },
+        "total_answer_latency_ms": {
+          "off": 54814.687208039686,
+          "on": 37327.57333293557,
+          "delta": -17487.113875104114
+        }
+      },
+      "source_audit": {
+        "question_id": "q06_memgpt_os_analogy",
+        "diagnostic_only": false,
+        "source_counts": {
+          "off": 8,
+          "on": 8
+        },
+        "baseline_quotes_retained_in_on": 8,
+        "retained_source_labels": [
+          "S1",
+          "S2",
+          "S3",
+          "S4",
+          "S5",
+          "S6",
+          "S7",
+          "S8"
+        ],
+        "source_bytes": {
+          "off": 7574,
+          "on": 8122
+        },
+        "on_minus_off_source_bytes": 548,
+        "prompt_input_bytes": {
+          "off": 12354,
+          "on": 13902
+        },
+        "on_minus_off_prompt_input_bytes": 1548,
+        "on_source_organization_items": 3,
+        "prepared_quotes_and_prompt_bytes_match_paid_artifacts": true,
+        "finding": "Adds virtual-memory analogy and external-context paging language, but still omits the continuation flag/function-chaining mechanism. ON additionally invents an incorrect section location (chapters 3-4 rather than section 2.4) and is less useful to the requested nontechnical audience."
+      }
+    },
+    {
+      "question_id": "q08_synthesis_memory_patterns",
+      "repetition": 1,
+      "quality": {
+        "on": 62.5,
+        "off": 80,
+        "on_minus_off": -17.5
+      },
+      "exposure": "source_organization",
+      "first_called_arm": "off",
+      "cached_token_match": "different_known",
+      "source_content_identical": false,
+      "on_assistance": {
+        "requested": true,
+        "has_actual_support": true,
+        "support_item_count": 3,
+        "status": "source_organized",
+        "algorithm_modes": [
+          "induction",
+          "source_evidence"
+        ],
+        "skipped_reason": null,
+        "scheduler_status": "completed"
+      },
+      "support_kind": {
+        "off": {
+          "category": "none",
+          "item_counts": {}
+        },
+        "on": {
+          "category": "source_organization",
+          "item_counts": {
+            "source_organization": 3
+          }
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "off": 2851,
+          "on": 3256,
+          "delta": 405
+        },
+        "completion_tokens": {
+          "off": 4739,
+          "on": 4373,
+          "delta": -366
+        },
+        "total_tokens": {
+          "off": 7590,
+          "on": 7629,
+          "delta": 39
+        },
+        "cached_tokens": {
+          "off": 256,
+          "on": 0,
+          "delta": -256
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 83.35737488232553,
+          "on": 342.4241670873016,
+          "delta": 259.0667922049761
+        },
+        "model_latency_ms": {
+          "off": 59849.069833057,
+          "on": 47660.23249994032,
+          "delta": -12188.83733311668
+        },
+        "post_model_latency_ms": {
+          "off": 20.42574994266033,
+          "on": 20.537666976451874,
+          "delta": 0.11191703379154205
+        },
+        "total_answer_latency_ms": {
+          "off": 59952.85295788199,
+          "on": 48023.194334004074,
+          "delta": -11929.658623877913
+        }
+      },
+      "source_audit": {
+        "question_id": "q08_synthesis_memory_patterns",
+        "diagnostic_only": false,
+        "source_counts": {
+          "off": 8,
+          "on": 8
+        },
+        "baseline_quotes_retained_in_on": 8,
+        "retained_source_labels": [
+          "S1",
+          "S2",
+          "S3",
+          "S4",
+          "S5",
+          "S6",
+          "S7",
+          "S8"
+        ],
+        "source_bytes": {
+          "off": 6564,
+          "on": 7361
+        },
+        "on_minus_off_source_bytes": 797,
+        "prompt_input_bytes": {
+          "off": 11506,
+          "on": 13326
+        },
+        "on_minus_off_prompt_input_bytes": 1820,
+        "on_source_organization_items": 3,
+        "prepared_quotes_and_prompt_bytes_match_paid_artifacts": true,
+        "finding": "Adds RAG aggregation language, a broad MemGPT motivation sentence, and a RAG societal-benefits paragraph; the latter is weakly targeted evidence for architecture. Joint training and MemGPT editable/main/external-memory and event-control mechanisms remain missing. ON is in English despite the Chinese writing task and drops important comparison conditions."
+      }
+    },
+    {
+      "question_id": "q11_query_aware_counterexample",
+      "repetition": 1,
+      "quality": {
+        "off": 66.25,
+        "on": 70,
+        "on_minus_off": 3.75
+      },
+      "exposure": "source_organization",
+      "first_called_arm": "on",
+      "cached_token_match": "different_known",
+      "source_content_identical": false,
+      "on_assistance": {
+        "requested": true,
+        "has_actual_support": true,
+        "support_item_count": 3,
+        "status": "source_organized",
+        "algorithm_modes": [
+          "deduction",
+          "source_evidence"
+        ],
+        "skipped_reason": null,
+        "scheduler_status": "completed"
+      },
+      "support_kind": {
+        "off": {
+          "category": "none",
+          "item_counts": {}
+        },
+        "on": {
+          "category": "source_organization",
+          "item_counts": {
+            "source_organization": 3
+          }
+        }
+      },
+      "usage": {
+        "prompt_tokens": {
+          "off": 3116,
+          "on": 3637,
+          "delta": 521
+        },
+        "completion_tokens": {
+          "off": 3324,
+          "on": 3702,
+          "delta": 378
+        },
+        "total_tokens": {
+          "off": 6440,
+          "on": 7339,
+          "delta": 899
+        },
+        "cached_tokens": {
+          "off": 512,
+          "on": 256,
+          "delta": -256
+        },
+        "reasoning_tokens": {
+          "off": 0,
+          "on": 0,
+          "delta": 0
+        }
+      },
+      "latency_ms": {
+        "pre_model_latency_ms": {
+          "off": 44.39508309587836,
+          "on": 186.04633305221796,
+          "delta": 141.6512499563396
+        },
+        "model_latency_ms": {
+          "off": 37839.48854194023,
+          "on": 47015.000459039584,
+          "delta": 9175.511917099357
+        },
+        "post_model_latency_ms": {
+          "off": 19.03091697022319,
+          "on": 30.381541000679135,
+          "delta": 11.350624030455947
+        },
+        "total_answer_latency_ms": {
+          "off": 37902.91454200633,
+          "on": 47231.42833309248,
+          "delta": 9328.513791086152
+        }
+      },
+      "source_audit": {
+        "question_id": "q11_query_aware_counterexample",
+        "diagnostic_only": false,
+        "source_counts": {
+          "off": 8,
+          "on": 8
+        },
+        "baseline_quotes_retained_in_on": 8,
+        "retained_source_labels": [
+          "S1",
+          "S2",
+          "S3",
+          "S4",
+          "S5",
+          "S6",
+          "S7",
+          "S8"
+        ],
+        "source_bytes": {
+          "off": 7150,
+          "on": 8281
+        },
+        "on_minus_off_source_bytes": 1131,
+        "prompt_input_bytes": {
+          "off": 12126,
+          "on": 14392
+        },
+        "on_minus_off_prompt_input_bytes": 2266,
+        "on_source_organization_items": 3,
+        "prepared_quotes_and_prompt_bytes_match_paid_artifacts": true,
+        "finding": "Adds background architecture and study-description sentences but not the decisive perfect key-value retrieval result for GPT-3.5-Turbo 16K with 300 UUID pairs. ON is a little more readable, not more complete."
+      }
+    }
+  ],
+  "remaining_failures_zh": [
+    "增加原文长度不等于补齐用户需要的关键机制：function chaining、RAG 联合训练、MemGPT 记忆控制、query-aware 的完美 KV 对照仍有缺口。",
+    "q08 增加了 RAG 社会效益声明等弱相关内容，而 ON 用英文回答中文写作请求，并丢失成本比较和实验条件；这是本轮最明显的退步。",
+    "q06 ON 把应核对的第 2.4 节说成第 3–4 章，辅助来源组织没有阻止新的细节错误。",
+    "四个失败选题、一次生成和每对一位 AI 评审只能给出本轮诊断，不能证明算法普遍有害或任何版本已达到生产质量。"
+  ],
+  "release_decision": {
+    "default_background_assistance": "off",
+    "availability": "explicit_experimental_opt_in_only",
+    "shared_baseline_repairs": "retain local multilingual retrieval and source-window correctness fixes",
+    "reason": "This experiment did not pass an answer-quality or token-saving release gate. Do not enable source expansion for ordinary users on the basis of activation alone.",
+    "implementation_scope": "App startup, invite worker and deployment/management configuration now default assistance to false, accept explicit true/1 opt-in and reject invalid values. These gates are outside the frozen paid-run research fingerprint; passing local tests is not evidence of a fully deployed production service."
+  },
+  "claims_not_established": [
+    "A general answer-quality or token-saving gain.",
+    "Intrinsic scheduling/response-speed improvement.",
+    "Verified causal chains or formal analogy/deduction/induction correctness.",
+    "Held-out generalization, production readiness, unlimited memory or RSI."
+  ],
+  "verification": {
+    "independent_recalculation": "Recomputed all eight candidate weighted scores from four blind score files and private mapping; summed all ten provider receipts. Source audit checks every baseline quote and exact prepared-to-paid source contents and prompt byte counts.",
+    "blind_pairs_complete": 4,
+    "scored_candidates": 8,
+    "all_saved_answers": 10,
+    "all_semantic_status_ready": 10,
+    "query_embedding_cache_hits": 0,
+    "score_errors": [],
+    "partial_reviews": [],
+    "artifact_errors": [],
+    "excluded_main_pairs": [],
+    "historical_reports_preserved": true,
+    "final_regression_validation": {
+      "reported_by": "root agent's completed local regression run",
+      "command": "DOCTHINKER_RESEARCH_SEMANTIC=off DOCTHINKER_TEST_LOCAL_EMBEDDINGS=1 PYTHON_DOTENV_DISABLED=1 python -m pytest -q tests/test_research_*unit.py tests/test_mobile_safe_startup_unit.py tests/test_invite_workers_unit.py tests/test_invite_manage_unit.py tests/test_invite_pack_unit.py",
+      "passed": 1035,
+      "skipped": 0,
+      "elapsed_seconds": 15.99,
+      "includes_real_local_onnx_embeddings": true,
+      "git_diff_check": "passed",
+      "scope": "Functional/regression validation, including release-gate behavior and local embeddings; not additional paid model calls or evidence of answer-quality improvement."
+    }
+  },
+  "artifacts_sha256": {
+    "dist/real-paper-ab-20261010/window-real-v3/run.json": "00586d514802bc9b6be2e4b7ec4f4495b0d8abca2efcd12659e43358f55b043b",
+    "dist/real-paper-ab-20261010/window-real-v3/summary.json": "3a8134ffff55489b8674ed168adf2cb96326391ab2bc8f686a7b8ebde9e2f3f5",
+    "dist/real-paper-ab-20261010/window-real-v3/calls.jsonl": "77ea0885f849596b1218d37c48e9cff5cb627915c0d90260aaed922d1103981d",
+    "dist/real-paper-ab-20261010/window-analysis-v3/metrics.json": "b42f21df19a1d4b6d115b2a209c792b1b62d80fc0dfb782593602530d99bbe03",
+    "dist/real-paper-ab-20261010/window-analysis-v3/private_mapping.json": "f66828302d12ad697603324e0228867f14b54e817ad708ba6e9a9536c5f5a308",
+    "dist/real-paper-ab-20261010/window-analysis-v3/packet_inventory.json": "d18e1ecdd8f58ac5438575318ad0f498d018cd999ea0ec3e9fd661cb1bfa45f9",
+    "dist/real-paper-ab-20261010/window-prepare-v3/run.json": "6d3042732927ee6d4e355f180369fa24b9d0dd378eb89831b7686979b040c112",
+    "dist/real-paper-ab-20261010/window-prepare-v3/summary.json": "5d5c0196666308e35e8cc64c0766965299f44b29b267a50c4c9f8cfc2bbeb948",
+    "benchmarks/research_real/research_window_followup_v1.json": "01ad11f8688a0b65b3108a1b206dff36e7fb51a7419fc1185b344ad3523aca29",
+    "dist/real-paper-ab-20261010/window-real-v3/answers/d01_chinese_retrieval_control.r1.off.json": "bce902baa40de8d85a5f621ab0fc77e5e07d216b240b5957172dbed38cd0b198",
+    "dist/real-paper-ab-20261010/window-real-v3/answers/d01_chinese_retrieval_control.r1.on.json": "6e790bcf94cfbe66ca976f679734ffc760013076f1379a7564ea78b581d8ab9d",
+    "dist/real-paper-ab-20261010/window-real-v3/answers/q02_lost_middle_setup.r1.off.json": "b280316668c9fb7d631da74014fd739f24074a7c27d6ce1d5b37c0fdbd1cab21",
+    "dist/real-paper-ab-20261010/window-real-v3/answers/q02_lost_middle_setup.r1.on.json": "6d108746d8470c1d7991ff18fc23bfa7caf20705a105e611c2772f7cc0d0185f",
+    "dist/real-paper-ab-20261010/window-real-v3/answers/q06_memgpt_os_analogy.r1.off.json": "cf942519e0a656ca29fc0da1bb9e50cee7f481127a7f3d886b57e13df68338c2",
+    "dist/real-paper-ab-20261010/window-real-v3/answers/q06_memgpt_os_analogy.r1.on.json": "f693eadedfb3c0c20d01aa36634ce419965d57b608a17e5d3fc19e55cc8ce604",
+    "dist/real-paper-ab-20261010/window-real-v3/answers/q08_synthesis_memory_patterns.r1.off.json": "560671382bb0006595aa714a6b42c07f60dff53b37ba8b97ebd12078f9d377a4",
+    "dist/real-paper-ab-20261010/window-real-v3/answers/q08_synthesis_memory_patterns.r1.on.json": "861b3e23d97d9c58828a3d29308254092793658ad81eddd8f8108eadde4bae58",
+    "dist/real-paper-ab-20261010/window-real-v3/answers/q11_query_aware_counterexample.r1.off.json": "72b167917cd05db118dd50478ccc23a7ecc3a1501b53d80ce2c9d8d0fe972bbf",
+    "dist/real-paper-ab-20261010/window-real-v3/answers/q11_query_aware_counterexample.r1.on.json": "97005c4e23fed38583d513797b2e1df1e7c8b5c834f9e36aceb0779995234937",
+    "dist/real-paper-ab-20261010/window-prepare-v3/prepared/d01_chinese_retrieval_control.r1.off.json": "c269fc7e4c5b41bc6c110395f197cbd3ba2a6312579126cae5d14a1fee4a4e77",
+    "dist/real-paper-ab-20261010/window-prepare-v3/prepared/d01_chinese_retrieval_control.r1.on.json": "eea4ce44406519b60a9b61be9a2631d141386a354bfbc7296c66b548998ee499",
+    "dist/real-paper-ab-20261010/window-prepare-v3/prepared/q02_lost_middle_setup.r1.off.json": "1027fcd90dcbbf99712775c044a2e88c4100dd0b50bd8ad295d6506e5b3ddc7b",
+    "dist/real-paper-ab-20261010/window-prepare-v3/prepared/q02_lost_middle_setup.r1.on.json": "19b4d31ae41d37edbfcf35cdda6eb7708459c0dcc7af3236989332583c8aeb03",
+    "dist/real-paper-ab-20261010/window-prepare-v3/prepared/q06_memgpt_os_analogy.r1.off.json": "99e45b19c6a044075192c8968e4fbc70b95a13d06df5ed66167974632af86330",
+    "dist/real-paper-ab-20261010/window-prepare-v3/prepared/q06_memgpt_os_analogy.r1.on.json": "e4fadf267f844d4f7c9848bd87ba5e10203e7c6e36f40a249e7a9162ea31051b",
+    "dist/real-paper-ab-20261010/window-prepare-v3/prepared/q08_synthesis_memory_patterns.r1.off.json": "0e74167b86873690d6ba3a695ce049bd83ebe20d8105213b06cfe2f7e60bef48",
+    "dist/real-paper-ab-20261010/window-prepare-v3/prepared/q08_synthesis_memory_patterns.r1.on.json": "5cd915e3d8bb0c9c767131dd95f58569be1b3f430768bb2907a67cf09de64935",
+    "dist/real-paper-ab-20261010/window-prepare-v3/prepared/q11_query_aware_counterexample.r1.off.json": "70a41071431e2c32165d237f53ef3ffc1022bf05b7e1b0787dc1a32496a71604",
+    "dist/real-paper-ab-20261010/window-prepare-v3/prepared/q11_query_aware_counterexample.r1.on.json": "2b1a13c6372c1c918fb117ce226c55a1263dc2b30c2d54899db8dbb1a0be8206",
+    "dist/real-paper-ab-20261010/window-analysis-v3/scores/packet-2bd62ee88a02768a.json": "f00e2f1900cf571e5b505085d27f2a3f4ded189d4abc2e523bc5383c05933acb",
+    "dist/real-paper-ab-20261010/window-analysis-v3/scores/packet-3f8dc6a728ff393c.json": "ca06ce5ac2ccb1866ab0d35440da0a4154ef8b7dc9cdc33f6f00fb38f1fccc7e",
+    "dist/real-paper-ab-20261010/window-analysis-v3/scores/packet-63258f4563b2d6cd.json": "bd5acecdf5a8abdbf44d07d0a39da5bb78f587d538b1e6e788b5f4fa5b2e9395",
+    "dist/real-paper-ab-20261010/window-analysis-v3/scores/packet-859dc2e75c06d613.json": "c6418408d82b9b95b184a2116201827b78ed5515ce8cc2b10fd0f88532dc3887"
+  }
+}

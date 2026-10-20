@@ -56,4 +56,28 @@ describe("gesture metrics", () => {
     expect(resolveGestureHandedness(undefined, 0.75)).toBe("left");
     expect(resolveGestureHandedness(undefined, 0.25)).toBe("right");
   });
+
+  it("requires the index finger specifically for pointing, not any extended finger", () => {
+    const landmarks = handLandmarks();
+    for (const tip of [12, 16, 20]) landmarks[tip] = {x: 0.5, y: 0.8};
+    expect(extractGestureMetrics(landmarks)?.pointing).toBe(true);
+    landmarks[8] = {x: 0.5, y: 0.8}; landmarks[12] = {x: 0.5, y: 0.25};
+    const middleOnly = extractGestureMetrics(landmarks);
+    expect(middleOnly?.extendedFingers).toBe(1);
+    expect(middleOnly?.pointing).toBe(false);
+  });
+
+  it("rejects incomplete and nonfinite landmark frames instead of emitting false gestures", () => {
+    expect(extractGestureMetrics([])).toBeNull();
+    const landmarks = handLandmarks(); landmarks[8].x = Number.NaN;
+    expect(extractGestureMetrics(landmarks)).toBeNull();
+    landmarks[8].x = 0.4; landmarks[8].z = Infinity;
+    expect(extractGestureMetrics(landmarks)).toBeNull();
+  });
+
+  it("honors configurable pinch entry and release ratios", () => {
+    const landmarks = handLandmarks(); landmarks[4] = {x: 0.34, y: 0.29};
+    expect(extractGestureMetrics(landmarks, false)?.pinch).toBe(false);
+    expect(extractGestureMetrics(landmarks, false, {pinchEnterRatio: 0.3, pinchReleaseRatio: 0.4})?.pinch).toBe(true);
+  });
 });

@@ -34,6 +34,7 @@ export class InputController {
   private moved = false;
   private lastX = 0;
   private lastY = 0;
+  private downPoint: PointerState | null = null;
   private pinchDistance = 0;
   private pinchCenter: PointerState | null = null;
   private hoverFrame = 0;
@@ -48,11 +49,13 @@ export class InputController {
     this.canvas.addEventListener("pointerdown", this.onPointerDown);
     this.canvas.addEventListener("pointermove", this.onPointerMove);
     this.canvas.addEventListener("pointerup", this.onPointerUp);
-    this.canvas.addEventListener("pointercancel", this.onPointerUp);
+    this.canvas.addEventListener("pointercancel", this.onPointerCancel);
+    this.canvas.addEventListener("lostpointercapture", this.onLostPointerCapture);
     this.canvas.addEventListener("pointerenter", this.onPointerEnter);
     this.canvas.addEventListener("pointerleave", this.onPointerLeave);
-    this.canvas.addEventListener("contextmenu", event => event.preventDefault());
+    this.canvas.addEventListener("contextmenu", this.onContextMenu);
     window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("blur", this.onBlur);
   }
 
   private localPoint(event: PointerEvent | WheelEvent): PointerState {
@@ -69,10 +72,13 @@ export class InputController {
   };
 
   private onPointerDown = (event: PointerEvent) => {
+    // A third finger and auxiliary mouse buttons cannot take over an armed drag.
+    if (this.pointers.has(event.pointerId) || this.pointers.size >= 2 || (event.pointerType !== "touch" && event.button > 0)) return;
     const point = this.localPoint(event);
     this.pointers.set(event.pointerId, point);
     this.callbacks.onPointerInsideChange(true);
     this.callbacks.onPointerDownChange(true);
+    this.canvas.focus({ preventScroll: true });
     this.canvas.setPointerCapture(event.pointerId);
     if (this.pointers.size === 2) {
       if (this.attractionNode >= 0) this.callbacks.onNodeAttractionEnd();
@@ -90,6 +96,7 @@ export class InputController {
     this.activePointer = event.pointerId;
     this.lastX = point.x;
     this.lastY = point.y;
+    this.downPoint = point;
     this.moved = false;
     this.downNode = this.renderer.pick(point.x, point.y);
     this.downEdge = this.downNode >= 0 ? -1 : this.renderer.pickEdge(point.x, point.y);
@@ -108,6 +115,7 @@ export class InputController {
 
   private onPointerMove = (event: PointerEvent) => {
     const point = this.localPoint(event);
+    if (this.pointers.size && !this.pointers.has(event.pointerId)) return;
     if (this.pointers.has(event.pointerId)) this.pointers.set(event.pointerId, point);
     if (this.pointers.size >= 2) {
       const [first, second] = [...this.pointers.values()];
@@ -122,7 +130,7 @@ export class InputController {
     if (this.activePointer === event.pointerId) {
       const dx = point.x - this.lastX;
       const dy = point.y - this.lastY;
-      if (!this.moved && Math.hypot(dx, dy) > 4) this.moved = true;
+      if (!this.moved && this.downPoint && Math.hypot(point.x - this.downPoint.x, point.y - this.downPoint.y) > 4) this.moved = true;
       if (this.moved && this.downNode >= 0 && this.draggingNode < 0) {
         this.draggingNode = this.downNode;
         this.dragPlaneAnchor = this.renderer.getNodeWorldPosition(this.draggingNode);
@@ -161,9 +169,11 @@ export class InputController {
   }
 
   private onPointerUp = (event: PointerEvent) => {
+    if (!this.pointers.has(event.pointerId)) return;
     const point = this.localPoint(event);
     const wasActive = this.activePointer === event.pointerId;
     this.pointers.delete(event.pointerId);
+    if (this.canvas.hasPointerCapture(event.pointerId)) this.canvas.releasePointerCapture(event.pointerId);
     this.callbacks.onPointerDownChange(this.pointers.size > 0);
     if (this.pointers.size < 2) {
       this.pinchDistance = 0;
@@ -175,6 +185,11 @@ export class InputController {
         this.activePointer = remainingId;
         this.lastX = remaining.x;
         this.lastY = remaining.y;
+        // A remaining finger after a pinch is not a fresh click.
+        this.downPoint = remaining;
+        this.moved = true;
+      } else if (!this.pointers.size) {
+        this.callbacks.onOrbitInteractionChange(false);
       }
       return;
     }
@@ -194,20 +209,59 @@ export class InputController {
     this.draggingNode = -1;
     this.attractionNode = -1;
     this.dragPlaneAnchor = null;
+    this.downPoint = null;
     this.moved = false;
     this.callbacks.onNodeDraggingChange(false);
     this.callbacks.onOrbitInteractionChange(false);
   };
+
+  private onPointerCancel = (event: PointerEvent) => {
+    if (!this.pointers.has(event.pointerId)) return;
+    // Cancellation is never a click. End the entire multi-pointer gesture.
+    this.resetInteraction();
+    if (this.canvas.hasPointerCapture(event.pointerId)) this.canvas.releasePointerCapture(event.pointerId);
+  };
+
+  private onLostPointerCapture = (event: PointerEvent) => {
+    if (this.pointers.has(event.pointerId)) this.resetInteraction();
+  };
+
+  private onContextMenu = (event: Event) => event.preventDefault();
+  private onBlur = () => this.resetInteraction();
+
+  resetInteraction(): void {
+    if (this.attractionNode >= 0) this.callbacks.onNodeAttractionEnd();
+    const capturedIds = [...this.pointers.keys()];
+    // Clear ownership before releasing capture, which can dispatch another event.
+    this.pointers.clear();
+    for (const pointerId of capturedIds) {
+      if (this.canvas.hasPointerCapture(pointerId)) this.canvas.releasePointerCapture(pointerId);
+    }
+    this.activePointer = this.downNode = this.downEdge = this.draggingNode = this.attractionNode = -1;
+    this.downPoint = this.dragPlaneAnchor = this.pinchCenter = null;
+    this.pinchDistance = 0;
+    this.moved = false;
+    this.callbacks.onPointerDownChange(false);
+    this.callbacks.onNodeDraggingChange(false);
+    this.callbacks.onOrbitInteractionChange(false);
+    cancelAnimationFrame(this.hoverFrame);
+    this.hoverFrame = 0;
+    this.hoverPoint = null;
+    this.renderer.setHovered(-1);
+    this.callbacks.onHover(-1);
+    this.callbacks.onPointerInsideChange(false);
+  }
 
   private onPointerEnter = () => this.callbacks.onPointerInsideChange(true);
 
   private onPointerLeave = () => this.callbacks.onPointerInsideChange(false);
 
   private onKeyDown = (event: KeyboardEvent) => {
-    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement || event.target instanceof HTMLTextAreaElement) {
-      if (event.key === "Escape") this.callbacks.onEscape();
-      return;
-    }
+    if (event.defaultPrevented || event.isComposing || event.keyCode === 229 || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (document.querySelector("dialog[open]")) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest?.("input, select, textarea, button, a, [role='slider'], [role='textbox'], [contenteditable]:not([contenteditable='false'])")) return;
+    if (!["+", "=", "-", "_", "0", "Escape", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
     const centerX = this.canvas.clientWidth / 2;
     const centerY = this.canvas.clientHeight / 2;
     this.callbacks.onKeyboardInteraction();
@@ -224,15 +278,18 @@ export class InputController {
   };
 
   dispose(): void {
-    if (this.attractionNode >= 0) this.callbacks.onNodeAttractionEnd();
+    this.resetInteraction();
     this.canvas.removeEventListener("wheel", this.onWheel);
     this.canvas.removeEventListener("pointerdown", this.onPointerDown);
     this.canvas.removeEventListener("pointermove", this.onPointerMove);
     this.canvas.removeEventListener("pointerup", this.onPointerUp);
-    this.canvas.removeEventListener("pointercancel", this.onPointerUp);
+    this.canvas.removeEventListener("pointercancel", this.onPointerCancel);
+    this.canvas.removeEventListener("lostpointercapture", this.onLostPointerCapture);
     this.canvas.removeEventListener("pointerenter", this.onPointerEnter);
     this.canvas.removeEventListener("pointerleave", this.onPointerLeave);
+    this.canvas.removeEventListener("contextmenu", this.onContextMenu);
     window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("blur", this.onBlur);
     cancelAnimationFrame(this.hoverFrame);
   }
 }

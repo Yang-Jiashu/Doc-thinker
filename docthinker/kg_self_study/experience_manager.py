@@ -7,14 +7,16 @@ Acquisition → Reuse → Refinement cycle and HINDSIGHT's four-layer memory.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
 from pathlib import Path
 from threading import RLock
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional
 
 from .prompts import EXPERIENCE_EXTRACTION_PROMPT, EXPERIENCE_REFINEMENT_PROMPT
+from .work_budget import StudyBudgetStop
 
 _log = logging.getLogger("docthinker.kg_self_study.experience")
 
@@ -29,6 +31,10 @@ EXPERIENCE_CATEGORIES = (
 
 def _safe_json_parse(raw: str) -> Any:
     text = raw.strip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
     for sc, ec in [("{", "}"), ("[", "]")]:
         s = text.find(sc)
         e = text.rfind(ec)
@@ -83,7 +89,7 @@ class ExperienceManager:
         prompt = EXPERIENCE_EXTRACTION_PROMPT.format(
             full_study_session_json=json.dumps(
                 session_record, ensure_ascii=False, indent=2,
-            )[:12000],
+            ),
         )
 
         try:
@@ -92,6 +98,8 @@ class ExperienceManager:
             if not isinstance(result, dict):
                 _log.warning("[experience] P5 parse failed")
                 return {}
+        except StudyBudgetStop:
+            raise
         except Exception as exc:
             _log.error("[experience] P5 LLM call failed: %s", exc)
             return {}
@@ -206,12 +214,31 @@ class ExperienceManager:
                 result = _safe_json_parse(raw)
                 if not isinstance(result, dict):
                     continue
+            except StudyBudgetStop as exc:
+                exc.completed_items = refined_count
+                if refined_count:
+                    self._save()
+                raise
+            except asyncio.CancelledError as exc:
+                exc.completed_items = refined_count
+                if refined_count:
+                    self._save()
+                raise
             except Exception as exc:
                 _log.warning("[experience] P6 call failed: %s", exc)
                 continue
 
             action = result.get("action", "keep")
             exp_id = exp.get("experience_id", "")
+            if action == "refine" and not isinstance(result.get("refined_experience"), dict):
+                _log.warning("[experience] ignoring malformed P6 refinement")
+                continue
+            if action == "merge" and (
+                not isinstance(result.get("merge_with"), str)
+                or not isinstance(result.get("merged_result"), dict)
+            ):
+                _log.warning("[experience] ignoring malformed P6 merge")
+                continue
 
             with self._lock:
                 if action == "deprecate":

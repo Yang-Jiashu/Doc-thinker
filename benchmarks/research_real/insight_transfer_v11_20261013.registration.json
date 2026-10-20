@@ -1,0 +1,130 @@
+{
+  "registration_version": "sealed-transfer-final-freeze-v11",
+  "registered_utc": "2026-10-12T20:55:20.029212+00:00",
+  "local_date": "2026-10-13",
+  "fixture": "benchmarks/research_real/insight_transfer_v11_20261013.json",
+  "plan": "benchmarks/research_real/plan_insight_transfer_v11_20261013.json",
+  "papers_directory": "dist/insight-sealed-transfer-20261013/papers",
+  "sealed_preparation_registration": "dist/insight-sealed-transfer-20261013/registration.json",
+  "source_review_navigation": "dist/insight-sealed-transfer-20261013/review/source_navigation.json",
+  "registered_inputs": {
+    "code_fingerprint": "ef7164f449055757bfc7b59e0a3e9b86aa20b9524bc0d76e531ea5d65634f044",
+    "fixture_sha256": "23cd37162721dc33ae395371d72f34c641163dd3f31db5001e3aaa8f635fe17f",
+    "plan_sha256": "8df6c1c51c18199fad9be90cc9181fe820f88f825319860567288f4823103485",
+    "sealed_preparation_registration_sha256": "8da0a80ba4165bc4b24922218bcefed1ba30537d4ea24ef53c548a76179e1896",
+    "sealed_combined_material_digest": "3df76b070a9cd4a922572317f5572de6282a9ca670ce29f53180ac5c847b778e",
+    "source_navigation_sha256": "6934219e96436eb24308978ec1cab2fde3407085bb2f90fb838b9cb83508d132",
+    "answer_contract_file_sha256": "2284873b06df56dcb3f5549d8834f2dbd2903ecef21611f686e9d9fb06c0d629",
+    "answer_policy_version": "grounded-answer-contract-v7",
+    "system_policy_sha256": "0e1cfdafb8e945796147bb9b03ab6179746c6eeed1e5c9c80da51bad64389d37",
+    "system_policy_bytes": 3795,
+    "assembled_system_policy_inventory": {
+      "base_knowledge": {
+        "sha256": "3b93b9fa9924cac1776522ac1f1b4c53a34a6a803c8f3cd5d936cc3d73e88cac",
+        "bytes": 5612
+      },
+      "base_insight": {
+        "sha256": "d62a6bf97b960e241b73870a30d45396c625ce4741faf4d55aaaa5e821bfb526",
+        "bytes": 4416
+      },
+      "base_knowledge_insight": {
+        "sha256": "1f441b7da0bf433203548123d5b1c8749fd0b59846dbe9bfebc7b149a1b6ddb6",
+        "bytes": 6233
+      }
+    },
+    "papers": {
+      "paper-a.pdf": {
+        "title": "A-MEM: Agentic Memory for LLM Agents",
+        "arxiv_version": "2502.12110v1",
+        "pdf_url": "https://arxiv.org/pdf/2502.12110v1",
+        "sha256": "5d94b7aa544ca07c2653d75b79ee6043a6843ed1508633299e1227258025f630",
+        "bytes": 957963,
+        "pages": 20
+      },
+      "paper-b.pdf": {
+        "title": "Zep: A Temporal Knowledge Graph Architecture for Agent Memory",
+        "arxiv_version": "2501.13956v1",
+        "pdf_url": "https://arxiv.org/pdf/2501.13956v1",
+        "sha256": "d26f7eb599540e8b14d75e7efda58a07661abbb1b864e58323b5768475a15d42",
+        "bytes": 148771,
+        "pages": 12
+      }
+    }
+  },
+  "combined_sha256_algorithm": "SHA256 of UTF-8 json.dumps(registered_inputs, sort_keys=True, separators=(',', ':'))",
+  "combined_sha256": "490d250b7af8d5d6e065d8a0e951feaf0ab8602b58504117fccfadf7b9962137",
+  "registration_precedence": "The fixture and plan are byte-identical copies of the sealed materials-only files. Their awaiting-parent status and fixture.protocol.code_freeze_expected=null are historical preparation statements, not an absent current freeze. This separate final registration records the approved frozen code, controls and bounds; do not rewrite the sealed preparation.",
+  "task_integrity": "Both original natural questions, original v1 PDF bytes and six-dimension 0-4 rubric are unchanged. Materials were selected before V11 production freeze and without inspecting V11 model answers or probing routes/retrieval. Their titles and questions were disclosed only after the parent declared the production fingerprint frozen.",
+  "interpretation_limits": "Two new-to-repository task pairs only; public/sealed materials are not a model-training holdout, expert certification, statistical superiority result or general product acceptance. Review is developer/AI and must disclose visibility of arm labels.",
+  "approved_dispatch": {
+    "contrast": "insight",
+    "provider_base_url": "https://api.stepfun.com/step_plan/v1",
+    "provider_model": "step-5-preview",
+    "question_ids": [
+      "changing_user_memory_design",
+      "memory_product_research_brief"
+    ],
+    "repetitions": 1,
+    "arms_per_question": 2,
+    "maximum_new_provider_requests": 4,
+    "concurrency": 1,
+    "ordinary_context_assistance_both_arms": true,
+    "knowledge_skill_mode_both_arms": "auto",
+    "insight_modes": [
+      "off",
+      "auto"
+    ],
+    "semantic_both_arms": "off",
+    "memory": false,
+    "conversation_context": false,
+    "llm_cache": false,
+    "production_output_tokens_per_call": 8192,
+    "experimental_output_override": null,
+    "temperature": 0.1,
+    "reasoning_effort": "low",
+    "stream": false,
+    "timeout_seconds": 180,
+    "maximum_reported_tokens_soft_stop": 50000,
+    "soft_stop_semantics": "Observe supplier-reported prompt plus completion tokens after each request; stop before the next request at the limit or when usage is unavailable. This is not a hard in-flight token/fee cap and does not reduce the production 8192 output allowance.",
+    "automatic_retries": 0,
+    "continuations": 0,
+    "replacement_answers": 0
+  },
+  "quality_gate": {
+    "six_dimension_weights": [
+      25,
+      25,
+      20,
+      10,
+      10,
+      10
+    ],
+    "dimension_scale": "0-4",
+    "minimum_weighted_total": 80,
+    "minimum_method_fidelity": 3,
+    "minimum_source_support": 3,
+    "critical_errors_allowed": 0,
+    "complete_delivery_required": true,
+    "unchanged_original_rubric": true,
+    "no_activation_or_keyword_success_substitute": true
+  },
+  "pre_dispatch_checks": [
+    "Recheck all registered source/PDF/fixture/plan/code/policy hashes before preparation and dispatch; a mismatch aborts.",
+    "Only the two original public PDFs enter the corpus; rubric, protocol, registration and source navigation never enter model messages.",
+    "Inspect final prepared source quotes against original PDF pages and stored character coordinates, including known PDF extraction warnings; content/coordinate validity is not semantic support.",
+    "Check actual final static cards, Insight fragments, source projections and shared input budgets; the policy inventory records possible fixed compositions, not proof that a card was included.",
+    "Read-only actual adapter message digest and source projection must match the accepted per-arm prepare values before socket dispatch; no retry, resampling or rewriting the task to repair a mismatch.",
+    "Compare the actual final OFF/AUTO messages for each question. A no-op pair is reported and not dispatched; four requests are permitted only if neither pair is a no-op and all checks pass.",
+    "Record actual per-arm system-policy hash and complete message digest from prepare; they are intentionally not invented in this pre-prepare registration.",
+    "Preserve incomplete pairs, failed/unknown dispatch receipts and all observed token/latency metadata; never silently replace an answer."
+  ],
+  "state_at_registration": {
+    "materials_loader_only_validation": true,
+    "fresh_product_prepare_executed": false,
+    "fresh_provider_requests": 0,
+    "actual_prepared_message_digests": null,
+    "actual_prepared_system_policy_hashes": null,
+    "credentials_read": false,
+    "production_code_modified": false
+  }
+}

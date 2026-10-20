@@ -1,0 +1,92 @@
+{
+  "status": "real_model_ab_blocked_at_provider_preflight",
+  "historical_report": true,
+  "completed_after_real_name_verification_report": "benchmarks/research_real/result_real_20261010.json",
+  "date": "2026-10-10",
+  "model_requested": "step-5-preview",
+  "requested_comparison": "Ordinary chat/writing with versus without background evidence assistance on original research papers, measuring answer quality, provider token usage and complete response latency.",
+  "completed_work": [
+    "Actually called the official StepFun model listing and chat-completion endpoints with both previously supplied credentials.",
+    "Downloaded four pinned original arXiv PDFs and verified their SHA-256 hashes and physical page counts.",
+    "Preregistered 12 primary questions, one Chinese-only retrieval diagnostic, paper-grounded key facts and five scoring dimensions before observing model answers.",
+    "Ran both preparation arms through the actual PDF extraction, store, retrieval, scheduler and prompt-budget path with the model boundary disabled; no synthetic answer or provider usage was generated.",
+    "Validated the benchmark and ablation contracts with 132 passing tests. Offline contract tests are not answer-quality evidence."
+  ],
+  "provider_preflight": {
+    "credential_storage": "Credential values are absent from this report, fixtures, benchmark outputs and source code.",
+    "observations": [
+      {"credential_alias": "earlier_local_configuration", "base_url": "https://api.stepfun.com/step_plan/v1", "models_http_status": 200, "model_listed": true, "chat_http_status": 403, "answer_present": false, "usage": null, "error_hint": "subscription_permission", "rejected_probe_elapsed_ms": 254},
+      {"credential_alias": "earlier_local_configuration", "base_url": "https://api.stepfun.com/v1", "models_http_status": 200, "model_listed": true, "chat_http_status": 402, "answer_present": false, "usage": null, "error_hint": "credit_or_quota", "rejected_probe_elapsed_ms": 164},
+      {"credential_alias": "latest_user_supplied", "base_url": "https://api.stepfun.com/step_plan/v1", "models_http_status": 200, "model_listed": true, "chat_http_status": 403, "answer_present": false, "usage": null, "error_hint": "subscription_permission", "rejected_probe_elapsed_ms": 276},
+      {"credential_alias": "latest_user_supplied", "base_url": "https://api.stepfun.com/v1", "models_http_status": 200, "model_listed": true, "chat_http_status": 402, "answer_present": false, "usage": null, "error_hint": "credit_or_quota", "rejected_probe_elapsed_ms": 208}
+    ],
+    "interpretation": "The credentials can list the model, but chat requests were rejected. Error hints do not establish the exact account-side cause. These durations are rejected connection probes, not answer-response latencies. Missing usage is unknown, not zero billable tokens.",
+    "blocked_work": "No paid research-answer A/B trial or model quality judging was launched after failed preflight. Do not bypass provider restrictions, switch the requested model silently or substitute a simulated model.",
+    "followup_diagnosis": {
+      "trigger": "User challenged whether the calling method was correct.",
+      "credential_alias": "latest_user_supplied",
+      "official_reference": "https://platform.stepfun.com/docs/zh/step-plan/integrations/reasoning-api",
+      "sdk": "openai-python 2.54.0",
+      "base_url": "https://api.stepfun.com/step_plan/v1",
+      "request_parameters": {"model": "step-5-preview", "messages": [{"role": "user", "content": "只回答一个字：好"}], "max_tokens": 1024},
+      "automatic_retries": 0,
+      "http_status": 403,
+      "error_type": "real_name_required",
+      "error_code": null,
+      "provider_directed_action": "Complete account-holder face/real-name verification for the free Step Plan before API invocation.",
+      "official_account_action_url": "https://account.stepfun.com/security?action=realname",
+      "correction": "The prior generic subscription/permission hints did not identify the actual prerequisite. The official SDK minimal request confirms the current blocker is explicitly real-name verification, not a demonstrated request-shape failure. Standard API 402 does not diagnose Step Plan credits. Only the latest credential was retested with this explicit SDK diagnostic.",
+      "answer_present": false,
+      "usage": null
+    }
+  },
+  "corpus": {
+    "fixture": "benchmarks/research_real/research_papers_ab_v1.json",
+    "download_directory": "dist/real-paper-ab-20261010/papers",
+    "papers": [
+      {"id": "rag", "pdf_url": "https://arxiv.org/pdf/2005.11401v4", "file": "rag.pdf", "page_count": 19, "byte_size": 885323, "sha256": "23e3249e9a1e75418d82efecab0ea8c4d033b89c93742f63208d47ce01f21233"},
+      {"id": "lost_middle", "pdf_url": "https://arxiv.org/pdf/2307.03172v1", "file": "lost_middle.pdf", "page_count": 15, "byte_size": 804284, "sha256": "c8070998fc12d9652d4f3b2e3094a4d6f438ed47a18539e04f07e5dbb9891f9e"},
+      {"id": "graphrag", "pdf_url": "https://arxiv.org/pdf/2404.16130v1", "file": "graphrag.pdf", "page_count": 15, "byte_size": 6782285, "sha256": "33524b3b56910c513affdad8dbf67d14e68edf0572e4debdb09a9f1916463b06"},
+      {"id": "memgpt", "pdf_url": "https://arxiv.org/pdf/2310.08560v1", "file": "memgpt.pdf", "page_count": 15, "byte_size": 602501, "sha256": "03723007dae7c2bde235893864a3282d4c41af7ecad85277f935360658dc4d43"}
+    ]
+  },
+  "actual_paper_preparation": {
+    "run_directory": "dist/real-paper-ab-20261010/prepared-final",
+    "primary_question_pairs": 12,
+    "diagnostic_question_pairs": 1,
+    "provider_requests": 0,
+    "answer_quality_score": null,
+    "provider_prompt_tokens": null,
+    "provider_completion_tokens": null,
+    "provider_total_tokens": null,
+    "complete_answer_latency_ms": null,
+    "controlled_variables": ["same frozen document/chunk identities and indexes within each pair", "same question", "same system policy", "same retrieval configuration and prompt limits", "empty history", "memory disabled", "response cache disabled", "same step-5-preview generation settings", "alternating arm order"],
+    "paired_source_excerpts_identical_count": 12,
+    "primary_supplied_source_excerpt_instances": 192,
+    "source_excerpt_unique_original_mapping_count": 192,
+    "assistance_on_with_actual_support_material": 0,
+    "assistance_on_with_identical_final_prompt": 6,
+    "assistance_on_with_gap_hint_only": 6,
+    "gap_hint_question_ids": ["q03_context_memory_argument", "q04_graphrag_pipeline", "q05_extraction_tradeoff", "q09_global_quality_limits", "q11_query_aware_counterexample", "q12_step5_missing_comparison"],
+    "gap_hint": "本次可解析范围内未找到完整规则；不代表原文没有规则，普通相关描述也不能升级成必然因果。",
+    "added_utf8_bytes_per_hint_only_prompt": 677,
+    "total_primary_input_utf8_bytes_off": 140312,
+    "total_primary_input_utf8_bytes_on": 144374,
+    "local_preparation_off_median_ms": 23.928438080474734,
+    "local_preparation_on_median_ms": 26.72804205212742,
+    "local_preparation_paired_delta_median_ms": 3.543228842318058,
+    "local_timing_scope": "One warm-index preparation trial per arm, excluding PDF ingestion, model generation and answer persistence; descriptive local measurements only, not full response speed or a significance claim.",
+    "trace_limitation": "For records stopped at the model boundary, final support items and limits are observed; internal routing, scheduler and skip traces are not observed. The Chinese insufficient-evidence path returns its own actual trace without a model prompt.",
+    "chinese_retrieval_diagnostic": {"question_id": "d01_chinese_retrieval_control", "off_answer_mode": "insufficient_evidence", "on_answer_mode": "insufficient_evidence", "off_source_count": 0, "on_source_count": 0, "model_calls": 0, "included_in_primary_averages": false},
+    "interpretation": "Current background operators produced no actual support material on this corpus. Six pairs compare only an added caution and six pairs have no prompt exposure difference. This is evidence of limited natural-paper adaptation, not evidence of improved or degraded model answer quality. Chinese-only querying also exposes the lexical retrieval limitation."
+  },
+  "next_step": {
+    "required_external_change": "The account holder must complete the provider-directed real-name/face verification for this free Step Plan, then rerun the connection check. This prerequisite is now explicit; availability after verification still needs verification. Successful model listing alone is insufficient.",
+    "runner": "scripts/benchmark_research_assist.py",
+    "credential_method": "--api-key-prompt (hidden input; no key on command line)",
+    "example_after_access_is_fixed": "python scripts/benchmark_research_assist.py --fixture benchmarks/research_real/research_papers_ab_v1.json --papers-dir dist/real-paper-ab-20261010/papers --output dist/real-paper-ab-20261010/real-answers --api-key-prompt --model step-5-preview --base-url https://api.stepfun.com/step_plan/v1 --repetitions 2 --max-requests 52 --max-reported-tokens 240000",
+    "budget_caution": "The token limit stops after provider-reported usage, not a hard spending guarantee. Unknown usage or incomplete output stops the run; there are no automatic retries. Select only a legitimately working endpoint.",
+    "quality_method": "Blind source-grounded 0-100 evaluation using the fixture rubric, semantic key-fact coverage and per-citation support checks. Mark algorithm exposure explicitly; exclude incomplete, no-model and diagnostic records from primary model comparisons."
+  },
+  "claims_not_established": ["Answer quality improves", "Provider token usage decreases", "Complete response latency decreases", "Analogy, deduction or induction are effective on natural papers", "Universal long-term recall", "RSI"]
+}

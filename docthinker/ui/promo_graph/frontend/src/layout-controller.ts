@@ -53,6 +53,8 @@ export class LayoutController {
     const worker = this.createWorker();
     const cacheKey = `v2:${model.fingerprint}`;
     const cached = await this.cache.get(cacheKey, model.nodes.length);
+    // Switching sessions may terminate this worker while IndexedDB is pending.
+    if (this.worker !== worker) throw new Error("Layout request cancelled");
     if (cached) {
       const graph = this.graphMessage(model);
       const positions = cached.slice();

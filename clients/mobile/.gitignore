@@ -1,0 +1,9 @@
+node_modules/
+dist/
+unpackage/
+project.private.config.json
+*.local.json
+*.keystore
+*.jks
+*.p12
+*.mobileprovision

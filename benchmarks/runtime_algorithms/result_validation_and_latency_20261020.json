@@ -1,0 +1,105 @@
+{
+  "version": "validation-and-latency-20261020-v1",
+  "scope": "Focused software changes and one complex real-paper case; not product-wide acceptance or a statistically paired quality benchmark.",
+  "implemented": {
+    "validation_design": {
+      "location": "docthinker/server/research_validation_design.py",
+      "provider_calls": 0,
+      "rules": [
+        "Bind tasks to current source identity, span and SHA; reject revoked or mutated sources and duplicate samples.",
+        "Represent paired or three-level observations explicitly instead of invented absolute answer-score thresholds.",
+        "Retain every declared sample and level; any valid contrary comparison refutes the strict all-pair prediction, missing observations alone are inconclusive.",
+        "Check trusted total budget arithmetically; the time cap does not prove operational feasibility.",
+        "Manual observations cannot be promoted into measured model performance or causal attribution."
+      ],
+      "semantic_truth_verified": false,
+      "measurement_feasibility_verified": false,
+      "execution_authorized": false
+    },
+    "host_owned_nomination": {
+      "location": "docthinker/server/research_validation_nomination.py",
+      "model_responsibility": "Source-grounded analysis, two concrete protocol descriptions, a common observation rubric and fixed source-bound tasks.",
+      "host_responsibility": "Pairing, source binding, comparison rules, arithmetic, missing-value treatment, blank observation matrix and final rendering.",
+      "scope": "Whole-protocol descriptive comparison, not identification of component causes.",
+      "new_system_role": "Three exact trusted policy slots change; other system bytes, source input and whole confirmed memory are retained.",
+      "native_service_integration": "Isolated opt-in release candidate; not automatically enabled in the current checkout or live preview.",
+      "real_complex_generation_accepted": false
+    },
+    "embedding_terminal_backoff": {
+      "location": "docthinker/server/app.py:_get_embedding_func",
+      "change": "Raise immediately after the eighth rate-limit failure instead of sleeping another 60 seconds with no subsequent request.",
+      "sdk_call_limit_before_and_after": 8,
+      "preserved_backoff_seconds": [3, 6, 12, 24, 48, 60, 60],
+      "terminal_idle_seconds_removed": 60,
+      "successful_vectors_and_order_unchanged_in_tests": true,
+      "normal_success_speedup_claimed": false
+    },
+    "direct_query_deadline": {
+      "location": "docthinker/server/routers/query.py:query",
+      "standalone_operation_budget_seconds": 180,
+      "change": "Use the existing streaming deadline for standalone non-streaming requests, including the otherwise unbounded research or identity branches.",
+      "inherited_mobile_journal_owner_preserved": true,
+      "timeout_outcome": "unknown; HTTP 504 only when this route owns the lifetime, never automatic retry",
+      "cooperative_cancellation_only": true,
+      "server_side_provider_rollback_or_thread_preemption_claimed": false
+    }
+  },
+  "real_case_input_preserved": {
+    "stored_source_chunks": 125,
+    "stored_successful_prior_stages": 7,
+    "active_whole_prior_analysis_units": 4,
+    "whole_confirmed_memories": 4,
+    "selected_source_windows": 8,
+    "selected_source_window_bytes": 8697,
+    "trusted_labor_budget_minutes": 120,
+    "source24_messages_bytes": 24316,
+    "source24_messages_sha256": "6c8771b036c6e519d5c80bb7f0d904b6d9bc01b5afa9c929282d18518b88a28c"
+  },
+  "generation_configuration": {
+    "model": "step-5-preview",
+    "base_url": "https://api.stepfun.com/step_plan/v1",
+    "temperature": 0.1,
+    "reasoning_effort": "low",
+    "output_cap_tokens": 8192,
+    "provider_timeout_seconds": 180,
+    "wire_calls_per_trial": 1,
+    "automatic_retry_repair_fallback_or_resume": false
+  },
+  "real_results": [
+    {"source": 19, "contract": "previous full report", "finish_reason": "stop", "native_completed": true, "quality": "fail", "prompt_tokens": 6229, "completion_tokens": 7562, "total_tokens": 13791, "model_seconds": 114.784455959, "failure": "Unmatched baseline and unsupported absolute thresholds did not test the stated hypothesis."},
+    {"source": 20, "contract": "typed full validation design", "finish_reason": "stop", "native_completed": true, "quality": "fail", "prompt_tokens": 6134, "completion_tokens": 5908, "total_tokens": 12042, "model_seconds": 89.212722208, "failure": "Rejected design and no usable displayed answer; shorter failure is not a quality improvement."},
+    {"source": 21, "contract": "two scalar strings", "finish_reason": "stop", "native_completed": true, "quality": "fail", "prompt_tokens": 6143, "completion_tokens": 5368, "total_tokens": 11511, "model_seconds": 76.281409167, "failure": "Narrative recovered, but confounded operations, contradictory acceptance rules and budget remained."},
+    {"source": 22, "contract": "flat host nominations", "finish_reason": "length", "native_completed": false, "quality": "not_evaluable", "prompt_tokens": 6006, "completion_tokens": 8192, "total_tokens": 14198, "model_seconds": 120.222561208, "visible_content_characters": 0, "review_scope": "Metadata only; failed body and hidden reasoning not reviewed."},
+    {"source": 23, "contract": "two string nomination envelope", "finish_reason": "length", "native_completed": false, "quality": "not_evaluable", "prompt_tokens": 6018, "completion_tokens": 8192, "total_tokens": 14210, "model_seconds": 125.814373458, "visible_content_characters": 0, "review_scope": "Metadata only; failed body and hidden reasoning not reviewed."},
+    {"source": 24, "contract": "same nominations with scoped model writer role", "finish_reason": "length", "native_completed": false, "quality": "not_evaluable", "prompt_tokens": 6009, "completion_tokens": 8192, "total_tokens": 14201, "model_seconds": 132.323997166, "visible_content_characters": 1366, "review_scope": "Metadata shape only; incomplete content and hidden reasoning not reviewed, repaired or delivered."}
+  ],
+  "verification": {
+    "source24_focused_native_and_compatibility_tests": {"passed": 719, "seconds": 6.18, "xml": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/source24-focused-final.xml"},
+    "current_checkout_combined_pure_algorithms_deadline_backoff_and_neighbors": {"passed": 138, "seconds": 1.48, "xml": "benchmarks/runtime_algorithms/query_embedding_validation_focused_20261020.xml"},
+    "source25_integrated_targeted_verification": {"passed": 759, "console_seconds": 7.91, "junit_suite_seconds": 7.69, "failed": 0, "skipped": 0, "xml": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/native-grouped-memory-integration-20261019-18/source25-focused-final.xml", "xml_sha256": "047b604d0b2df306a319f0b919b77235895a2df9b5ce4a58671161cbd939b162"},
+    "full_backend_suite_rerun": false,
+    "new_live_or_customer_benchmark_completed": false
+  },
+  "delivery": {
+    "current_checkout": "Pure validation modules plus two targeted app/query fixes and regression tests; preexisting unrelated edits preserved.",
+    "source24_source_zip": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/native-grouped-memory-integration-20261019-17/source24-source-deploy-1.zip",
+    "source24_source_zip_sha256": "b2297fd058e15b9d602e773caa117310a09b371cfd78f2627843649772db12ff",
+    "source24_source_inputs_verified": 976,
+    "source25_integrated_candidate": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/native-grouped-memory-integration-20261019-18/docthinker-invite",
+    "source25_source_zip": "/Users/jiashuyang/Library/Application Support/DocThinker/acceptance-20261018/native-grouped-memory-integration-20261019-18/source25-source-deploy-1.zip",
+    "source25_source_zip_sha256": "cff9607607f7db4da82ccc62ebf45f8cc32ee2320c2b39c98d9f258d3cb2af8d",
+    "source25_source_inputs_verified": 976,
+    "source25_real_model_calls": 0,
+    "source_zip_is_not_an_installer_container_image_or_live_release": true,
+    "logo_readme_mobile_demo_modified_this_turn": false,
+    "github_pushed": false,
+    "live_preview_updated": false,
+    "production_ready_claimed": false
+  },
+  "remaining": [
+    "A complex real-paper final generation still exceeds its token cap; the scoped writer change alone is not sufficient.",
+    "Six of fifteen previously identified query evidence obligations remain explicit gaps; structural validation does not fix missing evidence.",
+    "The successful personal-memory case does not prove unbounded memory or arbitrary long-horizon customer task reliability.",
+    "Do not raise caps, repeat spent requests, hide rejected plans or count fast failures as improved answer quality."
+  ]
+}

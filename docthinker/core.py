@@ -297,7 +297,11 @@ class DocThinker(QueryMixin, ProcessorMixin, BatchMixin):
                             initialize_pipeline_status,
                         )
 
-                        await initialize_pipeline_status()
+                        await initialize_pipeline_status(
+                            workspace=getattr(
+                                self.graphcore, "pipeline_workspace", self.graphcore.workspace
+                            )
+                        )
 
                     # Initialize parse cache if not already done
                     if self.parse_cache is None:
@@ -372,7 +376,7 @@ class DocThinker(QueryMixin, ProcessorMixin, BatchMixin):
                 except Exception:
                     pass
                 await self.graphcore.initialize_storages()
-                await initialize_pipeline_status()
+                await initialize_pipeline_status(workspace=self.graphcore.pipeline_workspace)
 
                 # Initialize parse cache storage using GraphCore's KV storage
                 self.parse_cache = self.graphcore.key_string_value_json_storage_cls(

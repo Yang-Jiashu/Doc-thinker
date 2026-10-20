@@ -19,14 +19,17 @@ export default defineConfig({
     sourcemap: false,
     target: "es2022",
     lib: {
-      entry: resolve(__dirname, "frontend/src/main.ts"),
+      entry: {
+        "promo-graph": resolve(__dirname, "frontend/src/main.ts"),
+        "gesture-runtime": resolve(__dirname, "frontend/src/gesture-runtime.ts"),
+      },
       formats: ["es"],
-      fileName: () => "promo-graph.js",
+      fileName: (_format, entryName) => `${entryName}.js`,
     },
     rollupOptions: {
       output: {
         assetFileNames: asset => asset.name?.endsWith(".css") ? "promo-graph.css" : "assets/[name]-[hash][extname]",
-        chunkFileNames: "chunks/[name]-[hash].js",
+        chunkFileNames: "[name]-[hash].js",
       },
     },
   },

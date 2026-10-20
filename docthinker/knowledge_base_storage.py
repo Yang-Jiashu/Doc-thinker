@@ -371,7 +371,8 @@ class KnowledgeBaseStorage:
             kb_type=kb_row["type"],
             metadata=metadata,
             created_at=datetime.fromisoformat(kb_row["created_at"]),
-            updated_at=datetime.fromisoformat(kb_row["updated_at"])
+            updated_at=datetime.fromisoformat(kb_row["updated_at"]),
+            storage_id=kb_row["id"],
         )
         
         # If connection is provided, load entries

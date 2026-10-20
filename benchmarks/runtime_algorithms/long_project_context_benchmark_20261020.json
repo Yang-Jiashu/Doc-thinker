@@ -1,0 +1,269 @@
+{
+  "benchmark": "real SQLite completed linear phase DAG; fake input freshness bridge",
+  "scope": "TaskStore algorithm and connection overhead only; no model/provider/network; not real ResearchStore freshness or answer-quality acceptance",
+  "frozen_baseline_function_sha256": "71a9846b06b4cf7476becb8be59d5872a60e64635af2e7b3d4213fc42cb12ae9",
+  "frozen_baseline_max_ancestors": 128,
+  "production_context_sha256": "c2bd8170a9f4bf100c44c9bdd48940ff939ae3b2838f57e078a992bfa4a8d986",
+  "sizes": [
+    {
+      "completed_phases": 30,
+      "parent_edges": 29,
+      "setup_seconds": 0.2644806669995887,
+      "old": {
+        "median_elapsed_ms": 18.570707994513214,
+        "min_elapsed_ms": 18.24266600306146,
+        "max_elapsed_ms": 18.663291994016618,
+        "samples": [
+          {
+            "valid": true,
+            "elapsed_ms": 18.570707994513214,
+            "taskstore_db_calls": 59,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 29,
+            "bridge_batch_calls": 0,
+            "bridge_groups_received": 29,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 0
+          },
+          {
+            "valid": true,
+            "elapsed_ms": 18.663291994016618,
+            "taskstore_db_calls": 59,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 29,
+            "bridge_batch_calls": 0,
+            "bridge_groups_received": 29,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 0
+          },
+          {
+            "valid": true,
+            "elapsed_ms": 18.4686669963412,
+            "taskstore_db_calls": 59,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 29,
+            "bridge_batch_calls": 0,
+            "bridge_groups_received": 29,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 0
+          },
+          {
+            "valid": true,
+            "elapsed_ms": 18.24266600306146,
+            "taskstore_db_calls": 59,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 29,
+            "bridge_batch_calls": 0,
+            "bridge_groups_received": 29,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 0
+          },
+          {
+            "valid": true,
+            "elapsed_ms": 18.591250001918525,
+            "taskstore_db_calls": 59,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 29,
+            "bridge_batch_calls": 0,
+            "bridge_groups_received": 29,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 0
+          }
+        ]
+      },
+      "new": {
+        "median_elapsed_ms": 2.7879999979631975,
+        "min_elapsed_ms": 2.7102919993922114,
+        "max_elapsed_ms": 3.3827919978648424,
+        "samples": [
+          {
+            "valid": true,
+            "elapsed_ms": 3.3827919978648424,
+            "taskstore_db_calls": 1,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 0,
+            "bridge_batch_calls": 1,
+            "bridge_groups_received": 1,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 2
+          },
+          {
+            "valid": true,
+            "elapsed_ms": 2.7879999979631975,
+            "taskstore_db_calls": 1,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 0,
+            "bridge_batch_calls": 1,
+            "bridge_groups_received": 1,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 2
+          },
+          {
+            "valid": true,
+            "elapsed_ms": 2.7595410065259784,
+            "taskstore_db_calls": 1,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 0,
+            "bridge_batch_calls": 1,
+            "bridge_groups_received": 1,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 2
+          },
+          {
+            "valid": true,
+            "elapsed_ms": 2.7102919993922114,
+            "taskstore_db_calls": 1,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 0,
+            "bridge_batch_calls": 1,
+            "bridge_groups_received": 1,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 2
+          },
+          {
+            "valid": true,
+            "elapsed_ms": 2.8396669949870557,
+            "taskstore_db_calls": 1,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 0,
+            "bridge_batch_calls": 1,
+            "bridge_groups_received": 1,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 2
+          }
+        ]
+      },
+      "median_speedup_old_div_new": 6.660942614089038
+    },
+    {
+      "completed_phases": 150,
+      "parent_edges": 149,
+      "setup_seconds": 1.319845499994699,
+      "old": {
+        "median_elapsed_ms": 82.04308299173135,
+        "min_elapsed_ms": 80.3226660063956,
+        "max_elapsed_ms": 82.91570800065529,
+        "samples": [
+          {
+            "valid": false,
+            "elapsed_ms": 82.0780000067316,
+            "taskstore_db_calls": 256,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 128,
+            "bridge_batch_calls": 0,
+            "bridge_groups_received": 128,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 0
+          },
+          {
+            "valid": false,
+            "elapsed_ms": 81.30387499113567,
+            "taskstore_db_calls": 256,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 128,
+            "bridge_batch_calls": 0,
+            "bridge_groups_received": 128,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 0
+          },
+          {
+            "valid": false,
+            "elapsed_ms": 82.04308299173135,
+            "taskstore_db_calls": 256,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 128,
+            "bridge_batch_calls": 0,
+            "bridge_groups_received": 128,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 0
+          },
+          {
+            "valid": false,
+            "elapsed_ms": 82.91570800065529,
+            "taskstore_db_calls": 256,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 128,
+            "bridge_batch_calls": 0,
+            "bridge_groups_received": 128,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 0
+          },
+          {
+            "valid": false,
+            "elapsed_ms": 80.3226660063956,
+            "taskstore_db_calls": 256,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 128,
+            "bridge_batch_calls": 0,
+            "bridge_groups_received": 128,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 0
+          }
+        ]
+      },
+      "new": {
+        "median_elapsed_ms": 13.258709004730918,
+        "min_elapsed_ms": 12.84516700252425,
+        "max_elapsed_ms": 14.441332998103462,
+        "samples": [
+          {
+            "valid": true,
+            "elapsed_ms": 13.258709004730918,
+            "taskstore_db_calls": 1,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 0,
+            "bridge_batch_calls": 1,
+            "bridge_groups_received": 1,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 2
+          },
+          {
+            "valid": true,
+            "elapsed_ms": 13.158916990505531,
+            "taskstore_db_calls": 1,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 0,
+            "bridge_batch_calls": 1,
+            "bridge_groups_received": 1,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 2
+          },
+          {
+            "valid": true,
+            "elapsed_ms": 14.441332998103462,
+            "taskstore_db_calls": 1,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 0,
+            "bridge_batch_calls": 1,
+            "bridge_groups_received": 1,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 2
+          },
+          {
+            "valid": true,
+            "elapsed_ms": 13.367292005568743,
+            "taskstore_db_calls": 1,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 0,
+            "bridge_batch_calls": 1,
+            "bridge_groups_received": 1,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 2
+          },
+          {
+            "valid": true,
+            "elapsed_ms": 12.84516700252425,
+            "taskstore_db_calls": 1,
+            "taskstore_write_db_calls": 0,
+            "bridge_validate_inputs_calls": 0,
+            "bridge_batch_calls": 1,
+            "bridge_groups_received": 1,
+            "unique_selected_input_groups": 1,
+            "manager_get_session_calls": 2
+          }
+        ]
+      },
+      "median_speedup_old_div_new": 6.1878636119442
+    }
+  ]
+}

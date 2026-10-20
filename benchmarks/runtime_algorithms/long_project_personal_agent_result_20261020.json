@@ -1,0 +1,171 @@
+{
+  "scope": "Personal-agent long-project implementation on the current workspace mainline",
+  "status": "software_increment_verified_not_production_or_semantic_quality_certification",
+  "implemented": {
+    "project_and_phase_manifest": "Root goal and user acceptance criteria; appendable phase directory in the existing private project_tasks.db, with keyset pagination and exact session/instance ownership",
+    "bounded_execution": "Each phase reuses the existing 1–6-analysis task DAG and explicit per-run approval; no second executor, autonomous planner or automatic paid resumption",
+    "phase_capacity": "Valid project phases do not consume standalone 20/session and 100/worker task counts; all state remains bounded by the existing 64 MiB task-store quota",
+    "replan": "Add/retire steps and change dependencies via exact revision plus preview SHA-256; old/new downstream closure invalidates affected artifacts, preserves unrelated completed branches and permanently retires old step IDs",
+    "criteria_delivery": "Project and phase acceptance conditions are present in the actual task context, within the unchanged whole-context budget",
+    "predecessor_handoff": "At most six combined local and explicitly selected external parent steps share the existing 2000-byte whole-unit handoff; source and selected-note scope cannot silently expand",
+    "truthful_delivery": "Saved parent references are not called delivered until completed task receipts exist; exported reports disclose actual phase counts and exact parent step/report versions",
+    "parent_answer_lineage": "Derived analyses bind actual parent answer IDs and exact task/step/artifact versions; source withdrawal, note revision or selected parent-plan change withdraws child reports, history and confirmed notes",
+    "standalone_task_lineage": "Ordinary same-task predecessors also carry exact task origins, not only long-project phases",
+    "safe_layout_binding": "Production worker-root and direct-data layouts are explicitly bound and checked; no filesystem search, owned-directory fallback or relocation of existing research data",
+    "history_batch": "A request-local memo is no longer mistaken for the 128-entry per-memory-packet bound; document and mixed-memory 160-answer chains remain visible in 100-answer batches until actual withdrawal",
+    "performance": "Queue/set ancestor traversal, one task read snapshot and one research read snapshot, request-local deduplication and shared lineage memo; no cross-request freshness cache",
+    "fail_closed": "Inspection byte/time budgets, exact version checks, malformed metadata guards and unresolved-provider-outcome reconciliation are preserved; no hidden model retry",
+    "ui": "Existing chat now exposes long projects, phase review and linked task plans; replan preview shows affected and preserved branches before separate confirmation",
+    "ci": "New long-project, lineage, storage-layout, personal-event, publication and replan regressions are listed in Product contracts"
+  },
+  "regressions_found_and_fixed": [
+    "A selected parent-plan edit invalidated its child report while leaving derived chat history and confirmed memory usable",
+    "A shared 128-entry memo cap incorrectly hid 32 of the last 100 answers in a valid 160-answer chain",
+    "Standalone local task handoffs omitted exact parent task-version origins",
+    "Refs-only internal service arguments could be silently dropped by the legacy answer shortcut",
+    "Corrupt falsey non-list task origins were treated as an empty valid scope",
+    "Real production worker storage differs from native test fixture storage, causing resumed predecessor-dependent work to fail before dispatch"
+  ],
+  "preserved": [
+    "Existing logo, demo, overall visual style and README were not edited by this increment",
+    "Harness, Insight Schema and configured multi-model adapters remain the execution path",
+    "No new model call for state changes, dependency checks, report composition, plan previews or user reviews",
+    "Full prompt ceiling 24576 UTF-8 bytes, task context ceiling 8192 bytes and predecessor handoff ceiling 2000 bytes are unchanged"
+  ],
+  "not_claimed": [
+    "Traceable ancestry does not prove semantic entailment, a correct causal chain, complete evidence retrieval or a useful customer deliverable",
+    "Event relations remain explicit source-bound assertions, not automatic verified causal discovery",
+    "No new Step 5 or other paid-model quality/token/latency A/B measurement was performed in this increment",
+    "No unlimited storage: document catalogue still has 20/session and 100/worker limits; memory-packet and recursion bounds remain",
+    "Ancestor checks remain O(V+E); repeated full checks during N successive append operations can still total O(N^2)",
+    "No autonomous external action, automatically approved replan, unattended cross-week paid work or complete RSI",
+    "No public deployment, GitHub push, signed phone installer or physical-device acceptance in this increment"
+  ],
+  "verified_at_utc": "2026-10-20T04:39:41Z",
+  "verification": {
+    "backend": {
+      "command_scope": "tests/test_*unit.py plus tests/test_docthinker_memory_package.py",
+      "passed": 6372,
+      "subtests_passed": 13,
+      "skipped": 7,
+      "failed": 0,
+      "duration_seconds": 115.14,
+      "junit": "benchmarks/runtime_algorithms/long_project_full_mainline_final_20261020.xml",
+      "junit_sha256": "b60960160d5268bdc6daf692f8e23bcd60a83bf28f392cf53dbd92b706174afd",
+      "junit_archive": "benchmarks/runtime_algorithms/long_project_full_mainline_final_20261020.xml.gz",
+      "junit_archive_sha256": "7bd185ada3cdf501ea8c510188f051be47694629830a1b3bdec98501195e03fa",
+      "skip_reasons": [
+        "could not import 'faiss': No module named 'faiss'",
+        "Set DOCTHINKER_BROWSER_BIN to run the optional sandboxed layout check",
+        "Real local reranker requires its optional inference dependencies",
+        "Real local reranker requires its optional inference dependencies",
+        "explicit real local model test",
+        "explicit real local model test",
+        "explicit real local translation model test"
+      ],
+      "warning": "Existing Starlette httpx TestClient deprecation"
+    },
+    "frontend": {
+      "command": "npm test in clients/mobile",
+      "passed": 897,
+      "failed": 0,
+      "skipped": 0,
+      "duration_ms": 4055.321667,
+      "junit": "benchmarks/runtime_algorithms/project_replan_mobile_20261020.xml",
+      "junit_archive": "benchmarks/runtime_algorithms/project_replan_mobile_20261020.xml.gz",
+      "junit_archive_sha256": "ef7f508d355334474761b2e2807b56eede85e5f3cf1f72cb176e185d29e89644",
+      "junit_note": "Same frozen frontend sources; earlier independent JUnit run, followed by final npm test rerun",
+      "h5_build": "passed",
+      "weixin_guest_resource_build": "passed",
+      "app_resource_build": "passed",
+      "pwa_static_entries": 84,
+      "pwa_bytes": 955342,
+      "pwa_version": "8b5cf9544f3824c71d1f",
+      "pwa_integrity": "84/84 passed after other platform builds",
+      "weixin_files": 133,
+      "weixin_uncompressed_bytes": 654665,
+      "deployment_note": "Resource compilation is not WeChat publication, a signed Android/iOS package or device acceptance"
+    },
+    "native_api": {
+      "flow": "Actual ASGI to SessionManager, existing task executor, bridge, ResearchService and SQLite; only answer writers are local substitutes",
+      "phases": 30,
+      "restarts": 3,
+      "history_depth": 160,
+      "batch_answers": 100,
+      "batch_variants": [
+        "document-backed",
+        "mixed confirmed-memory ancestry"
+      ],
+      "ancestor_validation_depth": 150,
+      "coverage": [
+        "selected parent/version handoff",
+        "whole-context budgets",
+        "selected vs unrelated branch updates",
+        "document and note withdrawal",
+        "standalone task version withdrawal",
+        "unknown outcome across restart",
+        "session reuse and ownership",
+        "explicit supported storage layouts"
+      ],
+      "quality_boundary": "These verify software and provenance behavior, not the truth or usefulness of model prose"
+    },
+    "real_subprocess": {
+      "command": "python -m tests.manual_project_task_runtime_check",
+      "result": "passed_after_explicit_storage_layout_fix",
+      "processes": "Actual invitation gateway and two private worker subprocesses, stopped and restarted",
+      "provider": "Loopback fake model only",
+      "model_calls": 5,
+      "vendor_calls": 0,
+      "coverage": [
+        "TXT/PDF ready ingestion",
+        "budget-one pause",
+        "explicit remaining-two approval after restart",
+        "first answer not recomputed",
+        "two actual predecessors in comparison prompt",
+        "report v1/v2 with locators",
+        "affected branch only recomputed",
+        "source withdrawal hides report",
+        "idempotent upfront quota",
+        "two users with same visible session ID remain isolated"
+      ]
+    },
+    "performance": {
+      "result": "benchmarks/runtime_algorithms/long_project_context_benchmark_20261020.json",
+      "reproducible_script": "benchmarks/runtime_algorithms/long_project_context_benchmark.py",
+      "repetitions_per_arm": 5,
+      "thirty_phases": {
+        "old_median_ms": 18.570707994513214,
+        "new_median_ms": 2.7879999979631975,
+        "task_db_connections_before": 59,
+        "task_db_connections_after": 1,
+        "comparison": "Both arms completely validated the same task ancestry; fake input freshness adapter"
+      },
+      "one_hundred_fifty_phases": {
+        "new_median_ms": 13.258709,
+        "old_valid": false,
+        "new_valid": true,
+        "comparison": "Old implementation stopped at its 128-ancestor limit; no equal-work speedup claimed"
+      },
+      "boundary": "Traversal/connection overhead only, not end-to-end model latency or answer quality"
+    },
+    "new_paid_provider_calls": 0,
+    "live_browser_or_physical_device_acceptance": false,
+    "github_push_or_public_deployment": false
+  },
+  "final_source_sha256": {
+    "docthinker/server/long_project_store.py": "ee0d8bd09763baed61af897d2ce66f77f73fd3974073ebadc7524f9cad3ff107",
+    "docthinker/server/long_project_context.py": "c2bd8170a9f4bf100c44c9bdd48940ff939ae3b2838f57e078a992bfa4a8d986",
+    "docthinker/server/project_task_store.py": "e454f7645cc43c6eff714556780d4431e82f6b325e9929c3c46aca5c66c6bc34",
+    "docthinker/server/project_task_runtime.py": "31428e1831aaf416fda4cc313c47a01cd54d851e2fb53c59eb118895d562adaf",
+    "docthinker/server/project_task_bridge.py": "278f70e47ea101a6c3825a213dffb2f936fcc78271dce809b764a9b267f0c208",
+    "docthinker/server/research_answer_dependencies.py": "2a2624d575d87a6f37ef54861e09482b44db9aa3dd911ac956e1c1b1cf6e5e4c",
+    "docthinker/server/research_memory_dependencies.py": "1631018ca577819c2aabc02fbef4bebcf560dfe5ad33c5dc5b13fc956a69152c",
+    "docthinker/server/research_service.py": "c56acf58fb700480ec80cfce6477de0965400937c30382c7bb590f96d789e1a1",
+    "docthinker/server/routers/long_projects.py": "6186eed709b1d6798de34b6dd7197cdcc8b584d5e36d1507d671027eb6ecf6e3",
+    "docthinker/server/routers/project_tasks.py": "8f262c198e2f91e9dfbd777e036903f43657c8e587af19762e6f5b5d123b4c13",
+    "clients/mobile/src/components/LongProjects.vue": "390b4ecd12410cb7f4a6d13e42cc1093d92be2dd3d1689cfa6cabe79682406f7",
+    "clients/mobile/src/components/ProjectTasks.vue": "6da76ef76e50f584328aef904229c92c208884b1cd9dc03da9b19cedba146d1a",
+    "benchmarks/runtime_algorithms/long_project_context_benchmark_20261020.json": "4b2c2338e5cd2264676c9e6e3a170e3e1c6ae0fb0f57d6bbdd1442165139bcf3",
+    "benchmarks/runtime_algorithms/project_replan_mobile_20261020.xml": "cea557d53ccce08badaecc15f205592bf18397034045ef670594f6ce8dd39f30"
+  }
+}

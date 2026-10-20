@@ -1,0 +1,111 @@
+{
+  "fixture_version": "insight-development-smoke-v2",
+  "prepared_date": "2026-10-12",
+  "purpose": "A bounded development smoke test of the production Insight OFF/AUTO contrast, with static knowledge cards and ordinary background assistance enabled in both arms.",
+  "evaluation_scope": "DEVELOPMENT_ONLY_NOT_HOLDOUT. Questions were written with known routing vocabulary to exercise three existing packs, before observing model answers. This checks exposure and produces reviewable paired answers; it cannot establish generalization, routing recall, statistical significance, or overall product quality.",
+  "ground_truth_origin": "No generated reference answer or fabricated scoring facts. Reviewers must check claims, citations and uncertainty directly against the pinned original PDFs. Empty key_facts arrays are deliberately not a completeness gold standard.",
+  "protocol": {
+    "contrast": "insight",
+    "baseline": "Production ResearchService, context_assistance_enabled=true, knowledge_skill_mode=auto, insight_mode=off.",
+    "treatment": "Same production service and corpus, context_assistance_enabled=true, knowledge_skill_mode=auto, insight_mode=auto. Actual complete cards may differ because Insight shares their budget; report the actual inputs.",
+    "bounds": "Three pairs, six requests maximum, one repetition. Use the production task completion budget: 8192 for grounded research, 2048 for ordinary chat, with no explicit experiment cap override. Stop on provider error/incomplete response; never automatically retry. Report actual provider token usage, not estimated bytes. The run uses an 80000 reported-token soft stop, not a provider spend guarantee.",
+    "quality": "Blind source-grounded human review is required. Activation, keyword overlap, model self-grading and runtime checks are not proof of quality.",
+    "privacy": "Public PDFs only; no customer or private documents. Question metadata and review criteria are never ingested as evidence.",
+    "generation_controls": "Temperature=0.1 explicitly in both arms, matching the application default rather than reading private user settings. Provider-specific options come from the shared production sdk_chat_request_options builder. Same questions and pinned PDF bytes as v1; this is a post-failure configuration repair on development data, not a new holdout."
+  },
+  "papers": [
+    {
+      "id": "rag",
+      "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "arxiv_version": "2005.11401v4",
+      "pdf_url": "https://arxiv.org/pdf/2005.11401v4",
+      "file": "rag.pdf",
+      "sha256": "23e3249e9a1e75418d82efecab0ea8c4d033b89c93742f63208d47ce01f21233"
+    },
+    {
+      "id": "lost_middle",
+      "title": "Lost in the Middle: How Language Models Use Long Contexts",
+      "arxiv_version": "2307.03172v1",
+      "pdf_url": "https://arxiv.org/pdf/2307.03172v1",
+      "file": "lost_middle.pdf",
+      "sha256": "c8070998fc12d9652d4f3b2e3094a4d6f438ed47a18539e04f07e5dbb9891f9e"
+    },
+    {
+      "id": "graphrag",
+      "title": "From Local to Global: A Graph RAG Approach to Query-Focused Summarization",
+      "arxiv_version": "2404.16130v1",
+      "pdf_url": "https://arxiv.org/pdf/2404.16130v1",
+      "file": "graphrag.pdf",
+      "sha256": "33524b3b56910c513affdad8dbf67d14e68edf0572e4debdb09a9f1916463b06"
+    },
+    {
+      "id": "memgpt",
+      "title": "MemGPT: Towards LLMs as Operating Systems",
+      "arxiv_version": "2310.08560v1",
+      "pdf_url": "https://arxiv.org/pdf/2310.08560v1",
+      "file": "memgpt.pdf",
+      "sha256": "03723007dae7c2bde235893864a3282d4c41af7ecad85277f935360658dc4d43"
+    }
+  ],
+  "rubric": {
+    "dimensions": [
+      {
+        "id": "factual_accuracy",
+        "weight": 25
+      },
+      {
+        "id": "evidence_support",
+        "weight": 25
+      },
+      {
+        "id": "key_fact_completeness",
+        "weight": 20
+      },
+      {
+        "id": "scope_and_uncertainty",
+        "weight": 15
+      },
+      {
+        "id": "task_usefulness",
+        "weight": 15
+      }
+    ],
+    "warning": "Without independently authored reference facts, completeness must be reviewed against the original PDFs and task requirements; no automatic gold-completeness score is valid."
+  },
+  "questions": [
+    {
+      "id": "smoke_literature_comparison",
+      "question": "Compare these papers on retrieval-augmented generation, graph-based retrieval and the limits of long-context evidence. Write a concise evidence-backed literature review: distinguish methods and evaluations, identify disagreement or missing comparisons, and give cautious conclusions.",
+      "papers": [
+        "rag",
+        "graphrag",
+        "lost_middle"
+      ],
+      "development_expected_pack": "literature-synthesis",
+      "key_facts": [],
+      "forbidden_claims": []
+    },
+    {
+      "id": "smoke_testable_hypothesis",
+      "question": "Based on these papers, propose one testable research hypothesis about retrieval and long-context evidence placement. State the source-backed observation, the proposed mechanism, the strongest alternative explanation, and an experiment that could disconfirm the hypothesis.",
+      "papers": [
+        "rag",
+        "lost_middle"
+      ],
+      "development_expected_pack": "research-ideation",
+      "key_facts": [],
+      "forbidden_claims": []
+    },
+    {
+      "id": "smoke_assistant_report",
+      "question": "Write an evidence-backed report comparing RAG and MemGPT for a long-term private research assistant. Separate demonstrated results from proposed transfer, identify missing direct comparisons, and state which conclusions need further experiments.",
+      "papers": [
+        "rag",
+        "memgpt"
+      ],
+      "development_expected_pack": "evidence-writing",
+      "key_facts": [],
+      "forbidden_claims": []
+    }
+  ]
+}

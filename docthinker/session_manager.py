@@ -27,7 +27,7 @@ class SessionManager:
         re.IGNORECASE,
     )
 
-    def __init__(self, base_storage_path: str = "./data/_system", data_root_path: Optional[str] = None):
+    def __init__(self, base_storage_path: str = "./data/_system", data_root_path: Optional[str] = None, *, migrate_legacy: bool = True):
         self.base_storage_path = Path(base_storage_path).expanduser().resolve()
         self.sessions_dir = self.base_storage_path / "sessions"
         if data_root_path:
@@ -40,10 +40,12 @@ class SessionManager:
         self.base_storage_path.mkdir(parents=True, exist_ok=True)
         self.sessions_dir.mkdir(parents=True, exist_ok=True)
         self.data_root.mkdir(parents=True, exist_ok=True)
-        self._migrate_from_legacy_rag_storage()
+        if migrate_legacy:
+            self._migrate_from_legacy_rag_storage()
         self.kb_storage = KnowledgeBaseStorage(str(self.base_storage_path / "knowledge_base.db"))
-        self._migrate_sessions_to_numbered_format()
-        self._cleanup_legacy_uuid_dirs()
+        if migrate_legacy:
+            self._migrate_sessions_to_numbered_format()
+            self._cleanup_legacy_uuid_dirs()
 
     @staticmethod
     def _format_session_id(number: int) -> str:
@@ -663,9 +665,9 @@ class SessionManager:
         """Get session details."""
         canonical_id = self._canonical_session_id(session_id)
         name = f"session_{canonical_id}"
-        kb = self.kb_storage.get_knowledge_base(name)
+        kb = self._get_session_header(name)
         if not kb and canonical_id != str(session_id).strip():
-            kb = self.kb_storage.get_knowledge_base(f"session_{str(session_id).strip()}")
+            kb = self._get_session_header(f"session_{str(session_id).strip()}")
         if not kb:
             return None
 
@@ -677,6 +679,7 @@ class SessionManager:
 
         return {
             "id": sid,
+            "instance_id": "kb-" + str(kb.storage_id),
             "title": merged.get("title", kb.name),
             "created_at": kb.created_at.isoformat(),
             "path": merged.get("path"),
@@ -689,11 +692,30 @@ class SessionManager:
             "metadata": merged,
         }
 
+    def _get_session_header(self, name: str):
+        """Read current metadata without hydrating every message and relation.
+
+        Session details contain no entries. Loading a complete KnowledgeBase
+        here used to turn each message mirror append into a full history read
+        plus one relation query per entry. This is a live read, not a cache;
+        instance IDs, renamed metadata and deletion remain immediately visible.
+        The storage's existing header converter preserves legacy metadata and
+        datetime handling without changing its public, fully hydrated API.
+        """
+        conn = self.kb_storage._get_connection()
+        try:
+            row = conn.execute(
+                "SELECT * FROM knowledge_bases WHERE name = ?", (name,)
+            ).fetchone()
+            return self.kb_storage._row_to_knowledge_base(row) if row else None
+        finally:
+            conn.close()
+
     def update_session(self, session_id: str, title: str) -> bool:
         """Update session title."""
         session_id = self._canonical_session_id(session_id)
         name = f"session_{session_id}"
-        kb = self.kb_storage.get_knowledge_base(name)
+        kb = self._get_session_header(name)
         if not kb:
             return False
 
@@ -706,9 +728,18 @@ class SessionManager:
         """Delete a session and its local files."""
         session_id = self._canonical_session_id(session_id)
         name = f"session_{session_id}"
-        kb = self.kb_storage.get_knowledge_base(name)
+        kb = self._get_session_header(name)
         if not kb:
             return False
+
+        # Remove explicit workbench metadata before allowing this human-readable
+        # number to be reused. Fail closed on storage errors. Instance-bound
+        # workbench keys also isolate a concurrent old-session late write.
+        from .server.workbench_store import WorkbenchStore
+        WorkbenchStore(self.base_storage_path).delete_session_metadata(session_id)
+        from .server.project_task_store import ProjectTaskStore
+        ProjectTaskStore(Path(self.base_storage_path), session_id=session_id,
+                         instance_id='maintenance').delete_session_metadata(session_id)
 
         with self._session_rag_lock:
             self._session_rag_cache.pop(session_id, None)
@@ -731,6 +762,9 @@ class SessionManager:
         role: str,
         content: str,
         timestamp: Optional[datetime] = None,
+        *,
+        research_provenance_required: bool = False,
+        research_memory_required: bool = False,
     ) -> str:
         """Add a chat message to session history with timestamp."""
         session_id = self._canonical_session_id(session_id)
@@ -742,7 +776,9 @@ class SessionManager:
             id=entry_id,
             content=content,
             entry_type="question" if role == "user" else "answer",
-            metadata={"role": role, "timestamp": ts.isoformat()},
+            metadata={"role": role, "timestamp": ts.isoformat(),
+                      **({"research_memory_required": True} if role == "assistant" and research_memory_required is True else {}),
+                      **({"research_provenance_required": True} if role == "assistant" and research_provenance_required is True else {})},
             created_at=ts,
             updated_at=ts,
         )
@@ -758,21 +794,39 @@ class SessionManager:
         """Get chat history for a session."""
         session_id = self._canonical_session_id(session_id)
         name = f"session_{session_id}"
-        entries = self.kb_storage.query_entries(name, "")
+        # Only the displayed message fields are needed. In particular, graph
+        # entries, uploaded document text and per-entry relations never enter
+        # this response. Read all messages live with no cap or cache, preserving
+        # insertion order for equal timestamps before the original stable sort.
+        conn = self.kb_storage._get_connection()
+        try:
+            rows = conn.execute(
+                "SELECT id, content, metadata, created_at FROM knowledge_entries "
+                "WHERE kb_id = (SELECT id FROM knowledge_bases WHERE name = ?) "
+                "AND type IN ('question', 'answer') AND content LIKE ? "
+                "ORDER BY rowid",
+                (name, "%"),
+            ).fetchall()
+        finally:
+            conn.close()
 
         history = []
-        for entry in entries:
-            if entry.entry_type in ["question", "answer"]:
-                ts_iso = entry.created_at.isoformat() if entry.created_at else ""
-                ts_float = entry.created_at.timestamp() if entry.created_at else 0.0
-                history.append(
-                    {
-                        "role": entry.metadata.get("role", "user"),
-                        "content": entry.content,
-                        "created_at": ts_iso,
-                        "timestamp": ts_float,
-                    }
-                )
+        for row in rows:
+            metadata = json.loads(row["metadata"]) if row["metadata"] else {}
+            created_at = datetime.fromisoformat(row["created_at"])
+            history.append(
+                {
+                    "id": row["id"],
+                    "role": metadata.get("role", "user"),
+                    "content": row["content"],
+                    "created_at": created_at.isoformat(),
+                    "timestamp": created_at.timestamp(),
+                    **({"research_core": True, "research_provenance_required": True}
+                       if metadata.get("research_provenance_required") is True else {}),
+                    **({"research_memory_required": True}
+                       if metadata.get("research_memory_required") is True else {}),
+                }
+            )
         history.sort(key=lambda x: x["created_at"])
         return history
 

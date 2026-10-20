@@ -1,0 +1,47 @@
+services:
+  gateway:
+    build:
+      context: ../..
+      dockerfile: deploy/invite/Dockerfile
+    init: true
+    restart: "no"
+    read_only: true
+    user: "10001:10001"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 128
+    mem_limit: 2g
+    cpus: 2
+    stop_grace_period: 45s
+    ports:
+      - "127.0.0.1:8088:8080"
+    environment:
+      DOCTHINKER_INVITE_ORIGIN: "${DOCTHINKER_DEPLOY_ORIGIN:-http://127.0.0.1:8088}"
+      DOCTHINKER_INVITE_SHARED_MODEL_ACK: "${DOCTHINKER_DEPLOY_SHARING_ACK:-}"
+      LLM_VLM_HOST: "${DOCTHINKER_DEPLOY_API_BASE:-}"
+      LLM_MODEL: "${DOCTHINKER_DEPLOY_MODEL:-}"
+      DOCTHINKER_RESEARCH_ENABLED: "${DOCTHINKER_DEPLOY_RESEARCH_ENABLED:-false}"
+      DOCTHINKER_RESEARCH_CONTEXT_ASSIST: "${DOCTHINKER_RESEARCH_CONTEXT_ASSIST:-false}"
+      DOCTHINKER_RESEARCH_SEMANTIC: "${DOCTHINKER_RESEARCH_SEMANTIC:-auto}"
+      DOCTHINKER_RESEARCH_STORAGE_BYTES: "${DOCTHINKER_RESEARCH_STORAGE_BYTES:-536870912}"
+      DOCTHINKER_REQUEST_JOURNAL_BYTES: "${DOCTHINKER_REQUEST_JOURNAL_BYTES:-268435456}"
+      DOCTHINKER_INVITE_REGISTRY_BYTES: "${DOCTHINKER_INVITE_REGISTRY_BYTES:-67108864}"
+      LLM_BINDING_API_KEY_FILE: /run/secrets/llm_api_key
+    secrets: [llm_api_key]
+    volumes:
+      - invite-data:/var/lib/docthinker
+    tmpfs:
+      - /tmp:size=16777216,mode=1777,noexec,nosuid,nodev
+    healthcheck:
+      test: ["CMD", "python", "-m", "docthinker.server.invite_runtime", "--healthcheck"]
+      interval: 15s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
+
+secrets:
+  llm_api_key:
+    file: "${DOCTHINKER_DEPLOY_KEY_FILE:?Run manage.py setup first}"
+
+volumes:
+  invite-data:

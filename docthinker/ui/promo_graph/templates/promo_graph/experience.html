@@ -11,38 +11,68 @@
 <body>
     <div id="promo-app" class="promo-app" data-api-prefix="{{ api_prefix }}">
         <header class="app-bar">
-            <a class="icon-button" href="/knowledge-graph" title="返回经典图谱" aria-label="返回经典图谱">
-                <i data-lucide="arrow-left"></i>
-            </a>
             <div class="brand-lockup" aria-label="DocThinker 知识星图">
                 <span class="brand-mark" aria-hidden="true"></span>
                 <div><strong>DocThinker</strong><span>知识星图</span></div>
             </div>
+            <nav class="view-switch" aria-label="知识图谱视图">
+                <a id="standard-view" href="/knowledge-graph">标准视图</a>
+                <a id="immersive-view" href="/promo-graph" aria-current="page">沉浸视图</a>
+            </nav>
             <label class="session-field">
-                <span class="sr-only">选择会话</span>
+                <span>会话</span>
                 <select id="session-select" aria-label="选择会话"></select>
             </label>
             <div class="search-shell">
                 <i data-lucide="search" aria-hidden="true"></i>
-                <input id="node-search" type="search" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-results" placeholder="搜索节点">
+                <input id="node-search" type="search" autocomplete="off" role="combobox" aria-label="搜索图谱节点" aria-autocomplete="list" aria-expanded="false" aria-controls="search-results" placeholder="搜索节点">
                 <div id="search-results" class="search-results" role="listbox" hidden></div>
             </div>
             <div class="app-actions">
+                <div class="gesture-entry">
+                    <button id="toggle-gesture" class="text-button" type="button" title="手势设置" aria-haspopup="dialog" aria-controls="gesture-settings" aria-expanded="false"><i data-lucide="hand" aria-hidden="true"></i>手势设置</button>
+                    <span id="camera-indicator" class="camera-indicator" role="status">摄像头关闭</span>
+                </div>
                 <button id="zoom-out" class="icon-button" type="button" title="缩小" aria-label="缩小"><i data-lucide="zoom-out"></i></button>
                 <button id="fit-graph" class="icon-button" type="button" title="适配全图" aria-label="适配全图"><i data-lucide="maximize-2"></i></button>
                 <button id="zoom-in" class="icon-button" type="button" title="放大" aria-label="放大"><i data-lucide="zoom-in"></i></button>
                 <button id="run-eclrr" class="icon-button" type="button" title="运行 ECLRR-v4 自进化，最多生成 40 条新边" aria-label="运行 ECLRR-v4 自进化，最多生成 40 条新边"><i data-lucide="sparkles"></i></button>
                 <button id="toggle-panel" class="icon-button" type="button" title="节点详情" aria-label="切换节点详情" aria-expanded="false"><i data-lucide="panel-right"></i></button>
                 <button id="toggle-auto-rotation" class="icon-button" type="button" title="自动旋转已开启" aria-label="自动旋转已开启" aria-pressed="true"><i data-lucide="rotate-cw"></i></button>
-                <button id="toggle-gesture" class="icon-button" type="button" title="开启手势控制" aria-label="开启手势控制" aria-pressed="false"><i data-lucide="hand"></i></button>
             </div>
         </header>
+
+        <dialog id="gesture-settings" class="gesture-settings" aria-labelledby="gesture-settings-title" aria-describedby="gesture-privacy-note">
+            <div class="gesture-settings-header">
+                <div><h2 id="gesture-settings-title">手势设置</h2><p>可选的操作方式，鼠标和触控始终可用。</p></div>
+                <button id="close-gesture-settings" class="icon-button" type="button" aria-label="关闭手势设置"><i data-lucide="x" aria-hidden="true"></i></button>
+            </div>
+            <div class="gesture-settings-body">
+                <p id="camera-status" class="camera-status" role="status">摄像头未开启。</p>
+                <div class="camera-actions" aria-label="摄像头控制">
+                    <button id="camera-start" class="text-button primary-button" type="button">开启摄像头</button>
+                    <button id="camera-pause" class="text-button" type="button" disabled>暂停</button>
+                    <button id="camera-stop" class="text-button" type="button" disabled>关闭</button>
+                </div>
+                <p id="gesture-privacy-note" class="gesture-note">画面仅在本机识别，不上传。切换视图会关闭摄像头；切出标签页、打开设置或使用鼠标 / 触控时会暂停手势，需点击恢复继续。</p>
+                <div class="gesture-preferences">
+                    <label for="gesture-mode">操作模式<select id="gesture-mode" data-gesture-pref="mode"><option value="inspect">精准操作（默认）</option><option value="presentation">演示操作</option></select></label>
+                    <p id="gesture-mode-help" class="gesture-note"></p>
+                    <label for="gesture-hand">惯用手<select id="gesture-hand" data-gesture-pref="dominantHand"><option value="right">右手</option><option value="left">左手</option><option value="auto">自动选择</option></select></label>
+                    <label for="gesture-sensitivity">移动 / 缩放灵敏度 <output data-gesture-output="panGain" for="gesture-sensitivity">1×</output><input id="gesture-sensitivity" data-gesture-pref="panGain" type="range" min="0.25" max="3" step="0.05" value="1"></label>
+                    <label for="gesture-dwell">指向多久才选中 <output data-gesture-output="dwellMs" for="gesture-dwell">650 毫秒</output><input id="gesture-dwell" data-gesture-pref="dwellMs" type="range" min="250" max="2000" step="50" value="650"></label>
+                    <label for="gesture-smoothing">防抖强度 <output data-gesture-output="smoothingMs" for="gesture-smoothing">70 毫秒</output><input id="gesture-smoothing" data-gesture-pref="smoothingMs" type="range" min="0" max="250" step="5" value="70"></label>
+                </div>
+                <p class="gesture-note">全部握拳停留约 1 秒可重置视图。光线不足、遮挡或手离开画面会中断当前动作；重新放手后再操作。</p>
+                <div class="gesture-settings-footer"><button id="reset-gesture-settings" class="text-button" type="button">恢复默认设置</button><p id="gesture-preference-status" class="gesture-note" role="status">设置仅保存在此浏览器，不会自动开启摄像头。</p></div>
+            </div>
+        </dialog>
 
         <main id="star-map-stage" class="star-map-stage" aria-label="GPU 二维知识星图"></main>
 
         <div id="gesture-layer" class="gesture-layer" data-state="idle" hidden>
             <video id="gesture-video" class="gesture-video" autoplay playsinline muted aria-label="手势识别摄像头画面"></video>
-            <div class="gesture-guide" aria-hidden="true">左右挥手摆动 · 悬停选节点<br>张开手掌放大 · 捏合缩小</div>
+            <div id="gesture-guide" class="gesture-guide" aria-hidden="true">精准模式 · 食指停留选点</div>
             <span id="gesture-cursor" class="gesture-cursor" aria-hidden="true"></span>
         </div>
 

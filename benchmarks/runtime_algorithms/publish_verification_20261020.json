@@ -1,0 +1,49 @@
+{
+  "checked_at_utc": "2026-10-20T07:14:00Z",
+  "tested_commit": "2ff1875bcef510b4cacfc9bfa6905fce6d4be1b2",
+  "branch": "codex/bounded-evidence-runtime",
+  "pull_request": "https://github.com/Yang-Jiashu/Doc-thinker/pull/8",
+  "remote_history": "Six existing remote browser/CI commits merged without product-source conflicts; no history rewrite",
+  "backend": {
+    "command_scope": "tests/test_*unit.py plus tests/test_docthinker_memory_package.py",
+    "passed": 6388,
+    "subtests_passed": 13,
+    "skipped": 9,
+    "failed": 0,
+    "duration_seconds": 119.58,
+    "junit_archive": "benchmarks/runtime_algorithms/publish_full_mainline_20261020.xml.gz",
+    "junit_uncompressed_sha256": "001332eaa19041a93f329b48d21b457f70b633dda46a3c03f60eff6c02b224a8",
+    "junit_archive_sha256": "29be1172a136ef550f0cfe65f44639a2a07e76497939f976227960f0e3164d13",
+    "skips": "Optional sandboxed browser, FAISS and real local inference dependencies; not silently counted as passed"
+  },
+  "frontend": {
+    "command": "npm test in clients/mobile",
+    "passed": 897,
+    "failed": 0,
+    "duration_ms": 4693.530666,
+    "h5_build": "passed",
+    "pwa_version": "6b521e105f5b9f6aa517",
+    "pwa_entries": 84,
+    "pwa_bytes": 955342,
+    "integrity": "84/84 passed"
+  },
+  "source_bundle_tests": {
+    "command_scope": "tests/test_invite_pack_unit.py",
+    "passed_before_manifest_only_extension": 80,
+    "notes": "Publication extends the existing explicit source-package allowlist with the acceptance summary and lossless JUnit archives; raw logs remain excluded"
+  },
+  "publication_scope": {
+    "includes": ["Product source", "Mobile and desktop interaction code", "Tests and reproducible benchmark tools", "Deployment build inputs", "Existing and new brand/demo assets", "Documentation and evidence-limited evaluation summaries"],
+    "excludes": [".env and credentials", "User databases and runtime session data", "Browser snapshots", "Temporary paper screenshots", "Original PDFs", "Intermediate raw JUnit XML", "node_modules and local mobile builds"],
+    "security_audit": "Actual staged blobs and decompressed final archives scanned; two real .env credential values checked in memory with zero exact matches; no credential values printed",
+    "privacy_note": "JUnit and some historical measurement summaries retain local filesystem usernames/paths, not credentials or user chat records"
+  },
+  "capability_boundary": {
+    "personal_event_reasoning_pipeline_complete": false,
+    "new_real_model_quality_acceptance": false,
+    "new_paid_provider_calls": 0,
+    "production_release_certified": false,
+    "public_service_deployed": false,
+    "main_branch_automatically_merged": false
+  }
+}

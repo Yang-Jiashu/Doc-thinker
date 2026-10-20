@@ -1,0 +1,85 @@
+{
+  "schema": "research-evidence-trace-protocol-deviations-v1",
+  "recorded_date": "2026-10-10",
+  "status": "final_audited_protocol_deviation",
+  "protocol": "benchmarks/research_real/research_evidence_trace_ab_v1.protocol.json",
+  "frozen_protocol_modified": false,
+  "runtime_freeze_reported_by_coordinator": {
+    "runtime_sha256": "704fd1a65ffe198925c68a181bdcd3e5e00da905f629c9bff35d65100d35aac6",
+    "source_snapshot_sha256": "a415993a4ef265d14f7f6b8cb2750c645023e1c002a7f5ab52ced4945619d370"
+  },
+  "deviations": [
+    {
+      "id": "reviewer_b_partial_candidate_order_counterbalancing",
+      "protocol_requirement": "The second independent reviewer sees a different candidate presentation order.",
+      "observed_deviation": "Reviewer B saw the first five reviewed packets and packet-d5f59d43aeb6c2e0 in the original candidate order, not reversed. The coordinator reports that subsequent unread packets were reversed.",
+      "evidence_source": "Coordinator message relaying reviewer B's confirmation; this report agent did not contact either reviewer or inspect their in-progress scores.",
+      "original_order_packet_count_reported": 6,
+      "first_five_packet_ids": [
+        "packet-fc50070262827e6d",
+        "packet-18d68fb07c101ec4",
+        "packet-8626cfffb188001c",
+        "packet-9019639f9208147f",
+        "packet-b3176c2ecd45f44d"
+      ],
+      "additional_original_order_packet_id": "packet-d5f59d43aeb6c2e0",
+      "subsequent_reversed_packet_ids": [
+        "packet-bf837118dcd9ac79",
+        "packet-f28cd583bf0beb2d",
+        "packet-d8e6bd012fe37172",
+        "packet-282a8c22fca1db3c",
+        "packet-e3e42fb4ee3c07c1",
+        "packet-3fe93c0d1e81cd4b"
+      ],
+      "packet_identity_reconciliation": "All 12 coordinator-confirmed IDs exist in the final private mapping and partition it exactly into six original-order and six reversed-order packets. Presentation history is based on the coordinator-relayed reviewer confirmation, not inferred from scores.",
+      "remediation_reported": "Only previously unread packets were reversed; already-read packets and original scores remain part of the evaluation.",
+      "interpretation": "Candidate-order counterbalancing was incomplete. Shared presentation order may produce correlated position effects; two reviewers do not remove this risk. This deviation alone does not establish arm unblinding or review-content sharing, and neither is claimed.",
+      "required_final_disclosure": "Report the affected packet count and reconciled IDs, preserve both original reviews, and qualify the paired quality evidence. Do not claim fully counterbalanced reviewer order or count 24 reviewer pairs as 24 independent questions.",
+      "original_order_packet_ids": [
+        "packet-fc50070262827e6d",
+        "packet-18d68fb07c101ec4",
+        "packet-8626cfffb188001c",
+        "packet-9019639f9208147f",
+        "packet-b3176c2ecd45f44d",
+        "packet-d5f59d43aeb6c2e0"
+      ]
+    }
+  ],
+  "final_result": "benchmarks/research_real/result_evidence_trace_20261010.json",
+  "release_gate": "failed_both_splits",
+  "runtime_events_to_retain_not_protocol_exclusions": [
+    {
+      "question_id": "q02_lost_middle_setup",
+      "arm": "on",
+      "reported_event": "Cold helper reached the 8-second foreground wait limit and fell back.",
+      "evidence_source": "Final saved answer and scheduler trace confirm timed_out; OFF and ON prompt/source digests are identical. Offline startup attribution does not prove that initialization alone caused the paid-run timeout.",
+      "primary_handling": "Retain in intention-to-treat quality, evidence, token and latency accounting. Do not silently drop the pair or attribute identical-source answer differences to retrieval improvement.",
+      "secondary_handling": "Separately report scheduler-completed, active evidence-selection and changed-source counts; active-only results are sensitivity analyses, not replacements for ITT."
+    },
+    {
+      "question_id": "q15_model_architecture_scope",
+      "arm": "on",
+      "reported_event": "Helper reached the unchanged 8-second foreground wait limit and fell back.",
+      "evidence_source": "Final saved answer and scheduler trace.",
+      "primary_handling": "Retained in intention-to-treat; OFF and ON prompt/source digests are identical. Independent answer-score differences are not evidence of a retrieval change."
+    }
+  ],
+  "completed_post_run_audit": [
+    "Wait for explicit run-finished and all-24-independent-reviews confirmation before running the question-balanced helper.",
+    "Count 12 question-level comparisons after averaging both reviewers per arm: 8 development_regression and 4 new_document_holdout. Keep the Chinese diagnostic outside main quality/efficiency means but inside total provider cost.",
+    "Verify all dispatched calls, provider receipts, actual model and finish reasons, retries or indeterminate outcomes; retain failed/incomplete/diagnostic usage and leave unknown usage null.",
+    "Reconcile copied corpus digests/files with corpus-reuse-provenance.json. Saved ingestion durations on the six copied templates originate in V4 and are not newly incurred in V6. Sum ingestion only once for newly created templates; report per-arm clones and document-vector prewarm separately. Do not sum cold-start-equivalent upfront allocation as real run expenditure.",
+    "Read final helper and answer timing fields without conflating an 8-second foreground wait with cancellation of the worker or with total service latency. Full non-streaming answer time is not first-token latency.",
+    "Retain both reviewers' retrieved full/partial/absent and answer covered/partial/absent annotations, source-label noise denominators, and exact critical-error flags. Publish conservative both-full counts separately from evidence-only adjudication.",
+    "Group identical supplied-source digests within each question. Conflicting factual or irrelevant-label annotations require separate blinded evidence-only adjudication under the frozen protocol; never rewrite the independent weighted answer scores.",
+    "Apply all frozen acceptance checks separately by split only after completeness, usage, setup and required adjudication audits. Preserve negative historical V4/V5 results; no provisional quality or release claim."
+  ],
+  "post_run_confirmation": {
+    "actual_calls": 26,
+    "completed_calls": 26,
+    "scored_reviewer_pairs": 24,
+    "independent_question_pairs": 12,
+    "blind_evidence_adjudication_packets": 3,
+    "blind_evidence_adjudication_packs": 4
+  }
+}

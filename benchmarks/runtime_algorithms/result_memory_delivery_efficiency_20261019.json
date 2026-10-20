@@ -1,0 +1,100 @@
+{
+  "version": "memory-delivery-efficiency-20261019-v1",
+  "scope": "single authorized personal-memory case; not a population benchmark or production acceptance",
+  "original_input": {
+    "memories": 14,
+    "events": 14,
+    "relations": 13,
+    "joint_conditions": 13,
+    "obligations": 27,
+    "canonical_sha256": "6d5c00df61c7888fceec0c34ff7524f6643c2508af312ccb11d87608a30f81f0",
+    "preserved_by_inverse_check": true
+  },
+  "shared_generation": {
+    "model": "step-5-preview",
+    "reasoning_effort": "low",
+    "max_output_tokens": 8192,
+    "temperature": 0.1,
+    "timeout_seconds": 180,
+    "calls_per_trial": 1,
+    "retry": false
+  },
+  "before_claim_selection_source18": {
+    "http_status": 200,
+    "finish_reason": "length",
+    "native_completed": false,
+    "prompt_tokens": 2556,
+    "completion_tokens": 8192,
+    "total_tokens": 10748,
+    "model_seconds": 117.896786667,
+    "native_outer_seconds": 127.374127334,
+    "failed_output_reviewed": false
+  },
+  "after_host_ledger_source19": {
+    "http_status": 200,
+    "finish_reason": "stop",
+    "native_completed": true,
+    "prompt_tokens": 2212,
+    "completion_tokens": 4092,
+    "total_tokens": 6304,
+    "model_seconds": 56.529458209,
+    "native_outer_seconds": 60.931264375,
+    "key_reads": 1,
+    "wire_calls": 1,
+    "independent_critical_distinction_review": "pass",
+    "critical_distinctions_preserved": 7,
+    "unsupported_related_to_as_recorded_cause": false,
+    "minor_limitation": "Opening shorthand about handoff confirmation is ambiguous; the subsequent existing handoff rules are correctly retained."
+  },
+  "algorithm_change": "Host preserves and classifies the complete literal factual ledger; model supplies bounded interpretation and proposed next steps, not source indexing or relation classification.",
+  "complex_research_trial": {
+    "source_chunks_retained": 125,
+    "successful_prior_stages_retained_in_storage": 7,
+    "active_whole_analyses_in_prompt": 4,
+    "selected_source_windows": 8,
+    "native_completed": true,
+    "independent_semantic_verdict": "fail",
+    "prompt_tokens": 6229,
+    "completion_tokens": 7562,
+    "total_tokens": 13791,
+    "model_seconds": 114.784455959,
+    "previous_source15_model_seconds": 98.610764500,
+    "speed_improvement_claimed": false,
+    "fixed": [
+      "Phase and query coverage gaps used the same code; their collision prevented answer persistence. They now retain separate scope and counts without weakening duplicate validation.",
+      "Current selected quotations support the ACI mechanisms and actual shell comparison that were previously missed."
+    ],
+    "remaining": [
+      "The generated hypothesis still lacks fixed actual samples, a matched shell baseline and per-level comparison.",
+      "Absolute thresholds do not test the stated relative/nonmonotonic prediction.",
+      "Manual enumeration is not a valid observation of the declared artifact/model target.",
+      "Generated numeric rules do not cover their declared continuous domains."
+    ]
+  },
+  "compatibility": {
+    "focused_backend_neighbors_passed": 210,
+    "new_native_ledger_checks_passed": 9,
+    "frontend_passed": 1696,
+    "operator_deployment_startup_checks_passed": 357,
+    "old_profiles_4_through_8_fixed_sample_policy_schema_messages_wire_artifact_render_equal": true,
+    "whole_source19_backend_suite_rerun": false
+  },
+  "delivery_status": {
+    "vector_cache_ported_to_current_checkout": true,
+    "current_checkout_cache_tests_passed": 110,
+    "current_checkout_optional_local_model_tests_skipped": 2,
+    "new_memory_and_evidence_pipeline": "isolated Source19 release candidate, explicit opt-in",
+    "candidate_source_zip": "docthinker-2.0-memory-evidence-candidate-20261019-19b.zip",
+    "candidate_source_zip_sha256": "6a38c865d2a009324ac93ed0c9d06bd7ddc2e675dadd7a81a9f4ad678490894b",
+    "source_zip_inputs_verified": 969,
+    "operator_activation": "DOCTHINKER_GROUPED_MEMORY_ENABLED=true with the existing research-enabled, authenticated deployment; client cannot enable this flag",
+    "existing_logo_demo_and_styles_changed": false,
+    "live_preview_or_github_updated": false,
+    "unbounded_or_entire_product_acceptance_claimed": false
+  },
+  "limits": [
+    "One pre/post case; generation contracts differ and no statistical speed or general quality guarantee is inferred.",
+    "Reported reasoning_tokens=0 is not used to infer hidden reasoning token counts; hidden reasoning text was not reviewed.",
+    "Passing a bounded native continuation test does not prove arbitrary-length context retention or complete long-horizon product readiness."
+  ]
+}

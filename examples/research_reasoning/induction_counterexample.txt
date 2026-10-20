@@ -1,0 +1,2 @@
+Synthetic counterexample C. This is not an independent clinical trial.
+Treatment increases risk under controlled conditions.
