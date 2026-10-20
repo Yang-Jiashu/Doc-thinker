@@ -19,6 +19,42 @@
 
 *Original brand artwork, preserved unchanged; current runtime capabilities are shown below.*
 
+## The current 2.0 interface, in action
+
+Actual browser recordings of the current H5 client, not interface mockups; each clip states its data and runtime boundaries. [Recording and reproduction notes →](docs/UI_SHOWCASE.md)
+
+### 01 · Start with your own task
+
+<p align="center">
+  <a href="docs/assets/current-ui-workspace.gif"><img src="docs/assets/current-ui-workspace.gif" width="900" alt="Current 2.0 workspace: edit a personal-task draft and append a quick-start recipe without sending" /></a>
+</p>
+
+*Offline sample: write a personal-task draft and append a recipe; no question is sent, no model is called and no task is started.*
+
+### 02 · Keep what you confirm — and what you change
+
+<p align="center">
+  <a href="docs/assets/current-ui-memory.gif"><img src="docs/assets/current-ui-memory.gif" width="900" alt="Current 2.0 confirmed memory: save a response preference, revise it and inspect versions 1 and 2" /></a>
+</p>
+
+*Isolated test service: save a preference, confirm its revision and inspect both versions through the real gateway and SQLite; no model call or automatic preference learning.*
+
+### Explore the graph
+
+<p align="center">
+  <a href="docs/assets/current-ui-graph.gif"><img src="docs/assets/current-ui-graph.gif" width="900" alt="Current 2.0 graph navigation: locate sample entities and inspect a path, node details and simulated source text" /></a>
+</p>
+
+*Fixed offline sample: 6 nodes and 5 edges, with actual path navigation and node inspection; passages are simulated, connections are not causal proof and no graph is built from real documents here.*
+
+### 04 · Saved progress, an explicit stop
+
+<p align="center">
+  <a href="docs/assets/current-ui-projects.gif"><img src="docs/assets/current-ui-projects.gif" width="900" alt="Current 2.0 task checkpoints: open an approved plan, refresh progress and inspect a blocked review step" /></a>
+</p>
+
+*Isolated test service: inspect a previously approved plan, saved steps and an explicit blocked state. The local model double cannot handle the independent review request; the UI does not present a final report or retry an uncertain call automatically. This is a failure-handling demonstration, not successful AI delivery.*
+
 ## Remember what matters. Pick up where you left off.
 
 Your materials, confirmed memories and ongoing projects belong in one conversation — for work, everyday planning, research and writing.
@@ -27,26 +63,11 @@ Your materials, confirmed memories and ongoing projects belong in one conversati
 
 *Conceptual workflow, not a screenshot or benchmark; dotted connections remain unverified.*
 
-## Ask normally. Explore the connections.
-
-<p align="center">
-  <img src="docs/assets/usecase_chat.gif" width="48%" alt="Original demo: ask questions grounded in your material" />
-  <img src="docs/assets/usecase_kg.gif" width="48%" alt="Original demo: explore related concepts in the knowledge graph" />
-</p>
-
-*Original chat and graph demonstrations, preserved unchanged. The invitation profile and full graph workbench expose different capabilities.*
-
 ## 01 · One Harness, a clear division of work
 
 [![System architecture: the shared Harness controls retrieval, context, models and delivery; the original full graph service remains a separate path](docs/assets/architecture-system.svg)](docs/assets/architecture-system.svg)
 
 Code handles scope, search and execution budgets. Models interpret and write, with Insight Schema assisting evidence gathering in the background.
-
-### Explore the graph
-
-[![Original GPU knowledge-graph demonstration](docs/assets/gpu_knowledge_graph_demo.gif)](docs/assets/gpu_knowledge_graph_demo.gif)
-
-*Original desktop demo. Full graph interaction is separate from the restricted invitation deployment.*
 
 ## 02 · A memory you can correct, not just accumulate
 
@@ -54,25 +75,43 @@ Code handles scope, search and execution budgets. Models interpret and write, wi
 
 **Sources are evidence; confirmed memories are personal context; relationships retain their conditions.** Correct or withdraw an input, and dependent results become stale; storage can expand while each retrieval and prompt stays bounded.
 
-### Inspect a memory and its connections
-
-[![Original memory and knowledge-graph observability demo](docs/assets/memory_kg_observability_demo.gif)](docs/assets/memory_kg_observability_demo.gif)
-
-*Original desktop view; a traceable connection is not proof of causation.*
-
-### Correct what the agent remembers
-
-[![Original editable memory interface](docs/assets/ui_memory_editor_screenshot.png)](docs/assets/ui_memory_editor_screenshot.png)
-
-*Original memory editor. Recalling confirmed context is not automatic preference learning.*
-
 ## 03 · Continue the project, not the entire transcript
 
 [![Long-task loop: plan, explicit approval, composition, independent checking and delivery; gaps lead to local lookup and user-approved revisions, not an automatic paid loop](docs/assets/architecture-task-loop.svg)](docs/assets/architecture-task-loop.svg)
 
 **Approve → compose → check → fill evidence gaps → revise → deliver.** Restart restores state, not permission to spend: further paid work needs approval, and changed sources invalidate only affected dependency branches.
 
-## Original framework reference
+## Historical UI — the previous version
+
+These original desktop assets remain visible and unchanged; **they are not the current 2.0 interface shown above.**
+
+### Previous chat and graph views
+
+<p align="center">
+  <img src="docs/assets/usecase_chat.gif" width="48%" alt="Historical demo: document-grounded chat in the previous desktop interface" />
+  <img src="docs/assets/usecase_kg.gif" width="48%" alt="Historical demo: knowledge-graph exploration in the previous desktop interface" />
+</p>
+
+*Previous full-desktop demonstrations; the invitation default is chat/history, with research documents and confirmed memory explicitly enabled, not full graph, voice or automatic learning.*
+
+### Previous memory observability and GPU graph
+
+<p align="center">
+  <img src="docs/assets/memory_kg_observability_demo.gif" width="48%" alt="Historical memory and knowledge-graph observability demo" />
+  <img src="docs/assets/gpu_knowledge_graph_demo.gif" width="48%" alt="Historical GPU knowledge-graph demonstration" />
+</p>
+
+*Previous desktop demonstrations, not features enabled by default in the invitation profile; a traceable connection is not proof of causation.*
+
+### Previous memory editor
+
+<p align="center">
+  <a href="docs/assets/ui_memory_editor_screenshot.png"><img src="docs/assets/ui_memory_editor_screenshot.png" width="900" alt="Historical memory editor, not a current 2.0 screenshot" /></a>
+</p>
+
+*Previous memory-editing interface; the current save, revision and history flow is recorded above.*
+
+## Original framework reference — historical
 
 Historical diagrams are retained unchanged. The three maps above describe current runtime connections; the artwork below is not an accepted feature list for every deployment.
 

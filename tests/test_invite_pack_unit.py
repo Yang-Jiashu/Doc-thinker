@@ -31,6 +31,9 @@ def test_bundle_rejects_non_build_inputs(name):
     "docs/assets/docthinker-v2-overview.svg",
     "docs/assets/architecture-system.svg", "docs/assets/architecture-memory.svg",
     "docs/assets/architecture-task-loop.svg",
+    "docs/assets/current-ui-workspace.gif", "docs/assets/current-ui-memory.gif",
+    "docs/assets/current-ui-graph.gif", "docs/assets/current-ui-projects.gif",
+    "docs/assets/current-ui-manifest.json", "docs/UI_SHOWCASE.md",
     "deploy/invite/requirements.txt", "deploy/invite/backup.py", ".dockerignore", "docs/ARCHITECTURE.md", "docs/PRODUCTIZATION.md",
     "docs/RELEASE_ACCEPTANCE_2026-10-12.md",
     "docs/RELEASE_ACCEPTANCE_2026-10-20.md",
@@ -128,7 +131,10 @@ def test_actual_source_bundle_can_load_all_knowledge_and_insight_modules(tmp_pat
         for name in ("logo.png", *pack.ORIGINAL_README_ASSETS,
                      "docs/assets/docthinker-v2-overview.svg",
                      "docs/assets/architecture-system.svg", "docs/assets/architecture-memory.svg",
-                     "docs/assets/architecture-task-loop.svg"):
+                     "docs/assets/architecture-task-loop.svg",
+                     "docs/assets/current-ui-workspace.gif", "docs/assets/current-ui-memory.gif",
+                     "docs/assets/current-ui-graph.gif", "docs/assets/current-ui-projects.gif",
+                     "docs/assets/current-ui-manifest.json", "docs/UI_SHOWCASE.md"):
             expected = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
             assert manifest["files"][name] == expected
             assert hashlib.sha256(archive.read(f"{pack.PREFIX}/{name}")).hexdigest() == expected
