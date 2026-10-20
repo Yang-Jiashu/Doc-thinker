@@ -144,6 +144,18 @@ class ReadmeAssetsTests(unittest.TestCase):
     def test_new_overview_is_accessible_self_contained_svg(self):
         validate_svg((ROOT / OVERVIEW).read_text(encoding="utf-8"))
 
+    def test_overview_and_architecture_are_default_visible_in_both_readmes(self):
+        spec = importlib.util.spec_from_file_location(
+            "readme_visible_presentation", ROOT / "scripts/check_release_preservation.py")
+        checker = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(checker)
+        expected = {OVERVIEW, *ARCHITECTURE_IMAGES}
+        for name in READMES:
+            with self.subTest(readme=name):
+                visible = checker._visible_images((ROOT / name).read_text(encoding="utf-8"))
+                self.assertTrue(expected.issubset(visible),
+                                "README overview and architecture must not be hidden in details")
+
     def test_architecture_local_links_exist_and_images_ship_in_package(self):
         pack = _pack_contract()
         references = readme_references((ROOT / ARCHITECTURE).read_text(encoding="utf-8"))

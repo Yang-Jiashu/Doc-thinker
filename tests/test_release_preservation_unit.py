@@ -115,6 +115,63 @@ def test_comments_and_code_samples_cannot_replace_visible_demo(release, hidden):
         CHECK.verify(release)
 
 
+@pytest.mark.parametrize("hidden", [
+    '<details><summary>Gallery</summary>![demo](docs/assets/demo.gif)</details>',
+    '<details>\n<img\n  src="docs/assets/demo.gif"\n  alt="demo"\n/>\n</details>',
+    '<details open><details>![demo](docs/assets/demo.gif)</details></details>',
+    '<details><details open>![demo](docs/assets/demo.gif)</details></details>',
+    '<details open><details><details open><img src="docs/assets/demo.gif"/>'
+    '</details></details></details>',
+    '<details>![demo](docs/assets/demo.gif)',
+    '<details open><details><img src="docs/assets/demo.gif"/>',
+    '`![demo](docs/assets/demo.gif)`',
+    '``<img src="docs/assets/demo.gif"/>``',
+])
+def test_collapsed_details_and_inline_examples_do_not_satisfy_default_visibility(release, hidden):
+    for name in CHECK.README_PATHS:
+        path = release / name
+        body = path.read_text(encoding="utf-8")
+        path.write_text(body.replace("![Original demo](docs/assets/demo.gif)", hidden),
+                        encoding="utf-8")
+    with pytest.raises(ValueError, match="original logo/demo/architecture"):
+        CHECK.verify(release)
+
+
+@pytest.mark.parametrize("visible", [
+    '<details open><summary>Gallery</summary>![demo](docs/assets/demo.gif)</details>',
+    '<details open=""><img\n src="docs/assets/demo.gif"\n alt="demo"/></details>',
+    '<DETAILS OPEN>![demo](docs/assets/demo.gif)</DETAILS>',
+    # HTML boolean attributes are true by presence, even open="false".
+    '<details open="false"><img src="docs/assets/demo.gif"/></details>',
+    '<details open><details open>![demo](docs/assets/demo.gif)</details></details>',
+    '<details open>![demo](docs/assets/demo.gif)',
+    '<details open>![demo](<docs/assets/demo.gif>)</details>',
+    '<details><img src="hidden.gif"/></details>![demo](docs/assets/demo.gif)',
+    '```html\n<details>\n```\n![demo](docs/assets/demo.gif)',
+])
+def test_default_open_details_and_content_after_closed_details_remain_visible(release, visible):
+    for name in CHECK.README_PATHS:
+        path = release / name
+        body = path.read_text(encoding="utf-8")
+        path.write_text(body.replace("![Original demo](docs/assets/demo.gif)", visible),
+                        encoding="utf-8")
+    assert CHECK.verify(release) == (3, 2)
+
+
+def test_nested_details_filter_markdown_and_multiline_html_by_all_ancestors():
+    body = ('![before](before.svg)\n'
+            '<details open>![open](open.svg)\n'
+            '<details><img\n src="hidden.svg"/>\n'
+            '<details open>![still hidden](hidden-inner.svg)</details></details>\n'
+            '<img\n src="after-inner.svg"/></details>\n'
+            '![after](after.svg)\n<details>![unclosed](hidden-tail.svg)')
+    assert CHECK._visible_images(body) == {"before.svg", "open.svg", "after-inner.svg", "after.svg"}
+
+
+def test_hidden_disclosure_cannot_join_two_fragments_into_a_markdown_image():
+    assert CHECK._visible_images('![not an image]<details>hidden</details>(phantom.svg)') == set()
+
+
 def test_readme_prose_and_new_ui_can_evolve_without_asset_replacement(release):
     for name in CHECK.README_PATHS:
         path = release / name

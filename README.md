@@ -6,8 +6,6 @@
 
 **A personal agent with a memory you can inspect — and work you can continue.**
 
-Remember what matters. See what changed. Pick up where you left off.
-
 [English](README.md) · [中文](README.zh-CN.md) · [Try it](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [Acceptance](docs/RELEASE_ACCEPTANCE_2026-10-20.md)
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB)](pyproject.toml)
@@ -15,48 +13,95 @@ Remember what matters. See what changed. Pick up where you left off.
 [![Paper](https://img.shields.io/badge/arXiv-2603.05551-b31b1b)](https://arxiv.org/abs/2603.05551)
 [![License](https://img.shields.io/badge/License-PolyForm_Shield-orange)](LICENSE)
 
+<img src="docs/assets/banner.png" width="1000" alt="Original DocThinker banner" />
+
 </div>
 
-[![DocThinker overview: confirmed memory, version-bound evidence and approved project phases](docs/assets/docthinker-v2-overview.svg)](docs/ARCHITECTURE.md)
+*Original brand artwork, preserved unchanged; current runtime capabilities are shown below.*
 
-*Conceptual workflow, not a product screenshot or benchmark. Dotted connections remain unverified.*
+## Remember what matters. Pick up where you left off.
 
-## Not another conversation that starts from zero
+Your materials, confirmed memories and ongoing projects belong in one conversation — for work, everyday planning, research and writing.
 
-DocThinker connects your materials, confirmed memories and ongoing projects. Use it for work decisions, everyday planning, research or writing — not just papers. Chat normally; inspect the context and evidence when you need to.
+[![DocThinker overview: confirmed memory, version-bound evidence and approved project phases](docs/assets/docthinker-v2-overview.svg)](docs/assets/docthinker-v2-overview.svg)
 
-- **Memory with an owner.** Confirm, search, correct, archive or delete what the agent remembers. Storage can grow; each answer still uses bounded context.
-- **Connections with a history.** Trace answers to sources, events and versions. Correcting or withdrawing an input invalidates dependent results instead of silently recycling them.
-- **Projects with continuity.** Approve a plan, pause, restart and continue valid checkpoints. Add a phase without replaying every previous conversation.
+*Conceptual workflow, not a screenshot or benchmark; dotted connections remain unverified.*
 
-## See it, then try your own task
+## Ask normally. Explore the connections.
 
 <p align="center">
   <img src="docs/assets/usecase_chat.gif" width="48%" alt="Original demo: ask questions grounded in your material" />
   <img src="docs/assets/usecase_kg.gif" width="48%" alt="Original demo: explore related concepts in the knowledge graph" />
 </p>
 
-*Original chat and graph demonstrations, preserved unchanged. Available capabilities differ by runtime profile below.*
+*Original chat and graph demonstrations, preserved unchanged. The invitation profile and full graph workbench expose different capabilities.*
 
-Try a task that changes: “Help me prepare next week's project review.” Add notes and constraints, confirm a preference, then introduce a corrected deadline. Inspect the sources, review which results became stale, and continue an approved phase. The [long-project guide](docs/LONG_PROJECT_RUNTIME.md) explains the real workflow and its limits; offline examples only demonstrate interaction.
+## 01 · One Harness, a clear division of work
 
-## What happens behind the conversation
+[![System architecture: the shared Harness controls retrieval, context, models and delivery; the original full graph service remains a separate path](docs/assets/architecture-system.svg)](docs/assets/architecture-system.svg)
 
-One **Harness** controls scope, permissions, versions, retrieval budgets and execution. Models interpret material and draft responses; algorithms handle indexing, deduplication, bounded graph/path search, scheduling and source invalidation.
+**Code supplies the skeleton:** scope, indexing, bounded search, budgets and scheduling; **models supply interpretation and expression**. Optional Insight Schema methods assist evidence gathering in the background, not through separate reasoning modes.
 
-Optional **Insight Schema** knowledge and methods help find supporting material and organize evidence in the background. Analogy, deduction and induction are aids to analysis — not separate user-facing modes or permission to invent facts. Original evidence takes priority.
+<p align="center">
+  <img src="docs/assets/pipeline.png" width="48%" alt="Original document-processing pipeline" />
+  <img src="docs/assets/gpu_knowledge_graph_demo.gif" width="48%" alt="Original GPU knowledge-graph demonstration" />
+</p>
 
-For approved long tasks, the loop is **compose → check → find missing evidence → revise → check again**. Each executed node consumes its own approved model-call budget. Event directions, prerequisites, counterevidence and unknowns remain explicit; a connected graph is not proof of causation.
+*Original processing and graph views; full multimodal parsing and graph interaction are not enabled by the restricted invitation deployment.*
 
-[Runtime architecture](docs/ARCHITECTURE.md) · [Memory and project lifecycle](docs/LONG_PROJECT_RUNTIME.md) · [Insight Schema design](docs/INSIGHT_RUNTIME_DESIGN.md)
+## 02 · A memory you can correct, not just accumulate
+
+[![Memory architecture: original passages, confirmed personal context and conditional event relations enter answers in separate layers; changes invalidate dependent results](docs/assets/architecture-memory.svg)](docs/assets/architecture-memory.svg)
+
+**Sources are evidence; confirmed memories are personal context; relationships retain their conditions.** Correct or withdraw an input, and dependent results become stale; storage can expand while each retrieval and prompt stays bounded.
+
+<p align="center">
+  <img src="docs/assets/memory_kg_observability_demo.gif" width="48%" alt="Original memory and knowledge-graph observability demo" />
+  <img src="docs/assets/ui_memory_editor_screenshot.png" width="48%" alt="Original editable memory interface" />
+</p>
+
+*Original observability and editing interfaces. A traceable connection is not proof of causation, and a recalled preference is not automatic preference learning.*
+
+<p align="center">
+  <img src="docs/assets/agentic_memory_architecture.png" width="48%" alt="Original layered personal-agent memory architecture" />
+  <img src="docs/assets/lifecycle.png" width="48%" alt="Original memory lifecycle" />
+</p>
+
+*The original framework artwork remains visible; the new diagrams describe current runtime connections, not a replacement for these assets.*
+
+## 03 · Continue the project, not the entire transcript
+
+[![Long-task loop: plan, explicit approval, composition, independent checking and delivery; gaps lead to local lookup and user-approved revisions, not an automatic paid loop](docs/assets/architecture-task-loop.svg)](docs/assets/architecture-task-loop.svg)
+
+**Approve → compose → check → fill evidence gaps → revise → deliver.** Restart restores state, not permission to spend: further paid work needs approval, and changed sources invalidate only affected dependency branches.
+
+<p align="center">
+  <img src="docs/assets/multi_agent_evolution.png" width="48%" alt="Original multi-agent evolution framework illustration" />
+  <img src="docs/assets/sparql_cot.png" width="48%" alt="Original graph-query reasoning illustration" />
+</p>
+
+*Historical research illustrations, not evidence that autonomous RSI or general causal reasoning is complete. Analogy, deduction and induction supply conditional analytical leads, not new facts.*
 
 ## Quick start
 
-### 1 · Explore the interface locally
+**Explore the interface:** [build the local browser preview](#local-interface-preview) — labelled samples, no model calls or microphone access.
 
-From a repository checkout, use the shared mobile/desktop-browser client:
+**Try your own material:** [deploy a private invitation instance](deploy/invite/README.md) — separate accounts, server-held API keys, HTTPS required for remote use.
 
-Requires Node.js 22 and Python 3 for the local static preview.
+**Explore the full graph:** [run the desktop workbench](#full-graph-workbench) — a separate developer profile with optional multimodal, gesture and voice components.
+
+The invitation default is chat/history; explicitly enabling its research core adds PDF/TXT/MD, confirmed memory and approved project phases, **not** full graph growth, gesture or voice. Private hosting is not end-to-end encryption: operators and configured model providers may process submitted content.
+
+Try a changing task: “Help me prepare next week's project review.” Add notes, confirm a preference, correct a deadline, inspect stale results, then continue an approved phase; the [long-project guide](docs/LONG_PROJECT_RUNTIME.md) explains the real workflow.
+
+## Technical details, installation and acceptance
+
+The integration baseline passed **7,140 backend tests on each Python version** and **999 client tests**; frozen real-model acceptance remains **accepted with caveats**, not a universal quality claim.
+
+<details>
+<summary id="local-interface-preview">Local interface preview · commands</summary>
+
+Requires Node.js 22 and Python 3; dependency installation accesses npm.
 
 ```sh
 git clone https://github.com/Yang-Jiashu/Doc-thinker.git
@@ -66,20 +111,14 @@ npm run build:h5
 npm run preview:h5
 ```
 
-Open [localhost:5175](http://127.0.0.1:5175). The default demo uses labelled sample data, makes no model calls and does not request the microphone. Installing dependencies requires network access; the demo is not a real-answer evaluation. Use the static preview, not a publicly exposed development server.
+Open [localhost:5175](http://127.0.0.1:5175). The default demo uses labelled sample data, does not read real documents and is not an answer-quality evaluation; use the static preview rather than a publicly exposed development server.
 
-### 2 · Invite a few people to a private instance
+For invited users, follow the [Docker Compose guide](deploy/invite/README.md), including configuration, user creation and HTTPS; a source bundle does not create a public URL or grant permission to resell a model subscription. Downloaded invitation ZIPs use that guide, not full-workspace development commands.
 
-Use the [Docker Compose invitation deployment guide](deploy/invite/README.md): build the service, configure your model privately, create separate invited accounts, and deploy behind HTTPS. API keys stay on the server; users open a webpage.
-
-The default profile provides chat and history. Explicit research enablement adds PDF/TXT/MD import, source-grounded answers, confirmed memory and approved project phases. Full graph growth, gesture control and voice are **not** included in this invitation profile. A deployment bundle does not create a public URL or grant permission to resell a model subscription.
-
-Downloaded an invitation source ZIP? Follow its deployment guide; full-workspace development commands below do not apply to the restricted bundle.
-
-### 3 · Run the full graph workbench
+</details>
 
 <details>
-<summary>Desktop / graph developer installation</summary>
+<summary id="full-graph-workbench">Full graph workbench · developer installation</summary>
 
 From the repository root, with Python 3.11 recommended:
 
@@ -90,7 +129,7 @@ python -m pip install -e ".[all]"
 cp -n env.example .env
 ```
 
-Configure accessible chat, embedding and optional vision models in `.env` before starting. Never commit credentials. Then use two terminals with the environment activated:
+Configure accessible chat, embedding and optional vision models in `.env` before starting; never commit credentials. Then use two terminals with the environment activated:
 
 ```sh
 # Terminal 1
@@ -100,55 +139,45 @@ python -m uvicorn docthinker.server.app:app --host 127.0.0.1 --port 8000
 UI_HOST=127.0.0.1 UI_PORT=5001 python run_ui.py
 ```
 
-Open [localhost:5001/query](http://127.0.0.1:5001/query). Start with a TXT file before heavier multimodal parsing. This original desktop service must not be exposed as the authenticated invitation gateway.
+Open [localhost:5001/query](http://127.0.0.1:5001/query) and start with TXT before heavier multimodal parsing; do not expose this original desktop service as an authenticated invitation gateway.
 
-[Model configuration](docs/MODEL_CONFIGURATION.md) · [Graph and gestures](docs/GESTURE_INTERACTION.md) · [Optional voice services](docs/VOICE_MODELS.md) · [Mobile and mini-program builds](docs/MOBILE_APP.md)
+[Model configuration](docs/MODEL_CONFIGURATION.md) · [Graph and gestures](docs/GESTURE_INTERACTION.md) · [Optional voice](docs/VOICE_MODELS.md) · [Mobile / mini-program builds](docs/MOBILE_APP.md)
 
 </details>
 
-## What has actually been checked
+<details>
+<summary>What was tested · software, real-model results and retained failures</summary>
 
-The integrated software snapshot is [main `0cda681`](https://github.com/Yang-Jiashu/Doc-thinker/commit/0cda681). Software contracts and answer quality are reported separately:
+Integration baseline: [main `0cda681`](https://github.com/Yang-Jiashu/Doc-thinker/commit/0cda681); software contracts and answer quality are different checks.
 
 | Check | Recorded result |
 |---|---|
-| [Backend CI](https://github.com/Yang-Jiashu/Doc-thinker/actions/runs/39445691276) | Python 3.10 and 3.11: **7,140 passed each**, 9 optional skips each |
+| [Backend CI](https://github.com/Yang-Jiashu/Doc-thinker/actions/runs/39445691276) | Python 3.10 / 3.11: **7,140 passed each**, 9 optional skips each |
 | [Client / product contracts](https://github.com/Yang-Jiashu/Doc-thinker/actions/runs/39445691569) | **999 client tests passed**; invitation and preservation contracts passed |
-| [Long-project integration](docs/RELEASE_ACCEPTANCE_2026-10-20.md) | **30 phases, 3 restarts**; source withdrawal, dependent-result invalidation and tenant isolation, using local model doubles |
+| [Long-project integration](docs/RELEASE_ACCEPTANCE_2026-10-20.md) | **30 phases, 3 restarts**; withdrawal, dependent-result invalidation and tenant isolation, using local model doubles |
 | [Frozen real-model acceptance](benchmarks/runtime_algorithms/goal_evidence_staged_result_20261020.json) | **8 Step 5 Preview calls delivered** across work, home and a real paper; **accepted with caveats** |
 
-The real-model run belongs to the earlier frozen production fingerprint `88f08e28…`, not a new model run on the merged commit. Review found two overstrong paraphrases; it is neither a held-out quality win nor evidence of universal causal reliability. [Full acceptance and historical results](docs/RELEASE_ACCEPTANCE_2026-10-20.md) retain failures as well as successes, including [earlier helper regressions](benchmarks/research_real/result_evidence_trace_20261010.json).
-
-### Current boundary
-
-This is a **self-hosted preview**, not a certified production service. Memory and project storage have explicit capacity limits; event reasoning remains evidence-conditioned and may be wrong. Public HTTPS operation, security/dependency review, signed apps, real-phone experience and sustained customer use need deployment-specific acceptance. Operators and configured model providers may process submitted content; this is not end-to-end encryption. RSI is the research direction: validated strategy adoption and rollback are not yet a complete autonomous improvement loop. See the [RSI roadmap](docs/RSI_ROADMAP.md).
-
-## Original memory and graph gallery
-
-<details>
-<summary>Expand the original demos, memory interface and architecture artwork</summary>
-
-<img src="docs/assets/banner.png" width="900" alt="Original DocThinker banner" />
-<img src="docs/assets/memory_kg_observability_demo.gif" width="900" alt="Original memory and knowledge-graph observability demo" />
-<img src="docs/assets/gpu_knowledge_graph_demo.gif" width="900" alt="Original GPU knowledge-graph demo" />
-<img src="docs/assets/ui_memory_editor_screenshot.png" width="900" alt="Original editable memory interface" />
-<img src="docs/assets/agentic_memory_architecture.png" width="900" alt="Original layered personal-agent memory architecture" />
-<img src="docs/assets/pipeline.png" width="900" alt="Original document-processing pipeline" />
-<img src="docs/assets/lifecycle.png" width="900" alt="Original memory lifecycle" />
-<img src="docs/assets/multi_agent_evolution.png" width="900" alt="Original multi-agent evolution framework" />
-<img src="docs/assets/sparql_cot.png" width="900" alt="Original graph-query reasoning illustration" />
-
-Historical illustrations show the project's design lineage; they do not establish every pictured mechanism as an accepted capability of every runtime profile. The shared client retains its existing <img src="clients/mobile/src/static/brand/logo-32.png" width="24" height="24" alt="Evidence Window mobile mark" /> Evidence Window identity.
+The real-model run belongs to frozen production fingerprint `88f08e28…`, not a new run on the merged commit; reviewers found two overstrong paraphrases. It is not a held-out quality win or causal-reliability proof, and [full acceptance](docs/RELEASE_ACCEPTANCE_2026-10-20.md) retains failures, including [earlier helper regressions](benchmarks/research_real/result_evidence_trace_20261010.json).
 
 </details>
 
-## Go deeper
+<details>
+<summary>Deployment boundaries, privacy and the research roadmap</summary>
 
-[Architecture and algorithms](docs/ARCHITECTURE.md) · [Persistent projects](docs/LONG_PROJECT_RUNTIME.md) · [Insight Schema](docs/INSIGHT_RUNTIME_DESIGN.md) · [Source-grounded retrieval](docs/RESEARCH_GROUNDED_DESIGN.md) · [Performance measurements](docs/PERFORMANCE_STRUCTURES_2026-10-13.md)
+This is a self-hosted preview, not a certified production service; memory and project storage have explicit capacity limits. Public HTTPS operation, dependency/security review, signed apps, real-phone experience and sustained customer use require deployment-specific acceptance.
 
-[Deployment](deploy/invite/README.md) · [Mobile](docs/MOBILE_APP.md) · [Memory plugin](docs/MEMORY_PLUGIN_GUIDE.md) · [Evaluation protocol](docs/SELF_EVOLUTION_EVALUATION.md) · [Contributing](CONTRIBUTING.md)
+Models may misinterpret sources or event relations; inspect evidence before relying on consequential conclusions. Source withdrawal suppresses future use and dependent results, but cannot erase already copied content, provider records or backups; operators and configured model providers may process submitted content, and self-hosting is not end-to-end encryption.
 
-## Citation and license
+RSI is the research direction: independent evaluation, validated strategy adoption and complete rollback are not a finished autonomous improvement loop. See the [RSI roadmap](docs/RSI_ROADMAP.md), [runtime contract](docs/LONG_PROJECT_RUNTIME.md), [evaluation protocol](docs/SELF_EVOLUTION_EVALUATION.md) and [performance measurements](docs/PERFORMANCE_STRUCTURES_2026-10-13.md).
+
+</details>
+
+The shared client retains its existing <img src="clients/mobile/src/static/brand/logo-32.png" width="24" height="24" alt="Evidence Window mobile mark" /> Evidence Window identity; no original logo or demonstration asset was replaced.
+
+[Architecture and algorithms](docs/ARCHITECTURE.md) · [Insight Schema](docs/INSIGHT_RUNTIME_DESIGN.md) · [Source-grounded retrieval](docs/RESEARCH_GROUNDED_DESIGN.md) · [Memory plugin](docs/MEMORY_PLUGIN_GUIDE.md) · [Contributing](CONTRIBUTING.md)
+
+<details>
+<summary>Citation</summary>
 
 ```bibtex
 @article{yang2026autothinkrag,
@@ -159,4 +188,6 @@ Historical illustrations show the project's design lineage; they do not establis
 }
 ```
 
-Current releases use the [PolyForm Shield License 1.0.0](LICENSE). Previously MIT-licensed releases retain their original license.
+</details>
+
+Current releases use the [PolyForm Shield License 1.0.0](LICENSE); previously MIT-licensed releases retain their original license.
