@@ -1,3 +1,5 @@
+import { DEFAULT_GESTURE_PREFERENCES, type GesturePreferences } from "./gesture-preferences";
+
 export interface LandmarkLike {
   x: number;
   y: number;
@@ -19,6 +21,7 @@ export interface NormalizedGestureMetrics {
   pinchDistance: number;
   openPalm: boolean;
   extendedFingers: number;
+  pointing: boolean;
 }
 
 export interface ScreenGestureMetrics extends Omit<NormalizedGestureMetrics, "point" | "thumbPoint" | "palmPoint"> {
@@ -45,20 +48,21 @@ export function landmarkDistance(a: LandmarkLike, b: LandmarkLike): number {
 export function extractGestureMetrics(
   landmarks: LandmarkLike[],
   previousPinch = false,
+  thresholds: Pick<GesturePreferences, "pinchEnterRatio" | "pinchReleaseRatio"> = DEFAULT_GESTURE_PREFERENCES,
 ): NormalizedGestureMetrics | null {
   if (landmarks.length < 21) return null;
+  if (landmarks.slice(0, 21).some(point => !point || !Number.isFinite(point.x) || !Number.isFinite(point.y) || !Number.isFinite(point.z ?? 0))) return null;
   const wrist = landmarks[0];
   const thumbTip = landmarks[4];
   const indexTip = landmarks[8];
   const palmSize = Math.max(landmarkDistance(wrist, landmarks[9]), 0.035);
   const pinchDistance = landmarkDistance(thumbTip, indexTip) / palmSize;
-  const pinch = previousPinch ? pinchDistance < 0.34 : pinchDistance < 0.24;
+  const pinch = previousPinch ? pinchDistance < thresholds.pinchReleaseRatio : pinchDistance < thresholds.pinchEnterRatio;
   const fingerTipIds = [8, 12, 16, 20];
   const fingerPipIds = [6, 10, 14, 18];
-  const extendedFingers = fingerTipIds.reduce((count, tipId, index) => {
-    const extended = landmarkDistance(landmarks[tipId], wrist) > landmarkDistance(landmarks[fingerPipIds[index]], wrist) * 1.08;
-    return count + Number(extended);
-  }, 0);
+  const extended = fingerTipIds.map((tipId, index) =>
+    landmarkDistance(landmarks[tipId], wrist) > landmarkDistance(landmarks[fingerPipIds[index]], wrist) * 1.08);
+  const extendedFingers = extended.filter(Boolean).length;
   const palmPoint = [0, 5, 9, 13, 17].reduce((point, landmarkIndex) => ({
     x: point.x + landmarks[landmarkIndex].x / 5,
     y: point.y + landmarks[landmarkIndex].y / 5,
@@ -72,6 +76,7 @@ export function extractGestureMetrics(
     pinchDistance,
     openPalm: !pinch && extendedFingers >= 4,
     extendedFingers,
+    pointing: !pinch && extended[0] && extendedFingers === 1,
   };
 }
 

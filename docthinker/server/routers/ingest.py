@@ -26,6 +26,8 @@ router = APIRouter()
 
 async def _run_post_upload_learning(session_id: str) -> None:
     """Run learning stages serially; failure of one does not suppress the other."""
+    if getattr(state, "mobile_safe_mode", False):
+        return
     for name, stage in (
         ("eclrr", _background_path_edge_discovery),
         ("self_study", _background_self_study),
@@ -1394,17 +1396,18 @@ async def ingest_files(
                 # ── Post-processing: sync KG entity IDs + density clustering ──
                 await _sync_kg_entity_ids(sid)
 
-                try:
-                    await _run_density_clustering(sid)
-                except Exception as exc:
-                    _log.warning("[ingest] density clustering failed (non-fatal): %s", exc)
+                if not getattr(state, "mobile_safe_mode", False):
+                    try:
+                        await _run_density_clustering(sid)
+                    except Exception as exc:
+                        _log.warning("[ingest] density clustering failed (non-fatal): %s", exc)
 
                 _log.info("[ingest] background processing COMPLETE for session %s", sid)
 
                 # Coalesce repeated uploads without awaiting post-upload learning.
                 # The app lifespan owns and cancels the session-keyed runner.
                 runner = state.post_upload_learning
-                if runner is None or not runner.submit(sid):
+                if getattr(state, "mobile_safe_mode", False) or runner is None or not runner.submit(sid):
                     _log.info("[learning] runner unavailable/stopping; skipped session %s", sid)
 
             except Exception as e:

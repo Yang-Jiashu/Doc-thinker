@@ -1,0 +1,66 @@
+{
+  "verified_at_utc": "2026-10-20T03:35:21Z",
+  "scope": "Current workspace mainline: explicit personal tasks, revision-bound memory, final evidence retention, typed domain-event projection",
+  "status": "engineering_increment_verified_not_product_complete",
+  "implemented": {
+    "personal_task_input": "Instruction-only or explicitly selected confirmed memories; no upload required; no implicit cross-project memory borrowing",
+    "task_memory_binding": "Selected IDs and exact revisions are stored with each step; changed inputs invalidate affected steps and dependent artifacts",
+    "publication_barrier": "After asynchronous hydration, one bounded SQLite read transaction rechecks all document snapshots, selected memory revisions and transitive provenance; no later await before return",
+    "busy_database": "Final synchronous publication check has a 50ms SQLite busy timeout and rejects export instead of reusing stale content",
+    "known_predispatch_failure": "Actual answer-model dispatch is tracked; a proven pre-dispatch rejection is terminal failed, not an unknown provider result",
+    "unknown_provider_outcome": "After actual model dispatch an ambiguous exception remains unknown; recovery and repeated approvals do not silently re-execute it",
+    "need_ledger": "Binds literal needs to exact source ID, document, label, span and SHA; budget fallback chooses whole windows by bounded weighted literal coverage rather than prefix alone",
+    "ledger_token_cost": "New detailed retention diagnostics are out-of-band metadata, not additional model messages; no extra provider call or increased input ceiling",
+    "domain_events": "Explicit confirmed entities, events and typed relationships are stored in the existing private ResearchStore, with revision history, origin binding and withdrawal redaction",
+    "ui": "Long tasks offer a personal-task input choice and per-step manual memory selection; completed execution is labeled as awaiting user acceptance"
+  },
+  "regressions_found_and_fixed": [
+    "Withdrawal of an earlier section's memory during a later section's final asynchronous check could leak old report text",
+    "A valid saved memory larger than the request's whole-memory allowance could be marked as an unknown model outcome despite zero answer-model calls",
+    "The request journal did not recognize a host pre-dispatch failure code",
+    "New detailed need-gap messages could alter normal wire packets or displace previously feasible evidence under a tight budget"
+  ],
+  "verification": {
+    "backend": {
+      "command_scope": "tests/test_*unit.py plus tests/test_docthinker_memory_package.py",
+      "passed": 6229,
+      "subtests_passed": 13,
+      "skipped": 7,
+      "failed": 0,
+      "duration_seconds": 87.99,
+      "warning": "Existing Starlette httpx TestClient deprecation",
+      "junit": "benchmarks/runtime_algorithms/personal_agent_full_mainline_final_20261020.xml",
+      "junit_sha256": "c75daab34a6008f37fd406d5499687d8645737b95cd3782a318f6d4c155ab771",
+      "junit_archive": "benchmarks/runtime_algorithms/personal_agent_full_mainline_final_20261020.xml.gz",
+      "junit_archive_sha256": "99c5b9595e327c6e104c7f259118aea481cd8790dfe24d96b132bece377ff9b6"
+    },
+    "frontend": {
+      "command": "npm test in clients/mobile",
+      "passed": 848,
+      "failed": 0,
+      "duration_ms": 4169.124166,
+      "h5_build": "passed",
+      "static_shell_files": 84,
+      "static_shell_bytes": 915219,
+      "pwa_version": "2f7ffb2b0e5412bfd27b"
+    },
+    "generation": "Synthetic local writers; real ASGI routes, task bridge, SQLite stores, request journal and concurrent mutation checks",
+    "new_paid_provider_calls": 0,
+    "live_browser_or_mobile_device_acceptance": false,
+    "github_push_or_public_deployment": false
+  },
+  "preserved": [
+    "Existing logo, demo, overall visual style and README were not edited by this increment",
+    "Default document-task request shape and immutable request identity remain compatible",
+    "Harness, Insight Schema and configured model adapters remain the execution path"
+  ],
+  "not_claimed": [
+    "Literal witness retention is not semantic entailment, full-document coverage or correct causal reasoning",
+    "Domain-event relationships are explicit source-bound assertions, not automatic verified causal discovery",
+    "Task step completion is not proof that the user's goal was fulfilled",
+    "The durable task graph is still a bounded user-authored plan, not unlimited autonomous dynamic replanning",
+    "Mobile confirmed memory remains intentionally project-scoped; no implicit cross-project personal-memory sharing was added",
+    "No new real-model answer-quality, billed-token or end-to-end latency A/B result was established in this increment",
+    "No production-release, physical all-copy erasure or autonomous RSI guarantee"
+  ]
+}

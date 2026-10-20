@@ -1,0 +1,63 @@
+{
+  "fixture_version": "insight-newpapers-smoke-20261013-v1",
+  "prepared_date": "2026-10-13",
+  "purpose": "One new-paper paired smoke test of ordinary product research writing, not a forced routing or known-error reproduction prompt.",
+  "evaluation_scope": "NEW_TO_REPOSITORY_BENCHMARK_SINGLE_PAIR. These two paper identifiers/titles were not found in the prior benchmark directory before registration. This is not a training holdout, statistical generalization study, expert certification or evidence that the overall product is superior.",
+  "ground_truth_origin": "No generated reference answer. Empty key_facts and forbidden_claims are not a completeness gold standard. Review the final visible answers and cited source excerpts against the pinned PDFs; keep rubric and registration metadata out of model inputs.",
+  "protocol": {
+    "contrast": "insight",
+    "baseline": "Production ResearchService; context_assistance_enabled=true, knowledge_skill_mode=auto, insight_mode=off.",
+    "treatment": "Identical service, question and pinned corpus; context_assistance_enabled=true, knowledge_skill_mode=auto, insight_mode=auto. Shared budgets may cause actual cards or sources to differ; preserve actual inputs.",
+    "bounds": "One question, two papers, one repetition, at most two sequential Step 5 Preview requests. Production research output budget 8192 tokens, no explicit experiment output-cap override. 30000 supplier-reported tokens is a soft stop, not a hard spending bound. No retry, continuation or replacement answer. Preserve incomplete/failed dispatches and stop rather than silently refill them.",
+    "generation_controls": "step-5-preview; temperature 0.1 in both arms; shared production request builder; semantic=off and the same retrieval configuration in both arms. Capture preparation and actual-input fingerprints before interpreting the pair.",
+    "code_freeze_expected": "0673da1a2e20509ac3f479199fbd4782c20c2c44fdf214254f0ae3540d30d83b",
+    "privacy": "Only the two public original PDFs are ingested. No private data, review notes, reference answers or rubric may become evidence. This preparation does not read credentials or dispatch a model request."
+  },
+  "papers": [
+    {
+      "id": "memorybank",
+      "title": "MemoryBank: Enhancing Large Language Models with Long-Term Memory",
+      "arxiv_version": "2305.10250v1",
+      "source_url": "https://arxiv.org/abs/2305.10250v1",
+      "pdf_url": "https://arxiv.org/pdf/2305.10250v1",
+      "file": "memorybank_2305.10250v1.pdf",
+      "sha256": "5bac0c9588b7999c9ae3821af027bee832964aaab787cf8fa8111b905e4b48fb",
+      "byte_size": 518049,
+      "pdf_pages": 11
+    },
+    {
+      "id": "longmem",
+      "title": "Augmenting Language Models with Long-Term Memory",
+      "arxiv_version": "2306.07174v1",
+      "source_url": "https://arxiv.org/abs/2306.07174v1",
+      "pdf_url": "https://arxiv.org/pdf/2306.07174v1",
+      "file": "longmem_2306.07174v1.pdf",
+      "sha256": "6036d59b87763ef304b2bef4e6bc1ee295abf83604b88fd5b854d46ba2ca4f61",
+      "byte_size": 682858,
+      "pdf_pages": 14
+    }
+  ],
+  "rubric": {
+    "dimensions": [
+      {"id": "method_fidelity", "weight": 25},
+      {"id": "source_support", "weight": 25},
+      {"id": "product_recommendation", "weight": 20},
+      {"id": "evaluation_scope", "weight": 10},
+      {"id": "pilot_actionability", "weight": 10},
+      {"id": "clarity_and_focus", "weight": 10}
+    ],
+    "rating_scale": "Rate each dimension 0-4 with claim-level source notes, then weight by rating/4. 0=absent or materially wrong, 1=major correction needed, 2=partly useful but substantive gaps, 3=usable with minor corrections, 4=well-supported and ready for the stated task. Scores are reviewer judgments, not automatic truth measurements.",
+    "single_answer_gate": "Delivery complete; no critical factual/citation/feasibility error; method_fidelity and source_support at least 3; weighted score at least 80. This is a preregistered smoke-test gate only. A high score does not compensate for a critical error.",
+    "critical_error": "An unsupported or contradicted central claim that changes the route recommendation, invents an experiment/result, misrepresents required access/training, or presents an untested product transfer as a demonstrated outcome.",
+    "pair_interpretation": "Report both answers, disagreements, individual gates, token counts and end-to-end latency. Do not declare a statistically meaningful or general winner from this one pair. Do not count activation, number of citations, keyword overlap or runtime completion as answer quality."
+  },
+  "questions": [
+    {
+      "id": "newpapers_personal_assistant_roadmap",
+      "question": "我们计划做一个能持续服务同一用户的个人助手，第一版先调用现成模型 API，只有两名工程师。请读 MemoryBank 和 LongMem，给产品团队写一份简短的路线建议：两种记忆方案各解决什么问题，怎样把历史信息用进后续回答，论文给了哪些实际验证；推荐首版先做什么、暂缓什么，以及两周内如何检验这条路线是否值得继续投入。请用文中依据说明判断。",
+      "papers": ["memorybank", "longmem"],
+      "key_facts": [],
+      "forbidden_claims": []
+    }
+  ]
+}

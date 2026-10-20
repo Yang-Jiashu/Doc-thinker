@@ -1,0 +1,22 @@
+# Template only: no domain, certificate, DNS or public deployment is created.
+# Replace the hostname AFTER choosing an authorized hosting/domain arrangement.
+# Run this proxy on the same machine as the gateway, or forward its loopback
+# port over a separately authenticated encrypted tunnel. Never expose workers.
+beta.example.com {
+    # Do not enable access/body/header logging for this private beta.
+    header {
+        Referrer-Policy no-referrer
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+    }
+    reverse_proxy 127.0.0.1:8088 {
+        # Gateway compares this to DOCTHINKER_INVITE_ORIGIN. Do not replace it
+        # with the worker address or accept arbitrary X-Forwarded-Host values.
+        header_up Host {host}
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 125s
+        }
+        # No load-balancing retry: a POST may already have changed state.
+    }
+}

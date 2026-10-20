@@ -92,6 +92,16 @@ token_stats.jsonl
 # Temporary / ad-hoc files
 *.pdf
 moban.md
+/.playwright-cli/
+/tmp/
+/benchmarks/runtime_algorithms/*.xml
+
+# Local databases and their SQLite sidecars are never publication inputs.
+*.db
+*.sqlite
+*.sqlite3
+*-wal
+*-shm
 
 # AI / IDE agent configs
 .claude/

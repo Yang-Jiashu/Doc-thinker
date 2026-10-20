@@ -1,10 +1,12 @@
 import asyncio
+import inspect
 import json
 import logging
 import os
 import re
 import tempfile
 import time
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -12,12 +14,15 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import StreamingResponse
 
 from docthinker.harness import QueryControls, QueryHarness
+from docthinker.harness_runtime import current_run, execute_run, stream_run
 from docthinker.kg_expansion import ExpandedNodeManager
 from docthinker.memory_core import AgentMemoryCore
 
 from ..memory import get_session_claw_manager, get_session_memory_engine
 from ..schemas import MultiDocumentQueryRequest, QueryRequest
+from ..research_history import hydrate_research_history
 from ..state import state
+from ..model_response_error import ModelResponseError, model_response_failure
 
 _log = logging.getLogger("docthinker.query")
 
@@ -44,6 +49,11 @@ def _is_context_budget_failure(answer: Any) -> bool:
 
 def _build_conversation_fallback_prompt(question: str, run_context: Any) -> str:
     history = list(getattr(run_context, "conversation_history", []) or [])[-6:]
+    from ..invite_budget import bounded_invite_history, is_invite_worker
+
+    invitation = is_invite_worker()
+    if invitation:
+        history = bounded_invite_history(history)
     # Compatibility for callers that still supply the current turn in history.
     if history and history[-1].get("role") == "user" and history[-1].get("content") == question:
         history = history[:-1]
@@ -58,8 +68,12 @@ def _build_conversation_fallback_prompt(question: str, run_context: Any) -> str:
         "当前没有检索到文档或知识图谱证据，但这不代表不能回答。"
         "请根据用户当前输入、已有对话和已召回记忆正常交流。"
         "关于既往对话、偏好和事实，只能依据实际提供的内容；信息不足时说明缺口，不要编造。\n"
-        "如果用户要求记住某项偏好或事实，请简洁确认；不要声称引用了不存在的文档。\n\n"
-        f"已召回记忆或运行指令：\n{memory_instruction or '无'}\n\n"
+        + ("当前安全模式不会写入新的长期记忆；用户要求记住时请说明只能在当前对话中参考，不要声称已长期保存。\n\n"
+           if getattr(state, "mobile_safe_mode", False) else
+           "如果用户要求记住某项偏好或事实，请简洁确认；不要声称引用了不存在的文档。\n\n")
+        + ("当前上下文仅包含预算内的最近对话片段，不是全部聊天记录。未提供的旧内容请明确说明，不要声称已查看。\n\n"
+           if invitation else "")
+        + f"已召回记忆或运行指令：\n{memory_instruction or '无'}\n\n"
         f"近期对话：\n{history_text or '无'}\n\n"
         f"用户当前输入：{question}\n"
         "请直接给出清晰、自然的中文回答。"
@@ -68,10 +82,13 @@ def _build_conversation_fallback_prompt(question: str, run_context: Any) -> str:
 
 async def _conversation_fallback_answer(question: str, run_context: Any) -> str:
     if _requires_document_evidence(question, run_context):
+        if getattr(state, "mobile_safe_mode", False) and not state.mobile_document_rag:
+            return "当前仅启用聊天，文档检索与上传解析尚未配置。我没有原文证据，不能声称已经读过你的文件。"
         return "当前没有检索到足够的原文证据，无法确认这个结论。请检查文档是否已处理完成，或补充相关资料。"
     prompt = _build_conversation_fallback_prompt(question, run_context)
     response = await asyncio.wait_for(
-        state.rag_instance.llm_model_func(prompt),
+        (state.mobile_chat_func if getattr(state, "mobile_safe_mode", False)
+         and not state.mobile_document_rag else state.rag_instance.llm_model_func)(prompt),
         timeout=FALLBACK_LLM_TIMEOUT_SECONDS,
     )
     return str(response or "").strip()
@@ -165,6 +182,7 @@ def _get_recent_conversation_history(
         raw_history = state.session_manager.get_history(session_id)
     except Exception:
         return []
+    raw_history = hydrate_research_history(raw_history, session_id, getattr(state, "research_service", None))
 
     conversation_history: List[Dict[str, str]] = []
     for msg in raw_history[-max(1, int(limit)):]:
@@ -502,6 +520,18 @@ def _get_expanded_node_manager(session_id: Optional[str]) -> Optional[ExpandedNo
 
 
 def _get_agent_memory_core() -> AgentMemoryCore:
+    if getattr(state, "mobile_safe_mode", False):
+        from docthinker.memory_core import AgentMemoryBackends, MemoryPolicy
+
+        if state.long_horizon_backend is None:
+            raise HTTPException(503, "Mobile memory is not initialized")
+        return AgentMemoryCore(
+            backends=AgentMemoryBackends(long_horizon=state.long_horizon_backend),
+            policy=MemoryPolicy(
+                long_horizon_scopes=("session",), enabled_layers=("long_horizon",),
+                allow_memory_writes=False,
+            ),
+        )
     return AgentMemoryCore(
         get_claw_manager=get_session_claw_manager,
         get_expanded_node_manager=_get_expanded_node_manager,
@@ -517,6 +547,71 @@ def _get_query_harness() -> QueryHarness:
         memory_core_factory=_get_agent_memory_core,
         history_loader=_get_recent_conversation_history,
     )
+
+
+def _run_stage(name):
+    run = current_run()
+    return run.stage(name) if run is not None else nullcontext()
+
+
+async def _prepare_query_context(request, session_rag, history, is_identity_query):
+    """One policy preparation path for ordinary and streaming transports."""
+    with _run_stage("prepare"):
+        harness = _get_query_harness()
+        context = await harness.prepare(
+            request=request, skip_memory=is_identity_query,
+            tokenizer=getattr(session_rag.graphcore, "tokenizer", None),
+            conversation_history=history,
+        )
+        if not is_identity_query:
+            await harness.enrich_graph_reasoning(
+                context=context, graphcore=session_rag.graphcore,
+                question=request.question,
+                min_candidate_confidence=request.min_discovered_edge_confidence,
+                llm_func=session_rag.llm_model_func,
+            )
+        return harness, context
+
+
+async def _dispatch_query(request, session_rag, context, *, stream, identity=False):
+    """One dispatch decision; transport adapters only consume its result."""
+    with _run_stage("dispatch"):
+        if identity:
+            system_prompt = (
+                "You are DocThinker, an assistant for text and multimodal carrier understanding, "
+                "knowledge retrieval, agentic memory, and structured reasoning. Answer briefly and clearly."
+            )
+            answer = await state.rag_instance.llm_model_func(
+                f"{system_prompt}\n\nUser: {request.question}\nAssistant:")
+            return answer or "I can help with text, multimodal carriers, memory, and knowledge retrieval."
+        operation = session_rag.aquery_stream if stream else session_rag.aquery
+        return await asyncio.wait_for(
+            operation(query=request.question, mode=request.mode, **context.graph_query_options(request)),
+            timeout=SESSION_QUERY_TIMEOUT_SECONDS,
+        )
+
+
+def _complete_query(request, answer, context, harness, background_tasks, *, allow_enrichment):
+    """Commit one answer and schedule at most one post-query enrichment."""
+    with _run_stage("completion"):
+        try:
+            answer_id = state.session_manager.add_message(request.session_id, "assistant", answer)
+        except Exception:
+            answer_id = None
+        if (answer and allow_enrichment and not getattr(state, "mobile_safe_mode", False)
+                and harness.should_enrich(context)):
+            background_tasks.add_task(
+                _background_post_query_enrichment, request.session_id, request.question, answer,
+                enable_thinking=request.enable_thinking,
+                enable_expanded_matching=request.enable_expanded_matching,
+                expanded_top_k=request.expanded_top_k, expanded_min_score=request.expanded_min_score,
+                retrieval_instruction=str(request.retrieval_instruction or ""),
+                matched_expanded=context.expanded_matches or None,
+                remember_turn=context.controls.remember_turn,
+                memory_excluded_layers=request.memory_excluded_layers,
+                memory_write_scope=request.memory_write_scope,
+            )
+        return answer_id
 
 
 # ── Unified background enrichment ──────────────────────────────────
@@ -539,6 +634,8 @@ async def _background_post_query_enrichment(
     memory_write_scope: Optional[str] = None,
 ) -> None:
     """All post-query intelligence — runs in background, never blocks the user."""
+    if getattr(state, "mobile_safe_mode", False):
+        return
     _t0 = time.time()
     memory_core = _get_agent_memory_core()
     result = await memory_core.after_response(
@@ -565,6 +662,19 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
     Emits three event types: ``status`` (processing steps), ``meta`` (sources/memory),
     and ``chunk`` (answer tokens).
     """
+    if getattr(state, "mobile_safe_mode", False):
+        # Research providers currently return a complete answer. Adapt that
+        # same execution to SSE without bypassing evidence checks or invoking
+        # the legacy RAG path/model a second time.
+        async def safe_events():
+            result = await query(request, background_tasks)
+            yield "data: " + json.dumps({"type": "chunk", "content": result["answer"]}, ensure_ascii=False) + "\n\n"
+            yield "data: " + json.dumps({"type": "meta", "data": {
+                key: value for key, value in result.items() if key != "answer"
+            }}, ensure_ascii=False) + "\n\n"
+        return StreamingResponse(stream_run(safe_events, session_id=request.session_id,
+                                             timeout_seconds=SESSION_QUERY_TIMEOUT_SECONDS),
+                                 media_type="text/event-stream")
     _log.debug("Received stream query: %s, session_id: %s", request.question, request.session_id)
     if not state.rag_instance or not state.session_manager:
         raise HTTPException(status_code=500, detail="Service not initialized")
@@ -576,14 +686,13 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
 
     prior_history = _get_recent_conversation_history(request.session_id) if request.use_conversation_context else []
 
-    try:
-        state.session_manager.add_message(request.session_id, "user", request.question)
-    except Exception as exc:
-        _log.warning("[query] add_message(user) failed: %s", exc)
-
     async def generate():
         import logging as _logging
         _log = _logging.getLogger("docthinker.query_stream")
+        try:
+            state.session_manager.add_message(request.session_id, "user", request.question)
+        except Exception as exc:
+            _log.warning("[query] add_message(user) failed: %s", exc)
         _t0 = time.time()
 
         def _elapsed():
@@ -621,21 +730,8 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         if not is_identity_query:
             yield yield_status("正在检索知识...")
 
-        harness = _get_query_harness()
-        run_context = await harness.prepare(
-            request=request,
-            skip_memory=is_identity_query,
-            tokenizer=getattr(session_rag.graphcore, "tokenizer", None),
-            conversation_history=prior_history,
-        )
-        if not is_identity_query:
-            await harness.enrich_graph_reasoning(
-                context=run_context,
-                graphcore=session_rag.graphcore,
-                question=request.question,
-                min_candidate_confidence=request.min_discovered_edge_confidence,
-                llm_func=session_rag.llm_model_func,
-            )
+        harness, run_context = await _prepare_query_context(
+            request, session_rag, prior_history, is_identity_query)
         expanded_matches = run_context.expanded_matches
         episodic_matches = run_context.episodic_matches
         long_horizon_matches = run_context.long_horizon_matches
@@ -665,8 +761,6 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
             "mode": request.mode,
         })
 
-        query_options = run_context.graph_query_options(request)
-
         # Phase 2: Generation (keyword extraction + retrieval + LLM)
         full_answer = ""
         answer_complete = False
@@ -674,13 +768,8 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         _t_gen = time.time()
         try:
             if is_identity_query:
-                system_prompt = (
-                    "You are DocThinker, an assistant for text and multimodal carrier understanding, "
-                    "knowledge retrieval, agentic memory, and structured reasoning. Answer briefly and clearly."
-                )
-                llm_resp = await state.rag_instance.llm_model_func(
-                    f"{system_prompt}\n\nUser: {request.question}\nAssistant:"
-                )
+                llm_resp = await _dispatch_query(request, session_rag, run_context,
+                                                 stream=True, identity=True)
                 yield yield_chunk(llm_resp)
                 full_answer = llm_resp
             else:
@@ -688,14 +777,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
                     f"[T+{_elapsed()}s] phase2 start: aquery_stream "
                     f"(mode={request.mode}, history={len(run_context.conversation_history)} msgs)"
                 )
-                result = await asyncio.wait_for(
-                    session_rag.aquery_stream(
-                        query=request.question,
-                        mode=request.mode,
-                        **query_options,
-                    ),
-                    timeout=SESSION_QUERY_TIMEOUT_SECONDS,
-                )
+                result = await _dispatch_query(request, session_rag, run_context, stream=True)
                 _log.info(f"[T+{_elapsed()}s] aquery_stream returned (retrieval+LLM init done, {round(time.time()-_t_gen,2)}s)")
 
                 first_chunk_time = None
@@ -716,12 +798,19 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
                     yield yield_chunk(result)
                     _log.info(f"[T+{_elapsed()}s] non-streaming response yielded ({len(result)} chars)")
                 else:
-                    async for chunk in result:
-                        if first_chunk_time is None:
-                            first_chunk_time = time.time()
-                            _log.info(f"[T+{_elapsed()}s] first stream chunk received")
-                        full_answer += chunk
-                        yield yield_chunk(chunk)
+                    try:
+                        async for chunk in result:
+                            if first_chunk_time is None:
+                                first_chunk_time = time.time()
+                                _log.info(f"[T+{_elapsed()}s] first stream chunk received")
+                            full_answer += chunk
+                            yield yield_chunk(chunk)
+                    finally:
+                        close = getattr(result, "aclose", None) or getattr(result, "close", None)
+                        if callable(close):
+                            closed = close()
+                            if inspect.isawaitable(closed):
+                                await closed
                     _log.info(f"[T+{_elapsed()}s] stream complete ({len(full_answer)} chars)")
 
                 # Some model bindings expose a no-context response through an iterator.
@@ -737,9 +826,11 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         except asyncio.TimeoutError:
             _log.warning(f"[T+{_elapsed()}s] TIMEOUT in aquery_stream")
             yield yield_chunk("抱歉，检索或生成超时。")
+            raise
         except Exception as e:
-            _log.error(f"[T+{_elapsed()}s] ERROR in aquery_stream: {e}")
-            yield yield_chunk(f"生成过程发生错误: {str(e)}")
+            _log.error("[T+%ss] ERROR in aquery_stream: %s", _elapsed(), type(e).__name__)
+            yield yield_chunk("生成过程发生错误，未自动重试。")
+            raise
 
         _log.info(f"[T+{_elapsed()}s] phase2 (generation) total: {round(time.time()-_t_gen,2)}s")
 
@@ -755,43 +846,87 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
         yield yield_meta(final_meta)
         _log.info(f"[T+{_elapsed()}s] query_stream TOTAL")
 
-        # Save chat history (lightweight, keep synchronous)
-        try:
-            state.session_manager.add_message(request.session_id, "assistant", full_answer)
-        except Exception as exc:
-            _log.warning("[query_stream] add_message(assistant) failed: %s", exc)
+        _complete_query(request, full_answer, run_context, harness, background_tasks,
+                        allow_enrichment=answer_complete and not is_identity_query)
 
-        # All heavy post-query work runs in background: episodic memory,
-        # co-activation, chat-turn ingest, expansion promotion, and
-        # warm-cache preparation for the next query.
-        if (
-            full_answer
-            and answer_complete
-            and not is_identity_query
-            and harness.should_enrich(run_context)
-        ):
-            background_tasks.add_task(
-                _background_post_query_enrichment,
-                request.session_id,
-                request.question,
-                full_answer,
-                enable_thinking=request.enable_thinking,
-                enable_expanded_matching=request.enable_expanded_matching,
-                expanded_top_k=request.expanded_top_k,
-                expanded_min_score=request.expanded_min_score,
-                retrieval_instruction=str(request.retrieval_instruction or ""),
-                matched_expanded=expanded_matches if expanded_matches else None,
-                remember_turn=run_context.controls.remember_turn,
-                memory_excluded_layers=request.memory_excluded_layers,
-                memory_write_scope=request.memory_write_scope,
-            )
-
-    return StreamingResponse(generate(), media_type="text/event-stream")
+    return StreamingResponse(stream_run(generate, session_id=request.session_id,
+                                        timeout_seconds=SESSION_QUERY_TIMEOUT_SECONDS), media_type="text/event-stream")
 
 
 
 @router.post("/query")
 async def query(request: QueryRequest, background_tasks: BackgroundTasks):
+    inherited = current_run() is not None
+    try:
+        # Match the streaming transport's whole-operation deadline. SDK read
+        # timeouts alone do not bound a direct research request's lifetime.
+        # An inherited mobile/journal run retains its existing shorter owner.
+        return await execute_run(lambda: _query_impl(request, background_tasks),
+                                 session_id=request.session_id,
+                                 timeout_seconds=SESSION_QUERY_TIMEOUT_SECONDS)
+    except asyncio.TimeoutError:
+        if inherited:
+            # Preserve the durable owner's unknown-outcome bookkeeping; a
+            # local deadline cannot prove that a provider request rolled back.
+            raise
+        raise HTTPException(504, "Query timed out; provider outcome is unknown. No automatic retry.") from None
+    except ModelResponseError as error:
+        if inherited:
+            # The mobile request journal owns terminal status and replay.
+            raise
+        raise HTTPException(502, detail=model_response_failure(error.code)) from None
+
+
+async def _query_impl(request: QueryRequest, background_tasks: BackgroundTasks):
+    if getattr(state, "mobile_safe_mode", False) and getattr(state, "research_service", None) is not None:
+        from ..invite_budget import InviteBudgetError
+        from ..research_store import ResearchLimitError
+        if not request.session_id or not state.session_manager or not state.session_manager.get_session(request.session_id):
+            raise HTTPException(404, "Session not found")
+        try:
+            return await state.research_service.answer(request, state.mobile_chat_func, state.session_manager)
+        except InviteBudgetError as error:
+            raise HTTPException(error.status, "Question exceeds the research request budget") from None
+        except ResearchLimitError:
+            raise HTTPException(429, "Research answer storage capacity reached") from None
+        except ModelResponseError:
+            raise
+        except ValueError:
+            raise HTTPException(503, "Research service cannot complete this answer") from None
+    if getattr(state, "mobile_safe_mode", False) and not state.mobile_document_rag:
+        from ..invite_budget import InviteBudgetError, is_invite_worker, validate_invite_question
+
+        invitation = is_invite_worker()
+        if invitation:
+            try:
+                validate_invite_question(request.question)
+            except InviteBudgetError as error:
+                raise HTTPException(error.status, str(error)) from None
+        if not state.mobile_chat_func or not state.session_manager:
+            raise HTTPException(503, "Chat model is not configured")
+        if not request.session_id or not state.session_manager.get_session(request.session_id):
+            raise HTTPException(404, "Session not found")
+        history = _get_recent_conversation_history(request.session_id) if request.use_conversation_context else []
+        context = await _get_query_harness().prepare(
+            request=request, conversation_history=history,
+        )
+        if invitation:
+            from ..invite_budget import validate_invite_messages
+
+            try:
+                validate_invite_messages([{"role": "user", "content": _build_conversation_fallback_prompt(request.question, context)}])
+            except InviteBudgetError as error:
+                raise HTTPException(error.status, str(error)) from None
+        state.session_manager.add_message(request.session_id, "user", request.question)
+        answer = await _conversation_fallback_answer(request.question, context)
+        if not answer:
+            raise HTTPException(503, "Chat model returned no answer")
+        answer_id = state.session_manager.add_message(request.session_id, "assistant", answer)
+        response = {"answer": answer, "answer_id": answer_id, "sources": [], "answer_mode": "chat_only",
+                    "document_rag": False, "memory_write_enabled": False}
+        if invitation:
+            response["context_windowed"] = True
+        return response
     if not state.rag_instance or not state.session_manager:
         raise HTTPException(status_code=500, detail="Service not initialized")
     if not request.session_id:
@@ -833,6 +968,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             }
 
     answer = ""
+    answer_id = None
     sources: List[Dict[str, Any]] = []
     thinking_process: Optional[str] = None
     answer_mode = "rag"
@@ -840,21 +976,8 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
     if request.enable_thinking and not is_identity_query:
         answer_mode = "session_thinking"
 
-    harness = _get_query_harness()
-    run_context = await harness.prepare(
-        request=request,
-        skip_memory=is_identity_query,
-        tokenizer=getattr(session_rag.graphcore, "tokenizer", None),
-        conversation_history=prior_history,
-    )
-    if not is_identity_query:
-        await harness.enrich_graph_reasoning(
-            context=run_context,
-            graphcore=session_rag.graphcore,
-            question=request.question,
-            min_candidate_confidence=request.min_discovered_edge_confidence,
-            llm_func=session_rag.llm_model_func,
-        )
+    harness, run_context = await _prepare_query_context(
+        request, session_rag, prior_history, is_identity_query)
     expanded_matches = run_context.expanded_matches
     episodic_matches = run_context.episodic_matches
     long_horizon_matches = run_context.long_horizon_matches
@@ -862,36 +985,21 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
     merged_instruction = run_context.retrieval_instruction
     memory_summaries = run_context.memory_summaries
     memory_reasoning = run_context.memory_reasoning
-    query_options = run_context.graph_query_options(request)
-
     # Phase 2: Generation
     try:
         if is_identity_query:
-            system_prompt = (
-                "You are DocThinker, an assistant for text and multimodal carrier understanding, "
-                "knowledge retrieval, agentic memory, and structured reasoning. Answer briefly and clearly."
-            )
-            llm_resp = await state.rag_instance.llm_model_func(
-                f"{system_prompt}\n\nUser: {request.question}\nAssistant:"
-            )
-            answer = llm_resp if llm_resp else "I can help with text, multimodal carriers, memory, and knowledge retrieval."
+            answer = await _dispatch_query(request, session_rag, run_context, stream=False, identity=True)
             answer_mode = "identity"
 
         evidence_missing = False
         if not answer:
             try:
-                answer = await asyncio.wait_for(
-                    session_rag.aquery(
-                        query=request.question,
-                        mode=request.mode,
-                        **query_options,
-                    ),
-                    timeout=SESSION_QUERY_TIMEOUT_SECONDS,
-                )
+                answer = await _dispatch_query(request, session_rag, run_context, stream=False)
             except asyncio.TimeoutError:
-                answer = ""
-            except Exception:
-                answer = ""
+                # A timed-out provider may already have processed the request.
+                # Only an explicit no-context result can use the fallback;
+                # transport/model errors must never trigger another paid call.
+                raise HTTPException(status_code=504, detail="处理超时，调用结果未知；未自动重试。") from None
 
             if request.enable_thinking:
                 thinking_process = run_context.trace.format_for_response(request.mode)
@@ -910,33 +1018,8 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             evidence_missing = True
             answer_mode = "context_budget_exceeded"
 
-        try:
-            state.session_manager.add_message(request.session_id, "assistant", answer)
-        except Exception:
-            pass
-
-        # All heavy post-query work in background
-        if (
-            answer
-            and not evidence_missing
-            and not is_identity_query
-            and harness.should_enrich(run_context)
-        ):
-            background_tasks.add_task(
-                _background_post_query_enrichment,
-                request.session_id,
-                request.question,
-                answer,
-                enable_thinking=request.enable_thinking,
-                enable_expanded_matching=request.enable_expanded_matching,
-                expanded_top_k=request.expanded_top_k,
-                expanded_min_score=request.expanded_min_score,
-                retrieval_instruction=str(request.retrieval_instruction or ""),
-                matched_expanded=expanded_matches if expanded_matches else None,
-                remember_turn=run_context.controls.remember_turn,
-                memory_excluded_layers=request.memory_excluded_layers,
-                memory_write_scope=request.memory_write_scope,
-            )
+        answer_id = _complete_query(request, answer, run_context, harness, background_tasks,
+                                    allow_enrichment=not evidence_missing and not is_identity_query)
 
         if not sources and hasattr(session_rag, "get_last_query_evidence"):
             evidence = session_rag.get_last_query_evidence()
@@ -944,6 +1027,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
 
         return {
             "answer": answer,
+            "answer_id": answer_id,
             "query": request.question,
             "mode": request.mode,
             "session_id": request.session_id,
@@ -964,6 +1048,8 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
             "retrieval_instruction_applied": bool(merged_instruction),
             "memory_summaries": memory_summaries,
         }
+    except (HTTPException, ModelResponseError):
+        raise
     except Exception as e:
         err_msg = str(e).lower()
         if "401" in err_msg or "api_key" in err_msg or "authentication" in err_msg:

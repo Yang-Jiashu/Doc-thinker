@@ -4,8 +4,9 @@ include README.zh-CN.md
 include LICENSE
 include env.example
 recursive-include docthinker *.py
+recursive-include docthinker/knowledge_skills *.md *.json
 recursive-include docthinker/ui/templates *.html
-recursive-include docthinker/ui/static *.css *.js *.png *.jpg *.svg *.woff2
+recursive-include docthinker/ui/static *.css *.js *.json *.png *.jpg *.svg *.woff2
 global-exclude *.pyc
 global-exclude __pycache__
 global-exclude *.egg-info

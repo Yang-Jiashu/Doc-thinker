@@ -41,6 +41,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+research-semantic = ["fastembed==0.7.4"]
+research-translation = ["ctranslate2==4.8.2", "sentencepiece==0.2.2"]
 server = [
     "fastapi>=0.110.0",
     "uvicorn>=0.27.0",
@@ -48,6 +50,7 @@ server = [
     "flask>=3.0.0",
     "flask-cors>=4.0.0",
     "requests>=2.31.0",
+    "pypdf==6.20.0",
 ]
 test = [
     "docthinker[server]",

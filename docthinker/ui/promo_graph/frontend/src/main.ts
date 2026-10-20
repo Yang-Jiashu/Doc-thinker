@@ -16,7 +16,9 @@ import "./styles.css";
 import { AutoRotationController } from "./auto-rotation-controller";
 import { DetailPanel } from "./detail-panel";
 import { normalizeGraph } from "./graph-data";
-import { GestureController } from "./gesture/gesture-controller";
+import { GestureController, pauseGestureForManualInput, pauseGestureForPointer } from "./gesture/gesture-controller";
+import { normalizeGesturePreferences } from "./gesture/gesture-preferences";
+import { graphViewUrl, legacyGestureHelpRequested, readGraphViewState } from "./view-state";
 import { InputController } from "./input-controller";
 import { LayoutController } from "./layout-controller";
 import { StarMapRenderer } from "./star-map-renderer";
@@ -63,6 +65,15 @@ function sessionLabel(session: SessionRecord): string {
 const AUTO_ROTATION_STORAGE_KEY = "docthinker.promo.autoRotate";
 const SHARED_SESSION_STORAGE_KEY = "current_session_id";
 const LEGACY_PROMO_SESSION_STORAGE_KEY = "docthinker.promo.session";
+const GESTURE_PREFERENCES_KEY = "docthinker.gesture.preferences.v1";
+
+function storedGesturePreferences() {
+  try {
+    return normalizeGesturePreferences(JSON.parse(localStorage.getItem(GESTURE_PREFERENCES_KEY) || "{}"));
+  } catch {
+    return normalizeGesturePreferences({});
+  }
+}
 
 interface EclrrRunStatus {
   session_id: string;
@@ -118,6 +129,11 @@ class PromoGraphApp {
   private rotationButton = required<HTMLButtonElement>("#toggle-auto-rotation");
   private eclrrButton = required<HTMLButtonElement>("#run-eclrr");
   private gestureButton = required<HTMLButtonElement>("#toggle-gesture");
+  private gestureDialog = required<HTMLDialogElement>("#gesture-settings");
+  private cameraStart = required<HTMLButtonElement>("#camera-start");
+  private cameraPause = required<HTMLButtonElement>("#camera-pause");
+  private cameraStop = required<HTMLButtonElement>("#camera-stop");
+  private cameraStatus = required<HTMLElement>("#camera-status");
   private gestureLayer = required<HTMLElement>("#gesture-layer");
   private gestureVideo = required<HTMLVideoElement>("#gesture-video");
   private gestureCursor = required<HTMLElement>("#gesture-cursor");
@@ -153,6 +169,11 @@ class PromoGraphApp {
   private attractionRequest = 0;
   private eclrrPollTimer = 0;
   private eclrrCompletionSeen = "";
+  private initialViewState = readGraphViewState(window.location.search);
+  private pendingNodeId = this.initialViewState.node;
+  private helpRequested = legacyGestureHelpRequested(window.location.search);
+  private headerObserver: ResizeObserver | null = null;
+  private disposed = false;
 
   constructor() {
     this.renderer = new StarMapRenderer(this.stage);
@@ -163,7 +184,7 @@ class PromoGraphApp {
       this.gestureCursor,
       this.renderer,
       {
-        onSelect: nodeIndex => this.selectNode(nodeIndex),
+        onSelect: nodeIndex => this.selectNode(nodeIndex, false),
         onClearSelection: () => this.clearSelection(),
         onNodeAttractionStart: nodeIndex => this.beginNodeAttraction(nodeIndex),
         onNodeAttractionEnd: () => this.endNodeAttraction(),
@@ -177,8 +198,11 @@ class PromoGraphApp {
           this.gestureNodeDragging = active;
           this.updateCombinedInteractionState();
         },
+        onStateChange: () => { this.updateGestureButton(); this.updateCombinedInteractionState(); },
       },
+      storedGesturePreferences(),
     );
+    this.searchInput.value = this.initialViewState.search;
     this.input = new InputController(this.renderer, {
       onSelect: nodeIndex => this.selectNode(nodeIndex),
       onSelectEdge: edgeIndex => this.selectEdge(edgeIndex),
@@ -188,7 +212,10 @@ class PromoGraphApp {
       onEscape: () => this.clearSelection(),
       onNodeMoved: nodeIndex => this.setStatus("节点位置已固定", this.model?.nodes[nodeIndex]?.label),
       onPointerInsideChange: inside => this.autoRotation.setPointerInside(inside),
-      onPointerDownChange: down => this.autoRotation.setPointerDown(down),
+      onPointerDownChange: down => {
+        this.autoRotation.setPointerDown(down);
+        if (pauseGestureForPointer(this.gesture, down)) this.setStatus("鼠标 / 触控已接管", "手势已暂停，可在手势设置中恢复");
+      },
       onOrbitInteractionChange: active => {
         this.mouseOrbitInteracting = active;
         this.updateCombinedInteractionState();
@@ -197,8 +224,8 @@ class PromoGraphApp {
         this.mouseNodeDragging = active;
         this.updateCombinedInteractionState();
       },
-      onWheel: () => this.autoRotation.noteWheel(),
-      onKeyboardInteraction: () => this.autoRotation.markInteraction(),
+      onWheel: () => { this.takeManualControl(); this.autoRotation.noteWheel(); },
+      onKeyboardInteraction: () => { this.takeManualControl(); this.autoRotation.markInteraction(); },
     });
     this.bindControls();
     this.renderer.onViewChanged(() => this.updateStats());
@@ -208,9 +235,15 @@ class PromoGraphApp {
     });
     this.autoRotation.setDocumentVisible(!document.hidden);
     document.addEventListener("visibilitychange", this.onVisibilityChange);
+    window.addEventListener("pagehide", this.onPageHide);
+    window.addEventListener("pageshow", this.onPageShow);
+    window.addEventListener("blur", this.onWindowBlur);
     this.root.addEventListener("pointerdown", this.onRootPointerDown, true);
     if (!document.hidden) this.renderer.start();
     this.statsTimer = window.setInterval(() => this.updateStats(), 250);
+    const header = required<HTMLElement>(".app-bar");
+    this.headerObserver = new ResizeObserver(() => this.root.style.setProperty("--toolbar-height", `${header.offsetHeight}px`));
+    this.headerObserver.observe(header);
     window.__PROMO_GRAPH_DEBUG__ = {
       stats: () => ({ ...this.renderer.getStats(), nodes: this.model?.nodes.length ?? 0, edges: this.model?.edges.length ?? 0 }),
       zoom: ratio => {
@@ -231,12 +264,48 @@ class PromoGraphApp {
   }
 
   private bindControls(): void {
-    required<HTMLButtonElement>("#zoom-in").addEventListener("click", () => this.renderer.zoomAt(this.stage.clientWidth / 2, this.stage.clientHeight / 2, 1.28));
-    required<HTMLButtonElement>("#zoom-out").addEventListener("click", () => this.renderer.zoomAt(this.stage.clientWidth / 2, this.stage.clientHeight / 2, 0.78));
-    required<HTMLButtonElement>("#fit-graph").addEventListener("click", () => this.renderer.fitToGraph());
+    for (const id of ["#standard-view", "#immersive-view"]) {
+      required<HTMLAnchorElement>(id).addEventListener("click", event => {
+        if (!this.currentSessionId) {
+          event.preventDefault();
+          this.showError("请先选择有效会话，再切换视图。");
+        }
+      });
+    }
+    required<HTMLButtonElement>("#zoom-in").addEventListener("click", () => {
+      this.takeManualControl(); this.renderer.zoomAt(this.stage.clientWidth / 2, this.stage.clientHeight / 2, 1.28);
+    });
+    required<HTMLButtonElement>("#zoom-out").addEventListener("click", () => {
+      this.takeManualControl(); this.renderer.zoomAt(this.stage.clientWidth / 2, this.stage.clientHeight / 2, 0.78);
+    });
+    required<HTMLButtonElement>("#fit-graph").addEventListener("click", () => { this.takeManualControl(); this.renderer.fitToGraph(); });
     this.rotationButton.addEventListener("click", () => this.setAutoRotationEnabled(!this.autoRotation.snapshot.enabled));
     this.eclrrButton.addEventListener("click", () => void this.startEclrr());
-    this.gestureButton.addEventListener("click", () => void this.toggleGestureControl());
+    this.gestureButton.addEventListener("click", () => this.openGestureSettings());
+    required<HTMLButtonElement>("#close-gesture-settings").addEventListener("click", () => this.gestureDialog.close());
+    this.gestureDialog.addEventListener("close", () => {
+      this.gestureButton.setAttribute("aria-expanded", "false");
+      this.gestureButton.focus();
+      this.updateCombinedInteractionState();
+    });
+    this.cameraStart.addEventListener("click", () => void this.gesture.start().then(started => {
+      if (started && !document.hidden) this.gestureDialog.close();
+    }));
+    this.cameraPause.addEventListener("click", () => {
+      const resume = this.gesture.getState().suspended;
+      this.gesture.setSuspended(!resume);
+      if (resume) this.gestureDialog.close();
+    });
+    this.cameraStop.addEventListener("click", () => this.gesture.stop());
+    this.gestureDialog.querySelectorAll<HTMLSelectElement | HTMLInputElement>("[data-gesture-pref]").forEach(control => {
+      control.addEventListener("change", () => this.saveGestureSettings());
+    });
+    required<HTMLButtonElement>("#reset-gesture-settings").addEventListener("click", () => {
+      this.gesture.setPreferences(normalizeGesturePreferences({}));
+      this.persistGestureSettings();
+      this.populateGestureSettings();
+    });
+    required<HTMLAnchorElement>("#standard-view").addEventListener("click", () => this.gesture.stop());
     required<HTMLButtonElement>("#close-panel").addEventListener("click", () => this.closePanel());
     required<HTMLButtonElement>("#retry-load").addEventListener("click", () => void this.loadGraph());
     this.panelToggle.addEventListener("click", () => {
@@ -247,14 +316,16 @@ class PromoGraphApp {
       window.clearTimeout(this.eclrrPollTimer);
       this.eclrrCompletionSeen = "";
       this.setEclrrButtonRunning(false);
+      this.pendingNodeId = "";
+      this.searchInput.value = "";
+      this.clearSelection(false);
       this.currentSessionId = this.sessionSelect.value;
       storeSessionPreference(this.currentSessionId);
-      const url = new URL(window.location.href);
-      url.searchParams.set("session_id", this.currentSessionId);
-      window.history.replaceState({}, "", url);
-      void this.loadGraph().then(() => this.refreshEclrrStatus());
+      this.syncViewState();
+      const session = this.currentSessionId;
+      void this.loadGraph().then(() => { if (session === this.currentSessionId) return this.refreshEclrrStatus(); });
     });
-    this.searchInput.addEventListener("input", () => this.updateSearchResults());
+    this.searchInput.addEventListener("input", () => { this.updateSearchResults(); this.syncViewState(); });
     this.searchInput.addEventListener("keydown", event => this.onSearchKeyDown(event));
     this.searchInput.addEventListener("blur", () => window.setTimeout(() => this.hideSearchResults(), 120));
   }
@@ -263,6 +334,8 @@ class PromoGraphApp {
     createIcons({ icons: { ArrowLeft, Hand, Maximize2, PanelRight, RotateCw, Search, Sparkles, TriangleAlert, X, ZoomIn, ZoomOut } });
     this.updateRotationButton();
     this.updateGestureButton();
+    this.populateGestureSettings();
+    if (this.helpRequested) this.openGestureSettings();
     await this.loadSessions();
     if (this.currentSessionId) {
       await this.loadGraph();
@@ -285,35 +358,57 @@ class PromoGraphApp {
       option.textContent = sessionLabel(session);
       this.sessionSelect.append(option);
     });
-    const querySession = new URLSearchParams(window.location.search).get("session_id") || "";
+    const querySession = this.initialViewState.sessionId;
     const stored = storedSessionPreference();
     const available = new Set(sessions.map(sessionId));
+    if (querySession && !available.has(querySession)) {
+      this.currentSessionId = "";
+      this.pendingNodeId = "";
+      this.sessionSelect.value = "";
+      throw new Error("链接中的会话不存在或不可访问，请从会话列表重新选择。");
+    }
     this.currentSessionId = [querySession, stored, sessionId(sessions[0] ?? {})].find(id => id && available.has(id)) || "";
     this.sessionSelect.value = this.currentSessionId;
+    if (querySession && querySession !== this.currentSessionId) this.pendingNodeId = "";
     if (this.currentSessionId) storeSessionPreference(this.currentSessionId);
     if (!this.currentSessionId) throw new Error("当前没有可显示的知识图谱会话");
+    this.syncViewState();
   }
 
   private async loadGraph(): Promise<void> {
     if (!this.currentSessionId) return;
     this.graphAbort?.abort();
-    this.graphAbort = new AbortController();
+    const controller = new AbortController();
+    const session = this.currentSessionId;
+    this.graphAbort = controller;
+    const current = () => !this.disposed && this.graphAbort === controller && session === this.currentSessionId && !controller.signal.aborted;
+    const selectedId = this.model?.nodes[this.selectedIndex]?.id || this.pendingNodeId;
+    this.pendingNodeId = selectedId;
     this.graphReady = false;
+    this.updateGestureButton();
     this.autoRotation.setLayoutStable(false);
-    this.clearSelection();
+    this.gesture.setSuspended(true);
+    this.input.resetInteraction();
+    this.clearSelection(false);
+    this.model = null;
+    this.hideSearchResults();
+    this.searchResults.replaceChildren();
+    this.renderer.setGraph(normalizeGraph({ nodes: [], edges: [] }), new Float32Array());
     this.showLoading("读取完整节点与关系");
     try {
-      const url = `${this.apiPrefix}/knowledge-graph/data?session_id=${encodeURIComponent(this.currentSessionId)}&scope=full`;
-      const response = await fetch(url, { cache: "no-store", signal: this.graphAbort.signal });
+      const params = new URLSearchParams({ session_id: session, scope: "full" });
+      const response = await fetch(`${this.apiPrefix}/knowledge-graph/data?${params}`, { cache: "no-store", signal: controller.signal });
       if (!response.ok) throw new Error(`图谱接口返回 HTTP ${response.status}`);
       const payload = await response.json() as RawGraphResponse;
+      if (!current()) return;
       const error = String(payload.metadata?.error ?? "");
       if (error) throw new Error(error);
       const model = normalizeGraph(payload);
       if (!model.nodes.length) throw new Error("该会话还没有可显示的知识图谱节点");
-      this.model = model;
       this.showLoading(model.nodes.length >= 2_000 ? "正在计算多层 ForceAtlas2 布局" : "正在计算二维力导向布局");
       const layoutResult = await this.layout.layout(model);
+      if (!current()) return;
+      this.model = model;
       this.renderer.setGraph(model, layoutResult.positions);
       this.graphReady = true;
       this.autoRotation.setLayoutStable(true);
@@ -322,22 +417,34 @@ class PromoGraphApp {
       const totalNodes = Number(model.metadata.total_nodes ?? model.nodes.length);
       const truncated = Boolean(model.metadata.truncated) || totalNodes > model.nodes.length;
       this.setStatus(truncated ? "图谱数据被截断" : layoutResult.cached ? "知识星图已从缓存恢复" : "知识星图已就绪");
+      const restoredIndex = model.nodes.findIndex(node => node.id === selectedId);
+      this.pendingNodeId = "";
+      if (restoredIndex >= 0) {
+        this.selectNode(restoredIndex, false);
+        this.renderer.centerOnNode(restoredIndex, 2.1);
+      } else if (selectedId) this.setStatus("该节点不在当前图谱中", "会话和搜索条件已保留");
+      this.updateSearchResults();
+      this.hideSearchResults();
+      this.syncViewState();
+      this.updateGestureButton();
       this.updateStats();
     } catch (error) {
+      if (!current()) return;
       this.graphReady = false;
       this.autoRotation.setLayoutStable(false);
       if ((error as Error).name === "AbortError" || (error as Error).message === "Layout request cancelled") return;
       this.showError((error as Error).message || "未知错误");
+      this.updateGestureButton();
     }
   }
 
-  private selectNode(nodeIndex: number): void {
-    if (!this.model || nodeIndex < 0) {
+  private selectNode(nodeIndex: number, toggle = true): void {
+    if (!this.model || nodeIndex < 0 || nodeIndex >= this.model.nodes.length) {
       this.clearSelection();
       return;
     }
     if (nodeIndex === this.selectedIndex) {
-      this.clearSelection();
+      if (toggle) this.clearSelection();
       return;
     }
     this.selectedIndex = nodeIndex;
@@ -348,6 +455,7 @@ class PromoGraphApp {
     this.detail.show(node);
     this.openPanel();
     this.setStatus("已聚焦节点", node.label);
+    this.syncViewState();
     void this.loadChunks(node.id);
   }
 
@@ -362,6 +470,7 @@ class PromoGraphApp {
     }
     this.selectedIndex = -1;
     this.selectedEdgeIndex = edgeIndex;
+    this.syncViewState();
     this.autoRotation.setHasSelection(true);
     const edge = this.model.edges[edgeIndex];
     const source = this.model.nodes[edge.source];
@@ -394,7 +503,7 @@ class PromoGraphApp {
     else this.renderer.setSelection(this.selectedIndex);
   }
 
-  private clearSelection(): void {
+  private clearSelection(sync = true): void {
     this.attractionNode = -1;
     this.attractionRequest += 1;
     this.selectedIndex = -1;
@@ -405,20 +514,24 @@ class PromoGraphApp {
     this.detail.hide();
     this.closePanel();
     this.setStatus(this.model ? "知识星图已就绪" : "准备加载");
+    if (sync) { this.pendingNodeId = ""; this.syncViewState(); }
   }
 
   private async loadChunks(entityId: string): Promise<void> {
     this.chunksAbort?.abort();
     const controller = new AbortController();
     this.chunksAbort = controller;
+    const session = this.currentSessionId;
+    const current = () => !this.disposed && !controller.signal.aborted && this.chunksAbort === controller && this.currentSessionId === session;
     try {
-      const url = `${this.apiPrefix}/knowledge-graph/entity-chunks?session_id=${encodeURIComponent(this.currentSessionId)}&entity_id=${encodeURIComponent(entityId)}&max_chunks=0`;
+      const params = new URLSearchParams({ session_id: session, entity_id: entityId, max_chunks: "0" });
+      const url = `${this.apiPrefix}/knowledge-graph/entity-chunks?${params}`;
       const response = await fetch(url, { cache: "no-store", signal: controller.signal });
       const payload = await response.json() as EntityChunkResponse;
       if (!response.ok || payload.error) throw new Error(payload.error || `HTTP ${response.status}`);
-      if (this.model?.nodes[this.selectedIndex]?.id === entityId) this.detail.showChunks(payload.chunks ?? []);
+      if (current() && this.model?.nodes[this.selectedIndex]?.id === entityId) this.detail.showChunks(payload.chunks ?? []);
     } catch (error) {
-      if ((error as Error).name !== "AbortError") this.detail.showChunks([], `原文读取失败：${(error as Error).message}`);
+      if (current() && (error as Error).name !== "AbortError") this.detail.showChunks([], `原文读取失败：${(error as Error).message}`);
     }
   }
 
@@ -428,9 +541,11 @@ class PromoGraphApp {
     this.chunksAbort?.abort();
     const controller = new AbortController();
     this.chunksAbort = controller;
+    const session = this.currentSessionId;
+    const current = () => !this.disposed && !controller.signal.aborted && this.chunksAbort === controller && this.currentSessionId === session;
     try {
       const params = new URLSearchParams({
-        session_id: this.currentSessionId,
+        session_id: session,
         source_id: edge.sourceId,
         edge_id: edge.id,
         max_chunks: "0",
@@ -438,9 +553,9 @@ class PromoGraphApp {
       const response = await fetch(`${this.apiPrefix}/knowledge-graph/edge-chunks?${params}`, { cache: "no-store", signal: controller.signal });
       const payload = await response.json() as EntityChunkResponse;
       if (!response.ok || payload.error) throw new Error(payload.error || `HTTP ${response.status}`);
-      if (this.selectedEdgeIndex === edgeIndex && this.model?.edges[edgeIndex]?.id === edge.id) this.detail.showChunks(payload.chunks ?? []);
+      if (current() && this.selectedEdgeIndex === edgeIndex && this.model?.edges[edgeIndex]?.id === edge.id) this.detail.showChunks(payload.chunks ?? []);
     } catch (error) {
-      if ((error as Error).name !== "AbortError" && this.selectedEdgeIndex === edgeIndex) {
+      if (current() && (error as Error).name !== "AbortError" && this.selectedEdgeIndex === edgeIndex) {
         this.detail.showChunks([], `原文读取失败：${(error as Error).message}`);
       }
     }
@@ -502,9 +617,10 @@ class PromoGraphApp {
   }
 
   private chooseSearchResult(nodeIndex: number): void {
-    this.selectNode(nodeIndex);
+    this.selectNode(nodeIndex, false);
     this.renderer.centerOnNode(nodeIndex, 2.1);
     this.searchInput.value = this.model?.nodes[nodeIndex]?.label ?? "";
+    this.syncViewState();
     this.renderer.setSearchMatch(nodeIndex);
     this.hideSearchResults();
   }
@@ -515,7 +631,7 @@ class PromoGraphApp {
   }
 
   private onHover(nodeIndex: number): void {
-    if (nodeIndex >= 0 && this.model) this.status.textContent = this.model.nodes[nodeIndex].label;
+    if (nodeIndex >= 0 && this.model?.nodes[nodeIndex]) this.status.textContent = this.model.nodes[nodeIndex].label;
     else if (this.selectedIndex < 0 && this.selectedEdgeIndex < 0 && this.model) this.status.textContent = "知识星图已就绪";
   }
 
@@ -582,18 +698,21 @@ class PromoGraphApp {
 
   private async startEclrr(): Promise<void> {
     if (!this.currentSessionId || this.eclrrButton.disabled) return;
+    const session = this.currentSessionId;
     this.setEclrrButtonRunning(true);
     this.setStatus("ECLRR-v4 自进化启动中", "最多写回 40 条新边");
     try {
       const response = await fetch(`${this.apiPrefix}/knowledge-graph/eclrr-v4/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: this.currentSessionId, max_new_edges: 40 }),
+        body: JSON.stringify({ session_id: session, max_new_edges: 40 }),
       });
       const payload = await response.json() as EclrrRunStatus & { detail?: string };
+      if (this.disposed || session !== this.currentSessionId) return;
       if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
       this.applyEclrrStatus(payload);
     } catch (error) {
+      if (this.disposed || session !== this.currentSessionId) return;
       this.setEclrrButtonRunning(false);
       this.setStatus("ECLRR-v4 启动失败", (error as Error).message);
     }
@@ -601,19 +720,23 @@ class PromoGraphApp {
 
   private async refreshEclrrStatus(): Promise<void> {
     if (!this.currentSessionId) return;
+    const session = this.currentSessionId;
     try {
-      const url = `${this.apiPrefix}/knowledge-graph/eclrr-v4/status?session_id=${encodeURIComponent(this.currentSessionId)}`;
+      const url = `${this.apiPrefix}/knowledge-graph/eclrr-v4/status?session_id=${encodeURIComponent(session)}`;
       const response = await fetch(url, { cache: "no-store" });
       const payload = await response.json() as EclrrRunStatus;
+      if (this.disposed || session !== this.currentSessionId) return;
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       this.applyEclrrStatus(payload);
     } catch (error) {
+      if (this.disposed || session !== this.currentSessionId) return;
       this.setEclrrButtonRunning(false);
       this.setStatus("ECLRR-v4 状态读取失败", (error as Error).message);
     }
   }
 
   private applyEclrrStatus(payload: EclrrRunStatus): void {
+    if (this.disposed || payload.session_id !== this.currentSessionId) return;
     window.clearTimeout(this.eclrrPollTimer);
     if (payload.status === "running") {
       this.setEclrrButtonRunning(true);
@@ -633,6 +756,7 @@ class PromoGraphApp {
     if (completionKey === this.eclrrCompletionSeen) return;
     this.eclrrCompletionSeen = completionKey;
     void this.loadGraph().then(() => {
+      if (this.disposed || payload.session_id !== this.currentSessionId) return;
       this.setStatus(
         "ECLRR-v4 自进化完成",
         `审核 ${payload.reviewed} · 提议 ${payload.proposed} · 写回 ${payload.accepted} · 拒绝 ${payload.rejected}`,
@@ -650,28 +774,84 @@ class PromoGraphApp {
     this.updateRotationButton();
   }
 
-  private async toggleGestureControl(): Promise<void> {
-    if (this.gesture.getState().enabled) {
-      this.gesture.stop();
-      this.gestureInteracting = false;
-      this.gestureNodeDragging = false;
-      this.updateCombinedInteractionState();
-      this.updateGestureButton();
-      return;
-    }
-    this.gestureButton.disabled = true;
-    this.gestureButton.title = "正在启动手势控制";
-    this.gestureButton.setAttribute("aria-label", "正在启动手势控制");
-    const started = await this.gesture.start();
-    this.gestureButton.disabled = false;
-    this.updateGestureButton(started);
+  private syncViewState(): void {
+    const state = {
+      sessionId: this.currentSessionId,
+      node: this.model?.nodes[this.selectedIndex]?.id || this.pendingNodeId,
+      search: this.searchInput.value,
+    };
+    required<HTMLAnchorElement>("#standard-view").href = graphViewUrl("/knowledge-graph", state);
+    required<HTMLAnchorElement>("#immersive-view").href = graphViewUrl(window.location.pathname, state);
+    window.history.replaceState({}, "", graphViewUrl(window.location.pathname, state));
   }
 
-  private updateGestureButton(enabled = this.gesture.getState().enabled): void {
-    const title = enabled ? "关闭手势控制" : "开启手势控制";
-    this.gestureButton.title = title;
-    this.gestureButton.setAttribute("aria-label", title);
-    this.gestureButton.setAttribute("aria-pressed", String(enabled));
+  private openGestureSettings(): void {
+    this.gesture.setSuspended(true);
+    this.input.resetInteraction();
+    this.populateGestureSettings();
+    if (!this.gestureDialog.open) this.gestureDialog.showModal();
+    this.gestureButton.setAttribute("aria-expanded", "true");
+    this.updateCombinedInteractionState();
+  }
+
+  private populateGestureSettings(): void {
+    const preferences = this.gesture.getPreferences();
+    this.gestureDialog.querySelectorAll<HTMLSelectElement | HTMLInputElement>("[data-gesture-pref]").forEach(control => {
+      const key = control.dataset.gesturePref as keyof typeof preferences;
+      control.value = String(preferences[key]);
+      const output = this.gestureDialog.querySelector<HTMLOutputElement>(`[data-gesture-output="${key}"]`);
+      if (output) output.value = key.endsWith("Ms") ? `${preferences[key]} 毫秒` : `${preferences[key]}×`;
+    });
+    const inspect = preferences.mode === "inspect";
+    required<HTMLElement>("#gesture-mode-help").textContent = inspect
+      ? "单独伸出食指并停留选中节点；捏合节点可拖动，捏合空白可平移；双手捏合并改变距离可缩放。张开手掌不会改变视图。"
+      : "张掌水平移动可旋转，张掌静止可持续放大；单手捏合可持续缩小。松手再切换动作，适合演示，不适合精细选点。";
+    required<HTMLElement>("#gesture-guide").textContent = inspect
+      ? "精准模式 · 食指停留选点 · 捏合拖动/平移 · 双手捏合缩放"
+      : "演示模式 · 张掌移动旋转/静止放大 · 单手捏合缩小";
+    this.updateGestureButton();
+    this.updateCombinedInteractionState();
+  }
+
+  private saveGestureSettings(): void {
+    const preferences = this.gesture.getPreferences();
+    const mode = required<HTMLSelectElement>("#gesture-mode").value;
+    const dominantHand = required<HTMLSelectElement>("#gesture-hand").value;
+    const gain = Number(required<HTMLInputElement>("#gesture-sensitivity").value);
+    this.gesture.setPreferences(normalizeGesturePreferences({
+      ...preferences, mode, dominantHand, panGain: gain, zoomGain: gain, orbitGain: gain,
+      dwellMs: Number(required<HTMLInputElement>("#gesture-dwell").value),
+      smoothingMs: Number(required<HTMLInputElement>("#gesture-smoothing").value),
+    }));
+    this.persistGestureSettings();
+    this.populateGestureSettings();
+  }
+
+  private persistGestureSettings(): void {
+    try {
+      localStorage.setItem(GESTURE_PREFERENCES_KEY, JSON.stringify(this.gesture.getPreferences()));
+      required<HTMLElement>("#gesture-preference-status").textContent = "设置仅保存在此浏览器；不会保存摄像头开启状态。";
+    } catch {
+      required<HTMLElement>("#gesture-preference-status").textContent = "浏览器不允许保存，设置仅本次有效。";
+    }
+  }
+
+  private updateGestureButton(): void {
+    const state = this.gesture.getState();
+    const label = state.starting ? "正在开启" : !state.enabled ? "摄像头关闭" : state.suspended ? "摄像头暂停" : "手势已开启";
+    this.cameraStatus.textContent = state.error || (state.starting
+      ? "等待摄像头授权或加载本地识别模型，可随时点击关闭取消。"
+      : state.enabled && state.suspended ? "已暂停识别和画面采集。点击恢复继续；点击关闭释放摄像头。"
+        : state.enabled ? "摄像头画面仅在本地处理。鼠标、触控、滚轮或图谱快捷键会接管并暂停手势；恢复需手动确认。"
+          : "摄像头未开启。仅点击「开启摄像头」才请求权限；鼠标始终可用。" );
+    this.cameraStatus.dataset.state = state.error ? "error" : state.layerState;
+    required<HTMLElement>("#camera-indicator").textContent = label;
+    this.gestureButton.title = `手势设置 · ${label}`;
+    this.cameraStart.disabled = state.enabled || state.starting || !this.graphReady;
+    this.cameraStart.title = this.graphReady ? "仅此操作请求摄像头权限" : "图谱加载完成后可开启";
+    this.cameraPause.disabled = !state.enabled;
+    this.cameraPause.textContent = state.suspended ? "恢复" : "暂停";
+    this.cameraStop.disabled = !state.enabled && !state.starting;
   }
 
   private tickAutoRotation(now: number, deltaSeconds: number): void {
@@ -708,27 +888,55 @@ class PromoGraphApp {
   }
 
   private updateCombinedInteractionState(): void {
-    this.autoRotation.setOrbitInteracting(this.mouseOrbitInteracting || this.gestureInteracting);
+    const gestureState = this.gesture?.getState();
+    const preciseControl = gestureState?.enabled && !gestureState.suspended && this.gesture.getPreferences().mode === "inspect";
+    this.autoRotation.setOrbitInteracting(this.gestureDialog.open || this.mouseOrbitInteracting || this.gestureInteracting || Boolean(preciseControl));
     this.autoRotation.setNodeDragging(this.mouseNodeDragging || this.gestureNodeDragging);
   }
 
   private onRootPointerDown = () => this.autoRotation.markInteraction();
+  private onWindowBlur = () => {
+    // A browser permission prompt may itself blur the window while starting.
+    if (this.gesture.getState().enabled) this.gesture.setSuspended(true);
+  };
+
+  private takeManualControl(): void {
+    if (pauseGestureForManualInput(this.gesture)) this.setStatus("手动操作已接管", "手势已暂停，可在手势设置中恢复");
+  }
 
   private onVisibilityChange = () => {
     const visible = !document.hidden;
     this.autoRotation.setDocumentVisible(visible);
-    this.gesture.setSuspended(!visible);
+    // Returning to this tab never silently resumes camera capture.
+    if (!visible) { this.gesture.setSuspended(true); this.input.resetInteraction(); }
     if (visible) this.renderer.start();
     else this.renderer.stop();
     this.updateRotationButton();
   };
 
+  private onPageHide = (event: PageTransitionEvent) => {
+    this.input.resetInteraction();
+    this.gesture.stop();
+    this.renderer.stop();
+    if (!event.persisted) this.dispose();
+  };
+
+  private onPageShow = () => {
+    if (!this.disposed && !document.hidden) this.renderer.start();
+  };
+
   dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
     window.clearInterval(this.statsTimer);
     window.clearTimeout(this.eclrrPollTimer);
     this.graphAbort?.abort();
     this.chunksAbort?.abort();
     document.removeEventListener("visibilitychange", this.onVisibilityChange);
+    window.removeEventListener("pagehide", this.onPageHide);
+    window.removeEventListener("pageshow", this.onPageShow);
+    window.removeEventListener("blur", this.onWindowBlur);
+    this.headerObserver?.disconnect();
     this.root.removeEventListener("pointerdown", this.onRootPointerDown, true);
     this.input.dispose();
     this.gesture.dispose();
@@ -747,4 +955,3 @@ void app.init().catch(error => {
   if (errorState) errorState.hidden = false;
   if (errorMessage) errorMessage.textContent = (error as Error).message;
 });
-window.addEventListener("beforeunload", () => app.dispose(), { once: true });

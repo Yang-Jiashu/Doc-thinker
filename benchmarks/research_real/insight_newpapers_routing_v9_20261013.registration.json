@@ -1,0 +1,24 @@
+{
+  "registration_version": "newpapers-routing-development-v9",
+  "prepared_date": "2026-10-13",
+  "fixture": "benchmarks/research_real/insight_newpapers_smoke_20261013.json",
+  "plan": "benchmarks/research_real/plan_insight_newpapers_routing_regression_v9_20261013.md",
+  "papers_directory": "dist/insight-newpapers-smoke-20261013/papers",
+  "registered_inputs": {
+    "code_fingerprint": "d978ed60e0b407c318ea3c82639e1c2a598b5a3da1950d146b051756e23f7784",
+    "fixture_sha256": "77fb46475ffa6d3b1b6d09e1066f8e73eda5ec30913233d9b5a63d4b8a762f2d",
+    "plan_sha256": "e2c37f5934a398389980438c868bb3e978a08e84eb1a3ddecff60ca3c9be5fff",
+    "papers": {
+      "longmem_2306.07174v1.pdf": "6036d59b87763ef304b2bef4e6bc1ee295abf83604b88fd5b854d46ba2ca4f61",
+      "memorybank_2305.10250v1.pdf": "5bac0c9588b7999c9ae3821af027bee832964aaab787cf8fa8111b905e4b48fb"
+    },
+    "routing_plan_sha256": "221edff78f0883e37aa4e12f84329f475f12d9c39591ed0bc8d06d1721a2d5f4"
+  },
+  "combined_sha256_algorithm": "SHA256 of UTF-8 json.dumps(registered_inputs, sort_keys=True, separators=(',', ':'))",
+  "combined_sha256": "47c086d95552d8f89f7ae6084e6e66eb716ef725c1a619564dcbd5ae7a66909e",
+  "prepared_before_new_model_requests": true,
+  "scope": "Development regression after the V8 task exposed a routing failure; not a fresh holdout or generalization certification.",
+  "maximum_new_provider_requests": 2,
+  "automatic_retries": 0,
+  "maximum_reported_tokens_soft_stop": 30000
+}

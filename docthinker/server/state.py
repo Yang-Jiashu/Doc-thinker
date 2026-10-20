@@ -18,6 +18,12 @@ class AppState:
     cognitive_processor: Optional[CognitiveProcessor] = None
     ingestion_service: Optional[IngestionService] = None
     post_upload_learning: Optional[SessionLearningRunner] = None
+    mobile_safe_mode: bool = False
+    mobile_document_rag: bool = False
+    mobile_chat_func: Optional[Any] = None
+    research_service: Optional[Any] = None
+    long_horizon_backend: Optional[Any] = None
+    long_horizon_db_path: Optional[str] = None
     orchestrator: Optional[Any] = None
     memory_engine: Optional[Any] = None  # deprecated: retained for compatibility
     memory_engine_factory: Optional[Callable[[str], Any]] = None

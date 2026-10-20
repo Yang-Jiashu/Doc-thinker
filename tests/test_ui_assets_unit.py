@@ -8,8 +8,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
-from jinja2 import Environment, FileSystemLoader
 from flask import url_for
+from jinja2 import Environment, FileSystemLoader
 
 from docthinker.ui.app import app
 
@@ -58,14 +58,19 @@ def test_workspace_pages_have_real_assets_and_valid_scripts(template, endpoint):
     assert len(page.ids) == len(set(page.ids)), "Duplicate control IDs"
     if template == "config_modern.html":
         assert page.labels
-        assert all(label.get("for") in page.ids for label in page.labels)
+        for label in page.labels:
+            if label.get("for"):
+                assert label["for"] in page.ids
+            else:
+                assert label.get("id") in page.ids
+                assert re.search(r'aria-labelledby="[^"]*' + re.escape(label["id"]) + r'(?:\s|\")', html)
     node = shutil.which("node")
     if node:
         scripts = re.findall(r"<script\b[^>]*>([\s\S]*?)</script>", html)
         result = subprocess.run(
-            [node, "-e", "const vm=require('vm'); const fs=require('fs'); "
-             "JSON.parse(fs.readFileSync(0,'utf8')).forEach(s=>new vm.Script(s));"],
-            input=json.dumps(scripts), text=True, capture_output=True, timeout=10,
+            [node, "-e", ("const vm=require('vm'); const fs=require('fs'); "
+             "JSON.parse(fs.readFileSync(0,'utf8')).forEach(s=>new vm.Script(s));")],
+            input=json.dumps(scripts), text=True, capture_output=True, timeout=10, check=False,
         )
         assert result.returncode == 0, result.stderr
 
@@ -74,3 +79,4 @@ def test_distribution_includes_ui_template_and_style_patterns():
     manifest = (ROOT / "MANIFEST.in").read_text()
     assert "recursive-include docthinker/ui/templates *.html" in manifest
     assert "recursive-include docthinker/ui/static *.css" in manifest
+    assert "*.json" in next(line for line in manifest.splitlines() if "ui/static" in line)

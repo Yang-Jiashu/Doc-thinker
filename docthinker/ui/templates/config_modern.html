@@ -1,386 +1,59 @@
 {% extends "base_modern.html" %}
-
-{% block title %}设置 - DocThinker{% endblock %}
-
-{% block extra_css %}
-<style>
-    .settings-content { padding: 32px 28px; }
-    .settings-content > div { max-width: 760px; }
-    #settings-form > .card { border: 0; border-bottom: 1px solid var(--dt-line); border-radius: 0; box-shadow: none; overflow: visible; }
-    #settings-form > .card > div:first-child { padding: 0 0 14px; background: transparent; border: 0; }
-    #settings-form > .card > div:nth-child(2) { padding: 0 0 28px; }
-    #settings-form h3 { font-size: 15px; }
-    #settings-form h3 i { color: var(--dt-muted); }
-    #settings-form input { min-height: 42px; }
-    .settings-content label { color: var(--dt-ink); }
-    @media (max-width: 600px) {
-        .settings-content { padding: 24px 16px; }
-        #settings-form .grid-cols-2 { grid-template-columns: minmax(0, 1fr); }
-        #settings-form input { min-height: 44px; font-size: 16px; }
-    }
-</style>
-{% endblock %}
-
+{% block title %}模型与连接 - DocThinker{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="/static/model-settings.css?v=1">{% endblock %}
 {% block content %}
-<header class="bg-white border-b border-slate-200 px-6 py-4">
-    <div>
-        <h2 class="text-lg font-semibold text-slate-800">系统设置</h2>
-        <p class="text-sm text-slate-500">配置模型、API 密钥和系统参数</p>
+<header class="ms-header"><span>系统设置</span><span class="ms-muted">模型与连接</span></header>
+<div class="ms-scroll">
+ <div class="ms-page">
+  <div class="ms-title"><div><h1>选择模型，开始思考。</h1><p>选服务商、选模型，再填入你的 API Key。连接地址会自动补好。</p></div><span class="ms-badge" id="catalog-count">模型预设</span></div>
+  <p id="settings-loading" role="status">正在读取设置…</p>
+  <button id="settings-retry" class="ms-button" type="button" hidden>重新加载</button>
+  <p class="ms-notice" id="catalog-notice" hidden></p>
+  <p class="ms-notice" id="settings-notice" role="status" hidden></p>
+  <form id="settings-form" hidden autocomplete="off">
+   <fieldset id="settings-fields">
+   {% for group, title, description in [('llm', '对话与理解', '负责回答、读图和提取知识。四个角色共用此服务商的连接与密钥。'), ('embed', '文档检索', '把文档转换为向量，用来找到与问题相关的原文。'), ('rerank', '结果重排序', '可选。对已召回的内容再排一次序，让重要证据排在前面。')] %}
+   <section class="ms-section" aria-labelledby="{{ group }}-title">
+    <div class="ms-section-title"><span class="ms-step">{{ loop.index }}</span><div><h2 id="{{ group }}-title">{{ title }}</h2><p>{{ description }}</p></div>{% if group == 'rerank' %}<label class="ms-switch" for="s-rerank-enabled"><input id="s-rerank-enabled" type="checkbox">启用</label>{% endif %}</div>
+    <div id="{{ group }}-controls" class="ms-section-body">
+     <div class="ms-grid">
+      <div class="ms-field"><label for="s-{{ group }}-provider">服务商</label><select id="s-{{ group }}-provider" data-provider="{{ group }}"><option value="custom">自定义 / OpenAI 兼容服务</option></select></div>
+      <div class="ms-field"><div class="ms-label-row"><label for="s-{{ group }}-api-key">API Key</label><a id="{{ group }}-key-link" target="_blank" rel="noopener noreferrer" hidden>获取密钥 ↗</a></div><input type="password" id="s-{{ group }}-api-key" autocomplete="new-password" spellcheck="false" placeholder="输入此服务商的 API Key"><small id="s-{{ group }}-api-key-hint">已有密钥时，留空即可保留。</small></div>
+     </div>
+     <div class="ms-provider-description"><span id="{{ group }}-provider-description"></span><a id="{{ group }}-docs-link" target="_blank" rel="noopener noreferrer" hidden>官方说明 ↗</a></div>
+     <div class="ms-grid">
+     {% if group == 'llm' %}
+      {% for field, role, label, hint in [('llm_model','chat','对话模型','生成回答与推理'), ('vlm_model','vision','视觉模型','理解文档中的图片'), ('keyword_llm_model','keyword','关键词模型','检索前提取关键词'), ('entity_extraction_llm_model','extraction','知识抽取模型','从原文提取实体与关系')] %}
+      <div class="ms-field"><label id="label-{{ field }}">{{ label }}</label><input type="hidden" id="s-{{ field|replace('_','-') }}" data-setting="{{ field }}"><button type="button" class="ms-model-picker" data-model-field="{{ field }}" data-role="{{ role }}" data-group="llm" aria-labelledby="label-{{ field }} value-{{ field }}"><span id="value-{{ field }}">选择模型</span><span aria-hidden="true">⌄</span></button><small>{{ hint }}</small></div>
+      {% endfor %}
+     {% else %}
+      {% set field = group ~ '_model' %}
+      <div class="ms-field"><label id="label-{{ field }}">{{ '嵌入模型' if group == 'embed' else '重排模型' }}</label><input type="hidden" id="s-{{ group }}-model" data-setting="{{ field }}"><button type="button" class="ms-model-picker" data-model-field="{{ field }}" data-role="{{ 'embedding' if group == 'embed' else 'rerank' }}" data-group="{{ group }}" aria-labelledby="label-{{ field }} value-{{ field }}"><span id="value-{{ field }}">选择模型</span><span aria-hidden="true">⌄</span></button></div>
+      {% if group == 'embed' %}<div class="ms-field"><label for="s-embed-dim">向量维度</label><input type="number" id="s-embed-dim" data-setting="embed_dim" min="1" max="65536" step="1"><small>选预设时自动匹配；改变模型或维度需重建原有向量索引。</small></div>{% endif %}
+     {% endif %}
+     </div>
+     <p id="{{ group }}-warning" class="ms-notice" hidden></p>
+     <details class="ms-provider-notes" id="{{ group }}-notes"><summary>服务商接入须知</summary><p id="{{ group }}-notes-content"></p></details>
+     <details class="ms-advanced" id="{{ group }}-advanced"><summary>高级连接 · 自定义地址</summary><div class="ms-field"><label for="s-{{ group }}-base-url">Base URL</label><input type="url" id="s-{{ group }}-base-url" data-setting="{{ group }}_base_url" spellcheck="false" placeholder="https://…/v1"><small>切换地址需要重新提供密钥，防止把旧密钥发给其他服务商。</small></div></details>
     </div>
-</header>
-
-<div class="settings-content flex-1 overflow-y-auto">
-    <div class="max-w-2xl mx-auto space-y-6">
-
-        <!-- Loading state -->
-        <div id="settings-loading" class="text-center py-12 text-slate-500">
-            <i class="fa-solid fa-spinner fa-spin text-2xl mb-3 block"></i>
-            正在加载设置...
-        </div>
-
-        <!-- Settings form (hidden until loaded) -->
-        <div id="settings-form" class="space-y-6" style="display:none;">
-
-            <!-- LLM Configuration -->
-            <div class="card">
-                <div class="settings-section-heading">
-                    <h3 class="font-semibold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-robot text-blue-500"></i>
-                        LLM 模型配置
-                    </h3>
-                </div>
-                <div class="p-6 space-y-4">
-                    <div>
-                        <label for="s-llm-api-key" class="block text-sm font-medium text-slate-700 mb-1">API Key</label>
-                        <div class="relative">
-                            <input type="password" id="s-llm-api-key" placeholder="sk-..."
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm pr-10">
-                            <button onclick="_toggleVis('s-llm-api-key')" class="dt-mini-button absolute right-2 top-1/2 -translate-y-1/2 px-0 w-8" title="显示或隐藏 API Key">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
-                        </div>
-                        <p class="text-xs text-slate-400 mt-1" id="s-llm-api-key-hint"></p>
-                    </div>
-                    <div>
-                        <label for="s-llm-base-url" class="block text-sm font-medium text-slate-700 mb-1">Base URL</label>
-                        <input type="text" id="s-llm-base-url" placeholder="https://dashscope.aliyuncs.com/compatible-mode/v1"
-                            class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="s-llm-model" class="block text-sm font-medium text-slate-700 mb-1">LLM 模型</label>
-                            <input type="text" id="s-llm-model" placeholder="qwen3.5-plus"
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                            <p class="text-xs text-slate-400 mt-1">多个模型用逗号分隔</p>
-                        </div>
-                        <div>
-                            <label for="s-vlm-model" class="block text-sm font-medium text-slate-700 mb-1">VLM 模型</label>
-                            <input type="text" id="s-vlm-model" placeholder="qwen-vl-max"
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                        </div>
-                    </div>
-                    <div>
-                        <label for="s-keyword-llm-model" class="block text-sm font-medium text-slate-700 mb-1">关键词提取模型</label>
-                        <input type="text" id="s-keyword-llm-model" placeholder="qwen-turbo"
-                            class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                        <p class="text-xs text-slate-400 mt-1">轻量模型，用于快速关键词提取</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Embedding Configuration -->
-            <div class="card">
-                <div class="settings-section-heading">
-                    <h3 class="font-semibold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-vector-square text-purple-500"></i>
-                        Embedding 配置
-                    </h3>
-                </div>
-                <div class="p-6 space-y-4">
-                    <div>
-                        <label for="s-embed-api-key" class="block text-sm font-medium text-slate-700 mb-1">API Key</label>
-                        <div class="relative">
-                            <input type="password" id="s-embed-api-key" placeholder="与 LLM 相同则留空"
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm pr-10">
-                            <button onclick="_toggleVis('s-embed-api-key')" class="dt-mini-button absolute right-2 top-1/2 -translate-y-1/2 px-0 w-8" title="显示或隐藏 API Key">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
-                        </div>
-                        <p class="text-xs text-slate-400 mt-1" id="s-embed-api-key-hint"></p>
-                    </div>
-                    <div>
-                        <label for="s-embed-base-url" class="block text-sm font-medium text-slate-700 mb-1">Base URL</label>
-                        <input type="text" id="s-embed-base-url"
-                            class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="s-embed-model" class="block text-sm font-medium text-slate-700 mb-1">Embedding 模型</label>
-                            <input type="text" id="s-embed-model" placeholder="text-embedding-v3"
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                        </div>
-                        <div>
-                            <label for="s-embed-dim" class="block text-sm font-medium text-slate-700 mb-1">维度</label>
-                            <input type="number" id="s-embed-dim" placeholder="1024"
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Rerank Configuration -->
-            <div class="card">
-                <div class="settings-section-heading">
-                    <h3 class="font-semibold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-sort text-green-500"></i>
-                        Rerank 配置
-                    </h3>
-                </div>
-                <div class="p-6 space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="s-rerank-model" class="block text-sm font-medium text-slate-700 mb-1">Rerank 模型</label>
-                            <input type="text" id="s-rerank-model" placeholder="BAAI/bge-reranker-v2-m3"
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                        </div>
-                        <div>
-                            <label for="s-rerank-base-url" class="block text-sm font-medium text-slate-700 mb-1">Base URL</label>
-                            <input type="text" id="s-rerank-base-url"
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                        </div>
-                    </div>
-                    <div>
-                        <label for="s-rerank-api-key" class="block text-sm font-medium text-slate-700 mb-1">API Key</label>
-                        <div class="relative">
-                            <input type="password" id="s-rerank-api-key" placeholder="留空则使用 LLM Key"
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm pr-10">
-                            <button onclick="_toggleVis('s-rerank-api-key')" class="dt-mini-button absolute right-2 top-1/2 -translate-y-1/2 px-0 w-8" title="显示或隐藏 API Key">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
-                        </div>
-                        <p class="text-xs text-slate-400 mt-1" id="s-rerank-api-key-hint"></p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Performance Configuration -->
-            <div class="card">
-                <div class="settings-section-heading">
-                    <h3 class="font-semibold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-gauge-high text-orange-500"></i>
-                        性能参数
-                    </h3>
-                </div>
-                <div class="p-6">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="s-llm-max-async" class="block text-sm font-medium text-slate-700 mb-1">LLM 最大并发</label>
-                            <input type="number" id="s-llm-max-async" min="1" max="64"
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                        </div>
-                        <div>
-                            <label for="s-embedding-max-async" class="block text-sm font-medium text-slate-700 mb-1">Embedding 最大并发</label>
-                            <input type="number" id="s-embedding-max-async" min="1" max="64"
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                        </div>
-                        <div>
-                            <label for="s-max-parallel-insert" class="block text-sm font-medium text-slate-700 mb-1">最大并行文档插入</label>
-                            <input type="number" id="s-max-parallel-insert" min="1" max="32"
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                        </div>
-                        <div>
-                            <label for="s-llm-router-concurrency" class="block text-sm font-medium text-slate-700 mb-1">模型路由并发</label>
-                            <input type="number" id="s-llm-router-concurrency" min="1" max="128"
-                                class="input-field w-full px-4 py-2 rounded-lg text-sm">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Runtime Info -->
-            <div class="card">
-                <div class="settings-section-heading">
-                    <h3 class="font-semibold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-circle-info text-slate-500"></i>
-                        运行状态
-                    </h3>
-                </div>
-                <div class="p-6">
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div class="p-3 bg-slate-50 rounded-lg">
-                            <p class="text-slate-500 mb-1">工作目录</p>
-                            <p class="font-mono text-slate-700 truncate" id="s-workdir">-</p>
-                        </div>
-                        <div class="p-3 bg-slate-50 rounded-lg">
-                            <p class="text-slate-500 mb-1">后端状态</p>
-                            <p class="font-medium" id="s-backend-status">检查中...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Save Button -->
-            <div class="flex justify-end gap-3 pb-6">
-                <button onclick="_resetForm()" class="btn-secondary px-5 text-sm">
-                    <i class="fa-solid fa-rotate-left"></i>
-                    重新加载
-                </button>
-                <button onclick="_saveSettings()" id="save-btn" class="btn-primary px-5 text-sm">
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    保存设置
-                </button>
-            </div>
-        </div>
-
-    </div>
+   </section>
+   {% endfor %}
+   <details class="ms-section ms-performance"><summary>性能与运行信息 <span>高级设置</span></summary><div class="ms-grid">
+    {% for field, label in [('llm_max_async','LLM 最大并发'),('embedding_max_async','嵌入最大并发'),('max_parallel_insert','文档并行插入'),('llm_router_max_concurrency','路由器最大并发')] %}
+    <div class="ms-field"><label for="s-{{ field|replace('_','-') }}">{{ label }}</label><input type="number" min="1" max="1024" step="1" id="s-{{ field|replace('_','-') }}" data-setting="{{ field }}"></div>
+    {% endfor %}
+   </div><p class="ms-muted">工作目录：<span id="s-workdir"></span></p><p class="ms-muted">保存后需要重启后端。页面不会自动重启服务，也不会自动重建索引。</p></details>
+   </fieldset>
+   <footer class="ms-save-bar"><div><span id="settings-dirty" role="status">没有未保存的更改</span><small>预设不代表已连通；实际可用性取决于账号、地区和模型权限。</small></div><div class="ms-actions"><button id="reset-btn" class="ms-button" type="button">撤销更改</button><button id="save-btn" class="ms-button ms-primary" type="submit" disabled>保存配置</button></div></footer>
+  </form>
+ </div>
 </div>
-
-<script>
-let _originalSettings = null;
-
-const _FIELD_MAP = {
-    'llm_base_url':              's-llm-base-url',
-    'llm_model':                 's-llm-model',
-    'vlm_model':                 's-vlm-model',
-    'keyword_llm_model':         's-keyword-llm-model',
-    'embed_base_url':            's-embed-base-url',
-    'embed_model':               's-embed-model',
-    'embed_dim':                 's-embed-dim',
-    'rerank_model':              's-rerank-model',
-    'rerank_base_url':           's-rerank-base-url',
-    'llm_max_async':             's-llm-max-async',
-    'embedding_max_async':       's-embedding-max-async',
-    'max_parallel_insert':       's-max-parallel-insert',
-    'llm_router_max_concurrency':'s-llm-router-concurrency',
-};
-
-function _toggleVis(id) {
-    const el = document.getElementById(id);
-    el.type = el.type === 'password' ? 'text' : 'password';
-}
-
-async function _loadSettings() {
-    try {
-        const resp = await fetch('/api/v1/settings');
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const data = await resp.json();
-        _originalSettings = data;
-        _populateForm(data);
-        document.getElementById('settings-loading').style.display = 'none';
-        document.getElementById('settings-form').style.display = '';
-        document.getElementById('s-backend-status').textContent = '已连接';
-        document.getElementById('s-backend-status').className = 'font-medium text-green-600';
-    } catch (e) {
-        document.getElementById('settings-loading').innerHTML =
-            '<i class="fa-solid fa-triangle-exclamation text-2xl text-amber-500 mb-3 block"></i>' +
-            '<p class="text-slate-600">无法连接后端服务</p>' +
-            '<p class="text-xs text-slate-400 mt-1">' + e.message + '</p>' +
-            '<button onclick="_loadSettings()" class="btn-primary mt-4 px-5 text-sm"><i class="fa-solid fa-rotate"></i>重试</button>';
-    }
-}
-
-function _populateForm(data) {
-    for (const [key, elId] of Object.entries(_FIELD_MAP)) {
-        const el = document.getElementById(elId);
-        if (el && data[key] !== undefined && data[key] !== null) {
-            el.value = data[key];
-        }
-    }
-
-    if (data.llm_models && data.llm_models.length > 0) {
-        document.getElementById('s-llm-model').value = data.llm_models.join(', ');
-    }
-
-    const llmHint = document.getElementById('s-llm-api-key-hint');
-    if (data.llm_api_key_masked) {
-        llmHint.textContent = '当前: ' + data.llm_api_key_masked;
-    }
-
-    const embedHint = document.getElementById('s-embed-api-key-hint');
-    if (data.embed_api_key_masked) {
-        embedHint.textContent = '当前: ' + data.embed_api_key_masked;
-    }
-
-    const rerankHint = document.getElementById('s-rerank-api-key-hint');
-    if (data.rerank_api_key_masked) {
-        rerankHint.textContent = '当前: ' + data.rerank_api_key_masked;
-    }
-
-    if (data.workdir) {
-        document.getElementById('s-workdir').textContent = data.workdir;
-    }
-}
-
-async function _saveSettings() {
-    const btn = document.getElementById('save-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>保存中...';
-
-    const payload = {};
-
-    for (const [key, elId] of Object.entries(_FIELD_MAP)) {
-        const el = document.getElementById(elId);
-        if (!el) continue;
-        const val = el.value.trim();
-        if (!val) continue;
-
-        const orig = _originalSettings ? _originalSettings[key] : undefined;
-        if (el.type === 'number') {
-            const num = parseInt(val, 10);
-            if (!isNaN(num) && num !== orig) payload[key] = num;
-        } else {
-            if (val !== String(orig || '')) payload[key] = val;
-        }
-    }
-
-    const llmKey = document.getElementById('s-llm-api-key').value.trim();
-    if (llmKey) payload['llm_api_key'] = llmKey;
-
-    const embedKey = document.getElementById('s-embed-api-key').value.trim();
-    if (embedKey) payload['embed_api_key'] = embedKey;
-
-    const rerankKey = document.getElementById('s-rerank-api-key').value.trim();
-    if (rerankKey) payload['rerank_api_key'] = rerankKey;
-
-    if (Object.keys(payload).length === 0) {
-        showToast('没有变更需要保存', 'info');
-        btn.disabled = false;
-        btn.innerHTML = '保存设置';
-        return;
-    }
-
-    try {
-        const resp = await fetch('/api/v1/settings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
-        const data = await resp.json();
-        if (data.success) {
-            showToast('设置已保存 — ' + (data.changed || []).join(', '), 'success');
-            if (data.note) {
-                setTimeout(() => showToast(data.note, 'info'), 1500);
-            }
-            await _loadSettings();
-        } else {
-            showToast('保存失败: ' + (data.message || '未知错误'), 'error');
-        }
-    } catch (e) {
-        showToast('保存失败: ' + e.message, 'error');
-    }
-
-    btn.disabled = false;
-    btn.innerHTML = '保存设置';
-}
-
-function _resetForm() {
-    document.getElementById('s-llm-api-key').value = '';
-    document.getElementById('s-embed-api-key').value = '';
-    document.getElementById('s-rerank-api-key').value = '';
-    _loadSettings();
-    showToast('已重新加载服务器设置', 'info');
-}
-
-document.addEventListener('DOMContentLoaded', _loadSettings);
-</script>
+<dialog id="model-dialog" class="ms-dialog" aria-labelledby="model-dialog-title">
+ <div class="ms-dialog-header"><div><h2 id="model-dialog-title">选择模型</h2><p id="model-dialog-provider"></p></div><button type="button" id="model-dialog-close" class="ms-icon-button" aria-label="关闭模型选择">×</button></div>
+ <div class="ms-search"><label class="ms-sr-only" for="model-search">搜索模型</label><input id="model-search" type="search" placeholder="搜索名称或模型 ID…" autocomplete="off"></div>
+ <div id="model-results" class="ms-model-results" aria-live="polite"></div>
+ <details class="ms-custom" id="model-custom"><summary>找不到？使用自定义模型</summary><label for="model-custom-id">模型 ID</label><input id="model-custom-id" placeholder="填入服务商提供的模型 ID" spellcheck="false"><small id="model-custom-hint">自定义模型需自行确认接口和能力兼容。</small><button type="button" id="model-custom-apply" class="ms-button">使用自定义模型</button></details>
+ <p class="ms-catalog-date" id="catalog-date"></p>
+</dialog>
 {% endblock %}
+{% block extra_js %}<script src="/static/model-settings.js?v=1"></script>{% endblock %}

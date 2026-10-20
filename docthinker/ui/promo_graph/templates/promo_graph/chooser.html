@@ -13,23 +13,33 @@
         <header class="chooser-heading">
             <span>DocThinker Graph Lab</span>
             <h1>选择知识图谱体验</h1>
-            <p>经典图谱用于开发调试，GPU 星图用于全量关系浏览与展示。</p>
+            <p>同一会话，两种视图。搜索与选中节点随切换保留，摄像头需要另行开启。</p>
         </header>
         <section class="chooser-options" aria-label="知识图谱体验">
-            <a class="chooser-option" href="/knowledge-graph?gesture=classic">
+            <a class="chooser-option" href="/knowledge-graph">
                 <small>01 / CLASSIC</small>
-                <strong>经典图谱</strong>
-                <p>保留原有调试面板、节点信息和经典手势控制。</p>
+                <strong>标准视图</strong>
+                <p>查看重点节点、证据来源与记忆管理，也可开启精准手势。</p>
                 <span>进入体验 &rarr;</span>
             </a>
             <a class="chooser-option is-promo" href="/promo-graph">
                 <small>02 / GPU STAR MAP</small>
-                <strong>知识星图</strong>
-                <p>全量二维 GPU 图谱，缩放时逐级呈现节点文字与证据。</p>
+                <strong>沉浸视图</strong>
+                <p>全量知识星图，适合大范围浏览、展示和手势探索。</p>
                 <span>进入体验 &rarr;</span>
             </a>
         </section>
     </main>
     <script src="{{ url_for('promo_graph.static', filename='chooser.js') }}"></script>
+    <script>
+      const incoming = new URLSearchParams(location.search);
+      document.querySelectorAll('a[href]').forEach(link => {
+        const url = new URL(link.getAttribute('href'), location.origin);
+        for (const key of ['session_id', 'node', 'search', 'return_view']) {
+          if (incoming.has(key)) url.searchParams.set(key, incoming.get(key));
+        }
+        link.href = url.pathname + url.search;
+      });
+    </script>
 </body>
 </html>

@@ -74,7 +74,7 @@ class GPT5TokenCompatTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, "ok")
         self.assertIn("max_completion_tokens", fake_session.last_payload)
         self.assertNotIn("max_tokens", fake_session.last_payload)
-        self.assertEqual(fake_session.last_payload["max_completion_tokens"], 600)
+        self.assertEqual(fake_session.last_payload["max_completion_tokens"], 123)
 
     async def test_vlm_client_keeps_max_tokens_for_non_gpt5(self):
         client = VLMClient(api_key="k", api_base="https://api.openai.com/v1", model="gpt-4.1")
@@ -94,7 +94,7 @@ class GPT5TokenCompatTests(unittest.IsolatedAsyncioTestCase):
         call = fake_client.chat.completions.calls[-1]
         self.assertIn("max_completion_tokens", call)
         self.assertNotIn("max_tokens", call)
-        self.assertEqual(call["max_completion_tokens"], 600)
+        self.assertEqual(call["max_completion_tokens"], 77)
 
     async def test_graphcore_openai_maps_max_tokens_for_gpt5(self):
         fake_client = _FakeOpenAIClient()
@@ -112,7 +112,7 @@ class GPT5TokenCompatTests(unittest.IsolatedAsyncioTestCase):
         call = fake_client.chat.completions.calls[-1]
         self.assertIn("max_completion_tokens", call)
         self.assertNotIn("max_tokens", call)
-        self.assertEqual(call["max_completion_tokens"], 600)
+        self.assertEqual(call["max_completion_tokens"], 55)
 
 
 if __name__ == "__main__":

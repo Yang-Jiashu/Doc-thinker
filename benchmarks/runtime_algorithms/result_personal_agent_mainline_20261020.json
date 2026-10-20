@@ -1,0 +1,101 @@
+{
+  "version": "personal-agent-mainline-20261020-v1",
+  "scope": "General memory integrity, source lineage and durable task recovery in the actual working checkout; not paper-case answer tuning or full product acceptance.",
+  "workspace": "/Users/jiashuyang/Downloads/Doc-thinker-main 2",
+  "fixes": [
+    {
+      "id": "retired_personal_memory_cannot_auto_reappear",
+      "implementation": "The SQLite long-horizon backend stores scope-local normalized-summary fingerprints after explicit edits/deletes; automatic consolidation cannot recreate/reinforce retired content, including already-existing active duplicate summaries. Recall, graph-neighbor and cognition input filters exclude retired content. Explicit edit/restore APIs can authorize a return.",
+      "limit": "Exact normalized stored-summary matching only; not semantic contradiction detection or prevention of every paraphrased stale memory."
+    },
+    {
+      "id": "memory_answer_conversation_lineage",
+      "implementation": "Version/time-bound dependencies connect confirmed notes to generated answers, subsequent history-only answers, and reconfirmed notes. Correction, expiry, deletion or source withdrawal invalidates dependent history/replay and removes proof cards. The actual paired historical input is not resent on memory invalidation. Generation and metadata-write races are rechecked without a second model call.",
+      "limit": "This prevents reuse/display at supported entry points; it is not physical erasure of every original conversation, audit record, backup or external provider copy."
+    },
+    {
+      "id": "partial_persistence_fails_closed",
+      "implementation": "An answer's required-memory-lineage flag is persisted atomically in answer metadata before its separate lineage record, as well as in SessionManager history. If lineage persistence fails, history-only answers with zero direct-memory count cannot launder forgotten data into new confirmed notes. Service outages and incomplete markers remain hidden."
+    },
+    {
+      "id": "source_provenance_scope",
+      "implementation": "A confirmed note's source_answer_id must exist in its own private project. Answer-linked document dependencies are inherited and source withdrawal affects historical versions too. The HTTP memory API accepts and returns source_answer_id; omission preserves it and explicit null with cleared source IDs permits an explicitly confirmed independent correction."
+    },
+    {
+      "id": "durable_task_recovery",
+      "implementation": "Durable run owner_boot migration pauses grants lost across process restarts, including a crash between completed steps. Completed checkpoints survive; previous grants do not authorize fresh work. Durable attempts prevent source/goal refresh from bypassing an unknown provider outcome. Reconciliation only settles the exact terminal request and does not publish stale output or dispatch another call."
+    },
+    {
+      "id": "personal_memory_query_intent",
+      "implementation": "First-person English and Chinese decision-recall requests use the existing saved-context retrieval path, while ordinary decision-analysis questions do not invite unrelated recent notes."
+    }
+  ],
+  "algorithms": {
+    "extra_model_calls": 0,
+    "lineage": "Bounded flattened ID/revision/time bindings, connection-local transitive memoization and cycle detection, maximum 128 dependencies per answer; this is not a lifetime memory-storage cap.",
+    "sqlite_lookups": "Composite-key batches of 90 bindings (at most 271 SQL variables); metadata contains IDs and time coordinates, not another private-text copy.",
+    "ordinary_history": "Existing 200-answer/2000-reference history batch tests retain <=3 connections by skipping lineage I/O when no memory dependency exists.",
+    "retired_fingerprints": "Indexed scope/digest lookup and a partial index of unhashed rows; one-time streamed legacy revision migration, not a full revision scan on each recall.",
+    "concurrency": "Explicit memory edit/delete/restore and automatic consolidation serialize check/write with BEGIN IMMEDIATE."
+  },
+  "verification": {
+    "passed": 742,
+    "subtests_passed": 4,
+    "seconds": 18.12,
+    "xml": "benchmarks/runtime_algorithms/personal_agent_mainline_verified_20261020.xml",
+    "actual_sqlite_and_session_restart": true,
+    "actual_asgi_http_and_request_replay": true,
+    "deterministic_generation_fixtures": true,
+    "real_provider_calls": 0,
+    "answer_quality_benchmark": false,
+    "semantic_event_graph_accuracy_verified": false,
+    "latest_full_repository_suite": false,
+    "new_domain_scenarios": [
+      "Household budget correction and expiry",
+      "Customer deadline change and document withdrawal",
+      "Personal preferences across desktop chats",
+      "Private address withdrawn during generation",
+      "History-only and reconfirmed multi-hop memory",
+      "Work/personal task checkpoints after process restart",
+      "Unknown provider results and source/goal changes",
+      "Different private worker databases and project isolation"
+    ]
+  },
+  "memory_scope_boundary": {
+    "desktop_legacy": "Existing personal user/project scopes persist across chats in one private worker database; default read scopes remain session/project/user and default writes remain session unless explicitly requested.",
+    "mobile_research": "The existing explicitly confirmed ResearchStore remains session scoped; this patch does not silently share its notes across chats.",
+    "tenancy": "Separate private worker databases were tested. user:default/project:default in the legacy backend are not proof of multi-tenant isolation inside a single database."
+  },
+  "delivery": {
+    "changed_actual_checkout": true,
+    "copied_paper_candidate_over_mainline": false,
+    "logo_demo_ui_readme_edited_this_iteration": false,
+    "production_server_restarted": false,
+    "github_pushed": false,
+    "production_readiness_claimed": false
+  },
+  "remaining_product_acceptance": [
+    "Unify the user-facing desktop/mobile personal-memory contract and consent model; existing backend scopes differ.",
+    "Validate semantic event associations and useful retrieval across independent long-duration tasks; version/source lifecycle tests do not certify causal reasoning quality.",
+    "Run sustained real-user, device and load acceptance before a production-readiness claim.",
+    "Legacy untracked conversation dependencies cannot be retroactively inferred with semantic certainty."
+  ],
+  "reproduce": {
+    "environment": {
+      "PYTHON_DOTENV_DISABLED": "1",
+      "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+      "DOCTHINKER_RESEARCH_SEMANTIC": "off",
+      "DOCTHINKER_RESEARCH_MEMORY_SEMANTIC": "off",
+      "DOCTHINKER_RESEARCH_MEMORY_RERANK": "off"
+    },
+    "focused_tests": [
+      "tests/test_personal_agent_lifecycle_acceptance_unit.py",
+      "tests/test_personal_memory_transport_unit.py",
+      "tests/test_memory_dependency_robustness_unit.py",
+      "tests/test_personal_memory_scope_boundary_unit.py",
+      "tests/test_confirmed_memory_lifecycle_unit.py",
+      "tests/test_project_task_durable_recovery_unit.py",
+      "tests/test_personal_memory_query_intent_unit.py"
+    ]
+  }
+}

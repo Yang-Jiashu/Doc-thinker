@@ -294,7 +294,7 @@ def kg_data_proxy():
     try:
         resp = req_lib.get(
             backend_url,
-            params={'session_id': session_id, 'scope': scope},
+            params={'session_id': session_id, 'scope': scope, 'focus_node': request.args.get('focus_node', '')},
             timeout=120 if scope == 'full' else 30,
         )
         if resp.status_code == 404:

@@ -10,8 +10,32 @@ from flask import Response, jsonify, request
 
 from docthinker.ui.app import app
 
-sessions = [{"id": "#preview", "title": "界面验收 · 模拟数据"}]
+sessions = [
+    {"id": "#preview", "title": "界面验收 · 模拟数据"},
+    {"id": "#preview-b", "title": "切换验收 · 第二份模拟资料"},
+]
 requests_seen = []
+preview_settings = {
+    "llm_base_url": "https://api.openai.com/v1",
+    "llm_model": "gpt-4.1-mini",
+    "vlm_model": "gpt-4.1-mini",
+    "keyword_llm_model": "gpt-4.1-mini",
+    "entity_extraction_llm_model": "gpt-4.1-mini",
+    "llm_api_key_masked": "••••preview",
+    "embed_base_url": "https://api.openai.com/v1",
+    "embed_model": "text-embedding-3-small",
+    "embed_api_key_masked": "••••preview",
+    "embed_dim": 1536,
+    "rerank_base_url": "https://api.siliconflow.cn/v1",
+    "rerank_model": "",
+    "llm_max_async": 4,
+    "embedding_max_async": 4,
+    "max_parallel_insert": 2,
+    "llm_router_max_concurrency": 4,
+    "workdir": "模拟环境，不读写实际资料",
+    "warnings": ["界面验收 · 模拟配置，不读写真实密钥，不调用模型。"],
+    "requires_restart": False,
+}
 
 
 @app.before_request
@@ -31,24 +55,32 @@ def preview_api():
         return jsonify(history=[])
     if path.endswith("/files"):
         return jsonify(files=[])
-    if path == "/api/v1/settings" and request.method == "GET":
-        return jsonify(
-            llm_base_url="https://example.invalid/v1",
-            llm_model="preview-model",
-            vlm_model="preview-vision",
-            keyword_llm_model="preview-model",
-            embed_base_url="https://example.invalid/v1",
-            embed_model="preview-embedding",
-            embed_dim=1024,
-            rerank_model="preview-reranker",
-            llm_max_async=4,
-            embedding_max_async=4,
-            max_parallel_insert=2,
-            llm_router_max_concurrency=4,
-            workdir="模拟环境，不读写实际资料",
-        )
+    if path == "/api/v1/settings":
+        if request.method == "POST":
+            payload = request.get_json()
+            requests_seen.append({"settings_fields": sorted(payload)})
+            for key, value in payload.items():
+                if key.endswith("_api_key"):
+                    preview_settings[key + "_masked"] = "••••preview-updated"
+                else:
+                    preview_settings[key] = value
+            preview_settings["requires_restart"] = True
+            return jsonify(success=True, requires_restart=True, warnings=preview_settings["warnings"])
+        return jsonify(preview_settings)
     if path == "/api/v1/knowledge-graph/data":
-        return jsonify(nodes=[], links=[], metadata={"total_nodes": 0})
+        session = request.args.get("session_id", "#preview")
+        labels = ["气候目标", "政策工具 / A#1", "可再生能源投资", "国内供给", "进口依赖", "能源安全"]
+        nodes = [{"id": name, "label": name, "type": "concept", "degree": 2,
+                  "description": f"{session} 的模拟节点，不是实际知识。", "source_id": "preview-chunk"} for name in labels]
+        edges = [{"id": f"preview-edge-{index}", "source": labels[index], "target": labels[index + 1],
+                  "label": "示例关系", "description": "仅为交互验收，不代表真实因果证据。"} for index in range(len(labels) - 1)]
+        return jsonify(nodes=nodes, edges=edges, metadata={"total_nodes": len(nodes), "total_edges": len(edges), "session_id": session})
+    if path == "/api/v1/knowledge-graph/entity-chunks":
+        return jsonify(chunks=[{"id": "preview-chunk", "content": request.args.get("session_id", "") + " · 模拟来源原文。"}])
+    if path == "/api/v1/knowledge-graph/eclrr-v4/status":
+        return jsonify(status="idle", running=False)
+    if path == "/api/v1/memory/dashboard":
+        return jsonify(kg={"total_entities": 6, "total_relationships": 5}, expanded={"nodes": []}, memory={"enabled": False}, long_horizon={"enabled": False})
     if path == "/api/v1/memory/long-horizon":
         return jsonify(memories=[])
     if path == "/api/v1/query/stream":

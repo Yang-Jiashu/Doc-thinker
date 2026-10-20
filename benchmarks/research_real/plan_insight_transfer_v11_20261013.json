@@ -1,0 +1,81 @@
+{
+  "protocol_version": "sealed-new-material-transfer-v1",
+  "created_date": "2026-10-13",
+  "state": "materials_prepared_not_dispatched",
+  "authority": "Parent must explicitly freeze production, approve the final request/token bounds and authorize prepare/dispatch. This document grants no authority to call a model.",
+  "sealing": {
+    "recipient_rule": "Until parent declares V11 production frozen, do not disclose paper titles, task text, private review navigation or answers to parent or the algorithm author; readiness and aggregate file checks may be reported.",
+    "scope": "Selection and task wording were produced without reading any V11 answers. No product prepare, ingestion, retrieval preview or route probing is performed while creating these tasks.",
+    "repository_novelty_check": "Before registration, rg over benchmarks/**/*.json and benchmarks/**/*.md found no occurrences of either arXiv identifier or either full title; this is not a claim about model training or all repository prose.",
+    "version_selection": "Original arXiv v1 PDFs were selected and downloaded before any next-version answer; later revisions were not substituted based on model performance. Original downloaded bytes are preserved."
+  },
+  "planned_dispatch": {
+    "provider_model": "step-5-preview",
+    "questions": 2,
+    "repetitions": 1,
+    "arms_per_question": 2,
+    "max_requests": 4,
+    "concurrency": 1,
+    "arm_order": "Use the runner's deterministic paired schedule; record the emitted order. Do not discard or rerun an arm based on its answer.",
+    "contrast": "insight",
+    "ordinary_assistance_both_arms": true,
+    "static_knowledge_skill_mode_both_arms": "auto",
+    "insight_modes": ["off", "auto"],
+    "semantic_both_arms": "off",
+    "temperature_both_arms": 0.1,
+    "production_output_tokens_per_call": 8192,
+    "experimental_output_override": null,
+    "timeout_seconds_proposed": 180,
+    "aggregate_reported_token_soft_stop_proposed": 50000,
+    "soft_stop_requires_parent_approval": true,
+    "soft_stop_semantics": "Observe supplier-reported prompt plus completion tokens after each dispatch. This cannot guarantee a hard fee/token ceiling for an in-flight response. Stop before the next request once the threshold is reached or usage is unavailable; preserve incomplete pairs. Do not reduce production output allowance to fit this observation limit.",
+    "retries": 0,
+    "continuations": 0,
+    "replacement_answers": 0,
+    "no_op_policy": "After code freeze, parent-authorized zero-call prepare must compare the actual final messages. If OFF and AUTO are identical for a task, report a no-op and stop that pair before any paid request. New sources are not required if actual dynamic instructions differ. Do not rewrite that task to force activation.",
+    "failure_policy": "Preserve every attempted dispatch and its incomplete/failed/unknown outcome. Do not hide a missing answer or reinterpret transport completion as quality success."
+  },
+  "pre_dispatch_required": [
+    "Record frozen production fingerprint and actual system-policy hash; prohibit production changes between prepare and the paired dispatches.",
+    "Recompute fixture, protocol and both original PDF SHA256 values; retain exact original files, version URLs and page counts.",
+    "Validate scope and source provenance in the final prepared inputs, including original PDF page and stored text coordinate agreement.",
+    "Check the actual static method cards and dynamic Insight instructions in final messages, shared input/source budgets and both message digests; do not use trace activation alone.",
+    "Record the approved maximum requests and observation soft stop in a separate frozen run registration; never backfill this preparation as a completed evaluation."
+  ],
+  "recorded_outputs_required": [
+    "Final visible answer and returned sources only; do not inspect hidden reasoning text.",
+    "Actual final prompt digest, source projection and request parameters for every arm.",
+    "Provider finish status, prompt/completion/total/cached usage when supplied, end-to-end latency and request count.",
+    "Answer/output hashes and confirmation that code remained frozen throughout the run.",
+    "Claim-level source review, six 0-4 rubric dimensions, weighted total and critical-error gate per answer, including corrections and uncertainty."
+  ],
+  "material_checks": {
+    "paper_a": {
+      "pages": 20,
+      "bytes": 957963,
+      "pypdf_total_text_chars": 63793,
+      "pypdf_empty_pages": 0,
+      "replacement_characters": 0,
+      "visual_check": "Rendered original PDF page 3; two-column method text and formulas were legible. No reconstructed or rewritten PDF was used.",
+      "extraction_caveat": "pypdf warned that more than 5000 form XObject invocations caused further form content to be skipped. Main method and evaluation text was readable, but this check does not certify every figure label; selected evidence must be verified against the original page during formal prepare."
+    },
+    "paper_b": {
+      "pages": 12,
+      "bytes": 148771,
+      "pypdf_total_text_chars": 42027,
+      "pypdf_empty_pages": 0,
+      "replacement_characters": 0,
+      "visual_check": "Rendered original PDF page 7; table rows, conditions and question-type results were legible.",
+      "extraction_caveat": "pypdf emitted missing-fontTools encoding warnings, and extracted prose contains some spacing/leading-glyph artifacts. No dependency was installed. Selected evidence must be checked against rendered original pages; this is not a claim of perfect text extraction."
+    },
+    "independent_text_tool": "pdftotext was unavailable in the restricted runtime PATH. PDF visual checks used the available pdftoppm command; pypdf is the measured text extractor.",
+    "storage": "All original PDFs, renders and preparation metadata remain under a new dist directory; they are not added to a deployment ZIP or Git."
+  },
+  "interpretation_limits": [
+    "Only two tasks and one paired repeat per task: not a statistical superiority claim or general product acceptance.",
+    "Public and newly selected for this repository does not mean unseen during model pretraining.",
+    "Review is developer/AI, not independent domain-expert certification; disclose arm-label visibility.",
+    "A single-arm 80 gate assesses this stated task only. Reduced tokens, stronger routing or more citations cannot substitute for factual support and an actionable answer.",
+    "The test is not a live deployment, a real-user trial or execution of either proposed product experiment."
+  ]
+}

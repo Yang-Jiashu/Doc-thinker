@@ -2,6 +2,8 @@
 
 [中文首页](../README.zh-CN.md) · [English overview](../README.md) · [现有架构](ARCHITECTURE.md) · [评测协议](SELF_EVOLUTION_EVALUATION.md)
 
+关于算法选择、相关工作适用边界及消融实验，见 [研究依据与具体设计](RESEARCH_GROUNDED_DESIGN.md)。这是对本路线的细化设计，尚未实现或验证收益。
+
 ## 核心问题
 
 **同一个系统，怎样利用自己的任务经验，持续改进解决问题的方法，最后也改进“寻找有效改进”的方法？**

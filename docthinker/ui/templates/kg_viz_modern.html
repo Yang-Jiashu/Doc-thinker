@@ -351,15 +351,21 @@
     .kg-toolbar-options > summary::after { content: '+'; margin-left: auto; }
     .kg-toolbar-options[open] > summary::after { content: '−'; }
     .kg-toolbar-options > div { margin-top: 12px; }
-    .kg-page-header { gap: 24px; }
-    .kg-page-header > div:first-child { min-width: 0; }
-    .kg-header-actions { flex-shrink: 0; }
+    .kg-page-header { flex-wrap: wrap; gap: 12px 24px; }
+    .kg-page-header > div:first-child { flex: 1 0 280px; min-width: 0; }
+    .kg-header-actions { flex: 1 1 680px; min-width: 0; justify-content: flex-end; }
+    .kg-header-actions > select { max-width: min(100%, 300px); }
+    .kg-header-actions > button, .kg-view-switch { flex-shrink: 0; }
     .kg-more-tools { position: relative; }
     .kg-more-tools summary { padding: 0 14px; list-style: none; }
     .kg-more-tools summary::-webkit-details-marker { display: none; }
     .kg-more-menu { position: absolute; right: 0; top: 46px; z-index: 40; min-width: 170px; padding: 8px; border: 1px solid var(--dt-line); background: #fff; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
     .kg-more-menu .kg-control-button { display: flex; width: 100%; margin: 3px 0; border: 0; border-radius: 6px; justify-content: flex-start; background: #fff; font-weight: 400; }
     .kg-more-menu .kg-control-button:hover { background: #f5f5f5; }
+    .kg-view-switch { display: inline-flex; border: 1px solid var(--dt-line); border-radius: 9px; padding: 3px; gap: 3px; background: #f7f7f8; }
+    .kg-view-switch button { border: 0; border-radius: 6px; background: transparent; padding: 7px 11px; font-size: 12px; min-height: 34px; }
+    .kg-view-switch button[aria-pressed="true"] { background: #fff; box-shadow: 0 1px 3px #0001; }
+    .kg-gesture-state { font-size: 11px; color: var(--dt-muted); }
     @media (max-width: 1100px) {
         .kg-dashboard { display: none; }
     }
@@ -367,6 +373,7 @@
         .kg-toolbar { width: calc(100% - 36px); }
         .kg-page-header { flex-wrap: wrap; gap: 12px; padding: 16px; }
         .kg-page-header > div { min-width: 0; width: 100%; }
+        .kg-header-actions { justify-content: flex-start; }
         .kg-page-header select { max-width: 100%; }
         .kg-control-button { min-height: 44px; }
         .kg-toolbar { max-height: calc(100% - 36px); overflow-y: auto; }
@@ -385,19 +392,18 @@
     </div>
     <div class="kg-header-actions flex flex-wrap gap-2 items-center">
         <select id="kg-session-selector" class="input-field px-2 sm:px-3 py-2 rounded-lg text-sm min-w-[140px] sm:min-w-[260px]" onchange="handleKgSessionSwitch(this.value)"></select>
+        <div class="kg-view-switch" role="group" aria-label="图谱视图">
+            <button type="button" aria-pressed="true">标准视图</button>
+            <button type="button" id="promo-graph-btn" onclick="openPromoGraph()" aria-pressed="false" title="在沉浸视图继续查看当前会话和节点">沉浸视图 ↗</button>
+        </div>
+        <button id="gesture-btn" type="button" onclick="openGestureExperienceChooser()" class="kg-control-button px-3 text-sm" aria-haspopup="dialog" title="配置手势；不会自动开启摄像头"><i class="fa-solid fa-hand"></i> 手势设置</button>
+        <span id="shared-gesture-state" class="kg-gesture-state" role="status">摄像头已关闭</span>
 
         <details class="kg-more-tools">
         <summary class="kg-control-button">更多</summary>
         <div class="kg-more-menu">
-        <button id="promo-graph-btn" onclick="openPromoGraph()" class="kg-control-button px-3 sm:px-4 text-sm" title="打开图谱二">
-            <i class="fa-solid fa-diagram-project"></i>图谱二
-        </button>
-
         <button id="expand-btn" onclick="expandGraph()" class="kg-control-button kg-control-accent px-3 sm:px-4 text-sm" title="LLM 知识扩展">
             <i class="fa-solid fa-wand-magic-sparkles"></i>扩展
-        </button>
-        <button id="gesture-btn" onclick="openGestureExperienceChooser()" class="kg-control-button px-3 sm:px-4 text-sm" title="摄像头手势控制">
-            <i class="fa-solid fa-hand"></i>手势
         </button>
         <button onclick="resetHighlight()" class="kg-control-button px-3 text-sm" title="取消聚焦"><i class="fa-solid fa-eye-slash"></i>取消聚焦</button>
         <button onclick="resetZoom()" class="kg-control-button px-3 text-sm" title="重置视图"><i class="fa-solid fa-expand"></i>重置视图</button>
@@ -663,54 +669,17 @@ let selectedNode = null;
 let selectedEdgeId = null;
 let visibleLevels = { 1: true, 2: true, 3: true, expanded: true };
 let currentSessionId = '';
+let graphLoadRevision = 0;
+let pendingGraphNode = '';
 let focusedNodeId = null;
 let currentGraphView = 'semantic';
 let graphLayoutMode = 'semantic';
 let dashboardExpandedNodes = [];
 let naturalMemoryEditPlan = { candidates: [], graph: { nodes: [], edges: [] } };
-let gestureLandmarker = null;
-let gestureVisionModule = null;
-let gestureStream = null;
-let gestureAnimationFrame = null;
-let gestureLastVideoTime = -1;
-let gestureEnabled = false;
-let gestureState = createGestureState();
-
-function createGestureState() {
-    return {
-        action: 'idle',
-        actionNode: null,
-        actionTransform: null,
-        actionPoint: null,
-        actionNodeStart: null,
-        actionBaseScale: 1,
-        actionStartedAt: 0,
-        actionMoved: false,
-        hoverNode: null,
-        hoverSince: 0,
-        candidateNode: null,
-        candidateSince: 0,
-        capturedNode: null,
-        pinchFrames: 0,
-        releaseFrames: 0,
-        cooldownUntil: 0,
-        palmZoomSince: 0,
-        palmZoomPoint: null,
-        palmZoomBaseScale: 1,
-        twoPalmSince: 0,
-        twoPalmResetDone: false,
-        smoothedPoint: null,
-        lastPinch: false,
-        lastFrameAt: 0
-    };
-}
-
 window.onload = async () => {
     await initGraph();
-    if (new URLSearchParams(window.location.search).get('gesture') === 'classic') {
-        window.history.replaceState({}, '', window.location.pathname);
-        await startGestureControl();
-    }
+    restoreGraphHandoff();
+    if (new URLSearchParams(window.location.search).has('gesture')) window.openGestureExperienceChooser?.();
 };
 
 function getKgApiPrefix() {
@@ -720,8 +689,42 @@ function getStoredSessionId() { try { return localStorage.getItem('current_sessi
 function setStoredSessionId(sid) { try { if (sid) localStorage.setItem('current_session_id', String(sid)); } catch (_) {} }
 
 function openPromoGraph() {
-    const query = currentSessionId ? `?session_id=${encodeURIComponent(currentSessionId)}` : '';
-    window.location.href = `/promo-graph${query}`;
+    if (!currentSessionId) { showToast('请先选择有效会话，再切换视图。', 'warning'); return; }
+    saveStandardGraphState();
+    window.KGSharedGesture?.stop();
+    const params = new URLSearchParams();
+    if (currentSessionId) params.set('session_id', currentSessionId);
+    params.set('node', currentGraphView === 'semantic' ? (selectedNode?.id || '') : '');
+    const search = document.getElementById('search-input').value;
+    params.set('search', search);
+    params.set('return_view', currentGraphView);
+    window.location.assign('/promo-graph?' + params.toString());
+}
+
+function saveStandardGraphState() {
+    if (!currentSessionId) return;
+    try { sessionStorage.setItem('docthinker.graph.standard.' + currentSessionId, JSON.stringify({
+        node: selectedNode?.id || '', search: document.getElementById('search-input').value,
+        view: currentGraphView, layout: graphLayoutMode, camera: { x: currentTransform.x, y: currentTransform.y, k: currentTransform.k }
+    })); } catch (_) {}
+}
+function readStandardGraphState(sid) {
+    try { return JSON.parse(sessionStorage.getItem('docthinker.graph.standard.' + sid) || '{}') || {}; } catch (_) { return {}; }
+}
+function restoreGraphHandoff() {
+    const params = new URLSearchParams(window.location.search);
+    const stored = readStandardGraphState(currentSessionId);
+    const targetId = params.has('node') ? params.get('node') : stored.node;
+    const target = graphData.nodes.find(item => item.id === targetId);
+    if (target) selectNode(target);
+    else if (targetId) showToast('该节点在当前会话或视图中不可用；已保留搜索条件。', 'warning');
+    const query = params.has('search') ? params.get('search') : (stored.search || '');
+    document.getElementById('search-input').value = query;
+    if (!target && query) searchNodes(query);
+    const camera = stored.camera;
+    if (camera && [camera.x,camera.y,camera.k].every(Number.isFinite) && camera.k >= .05 && camera.k <= 6) {
+        svg.call(graphZoom.transform, d3.zoomIdentity.translate(camera.x,camera.y).scale(camera.k));
+    }
 }
 
 async function fetchSessions() {
@@ -756,9 +759,20 @@ function renderSessionSelector(sessions, selectedId) {
 async function ensureKgSessionReady() {
     const sessions = await fetchSessions();
     if (!sessions.length) { currentSessionId = ''; renderSessionSelector([], ''); return; }
-    let tid = getStoredSessionId();
+    const params = new URLSearchParams(window.location.search);
+    const explicit = params.get('session_id');
+    if (explicit && !sessions.some(s => String(s.id) === explicit)) {
+        currentSessionId = ''; renderSessionSelector(sessions, '');
+        document.getElementById('kg-session-selector').value = '';
+        showToast('链接中的会话不存在，请重新选择会话。', 'warning'); return;
+    }
+    let tid = explicit || getStoredSessionId();
     if (!tid || !sessions.find(s => String(s.id) === String(tid))) tid = String(sessions[0].id);
     currentSessionId = String(tid);
+    const stored = readStandardGraphState(currentSessionId);
+    currentGraphView = ['semantic','causal'].includes(params.get('return_view')) ? params.get('return_view') : (params.has('node') ? 'semantic' : (stored.view === 'causal' ? 'causal' : 'semantic'));
+    pendingGraphNode = params.has('node') ? params.get('node') : (stored.node || '');
+    if (['semantic','clustered','centralized'].includes(stored.layout)) graphLayoutMode = stored.layout;
     setStoredSessionId(currentSessionId);
     renderSessionSelector(sessions, currentSessionId);
 }
@@ -766,9 +780,18 @@ async function ensureKgSessionReady() {
 async function handleKgSessionSwitch(sid) {
     sid = sid ? String(sid) : '';
     if (!sid || sid === currentSessionId) return;
+    saveStandardGraphState();
+    window.KGSharedGesture?.pause();
+    resetHighlight();
     currentSessionId = sid;
     setStoredSessionId(currentSessionId);
     focusedNodeId = null;
+    pendingGraphNode = '';
+    graphData = { nodes: [], links: [] }; renderGraph();
+    document.getElementById('search-input').value = '';
+    const url = new URL(window.location.href);
+    url.search = new URLSearchParams({session_id: sid}).toString();
+    window.history.replaceState({}, '', url);
     await loadRealData();
     await loadDashboardData();
 }
@@ -783,6 +806,7 @@ async function initGraph() {
     g = svg.append('g');
     updateLayoutModeButtons();
     await ensureKgSessionReady();
+    updateLayoutModeButtons();
     await loadRealData();
     await loadDashboardData();
     window.addEventListener('resize', () => {
@@ -792,6 +816,9 @@ async function initGraph() {
 }
 
 function switchGraphView(viewType) {
+    window.KGSharedGesture?.pause();
+    resetHighlight();
+    pendingGraphNode = '';
     currentGraphView = viewType;
     loadRealData();
 }
@@ -811,6 +838,8 @@ function setGraphLayoutMode(mode) {
 }
 
 async function loadRealData() {
+    const revision = ++graphLoadRevision;
+    const requestedSession = currentSessionId;
     if (!currentSessionId) {
         document.getElementById('data-source-hint').textContent = ' | 请先创建或选择会话';
         graphData = { nodes: [], links: [] };
@@ -823,9 +852,11 @@ async function loadRealData() {
             url = getKgApiPrefix() + '/knowledge-graph/causal-data?session_id=' + encodeURIComponent(currentSessionId);
         } else {
             url = getKgApiPrefix() + '/knowledge-graph/data?session_id=' + encodeURIComponent(currentSessionId);
+            if (pendingGraphNode) url += '&focus_node=' + encodeURIComponent(pendingGraphNode);
         }
         const resp = await fetch(url);
         const text = await resp.text();
+        if (revision !== graphLoadRevision || requestedSession !== currentSessionId) return;
         let data;
         try { data = JSON.parse(text); } catch (pe) { throw new Error('JSON parse failed: ' + pe.message); }
 
@@ -886,6 +917,7 @@ async function loadRealData() {
         document.getElementById('data-source-hint').textContent = ` | 会话 ${currentSessionId} | 暂无节点`;
         graphData = { nodes: [], links: [] }; renderGraph();
     } catch (e) {
+        if (revision !== graphLoadRevision || requestedSession !== currentSessionId) return;
         console.warn('Failed to load real data:', e);
         document.getElementById('data-source-hint').textContent = ` | 加载失败: ` + (e.message || e);
         graphData = { nodes: [], links: [] }; renderGraph();
@@ -1273,9 +1305,11 @@ function renderExpandedDashboard(nodes) {
 
 async function loadDashboardData() {
     if (!currentSessionId) return;
+    const requestedSession = currentSessionId;
     try {
         const resp = await fetch(getKgApiPrefix() + '/memory/dashboard?session_id=' + encodeURIComponent(currentSessionId));
         const dashboard = await resp.json().catch(() => ({}));
+        if (requestedSession !== currentSessionId) return;
         const stats = dashboard.kg || {};
         const expanded = dashboard.expanded || {};
         const memory = dashboard.memory || {};
@@ -1286,6 +1320,7 @@ async function loadDashboardData() {
         renderMemoryStats(memory);
         renderLongHorizonStats(longHorizon);
     } catch (e) {
+        if (requestedSession !== currentSessionId) return;
         console.warn('Load dashboard failed:', e);
         renderMemoryStats({ enabled: false, error: '面板加载失败: ' + e.message });
         renderLongHorizonStats({ enabled: false, error: '面板加载失败: ' + e.message });
@@ -1726,6 +1761,7 @@ function startSelectedNodeAttraction(centerNode) {
 }
 
 function renderGraph() {
+    window.KGSharedGesture?.pause();
     if (simulation) simulation.stop();
     g.selectAll('*').remove();
     focusedNodeId = null;
@@ -1735,7 +1771,8 @@ function renderGraph() {
         return !!visibleLevels[n.level];
     });
     if (visibleNodes.length > MAX_RENDER_NODES) {
-        visibleNodes.sort((a, b) => nodeDegree(b) - nodeDegree(a));
+        const priorityId = selectedNode?.id || pendingGraphNode;
+        visibleNodes.sort((a, b) => Number(b.id === priorityId) - Number(a.id === priorityId) || nodeDegree(b) - nodeDegree(a));
         visibleNodes = visibleNodes.slice(0, MAX_RENDER_NODES);
     }
     const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
@@ -1905,6 +1942,7 @@ async function loadNodeChunksForDetail(d) {
         return;
     }
     const requestedNodeId = d.id;
+    const requestedSession = currentSessionId;
     renderNodeChunkLoading();
     try {
         const url = getKgApiPrefix()
@@ -1913,11 +1951,11 @@ async function loadNodeChunksForDetail(d) {
             + '&max_chunks=20';
         const resp = await fetch(url);
         const payload = await resp.json();
-        if (!selectedNode || selectedNode.id !== requestedNodeId) return;
+        if (requestedSession !== currentSessionId || !selectedNode || selectedNode.id !== requestedNodeId) return;
         if (!resp.ok) throw new Error(payload?.detail || ('HTTP ' + resp.status));
         renderNodeChunks(payload);
     } catch (err) {
-        if (!selectedNode || selectedNode.id !== requestedNodeId) return;
+        if (requestedSession !== currentSessionId || !selectedNode || selectedNode.id !== requestedNodeId) return;
         const section = document.getElementById('detail-node-chunks');
         const list = document.getElementById('detail-chunks-list');
         const count = document.getElementById('detail-chunks-count');
@@ -2148,550 +2186,6 @@ function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
 
-function gestureEls() {
-    return {
-        layer: document.getElementById('gesture-layer'),
-        video: document.getElementById('gesture-video'),
-        cursor: document.getElementById('gesture-cursor'),
-        mode: document.getElementById('gesture-mode'),
-        target: document.getElementById('gesture-target'),
-        button: document.getElementById('gesture-btn')
-    };
-}
-
-function setGestureStatus(modeText, targetText = '') {
-    const els = gestureEls();
-    if (els.mode) els.mode.textContent = modeText;
-    if (els.target) els.target.textContent = targetText;
-}
-
-function setGestureButtonActive(active) {
-    const btn = gestureEls().button;
-    if (!btn) return;
-    btn.classList.toggle('kg-control-primary', active);
-    btn.innerHTML = active
-        ? '<i class="fa-solid fa-hand"></i>手势中'
-        : '<i class="fa-solid fa-hand"></i>手势';
-}
-
-async function toggleGestureControl() {
-    if (gestureEnabled) {
-        stopGestureControl();
-        return;
-    }
-    await startGestureControl();
-}
-
-async function startGestureControl() {
-    const els = gestureEls();
-    if (!els.layer || !els.video) return;
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showToast('当前浏览器不支持摄像头访问', 'error');
-        return;
-    }
-
-    try {
-        gestureEnabled = true;
-        gestureState = createGestureState();
-        await ensureGestureLandmarker();
-
-        gestureStream = await navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: {
-                facingMode: 'user',
-                width: { ideal: 640 },
-                height: { ideal: 480 },
-                frameRate: { ideal: 30, max: 30 }
-            },
-        });
-        els.video.srcObject = gestureStream;
-        await els.video.play();
-        els.layer.classList.remove('hidden');
-        setGestureButtonActive(true);
-        setGestureStatus('摄像头启动中');
-        gestureLastVideoTime = -1;
-        gestureAnimationFrame = requestAnimationFrame(runGestureFrame);
-        setGestureStatus('手势已启用');
-    } catch (err) {
-        gestureEnabled = false;
-        setGestureButtonActive(false);
-        els.layer.classList.add('hidden');
-        showToast('无法启动摄像头: ' + err.message, 'error');
-    }
-}
-
-function stopGestureControl() {
-    const els = gestureEls();
-    gestureEnabled = false;
-    releaseGestureDrag();
-    if (gestureAnimationFrame) {
-        cancelAnimationFrame(gestureAnimationFrame);
-        gestureAnimationFrame = null;
-    }
-    if (gestureStream) {
-        gestureStream.getTracks().forEach(track => track.stop());
-        gestureStream = null;
-    }
-    if (els.video) {
-        els.video.pause();
-        els.video.srcObject = null;
-    }
-    if (els.cursor) els.cursor.style.opacity = 0;
-    if (node) node.classed('gesture-hover', false);
-    if (els.layer) els.layer.classList.add('hidden');
-    setGestureButtonActive(false);
-    setGestureStatus('手势待机');
-}
-
-window.addEventListener('beforeunload', stopGestureControl);
-
-async function ensureGestureLandmarker() {
-    if (gestureLandmarker) return gestureLandmarker;
-    const tasksUrl = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs';
-    const wasmUrl = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm';
-    const modelUrl = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
-
-    gestureVisionModule = gestureVisionModule || await import(tasksUrl);
-    const { FilesetResolver, HandLandmarker } = gestureVisionModule;
-    const vision = await FilesetResolver.forVisionTasks(wasmUrl);
-    const baseOptions = {
-        modelAssetPath: modelUrl,
-        delegate: 'GPU'
-    };
-    const options = {
-        baseOptions,
-        runningMode: 'VIDEO',
-        numHands: 2,
-        minHandDetectionConfidence: 0.68,
-        minHandPresenceConfidence: 0.68,
-        minTrackingConfidence: 0.68
-    };
-
-    try {
-        gestureLandmarker = await HandLandmarker.createFromOptions(vision, options);
-    } catch (gpuErr) {
-        gestureLandmarker = await HandLandmarker.createFromOptions(vision, {
-            ...options,
-            baseOptions: { modelAssetPath: modelUrl, delegate: 'CPU' }
-        });
-    }
-    return gestureLandmarker;
-}
-
-function runGestureFrame() {
-    if (!gestureEnabled) return;
-    const video = gestureEls().video;
-    if (gestureLandmarker && video && video.readyState >= 2) {
-        try {
-            if (video.currentTime !== gestureLastVideoTime) {
-                gestureLastVideoTime = video.currentTime;
-                const results = gestureLandmarker.detectForVideo(video, performance.now());
-                handleGestureResults(results);
-            }
-        } catch (err) {
-            console.warn('HandLandmarker frame failed:', err);
-        }
-    }
-    gestureAnimationFrame = requestAnimationFrame(runGestureFrame);
-}
-
-function landmarkDistance(a, b) {
-    const dx = a.x - b.x;
-    const dy = a.y - b.y;
-    const dz = (a.z || 0) - (b.z || 0);
-    return Math.sqrt(dx * dx + dy * dy + dz * dz);
-}
-
-function extractGestureMetrics(landmarks, previousPinch = false) {
-    const container = document.getElementById('graph-container');
-    const palmSize = Math.max(landmarkDistance(landmarks[0], landmarks[9]), 0.035);
-    const pinchDistance = landmarkDistance(landmarks[4], landmarks[8]) / palmSize;
-    const pinch = previousPinch ? pinchDistance < 0.34 : pinchDistance < 0.24;
-    const wrist = landmarks[0];
-    const fingerTipIds = [8, 12, 16, 20];
-    const fingerPipIds = [6, 10, 14, 18];
-    const fingerExtended = fingerTipIds.map((tipId, idx) => {
-        const tipDistance = landmarkDistance(landmarks[tipId], wrist);
-        const pipDistance = landmarkDistance(landmarks[fingerPipIds[idx]], wrist);
-        return tipDistance > pipDistance * 1.08;
-    });
-    const extendedFingers = fingerExtended.filter(Boolean).length;
-    const thumbTip = landmarks[4];
-    const indexTip = landmarks[8];
-    const palmCenter = [0, 5, 9, 13, 17].reduce((acc, idx) => {
-        acc.x += landmarks[idx].x;
-        acc.y += landmarks[idx].y;
-        return acc;
-    }, { x: 0, y: 0 });
-    palmCenter.x /= 5;
-    palmCenter.y /= 5;
-    const openPalm = !pinch && extendedFingers >= 4;
-
-    return {
-        point: {
-            x: (1 - indexTip.x) * container.clientWidth,
-            y: indexTip.y * container.clientHeight
-        },
-        thumbPoint: {
-            x: (1 - thumbTip.x) * container.clientWidth,
-            y: thumbTip.y * container.clientHeight
-        },
-        palmPoint: {
-            x: (1 - palmCenter.x) * container.clientWidth,
-            y: palmCenter.y * container.clientHeight
-        },
-        pinch,
-        pinchDistance,
-        extendedFingers,
-        openPalm,
-        palmSize
-    };
-}
-
-function handleGestureResults(results) {
-    if (!gestureEnabled) return;
-    const hands = results.landmarks || [];
-    if (!hands.length) {
-        setGestureStatus('未检测到手');
-        gestureState.palmZoomSince = 0;
-        gestureState.palmZoomPoint = null;
-        gestureState.twoPalmSince = 0;
-        gestureState.twoPalmResetDone = false;
-        releaseGestureAction();
-        const els = gestureEls();
-        if (els.cursor) els.cursor.style.opacity = 0;
-        if (node) node.classed('gesture-hover', false);
-        return;
-    }
-
-    const now = performance.now();
-    if (now - gestureState.lastFrameAt < 28) return;
-    gestureState.lastFrameAt = now;
-
-    const metrics = extractGestureMetrics(hands[0], gestureState.lastPinch);
-    metrics.point = smoothGesturePoint(metrics.point);
-    if (metrics.thumbPoint) {
-        metrics.pinchPoint = {
-            x: (metrics.point.x + metrics.thumbPoint.x) / 2,
-            y: (metrics.point.y + metrics.thumbPoint.y) / 2
-        };
-    }
-    updateGestureCursor(metrics);
-    if (processGestureTwoPalmReset(hands, metrics)) return;
-    if (processGesturePalmZoom(metrics)) return;
-    if (!metrics.pinch || gestureState.action !== 'idle') updateGestureHover(metrics.point);
-    processGesturePinch(metrics);
-}
-
-function updateGestureCursor(metrics) {
-    const els = gestureEls();
-    if (!els.cursor) return;
-    els.cursor.style.opacity = 1;
-    els.cursor.style.left = `${metrics.point.x}px`;
-    els.cursor.style.top = `${metrics.point.y}px`;
-    els.cursor.style.transform = metrics.openPalm ? 'scale(1.05)' : (metrics.pinch ? 'scale(0.72)' : 'scale(1)');
-}
-
-function processGestureTwoPalmReset(hands, primaryMetrics) {
-    if (!['idle', 'palm-zoom'].includes(gestureState.action)) {
-        gestureState.twoPalmSince = 0;
-        gestureState.twoPalmResetDone = false;
-        return false;
-    }
-
-    if (hands.length < 2) {
-        gestureState.twoPalmSince = 0;
-        gestureState.twoPalmResetDone = false;
-        return false;
-    }
-
-    const secondMetrics = extractGestureMetrics(hands[1], false);
-    if (!primaryMetrics.openPalm || !secondMetrics.openPalm) {
-        gestureState.twoPalmSince = 0;
-        gestureState.twoPalmResetDone = false;
-        return false;
-    }
-
-    const now = performance.now();
-    releaseGestureAction({ keepHover: true });
-    if (!gestureState.twoPalmSince) gestureState.twoPalmSince = now;
-    const elapsed = now - gestureState.twoPalmSince;
-    if (elapsed < 420) {
-        setGestureStatus('双手掌保持，恢复全局图谱', `${Math.max(0, Math.ceil((420 - elapsed) / 100) / 10)}s`);
-        return true;
-    }
-
-    if (!gestureState.twoPalmResetDone) {
-        const hadFocus = !!selectedNode || !!selectedEdgeId || !!focusedNodeId;
-        resetHighlight();
-        gestureState.twoPalmResetDone = true;
-        setGestureStatus('已恢复全局图谱');
-        if (hadFocus) showToast('已恢复全局图谱', 'success');
-    }
-    return true;
-}
-
-function processGesturePalmZoom(metrics) {
-    if (!['idle', 'palm-zoom'].includes(gestureState.action)) return false;
-    if (gestureState.candidateNode) return false;
-    if (!metrics.openPalm || !metrics.palmPoint || metrics.pinch) {
-        if (gestureState.action === 'palm-zoom') releaseGestureAction({ keepHover: true });
-        gestureState.palmZoomSince = 0;
-        gestureState.palmZoomPoint = null;
-        gestureState.palmZoomBaseScale = 1;
-        return false;
-    }
-
-    const now = performance.now();
-    if (!gestureState.palmZoomSince || gestureState.action !== 'palm-zoom') {
-        gestureState.action = 'palm-zoom';
-        gestureState.palmZoomSince = now;
-        gestureState.palmZoomPoint = { ...metrics.palmPoint };
-        gestureState.palmZoomBaseScale = currentTransform.k || 1;
-        setGestureStatus('张开手掌，上移放大，下移缩小');
-        return true;
-    }
-
-    const dy = metrics.palmPoint.y - gestureState.palmZoomPoint.y;
-    if (Math.abs(dy) < 18) {
-        setGestureStatus('张开手掌，上移放大，下移缩小');
-        return true;
-    }
-
-    const nextScale = clamp(gestureState.palmZoomBaseScale * Math.exp(-dy / 230), 0.05, 6);
-    applyZoomAt(metrics.palmPoint, nextScale);
-    setGestureStatus(dy < 0 ? '手掌上移，放大图谱' : '手掌下移，缩小图谱', `${Math.round(nextScale * 100)}%`);
-    return true;
-}
-
-function visibleGestureNodes() {
-    const items = [];
-    if (!node) return items;
-    node.each(function(d) {
-        if (d && Number.isFinite(d.x) && Number.isFinite(d.y)) {
-            items.push({
-                node: d,
-                sx: currentTransform.applyX(d.x),
-                sy: currentTransform.applyY(d.y)
-            });
-        }
-    });
-    return items;
-}
-
-function gestureHitRadius(extraRadius = 0) {
-    const zoom = currentTransform?.k || 1;
-    return Math.max(22, Math.min(36, GRAPH_NODE_RADIUS + 15 / Math.sqrt(zoom))) + extraRadius;
-}
-
-function findNearestGestureNode(point, extraRadius = 0) {
-    if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
-    const entries = visibleGestureNodes();
-    if (!entries.length) return null;
-    const radius = gestureHitRadius(extraRadius);
-    const tree = d3.quadtree()
-        .x(d => d.sx)
-        .y(d => d.sy)
-        .addAll(entries);
-    const nearest = tree.find(point.x, point.y, radius);
-    return nearest ? nearest.node : null;
-}
-
-function updateGestureHover(point, options = {}) {
-    if (gestureState.action !== 'idle') return gestureState.hoverNode;
-    const hovered = findNearestGestureNode(point);
-    const now = performance.now();
-    if (hovered?.id !== gestureState.hoverNode?.id) {
-        gestureState.hoverNode = hovered;
-        gestureState.hoverSince = now;
-        gestureState.candidateNode = null;
-        gestureState.candidateSince = 0;
-    }
-    if (hovered && now - gestureState.hoverSince >= 140) {
-        gestureState.candidateNode = hovered;
-        gestureState.candidateSince = gestureState.hoverSince;
-    } else if (!hovered) {
-        gestureState.candidateNode = null;
-        gestureState.candidateSince = 0;
-    }
-    if (node) {
-        node.classed('gesture-hover', d =>
-            (gestureState.candidateNode && d.id === gestureState.candidateNode.id) ||
-            (!gestureState.candidateNode && hovered && d.id === hovered.id)
-        );
-    }
-    const targetName = gestureState.candidateNode
-        ? (gestureState.candidateNode.name || gestureState.candidateNode.id)
-        : (hovered ? (hovered.name || hovered.id) : '');
-    if (!options.silent && gestureState.action === 'idle') setGestureStatus('食指移动选择', targetName);
-    return hovered;
-}
-
-function processStableGesturePinch(metrics) {
-    const now = performance.now();
-    if (now < gestureState.cooldownUntil) {
-        gestureState.lastPinch = metrics.pinch;
-        return;
-    }
-
-    if (metrics.pinch) {
-        gestureState.pinchFrames += 1;
-        gestureState.releaseFrames = 0;
-    } else {
-        gestureState.releaseFrames += 1;
-        gestureState.pinchFrames = 0;
-    }
-
-    if (!metrics.pinch) {
-        if (gestureState.releaseFrames >= 2 && gestureState.action !== 'idle') {
-            releaseGestureAction({ clearPinchSelection: !!gestureState.capturedNode, cooldownMs: 160 });
-        }
-        gestureState.lastPinch = false;
-        return;
-    }
-
-    if (gestureState.pinchFrames < 3) {
-        gestureState.lastPinch = true;
-        return;
-    }
-
-    if (gestureState.action === 'idle') {
-        if (gestureState.candidateNode) captureGestureNode(gestureState.candidateNode, metrics.point);
-        else startGestureCanvasPan(metrics.point);
-    }
-
-    if (gestureState.action === 'node-captured' && gestureState.capturedNode) {
-        updateCapturedNodeDrag(metrics.point);
-    } else if (gestureState.action === 'canvas-pan') {
-        panCanvasFromGesture(metrics.point);
-    }
-
-    gestureState.lastPinch = true;
-}
-
-function captureGestureNode(target, point) {
-    selectNode(target);
-    gestureState.action = 'node-captured';
-    gestureState.actionNode = target;
-    gestureState.capturedNode = target;
-    gestureState.actionPoint = { ...point };
-    gestureState.actionNodeStart = { x: target.x || 0, y: target.y || 0 };
-    gestureState.actionStartedAt = performance.now();
-    gestureState.actionMoved = false;
-    target.fx = target.x;
-    target.fy = target.y;
-    setGestureStatus('已捕获节点，保持捏合可拖拽', target.name || target.id);
-}
-
-function updateCapturedNodeDrag(point) {
-    if (!gestureState.capturedNode || !gestureState.actionPoint) return;
-    const dx = point.x - gestureState.actionPoint.x;
-    const dy = point.y - gestureState.actionPoint.y;
-    if (!gestureState.actionMoved && Math.sqrt(dx * dx + dy * dy) < 5) {
-        setGestureStatus('保持捏合选中节点', gestureState.capturedNode.name || gestureState.capturedNode.id);
-        return;
-    }
-    gestureState.actionMoved = true;
-    dragGestureNode(gestureState.capturedNode, point);
-    setGestureStatus('拖拽节点', gestureState.capturedNode.name || gestureState.capturedNode.id);
-}
-
-function startGestureCanvasPan(point) {
-    gestureState.action = 'canvas-pan';
-    gestureState.actionNode = null;
-    gestureState.capturedNode = null;
-    gestureState.actionPoint = { ...point };
-    gestureState.actionTransform = currentTransform;
-    gestureState.actionStartedAt = performance.now();
-    gestureState.actionMoved = false;
-    setGestureStatus('捏合空白处移动图谱');
-}
-
-function processGesturePinch(metrics) {
-    return processStableGesturePinch(metrics);
-}
-
-
-function panCanvasFromGesture(point) {
-    if (!svg || !graphZoom || !gestureState.actionTransform || !gestureState.actionPoint) return;
-    gestureState.actionMoved = true;
-    const dx = point.x - gestureState.actionPoint.x;
-    const dy = point.y - gestureState.actionPoint.y;
-    const base = gestureState.actionTransform;
-    const next = d3.zoomIdentity
-        .translate(base.x + dx, base.y + dy)
-        .scale(base.k || 1);
-    svg.call(graphZoom.transform, next);
-    setGestureStatus('捏合空白处移动图谱');
-}
-
-function applyZoomAt(point, nextScale) {
-    if (!svg || !graphZoom || !currentTransform) return;
-    const currentScale = currentTransform.k || 1;
-    const k = clamp(nextScale, 0.05, 6);
-    const ratio = k / currentScale;
-    const x = point.x - (point.x - currentTransform.x) * ratio;
-    const y = point.y - (point.y - currentTransform.y) * ratio;
-    svg.call(graphZoom.transform, d3.zoomIdentity.translate(x, y).scale(k));
-}
-
-function smoothGesturePoint(point) {
-    if (!gestureState.smoothedPoint) {
-        gestureState.smoothedPoint = { ...point };
-        return point;
-    }
-    const alpha = 0.34;
-    gestureState.smoothedPoint = {
-        x: gestureState.smoothedPoint.x * (1 - alpha) + point.x * alpha,
-        y: gestureState.smoothedPoint.y * (1 - alpha) + point.y * alpha
-    };
-    return gestureState.smoothedPoint;
-}
-
-function dragGestureNode(d, point) {
-    if (!d || !currentTransform) return;
-    const gx = currentTransform.invertX(point.x);
-    const gy = currentTransform.invertY(point.y);
-    d.fx = gx;
-    d.fy = gy;
-    d.x = gx;
-    d.y = gy;
-    updateGraphPositions();
-}
-
-function releaseGestureAction(options = {}) {
-    const heldNode = gestureState.capturedNode || gestureState.actionNode;
-    const shouldClearPinchSelection = options.clearPinchSelection && heldNode;
-    if (heldNode) {
-        heldNode.fx = null;
-        heldNode.fy = null;
-    }
-    if (shouldClearPinchSelection) resetHighlight();
-    gestureState.action = 'idle';
-    gestureState.actionNode = null;
-    gestureState.capturedNode = null;
-    gestureState.actionPoint = null;
-    gestureState.actionTransform = null;
-    gestureState.actionNodeStart = null;
-    gestureState.actionBaseScale = 1;
-    gestureState.actionStartedAt = 0;
-    gestureState.actionMoved = false;
-    gestureState.palmZoomSince = 0;
-    gestureState.palmZoomPoint = null;
-    gestureState.palmZoomBaseScale = 1;
-    gestureState.lastPinch = false;
-    gestureState.pinchFrames = 0;
-    gestureState.releaseFrames = 0;
-    gestureState.cooldownUntil = performance.now() + (options.cooldownMs || 0);
-    gestureState.candidateNode = null;
-    gestureState.candidateSince = 0;
-    if (!options.keepHover) gestureState.hoverNode = null;
-}
-
-function releaseGestureDrag() {
-    releaseGestureAction();
-}
-
 function focusNode() {
     if (!selectedNode) return;
     const container = document.getElementById('graph-container');
@@ -2807,6 +2301,7 @@ function dragended(e, d) {
 <script
     src="{{ url_for('promo_graph.static', filename='gesture_chooser.js') }}"
     data-promo-url="{{ url_for('promo_graph.experience') }}"
+    data-runtime-url="{{ url_for('promo_graph.static', filename='dist/gesture-runtime.js') }}"
     data-stylesheet-url="{{ url_for('promo_graph.static', filename='gesture_chooser.css') }}">
 </script>
 {% endblock %}

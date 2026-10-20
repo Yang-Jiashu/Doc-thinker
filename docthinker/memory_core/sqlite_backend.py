@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
 import sqlite3
@@ -60,6 +61,7 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
                     kind TEXT NOT NULL,
                     question TEXT NOT NULL,
                     summary TEXT NOT NULL,
+                    summary_sha256 TEXT NOT NULL DEFAULT '',
                     concepts_json TEXT NOT NULL DEFAULT '[]',
                     expanded_entities_json TEXT NOT NULL DEFAULT '[]',
                     confidence REAL NOT NULL,
@@ -161,8 +163,88 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
                     value_json TEXT NOT NULL,
                     updated_at REAL NOT NULL
                 );
+
+                CREATE TABLE IF NOT EXISTS long_horizon_retired_summaries (
+                    scope_key TEXT NOT NULL,
+                    summary_sha256 TEXT NOT NULL,
+                    retired_at REAL NOT NULL,
+                    PRIMARY KEY (scope_key, summary_sha256)
+                );
                 """
             )
+            if 'summary_sha256' not in {row[1] for row in conn.execute('PRAGMA table_info(long_horizon_memories)')}:
+                conn.execute("ALTER TABLE long_horizon_memories ADD COLUMN summary_sha256 TEXT NOT NULL DEFAULT ''")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_lh_unhashed_summary ON long_horizon_memories(id) "
+                         "WHERE summary_sha256=''")
+            self._backfill_retired_summaries(conn)
+
+    @staticmethod
+    def _normalized_summary(summary: str) -> str:
+        return re.sub(r"\s+", " ", str(summary or "")).strip().lower()
+
+    @classmethod
+    def _summary_digest(cls, summary: str) -> str:
+        return hashlib.sha256(cls._normalized_summary(summary).encode('utf-8')).hexdigest()
+
+    @staticmethod
+    def _not_retired(alias='long_horizon_memories') -> str:
+        return ('NOT EXISTS (SELECT 1 FROM long_horizon_retired_summaries retired '
+                'WHERE retired.scope_key=' + alias + '.scope_key '
+                'AND retired.summary_sha256=' + alias + '.summary_sha256)')
+
+    @classmethod
+    def _retire_summary(cls, conn, scope_key: str, summary: str, *, retired_at=None) -> None:
+        normalized = cls._normalized_summary(summary)
+        if normalized:
+            conn.execute("INSERT OR IGNORE INTO long_horizon_retired_summaries VALUES(?,?,?)",
+                         (scope_key, cls._summary_digest(summary),
+                          time.time() if retired_at is None else float(retired_at)))
+
+    @classmethod
+    def _allow_summary(cls, conn, scope_key: str, summary: str) -> None:
+        # Only explicit edit/restore APIs call this, never model consolidation.
+        conn.execute('DELETE FROM long_horizon_retired_summaries WHERE scope_key=? AND summary_sha256=?',
+                     (scope_key, cls._summary_digest(summary)))
+
+    def _backfill_retired_summaries(self, conn) -> None:
+        """One-time streamed edit-history migration, never part of recall.
+
+        Only exact old summary fingerprints are retained, scoped to the same
+        private database bucket. No semantic correction or new text copy is
+        manufactured. One previous snapshot is held at a time.
+        """
+        conn.execute('BEGIN IMMEDIATE')
+        key = 'retired_summary_fingerprints_v1'
+        for row in conn.execute("SELECT id,summary FROM long_horizon_memories WHERE summary_sha256=''"):
+            conn.execute('UPDATE long_horizon_memories SET summary_sha256=? WHERE id=?',
+                         (self._summary_digest(row['summary']), row['id']))
+        if conn.execute('SELECT 1 FROM long_horizon_metadata WHERE key=?', (key,)).fetchone():
+            return
+        rows = conn.execute('SELECT r.memory_id,r.action,r.snapshot_json,r.created_at,m.scope_key,'
+                            '(SELECT prior.snapshot_json FROM long_horizon_revisions prior '
+                            'WHERE prior.memory_id=r.memory_id AND prior.revision_id<r.revision_id '
+                            'ORDER BY prior.revision_id DESC LIMIT 1) AS previous_snapshot '
+                            'FROM long_horizon_revisions r JOIN long_horizon_memories m ON m.id=r.memory_id '
+                            'ORDER BY r.revision_id')
+        for row in rows:
+            snapshot = self._json_load(row['snapshot_json'], {})
+            if not isinstance(snapshot, dict) or not isinstance(snapshot.get('summary'), str):
+                continue
+            summary = snapshot['summary']
+            previous = self._json_load(row['previous_snapshot'], {})
+            previous_summary = previous.get('summary') if isinstance(previous, dict) else None
+            changed = previous_summary is not None and self._normalized_summary(previous_summary) != self._normalized_summary(summary)
+            if row['action'] == 'delete':
+                self._retire_summary(conn, row['scope_key'], summary, retired_at=row['created_at'])
+            if row['action'] in {'update', 'delete', 'restore'} and changed:
+                self._retire_summary(conn, row['scope_key'], previous_summary, retired_at=row['created_at'])
+            if row['action'] == 'restore' or row['action'] == 'update' and changed:
+                self._allow_summary(conn, row['scope_key'], summary)
+        # A legacy imported deleted row may predate revision recording.
+        for row in conn.execute("SELECT scope_key,summary,last_seen_at FROM long_horizon_memories m WHERE status='deleted' "
+                                'AND NOT EXISTS (SELECT 1 FROM long_horizon_revisions r WHERE r.memory_id=m.id)'):
+            self._retire_summary(conn, row['scope_key'], row['summary'], retired_at=row['last_seen_at'])
+        conn.execute('INSERT INTO long_horizon_metadata VALUES(?,?,?)', (key, '{"version":1}', time.time()))
 
     @staticmethod
     def _json_load(value: Any, fallback: Any) -> Any:
@@ -315,8 +397,8 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
             INSERT INTO long_horizon_memories(
                 id, scope_key, session_id, scope, kind, question, summary,
                 concepts_json, expanded_entities_json, confidence, status,
-                created_at, last_seen_at, use_count, audit_json, version
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                created_at, last_seen_at, use_count, audit_json, version, summary_sha256
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 scope_key = excluded.scope_key,
                 session_id = excluded.session_id,
@@ -324,6 +406,7 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
                 kind = excluded.kind,
                 question = excluded.question,
                 summary = excluded.summary,
+                summary_sha256 = excluded.summary_sha256,
                 concepts_json = excluded.concepts_json,
                 expanded_entities_json = excluded.expanded_entities_json,
                 confidence = excluded.confidence,
@@ -351,6 +434,7 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
                 int(item.get("use_count") or 1),
                 self._json_dump(dict(item.get("audit") or {})),
                 int(item.get("version") or 1),
+                self._summary_digest(str(item.get('summary') or '')[:260]),
             ),
         )
 
@@ -379,9 +463,10 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
         if not source_tokens and not source_concepts:
             return 0
         rows = conn.execute(
-            """
+            f"""
             SELECT * FROM long_horizon_memories
             WHERE scope_key = ? AND status = 'active' AND id != ?
+              AND {self._not_retired()}
             ORDER BY last_seen_at DESC LIMIT 200
             """,
             (scope_key, str(item["id"])),
@@ -451,6 +536,7 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
                 WHERE status = 'active'
                   AND scope_key IN ({placeholders})
                   AND confidence >= ?
+                  AND {self._not_retired()}
                 """,
                 (*scope_keys, float(min_confidence)),
             ).fetchall()
@@ -613,9 +699,18 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
             for item in (matched_expanded or [])
             if item.get("entity") or item.get("name")
         ]
-        normalized_summary = re.sub(r"\s+", " ", summary).strip().lower()
+        normalized_summary = self._normalized_summary(summary)
 
         with self._db_lock, self._connect() as conn:
+            # Serialize the check and write against explicit editors in other
+            # backend instances/processes as well as this instance's lock.
+            conn.execute('BEGIN IMMEDIATE')
+            digest = self._summary_digest(summary)
+            if conn.execute('SELECT 1 FROM long_horizon_retired_summaries '
+                            'WHERE scope_key=? AND summary_sha256=?', (scope_key, digest)).fetchone():
+                self._set_last_decision({**base_decision, 'action': 'skip',
+                    'reason': 'explicit_memory_content_retired'}, conn)
+                return None
             rows = conn.execute(
                 """
                 SELECT * FROM long_horizon_memories
@@ -629,10 +724,10 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
                 existing_summary = re.sub(
                     r"\s+", " ", str(item.get("summary") or "")
                 ).strip().lower()
-                # An identical observation reinforces the same memory. A
-                # merely similar observation remains a separate source node;
-                # _auto_link_memory connects it after insertion instead of
-                # overwriting what previously happened.
+                # Identical summaries record recurrence, not independent
+                # evidence: preserve confidence while updating use/version.
+                # Merely similar observations remain separate source nodes;
+                # _auto_link_memory connects them instead of overwriting them.
                 if not normalized_summary or normalized_summary != existing_summary:
                     continue
                 item.update(
@@ -643,7 +738,6 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
                         )[:12],
                         "last_seen_at": float(timestamp),
                         "use_count": int(item.get("use_count") or 0) + 1,
-                        "confidence": min(0.95, float(item["confidence"]) + 0.05),
                         "audit": {
                             "last_decision": decision.get("reason"),
                             "source": "duplicate_reinforcement",
@@ -725,7 +819,7 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
         limit: int = 50,
     ) -> List[Dict[str, Any]]:
         scope_keys = self._scope_keys(session_id, scope)
-        where = ["status = 'active'"]
+        where = ["status = 'active'", self._not_retired()]
         params: List[Any] = []
         if scope_keys:
             where.append(f"scope_key IN ({','.join('?' for _ in scope_keys)})")
@@ -813,9 +907,11 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
         if not target:
             return False
         with self._db_lock, self._connect() as conn:
+            conn.execute('BEGIN IMMEDIATE')
             row = self._find_row(conn, target, session_id)
             if not row or row["status"] == "deleted":
                 return False
+            self._retire_summary(conn, row['scope_key'], row['summary'])
             item = self._row_to_item(row)
             item.update(
                 {
@@ -867,6 +963,7 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
         if not target or not clean_patch:
             return None
         with self._db_lock, self._connect() as conn:
+            conn.execute('BEGIN IMMEDIATE')
             row = self._find_row(conn, target, session_id)
             if not row or row["status"] != "active":
                 return None
@@ -888,6 +985,9 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
                     item["confidence"] = max(0.05, min(0.99, float(clean_patch["confidence"])))
                 except (TypeError, ValueError):
                     pass
+            if self._normalized_summary(item['summary']) != self._normalized_summary(row['summary']):
+                self._retire_summary(conn, row['scope_key'], row['summary'])
+                self._allow_summary(conn, row['scope_key'], item['summary'])
             item.update(
                 {
                     "last_seen_at": time.time(),
@@ -973,6 +1073,7 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
         if not target:
             return None
         with self._db_lock, self._connect() as conn:
+            conn.execute('BEGIN IMMEDIATE')
             current_row = self._find_row(conn, target, session_id)
             if not current_row:
                 return None
@@ -988,6 +1089,9 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
             restored = dict(self._json_load(revision["snapshot_json"], {}))
             if not restored:
                 return None
+            if self._normalized_summary(restored.get('summary')) != self._normalized_summary(current_row['summary']):
+                self._retire_summary(conn, current_row['scope_key'], current_row['summary'])
+            self._allow_summary(conn, current_row['scope_key'], restored.get('summary'))
             restored.update(
                 {
                     "id": target,
@@ -1218,6 +1322,7 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
                 f"""
                 SELECT * FROM long_horizon_memories
                 WHERE id IN ({placeholders}) AND status = 'active' AND scope_key = ?
+                  AND {self._not_retired()}
                 """,
                 (*evidence_ids, scope_key),
             ).fetchall()
@@ -1326,6 +1431,12 @@ class SQLiteLongHorizonBackend(InMemoryLongHorizonBackend):
                 WHERE status = 'active'
                   AND scope_key IN ({placeholders})
                   AND confidence >= ?
+                  AND NOT EXISTS (
+                    SELECT 1 FROM cognition_evidence ce
+                    JOIN long_horizon_memories m ON m.id=ce.memory_id
+                    JOIN long_horizon_retired_summaries retired
+                      ON retired.scope_key=m.scope_key AND retired.summary_sha256=m.summary_sha256
+                    WHERE ce.cognition_id=cognitions.id)
                 """,
                 (*scope_keys, float(min_confidence)),
             ).fetchall()

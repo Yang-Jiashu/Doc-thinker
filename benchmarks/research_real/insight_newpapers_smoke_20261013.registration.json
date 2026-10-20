@@ -1,0 +1,23 @@
+{
+  "registration_version": "newpapers-single-pair-v1",
+  "prepared_date": "2026-10-13",
+  "fixture": "benchmarks/research_real/insight_newpapers_smoke_20261013.json",
+  "plan": "benchmarks/research_real/plan_insight_newpapers_smoke_20261013.md",
+  "papers_directory": "dist/insight-newpapers-smoke-20261013/papers",
+  "registered_inputs": {
+    "code_fingerprint": "0673da1a2e20509ac3f479199fbd4782c20c2c44fdf214254f0ae3540d30d83b",
+    "fixture_sha256": "77fb46475ffa6d3b1b6d09e1066f8e73eda5ec30913233d9b5a63d4b8a762f2d",
+    "plan_sha256": "e2c37f5934a398389980438c868bb3e978a08e84eb1a3ddecff60ca3c9be5fff",
+    "papers": {
+      "longmem_2306.07174v1.pdf": "6036d59b87763ef304b2bef4e6bc1ee295abf83604b88fd5b854d46ba2ca4f61",
+      "memorybank_2305.10250v1.pdf": "5bac0c9588b7999c9ae3821af027bee832964aaab787cf8fa8111b905e4b48fb"
+    }
+  },
+  "combined_sha256_algorithm": "SHA256 of UTF-8 json.dumps(registered_inputs, sort_keys=True, separators=(',', ':'))",
+  "combined_sha256": "6ca9ec118754491c586834e3d89c59815042c5fa0ffdbd2bcbeb2cde00145a49",
+  "load_fixture_validated": true,
+  "prepare_executed_by_author": false,
+  "model_requests_by_author": 0,
+  "reference_answer_generated": false,
+  "scope": "New-to-repository-benchmark papers; one ordinary product research question; not a model-training holdout or generalization certification."
+}

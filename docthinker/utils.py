@@ -8,9 +8,11 @@ and other utilities.
 import asyncio
 import base64
 import json
+import math
 import os
 from typing import Dict, List, Any, Tuple
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 import aiohttp
 
 from graphcore.coregraph.utils import logger
@@ -354,7 +356,7 @@ def create_bltcy_rerank_func(
     timeout: int = 60,
 ):
     """
-    Create a rerank function that calls an OpenAI-compatible rerank endpoint.
+    Create a rerank adapter for Cohere-style or DashScope-native endpoints.
 
     Args:
         api_key: Optional API key. If omitted, falls back to environment variables
@@ -392,24 +394,18 @@ def create_bltcy_rerank_func(
     if not resolved_model:
         logger.info("Rerank is disabled because RERANK_MODEL is empty.")
         return None
-    resolved_base_stripped = resolved_base.rstrip("/")
-    is_dashscope_native = "services/rerank" in resolved_base_stripped.lower()
-    is_dashscope = "dashscope" in resolved_base_stripped.lower()
-
-    if is_dashscope_native:
-        endpoint = resolved_base_stripped
-    elif is_dashscope:
-        endpoint = resolved_base_stripped + "/reranks"
-    else:
-        base_for_endpoint = resolved_base_stripped
-        if base_for_endpoint.endswith("/chat/completions"):
-            base_for_endpoint = base_for_endpoint[: -len("/chat/completions")]
-        if "api.openai.com" in base_for_endpoint.lower():
-            logger.info(
-                "Rerank is disabled for OpenAI base URL; /rerank is not guaranteed on this endpoint."
-            )
-            return None
-        endpoint = base_for_endpoint + "/rerank"
+    parsed = urlsplit(resolved_base)
+    path = parsed.path.rstrip("/")
+    is_dashscope_native = "services/rerank" in path.lower()
+    is_dashscope = (parsed.hostname or "").startswith("dashscope") and (parsed.hostname or "").endswith(".aliyuncs.com")
+    if parsed.hostname == "api.openai.com":
+        logger.info("Rerank is disabled: the OpenAI API does not expose this rerank protocol.")
+        return None
+    if not is_dashscope_native and not path.endswith(("/rerank", "/reranks")):
+        if path.endswith("/chat/completions"):
+            path = path[: -len("/chat/completions")]
+        path += "/reranks" if is_dashscope else "/rerank"
+    endpoint = urlunsplit((parsed.scheme, parsed.netloc, path, parsed.query, parsed.fragment))
 
     session: aiohttp.ClientSession | None = None
     session_lock = asyncio.Lock()
@@ -427,6 +423,12 @@ def create_bltcy_rerank_func(
     async def rerank(query: str, documents: List[str], **kwargs) -> List[Dict[str, float]]:
         if not documents:
             return []
+        top_n = kwargs.get("top_n")
+        if top_n is not None:
+            if type(top_n) is not int or top_n < 0:
+                raise ValueError("top_n must be a non-negative integer")
+            if top_n == 0:
+                return []
 
         request_docs: List[str] = []
         for doc in documents:
@@ -451,7 +453,9 @@ def create_bltcy_rerank_func(
                 len(batches),
             )
 
-        scores: List[float] = [0.0] * len(request_docs)
+        # Omitted top_n results are unscored, not zero-score documents. Keeping
+        # only returned indices also works for providers with negative scores.
+        scores: Dict[int, float] = {}
         headers = {
             "Authorization": f"Bearer {resolved_api_key}",
             "Content-Type": "application/json",
@@ -493,39 +497,41 @@ def create_bltcy_rerank_func(
                 data_items = response_json.get("data", [])
             if not data_items:
                 data_items = response_json.get("results", [])
-            if len(data_items) != len(batch_docs):
-                logger.warning(
-                    "Rerank response count mismatch: expected %s, got %s",
-                    len(batch_docs),
-                    len(data_items),
-                )
-                logger.debug("Rerank raw response: %s", response_json)
-
+            if not isinstance(data_items, list) or not data_items:
+                raise ValueError("Rerank response contains no ranked results")
+            if any(not isinstance(item, dict) for item in data_items):
+                raise ValueError("Invalid rerank result record")
+            has_indices = any("index" in item for item in data_items)
+            if not has_indices and len(data_items) != len(batch_docs):
+                raise ValueError("Partial rerank results require original document indices")
+            seen_indices = set()
             for offset, item in enumerate(data_items):
+                local_index = item.get("index") if has_indices else offset
+                if type(local_index) is not int or not 0 <= local_index < len(batch_docs) or local_index in seen_indices:
+                    raise ValueError("Rerank response contains missing, duplicate or invalid document indices")
+                seen_indices.add(local_index)
                 score = item.get("score")
                 if score is None:
                     score = item.get("relevance_score")
-                if score is None and isinstance(item.get("scores"), list):
+                if score is None and isinstance(item.get("scores"), list) and item["scores"]:
                     score = item["scores"][0]
                 if score is None:
                     raise ValueError(
                         "Rerank response missing 'score' or 'relevance_score' field."
                     )
-                global_index = batch_index * max_docs_per_request + offset
-                if global_index < len(scores):
-                    scores[global_index] = float(score)
+                score = float(score)
+                if not math.isfinite(score):
+                    raise ValueError("Rerank response contains a non-finite score")
+                global_index = batch_index * max_docs_per_request + local_index
+                scores[global_index] = score
 
         ranked = [
             {"index": idx, "relevance_score": float(score)}
-            for idx, score in enumerate(scores)
+            for idx, score in scores.items()
         ]
         ranked.sort(key=lambda x: x["relevance_score"], reverse=True)
-        top_n = kwargs.get("top_n")
         if top_n is not None:
-            try:
-                return ranked[: max(1, int(top_n))]
-            except Exception:
-                return ranked
+            return ranked[:top_n]
         return ranked
 
     logger.info(
