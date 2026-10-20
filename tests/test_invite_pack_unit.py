@@ -27,7 +27,7 @@ def test_bundle_rejects_non_build_inputs(name):
 
 
 @pytest.mark.parametrize("name", ["docthinker/server/invite_runtime.py", "graphcore/coregraph/utils.py",
-    "clients/mobile/src/pages/studio/index.vue", "clients/mobile/src/static/brand/logo.png",
+    "clients/mobile/src/pages/studio/index.vue", "clients/mobile/src/static/brand/logo.png", "logo.png",
     "deploy/invite/requirements.txt", "deploy/invite/backup.py", ".dockerignore", "docs/ARCHITECTURE.md", "docs/PRODUCTIZATION.md",
     "docs/RELEASE_ACCEPTANCE_2026-10-12.md",
     "docs/RELEASE_ACCEPTANCE_2026-10-20.md",
@@ -78,6 +78,12 @@ def test_bundle_allows_required_inputs(name):
     assert pack.allowed(PurePosixPath(name))
 
 
+@pytest.mark.parametrize("name", pack.ORIGINAL_README_ASSETS)
+def test_bundle_explicitly_retains_original_readme_images(name):
+    assert name in pack.FIXED
+    assert pack.allowed(PurePosixPath(name))
+
+
 def fixture_tree(tmp_path):
     root = tmp_path / "source"
     root.mkdir()
@@ -115,6 +121,16 @@ def test_actual_source_bundle_can_load_all_knowledge_and_insight_modules(tmp_pat
     pack.build_bundle(ROOT, output)
     destination = tmp_path / "extracted"
     with zipfile.ZipFile(output) as archive:
+        manifest = json.loads(archive.read(f"{pack.PREFIX}/PACKAGE-MANIFEST.json"))
+        for name in ("logo.png", *pack.ORIGINAL_README_ASSETS):
+            expected = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+            assert manifest["files"][name] == expected
+            assert hashlib.sha256(archive.read(f"{pack.PREFIX}/{name}")).hexdigest() == expected
+        large_name, (large_size, large_hash) = next(iter(pack.FROZEN_LARGE_ASSETS.items()))
+        assert archive.getinfo(f"{pack.PREFIX}/{large_name}").file_size == large_size == 41001259
+        assert manifest["files"][large_name] == large_hash
+        assert sum(item.file_size for item in archive.infolist()) <= 128 * 1024 * 1024
+        assert pack.verify_bundle(output)[0] == len(manifest["files"])
         archive.extractall(destination)
     bundle = destination / pack.PREFIX
     script = (
@@ -132,6 +148,76 @@ def test_actual_source_bundle_can_load_all_knowledge_and_insight_modules(tmp_pat
     counts = json.loads(result.stdout)
     assert set(counts) == set(pack.KNOWLEDGE_PACKS)
     assert all(count > 0 for count in counts.values())
+
+
+@pytest.fixture
+def small_large_asset(monkeypatch):
+    name = "docs/assets/gpu_knowledge_graph_demo.gif"
+    content = b"frozen original GIF payload" * 3
+    monkeypatch.setattr(pack, "MAX_INPUT_BYTES", 64)
+    monkeypatch.setattr(pack, "FROZEN_LARGE_ASSETS", {
+        name: (len(content), hashlib.sha256(content).hexdigest()),
+    })
+    return name, content
+
+
+def test_only_exact_frozen_large_demo_can_exceed_normal_bound(tmp_path, small_large_asset):
+    name, content = small_large_asset
+    root = fixture_tree(tmp_path)
+    (root / name).write_bytes(content)
+    output = tmp_path / "frozen-demo.zip"
+    count, digest = pack.build_bundle(root, output)
+    assert pack.verify_bundle(output) == (count, digest)
+
+
+@pytest.mark.parametrize("damage", ["wrong_hash", "wrong_size", "different_path"])
+def test_build_rejects_changed_or_other_oversized_input(tmp_path, small_large_asset, damage):
+    name, content = small_large_asset
+    root = fixture_tree(tmp_path)
+    target = root / ("docs/assets/usecase_chat.gif" if damage == "different_path" else name)
+    target.write_bytes(b"x" * len(content) if damage == "wrong_hash"
+                       else content + b"x" if damage == "wrong_size" else content)
+    output = tmp_path / "bad.zip"
+    with pytest.raises(ValueError):
+        pack.build_bundle(root, output)
+    assert not output.exists()
+
+
+@pytest.mark.parametrize("damage", ["wrong_hash", "wrong_size", "different_path"])
+def test_verify_rejects_oversized_substitution_even_with_matching_manifest(
+        tmp_path, small_large_asset, damage):
+    name, content = small_large_asset
+    root = fixture_tree(tmp_path)
+    (root / name).write_bytes(content)
+    good = tmp_path / "good.zip"
+    pack.build_bundle(root, good)
+    bad = tmp_path / "bad.zip"
+    selected = "docs/assets/usecase_chat.gif" if damage == "different_path" else name
+    replacement = (b"x" * len(content) if damage == "wrong_hash"
+                   else content + b"x" if damage == "wrong_size" else content)
+    with zipfile.ZipFile(good) as source, zipfile.ZipFile(bad, "w") as target:
+        manifest = json.loads(source.read(f"{pack.PREFIX}/PACKAGE-MANIFEST.json"))
+        manifest["files"][selected] = hashlib.sha256(replacement).hexdigest()
+        for member in source.namelist():
+            if member.endswith("/PACKAGE-MANIFEST.json"):
+                target.writestr(member, json.dumps(manifest))
+            else:
+                target.writestr(member, replacement if member == f"{pack.PREFIX}/{selected}"
+                                else source.read(member))
+    with pytest.raises(ValueError):
+        pack.verify_bundle(bad)
+
+
+def test_total_bundle_bound_is_not_widened_by_frozen_demo_exception(
+        tmp_path, monkeypatch, small_large_asset):
+    name, content = small_large_asset
+    root = fixture_tree(tmp_path)
+    (root / name).write_bytes(content)
+    monkeypatch.setattr(pack, "MAX_BUNDLE_BYTES", len(content))
+    output = tmp_path / "too-large.zip"
+    with pytest.raises(ValueError, match="Oversized bundle"):
+        pack.build_bundle(root, output)
+    assert not output.exists()
 
 
 def test_existing_output_is_preserved(tmp_path):

@@ -18,6 +18,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  preservation:
+    name: Original logo, demos and framework presentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install pytest==9.1.1
+      - name: Verify frozen assets and visible bilingual README galleries
+        run: python scripts/check_release_preservation.py
+      - name: Reject missing, modified, hidden and symlinked preservation inputs
+        run: python -m pytest -q tests/test_release_preservation_unit.py
+
   mobile:
     runs-on: ubuntu-latest
     timeout-minutes: 15

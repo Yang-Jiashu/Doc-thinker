@@ -1,8 +1,10 @@
 <div align="center">
 
-<img src="clients/mobile/src/static/brand/logo-64.png" width="64" height="64" alt="DocThinker Evidence Window mark" />
+<img src="logo.png" width="64" height="64" alt="Original DocThinker logo" />
 
 # DocThinker
+
+<img src="docs/assets/banner.png" width="820" alt="Original DocThinker banner" />
 
 Latest engineering snapshot: [October 20 acceptance and known gaps](docs/RELEASE_ACCEPTANCE_2026-10-20.md). Personal events now enter ordinary answers and long tasks through a bounded evidence-obligation controller: directed links → targeted source lookup → model-assessed support/counterevidence/unknown → version-bound follow-up suggestions. This is not verified causal understanding or a production-quality certificate.
 
@@ -22,6 +24,31 @@ A research path toward recursive self-improvement (RSI)
 </div>
 
 Downloaded an invitation source ZIP? Use the [invitation deployment guide](deploy/invite/README.md), not the full-repository installation below. This package contains the restricted profile's build inputs and selected reports; development tests, historical evaluation datasets and optional full graph/voice stacks require the complete workspace. It is not an already hosted service.
+
+## See the personal agent
+
+Original demonstrations and architecture artwork, preserved unchanged. These illustrate the project; the [current architecture](docs/ARCHITECTURE.md) and [latest acceptance record](docs/RELEASE_ACCEPTANCE_2026-10-20.md) describe what is implemented and tested today.
+
+| Chat with your material | Explore the connections |
+|---|---|
+| <img src="docs/assets/usecase_chat.gif" width="430" alt="Original document-grounded conversation demo" /> | <img src="docs/assets/usecase_kg.gif" width="430" alt="Original interactive knowledge graph demo" /> |
+
+<img src="docs/assets/agentic_memory_architecture.png" width="900" alt="Original layered personal-agent memory architecture" />
+
+<details>
+<summary>Memory in action · original demos and framework gallery</summary>
+
+<img src="docs/assets/memory_kg_observability_demo.gif" width="900" alt="Original memory and knowledge-graph observability demo" />
+<img src="docs/assets/gpu_knowledge_graph_demo.gif" width="900" alt="Original GPU knowledge-graph demo" />
+<img src="docs/assets/ui_memory_editor_screenshot.png" width="900" alt="Original editable memory interface" />
+<img src="docs/assets/pipeline.png" width="900" alt="Original document-processing pipeline" />
+<img src="docs/assets/lifecycle.png" width="900" alt="Original memory lifecycle" />
+<img src="docs/assets/multi_agent_evolution.png" width="900" alt="Original multi-agent evolution framework" />
+<img src="docs/assets/sparql_cot.png" width="900" alt="Original graph-query reasoning illustration" />
+
+</details>
+
+The mobile client retains its existing <img src="clients/mobile/src/static/brand/logo-32.png" width="24" height="24" alt="Evidence Window mobile mark" /> Evidence Window identity. Neither brand assets nor the original demos were replaced.
 
 ## Why this project exists
 

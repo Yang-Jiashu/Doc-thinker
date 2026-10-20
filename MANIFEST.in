@@ -2,6 +2,7 @@ include requirements.txt
 include README.md
 include README.zh-CN.md
 include LICENSE
+include logo.png
 include env.example
 recursive-include docthinker *.py
 recursive-include docthinker/knowledge_skills *.md *.json

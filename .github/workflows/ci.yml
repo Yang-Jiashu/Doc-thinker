@@ -12,9 +12,19 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHON_DOTENV_DISABLED: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
     strategy:
       matrix:
         python-version: ["3.10", "3.11"]
@@ -30,9 +40,21 @@ jobs:
           pip install -e ".[all]"
           pip install pytest pytest-asyncio
       - name: Run tests
-        # Removed `|| true` so test failures actually fail CI. Pytest's
-        # exit code now propagates to the workflow.
-        run: pytest tests/ -v --ignore=tests/debug_db.py
+        # Keep every existing test. A hang fails with captured diagnostics,
+        # rather than consuming the six-hour default with no useful report.
+        run: |
+          mkdir -p ci-artifacts
+          timeout --signal=TERM --kill-after=30s 8m \
+            python -X faulthandler -m pytest tests/ -v --ignore=tests/debug_db.py \
+            -o faulthandler_timeout=60 --junitxml=ci-artifacts/unit.xml \
+            2>&1 | tee ci-artifacts/pytest.log
+      - name: Upload full-suite diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-suite-python-${{ matrix.python-version }}
+          path: ci-artifacts/
+          retention-days: 7
 
   browser-layout:
     name: Sandboxed browser layout

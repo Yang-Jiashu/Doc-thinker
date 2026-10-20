@@ -1,8 +1,10 @@
 <div align="center">
 
-<img src="clients/mobile/src/static/brand/logo-64.png" width="64" height="64" alt="DocThinker 证据之窗标识" />
+<img src="logo.png" width="64" height="64" alt="DocThinker 原 Logo" />
 
 # DocThinker
+
+<img src="docs/assets/banner.png" width="820" alt="DocThinker 原横幅" />
 
 最新工程快照：[10 月 20 日验收与已知缺口](docs/RELEASE_ACCEPTANCE_2026-10-20.md)。个人事件已通过有界证据控制器进入正常回答和长期任务：按方向列出证据义务 → 定向补查 → 模型评估支持／反证／未知 → 绑定版本的待查与改计划建议。这不等于因果理解已验证或整体产品已达到生产质量。
 
@@ -22,6 +24,31 @@
 </div>
 
 如果下载的是邀请源码 ZIP，请按[邀请部署指南](deploy/invite/README.md)操作，不要套用下方完整仓库安装命令。本包仅含受限版本的构建输入与指定报告；开发测试、历史评测数据和完整图谱／语音扩展需完整工作区，不随包分发。源码包不是已经上线的网址。
+
+## 先看私人助手能怎么用
+
+原 Demo 和框架图片逐字节保留。下面是项目的原始演示；今天实际接通、测试到哪一步，以[当前架构](docs/ARCHITECTURE.md)和[最新验收记录](docs/RELEASE_ACCEPTANCE_2026-10-20.md)为准。
+
+| 带着材料正常聊天 | 直接看见知识之间的联系 |
+|---|---|
+| <img src="docs/assets/usecase_chat.gif" width="430" alt="原文档问答与聊天 Demo" /> | <img src="docs/assets/usecase_kg.gif" width="430" alt="原交互知识图谱 Demo" /> |
+
+<img src="docs/assets/agentic_memory_architecture.png" width="900" alt="原私人助手分层记忆框架" />
+
+<details>
+<summary>记忆如何运转 · 展开原 Demo 与框架图集</summary>
+
+<img src="docs/assets/memory_kg_observability_demo.gif" width="900" alt="原记忆与图谱可观测性 Demo" />
+<img src="docs/assets/gpu_knowledge_graph_demo.gif" width="900" alt="原 GPU 知识图谱 Demo" />
+<img src="docs/assets/ui_memory_editor_screenshot.png" width="900" alt="原可编辑记忆界面" />
+<img src="docs/assets/pipeline.png" width="900" alt="原文档处理流程" />
+<img src="docs/assets/lifecycle.png" width="900" alt="原记忆生命周期" />
+<img src="docs/assets/multi_agent_evolution.png" width="900" alt="原多智能体演进框架" />
+<img src="docs/assets/sparql_cot.png" width="900" alt="原图查询辅助推理示意" />
+
+</details>
+
+手机端继续使用现有的 <img src="clients/mobile/src/static/brand/logo-32.png" width="24" height="24" alt="证据之窗手机端标识" /> 证据之窗标识。原 Logo、全部品牌资产和原 Demo 均未替换。
 
 ## 为什么做这个项目
 

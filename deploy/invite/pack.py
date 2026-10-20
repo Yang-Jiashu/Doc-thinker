@@ -18,8 +18,24 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[2]
 PREFIX = "docthinker-invite"
 KNOWLEDGE_PACKS = ("mao-workplace", "research-ideation", "literature-synthesis", "evidence-writing", "decision-review")
+ORIGINAL_README_ASSETS = (
+    "docs/assets/banner.png", "docs/assets/agentic_memory_architecture.png",
+    "docs/assets/usecase_chat.gif", "docs/assets/usecase_kg.gif",
+    "docs/assets/memory_kg_observability_demo.gif", "docs/assets/gpu_knowledge_graph_demo.gif",
+    "docs/assets/ui_memory_editor_screenshot.png", "docs/assets/pipeline.png",
+    "docs/assets/lifecycle.png", "docs/assets/multi_agent_evolution.png", "docs/assets/sparql_cot.png",
+)
+MAX_INPUT_BYTES = 10 * 1024 * 1024
+MAX_BUNDLE_BYTES = 128 * 1024 * 1024
+# One immutable original demo exceeds the normal per-file bound. An arbitrary
+# file, changed demo or same-name payload cannot use this size exception.
+FROZEN_LARGE_ASSETS = {
+    "docs/assets/gpu_knowledge_graph_demo.gif": (
+        41001259, "a2210b09b40a0dc46da824ec15030ab30dd694a128865bac97b70f8747791557"),
+}
 FIXED = (
-    ".dockerignore", "LICENSE", "CONTRIBUTING.md", "README.md", "README.zh-CN.md",
+    ".dockerignore", "LICENSE", "CONTRIBUTING.md", "README.md", "README.zh-CN.md", "logo.png",
+    *ORIGINAL_README_ASSETS,
     "docs/ARCHITECTURE.md", "docs/PRODUCTIZATION.md", "docs/INVITE_WEB_BETA.md",
     "docs/MOBILE_APP.md", "docs/RESEARCH_GROUNDED_DESIGN.md", "docs/RSI_ROADMAP.md",
     "docs/WORKBENCH_PRODUCT_DESIGN.md", "docs/VOICE_MODELS.md", "docs/WECHAT_MINIPROGRAM.md",
@@ -95,6 +111,17 @@ SUFFIXES = {".vue", ".js", ".mjs", ".json", ".css", ".svg", ".png", ".html", ".w
 BLOCKED = {"node_modules", "__pycache__", ".git", "dist", "data", "uploads", "secrets"}
 
 
+def _input_size_allowed(name: str, size: int) -> bool:
+    return (0 <= size <= MAX_INPUT_BYTES or
+            name in FROZEN_LARGE_ASSETS and size == FROZEN_LARGE_ASSETS[name][0])
+
+
+def _check_input_content(name: str, size: int, digest: str) -> None:
+    if (not _input_size_allowed(name, size) or
+            size > MAX_INPUT_BYTES and (size, digest) != FROZEN_LARGE_ASSETS.get(name)):
+        raise ValueError("Unexpected oversized or changed presentation input")
+
+
 def allowed(relative: PurePosixPath) -> bool:
     if relative.is_absolute() or ".." in relative.parts or any(part in BLOCKED for part in relative.parts):
         return False
@@ -133,18 +160,24 @@ def build_bundle(root: Path, output: Path) -> tuple[int, str]:
         path = root / relative
         if path.is_symlink() or not path.is_file() or path.resolve(strict=True) != path:
             raise ValueError("A required build input is missing or not a real regular file")
-        if path.stat().st_size > 10 * 1024 * 1024:
+        name = relative.as_posix()
+        if not _input_size_allowed(name, path.stat().st_size):
             raise ValueError("Unexpected oversized build input")
         data = path.read_bytes()
-        manifest["files"][relative.as_posix()] = hashlib.sha256(data).hexdigest()
-        payloads.append((relative.as_posix(), data))
+        digest = hashlib.sha256(data).hexdigest()
+        _check_input_content(name, len(data), digest)
+        manifest["files"][name] = digest
+        payloads.append((name, data))
+    manifest_bytes = json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8")
+    if sum(len(data) for _, data in payloads) + len(manifest_bytes) > MAX_BUNDLE_BYTES:
+        raise ValueError("Oversized bundle inventory")
     output.parent.mkdir(parents=True, exist_ok=True)
     descriptor = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
     try:
         with os.fdopen(descriptor, "wb") as stream, zipfile.ZipFile(stream, "w", zipfile.ZIP_DEFLATED) as archive:
             for name, data in payloads:
                 archive.writestr(f"{PREFIX}/{name}", data)
-            archive.writestr(f"{PREFIX}/PACKAGE-MANIFEST.json", json.dumps(manifest, ensure_ascii=False, indent=2))
+            archive.writestr(f"{PREFIX}/PACKAGE-MANIFEST.json", manifest_bytes)
     except BaseException:
         output.unlink(missing_ok=True)
         raise
@@ -162,7 +195,7 @@ def verify_bundle(path: Path) -> tuple[int, str]:
     descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
     with os.fdopen(descriptor, "rb") as stream:
         metadata = os.fstat(stream.fileno())
-        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > 128 * 1024 * 1024:
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > MAX_BUNDLE_BYTES:
             raise ValueError("Invalid or oversized bundle")
         try:
             with zipfile.ZipFile(stream) as archive:
@@ -171,7 +204,7 @@ def verify_bundle(path: Path) -> tuple[int, str]:
                 manifest_name = f"{PREFIX}/PACKAGE-MANIFEST.json"
                 if (not members or len(members) > 2000 or len(set(names)) != len(names)
                         or names.count(manifest_name) != 1
-                        or sum(item.file_size for item in members) > 128 * 1024 * 1024):
+                        or sum(item.file_size for item in members) > MAX_BUNDLE_BYTES):
                     raise ValueError("Invalid bundle inventory")
                 for item in members:
                     name = item.filename
@@ -182,7 +215,9 @@ def verify_bundle(path: Path) -> tuple[int, str]:
                             or item.is_dir() or item.flag_bits & 1
                             or stat.S_IFMT(mode) not in (0, stat.S_IFREG)
                             or item.compress_type not in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED)
-                            or item.file_size > 10 * 1024 * 1024
+                            or (name != manifest_name and
+                                not _input_size_allowed(PurePosixPath(*relative.parts[1:]).as_posix(),
+                                                        item.file_size))
                             or (name != manifest_name and not allowed(PurePosixPath(*relative.parts[1:])))):
                         raise ValueError("Unsafe or unsupported bundle entry")
                 if archive.getinfo(manifest_name).file_size > 1024 * 1024:
@@ -195,8 +230,12 @@ def verify_bundle(path: Path) -> tuple[int, str]:
                     raise ValueError("Bundle and manifest inventories differ")
                 for name, expected in files.items():
                     if (not isinstance(name, str) or not isinstance(expected, str)
-                            or re.fullmatch(r"[0-9a-f]{64}", expected) is None
-                            or hashlib.sha256(archive.read(f"{PREFIX}/{name}")).hexdigest() != expected):
+                            or re.fullmatch(r"[0-9a-f]{64}", expected) is None):
+                        raise ValueError("Bundle content does not match manifest")
+                    data = archive.read(f"{PREFIX}/{name}")
+                    digest = hashlib.sha256(data).hexdigest()
+                    _check_input_content(name, len(data), digest)
+                    if digest != expected:
                         raise ValueError("Bundle content does not match manifest")
         except (zipfile.BadZipFile, KeyError, TypeError, AttributeError, UnicodeError, json.JSONDecodeError) as error:
             raise ValueError("Invalid bundle or manifest") from error
