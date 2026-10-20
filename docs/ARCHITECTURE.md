@@ -1,6 +1,56 @@
-# 面向 RSI 的架构与效率
+# DocThinker 2.0 · 图解架构
 
 [中文首页](../README.zh-CN.md) · [English overview](../README.md) · [查询参数](QUERY_RUNTIME.md) · [评测协议](SELF_EVOLUTION_EVALUATION.md)
+
+**记得你，找得到依据，也能把没做完的事接着做。** 三张图分别看系统、记忆和长期任务；点击图片可单独打开、放大。
+
+## 01 · 一张图看全貌
+
+[![系统架构：同一 Harness 下的检索、上下文、模型和交付；原完整图谱服务为另一条路径](assets/architecture-system.svg)](assets/architecture-system.svg)
+
+实线是数据与执行流，金色虚线是辅助控制。图中主线是**显式开启的有界研究路径**：邀请模式默认仍只有聊天与历史；完整 GraphCore、手势和语音的部署边界见[体验入口](../README.zh-CN.md#开始体验)。
+
+## 02 · 记忆如何变成有依据的回答
+
+[![记忆与证据：原文、确认记忆和可选事件关系如何分层进入回答，来源更正如何让相关派生产物失效](assets/architecture-memory.svg)](assets/architecture-memory.svg)
+
+**原文是证据，确认记忆是个人背景，事件关系与后台推导保留条件。** 存储可以扩容，检索与上下文始终有界；一条联系有来源，不等于已经证明因果。
+
+## 03 · 长期任务如何续做与补缺口
+
+[![长期任务：计划、明确批准、写作、独立核对和交付；缺口触发本地补查与待确认的计划调整，而非自动付费循环](assets/architecture-task-loop.svg)](assets/architecture-task-loop.svg)
+
+**恢复状态，不擅自恢复付费执行。** 核对不改写冻结草稿；缺口需要新分析时先展示计划，由用户确认、批准。来源变化只让受影响的依赖分支失效，不重做全部工作。[完整运行契约 →](LONG_PROJECT_RUNTIME.md)
+
+<details>
+<summary>按图找代码</summary>
+
+| 图中位置 | 当前实现 |
+|---|---|
+| 执行骨架与有界研究协调 | [`harness_runtime.py`](../docthinker/harness_runtime.py) · [`research_service.py`](../docthinker/server/research_service.py) |
+| 原文与时间化记忆 | [`research_store.py`](../docthinker/server/research_store.py) · [`research_memory.py`](../docthinker/server/research_memory.py) |
+| 事件与定向证据检索 | [`personal_events.py`](../docthinker/server/personal_events.py) · [`research_event_reasoning.py`](../docthinker/server/research_event_reasoning.py) |
+| Insight 与后台材料组织 | [`insight_runtime.py`](../docthinker/server/insight_runtime.py) · [`research_context_assist.py`](../docthinker/server/research_context_assist.py) |
+| 持久计划与检查点 | [`project_task_runtime.py`](../docthinker/server/project_task_runtime.py) · [`long_project_store.py`](../docthinker/server/long_project_store.py) |
+| 核对与缺口反馈 | [`research_review_stage.py`](../docthinker/server/research_review_stage.py) · [`project_evidence_controller.py`](../docthinker/server/project_evidence_controller.py) |
+
+三张图是代码结构示意，不是性能跑分或因果正确性证明。程序管理范围、版本、预算与调度；模型承担语义理解和表达。RSI 的独立评测、采纳与完整回滚仍是[研究路线](RSI_ROADMAP.md)，没有画成已上线功能。
+
+</details>
+
+<details>
+<summary>原始框架图（原素材保留）</summary>
+
+![原私人助手分层记忆框架，历史设计视图](assets/agentic_memory_architecture.png)
+
+此图为保留的原框架素材；当前运行连接与产品边界以上面的三张图和下方工程参考为准。
+
+</details>
+
+<details>
+<summary>工程参考：详细算法、预算、限制与历史设计</summary>
+
+以下保留原有工程说明及章节锚点，便于核对具体参数。它不是第二套与图解并行的新架构。
 
 后续算法设计及文献依据见 [基于相关工作的图谱、增长与自改进设计](RESEARCH_GROUNDED_DESIGN.md)。该文区分研究证据、实现现状和待验证方案，不表示下面列出的缺口已经修复。
 
@@ -234,3 +284,5 @@ flowchart LR
 ## 研究参照
 
 此处的 RSI 判断是对仓库调用链的工程分析，不是论文结果复现。DGM 用修改 Agent 代码与实证评测研究自我改进；SEAL 研究生成自适应数据与模型更新。仓库中的同名 `SEAL` 模块只代表本项目实现，不能据此声称复现这些能力。参见 [DGM 原论文](https://arxiv.org/abs/2505.22954)、[SEAL 原论文](https://arxiv.org/abs/2506.10943)。
+
+</details>

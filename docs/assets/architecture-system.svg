@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850" role="img" aria-labelledby="title desc">
+  <title id="title">DocThinker 2.0：私人助手的系统架构</title>
+  <desc id="desc">当前有界研究路径的逻辑架构，非所有部署的功能清单。聊天和获批准的项目步骤在同一 Harness 下经过本地检索、分层上下文、兼容模型与可追溯交付。文档、确认记忆及可选事件结构按范围和开关读取；Insight Schema 辅助检索与组织证据。原完整 GraphCore 服务另列，不能与邀请默认模式混同。连线表示数据或控制流，不表示因果证明。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="m2 2 6 3-6 3" fill="none" stroke="#687f70" stroke-width="1.4"/></marker>
+    <marker id="gold-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="m2 2 6 3-6 3" fill="none" stroke="#b89865" stroke-width="1.4"/></marker>
+    <style>
+      text{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;fill:#263b36}
+      .eyebrow{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:16px;letter-spacing:2px;fill:#687f70}
+      .title{font-size:36px;font-weight:600;letter-spacing:-1px}
+      .heading{font-size:23px;font-weight:600}
+      .label{font-size:21px}
+      .note{font-size:18px;fill:#68786e}
+      .tiny{font-size:18px;fill:#68786e}
+      .route{fill:none;stroke:#687f70;stroke-width:1.8;marker-end:url(#arrow)}
+      .assist{fill:none;stroke:#b89865;stroke-width:1.5;stroke-dasharray:5 6;marker-end:url(#gold-arrow)}
+      .icon{fill:none;stroke:#687f70;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    </style>
+  </defs>
+  <rect width="1200" height="850" fill="#faf9f5"/>
+  <text x="56" y="43" class="eyebrow">01 / SYSTEM MAP</text>
+  <text x="56" y="96" class="title">一个私人助手，一套执行骨架。</text>
+  <text x="56" y="132" class="note">有界研究路径 · 当前实现的逻辑连接，不等于所有入口都已开放</text>
+
+  <path d="M58 170H1142" stroke="#d9ded4"/>
+  <text x="72" y="204" class="label">网页 / 移动客户端</text>
+  <path d="M288 197H352" class="route"/>
+  <text x="375" y="204" class="label">私人连接 / 邀请鉴权网关</text>
+  <path d="M687 197H752" class="route"/>
+  <text x="776" y="204" class="label">用户隔离的研究服务</text>
+  <path d="M1010 219V247" class="route"/>
+
+  <rect x="48" y="255" width="1104" height="340" rx="26" fill="#eff2ea"/>
+  <text x="76" y="293" class="heading">Harness</text>
+  <text x="76" y="321" class="note">身份 · 范围 · 版本 · 预算 · 请求回执</text>
+  <text x="1123" y="293" class="eyebrow" text-anchor="end">ONE EXECUTION OWNER</text>
+
+  <path d="M210 370H125V409" class="assist"/>
+  <text x="118" y="352" class="note">获批准的项目步骤</text>
+  <text x="488" y="351" class="heading" fill="#9c7c4d">Insight Schema</text>
+  <text x="488" y="379" class="note">知识方法 / 证据要求 / 本地补查</text>
+  <path d="M493 390C477 408 419 407 395 426M685 390C685 408 650 409 625 420M750 390C852 407 1034 390 1075 409" class="assist"/>
+
+  <path d="M165 453H316M414 453H553M652 453H793M891 453H1032" class="route"/>
+  <g fill="#faf9f5" stroke="#687f70" stroke-width="1.7">
+    <circle cx="125" cy="453" r="38"/>
+    <circle cx="365" cy="453" r="38"/>
+    <circle cx="605" cy="453" r="38"/>
+    <circle cx="845" cy="453" r="38"/>
+    <circle cx="1075" cy="453" r="38"/>
+  </g>
+  <g class="icon">
+    <path d="M111 441h28v19h-16l-9 7v-7h-3z"/>
+    <circle cx="362" cy="450" r="10"/><path d="m370 458 9 9"/>
+    <path d="M591 442h27M591 453h27M591 464h18"/>
+    <path d="m845 435 17 10v17l-17 10-17-10v-17zM828 445l17 10 17-10M845 455v17"/>
+    <path d="M1062 436h20l7 7v25h-27zM1082 436v8h7M1069 454h13M1069 460h8"/>
+  </g>
+  <g class="label" text-anchor="middle">
+    <text x="125" y="521">接收请求</text><text x="365" y="521">本地检索</text>
+    <text x="605" y="521">分层上下文</text><text x="845" y="521">模型生成</text>
+    <text x="1075" y="521">可追溯交付</text>
+  </g>
+  <g class="tiny" text-anchor="middle">
+    <text x="125" y="550">聊天 / 写作 / 续做</text><text x="365" y="550">BM25 · MMR · 补查</text>
+    <text x="605" y="550">证据与线索分开</text><text x="845" y="550">兼容模型 API</text>
+    <text x="1075" y="550">正文 / 引用 / 缺口</text>
+  </g>
+
+  <path d="M241 641V620H365M529 641V620H365M817 641V620H529" class="icon"/>
+  <path d="M365 620H252V490Q252 476 268 476H327" class="route"/>
+  <g fill="#687f70"><circle cx="241" cy="653" r="5"/><circle cx="529" cy="653" r="5"/></g>
+  <circle cx="817" cy="653" r="5" fill="#faf9f5" stroke="#b89865" stroke-width="1.8"/>
+  <text x="261" y="660" class="label">原文片段</text>
+  <text x="549" y="660" class="label">确认记忆</text>
+  <text x="837" y="660" class="label">可选事件结构</text>
+  <g class="note">
+    <text x="261" y="690">页码 / 偏移 / 来源</text><text x="549" y="690">有效期 / 修订历史</text>
+    <text x="837" y="690">方向 / 条件 / 来源锚点</text>
+  </g>
+  <text x="56" y="734" class="note">按用户、项目、批准范围与开关读取；知识卡和分析线索不能冒充原文事实。</text>
+
+  <path d="M58 760H1142" stroke="#d9ded4"/>
+  <text x="58" y="792" class="eyebrow">SEPARATE PATH</text>
+  <text x="255" y="792" class="note">原完整图谱服务 · 不属于邀请默认研究路径</text>
+  <text x="58" y="823" class="note">Flask UI → FastAPI → QueryHarness → AgentMemoryCore / GraphCore</text>
+</svg>

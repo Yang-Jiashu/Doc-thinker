@@ -37,6 +37,8 @@ FIXED = (
     ".dockerignore", "LICENSE", "CONTRIBUTING.md", "README.md", "README.zh-CN.md", "logo.png",
     *ORIGINAL_README_ASSETS,
     "docs/assets/docthinker-v2-overview.svg",
+    "docs/assets/architecture-system.svg", "docs/assets/architecture-memory.svg",
+    "docs/assets/architecture-task-loop.svg",
     "docs/ARCHITECTURE.md", "docs/PRODUCTIZATION.md", "docs/INVITE_WEB_BETA.md",
     "docs/MOBILE_APP.md", "docs/RESEARCH_GROUNDED_DESIGN.md", "docs/RSI_ROADMAP.md",
     "docs/WORKBENCH_PRODUCT_DESIGN.md", "docs/VOICE_MODELS.md", "docs/WECHAT_MINIPROGRAM.md",
