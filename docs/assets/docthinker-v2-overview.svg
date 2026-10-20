@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500" role="img" aria-labelledby="title desc">
+  <title id="title">DocThinker — memory, evidence, continuity</title>
+  <desc id="desc">Conceptual workflow, not a product screenshot or benchmark. Confirmed memories retain changes; version-bound evidence supports answers; approved tasks can resume. Useful decisions return to memory only with user confirmation.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 7 4 1 7" fill="none" stroke="#8b938f" stroke-width="1.2"/></marker>
+    <marker id="gold-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 7 4 1 7" fill="none" stroke="#b58b49" stroke-width="1.2"/></marker>
+    <style>
+      text{font-family:Arial,Helvetica,sans-serif;fill:#243b36}
+      .eyebrow{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:2px;fill:#72817b}
+      .heading{font-family:Georgia,'Times New Roman',serif;font-size:29px;letter-spacing:-.7px}
+      .label{font-size:15px}
+      .small{font-size:12px;fill:#75817b}
+      .link{fill:none;stroke:#c7d3cb;stroke-width:1.3}
+      .node{fill:#fbfaf6;stroke:#618578;stroke-width:1.4}
+      .hint{fill:#fbfaf6;stroke:#b8c1ba;stroke-dasharray:3 4}
+    </style>
+  </defs>
+  <rect width="1200" height="500" fill="#fbfaf6"/>
+  <path d="M48 108H1152M48 446H1152" stroke="#dfe3da"/>
+  <text x="64" y="43" class="eyebrow">01 / MEMORY</text>
+  <text x="64" y="83" class="heading">Know what changed.</text>
+  <text x="451" y="43" class="eyebrow">02 / EVIDENCE</text>
+  <text x="451" y="83" class="heading">See what supports it.</text>
+  <text x="879" y="43" class="eyebrow">03 / CONTINUITY</text>
+  <text x="879" y="83" class="heading">Pick up the thread.</text>
+
+  <path d="M84 155V321" class="link"/>
+  <circle cx="84" cy="161" r="5" class="node"/>
+  <text x="106" y="157" class="label">Your preferences</text>
+  <text x="106" y="178" class="small">Confirmed, not silently assumed</text>
+  <circle cx="84" cy="238" r="5" class="node"/>
+  <text x="106" y="234" class="label">A revised decision</text>
+  <text x="106" y="255" class="small">The change keeps its source</text>
+  <path d="M275 235H306" stroke="#c2c6bc" stroke-dasharray="3 4"/>
+  <text x="278" y="221" class="small">v1</text>
+  <circle cx="319" cy="238" r="10" fill="#edf1e7" stroke="#75927d"/>
+  <text x="312" y="242" font-size="10">v2</text>
+  <circle cx="84" cy="315" r="5" fill="#527c6b"/>
+  <text x="106" y="311" class="label">The current context</text>
+  <text x="106" y="332" class="small">Recall what matters for this task</text>
+
+  <g class="link">
+    <path d="M353 313C397 313 411 272 469 272" marker-end="url(#arrow)"/>
+    <path d="M494 266 577 224 658 257 739 207M577 224 547 162M658 257 710 320M494 266 531 333"/>
+  </g>
+  <path d="M658 257 773 289" stroke="#b9beb3" stroke-width="1.2" stroke-dasharray="4 5"/>
+  <circle cx="494" cy="266" r="11" class="node"/>
+  <circle cx="577" cy="224" r="16" fill="#edf1e7" stroke="#527c6b" stroke-width="1.5"/>
+  <circle cx="658" cy="257" r="19" fill="#e1ebe1" stroke="#527c6b" stroke-width="1.5"/>
+  <circle cx="547" cy="162" r="6" class="node"/>
+  <circle cx="739" cy="207" r="6" class="node"/>
+  <circle cx="710" cy="320" r="6" class="node"/>
+  <circle cx="531" cy="333" r="6" class="node"/>
+  <circle cx="781" cy="291" r="7" class="hint"/>
+  <text x="467" y="147" class="small">Original passage [S1]</text>
+  <text x="687" y="187" class="small">Current decision</text>
+  <text x="478" y="358" class="small">Bound to source + version</text>
+  <text x="717" y="348" class="small">Missing evidence?</text>
+  <text x="750" y="367" class="small">Keep it unknown.</text>
+  <text x="571" y="228" font-size="12">S1</text>
+  <text x="650" y="262" font-size="14">v2</text>
+
+  <path d="M687 251C749 251 790 163 858 163" class="link" marker-end="url(#arrow)"/>
+  <path d="M896 165V319" class="link"/>
+  <circle cx="896" cy="165" r="11" fill="#527c6b"/>
+  <path d="m891 165 3 3 6-7" fill="none" stroke="#fff" stroke-width="1.5"/>
+  <text x="922" y="161" class="label">Saved draft</text>
+  <text x="922" y="182" class="small">Sources stay attached</text>
+  <circle cx="896" cy="240" r="15" fill="#f6f0df" stroke="#bc985e"/>
+  <circle cx="896" cy="240" r="5" fill="#bc985e"/>
+  <text x="922" y="236" class="label">Review the evidence</text>
+  <text x="922" y="257" class="small">Support / counterevidence / unknown</text>
+  <circle cx="896" cy="315" r="8" class="hint"/>
+  <text x="922" y="311" class="label">Continue when approved</text>
+  <text x="922" y="332" class="small">Valid work is not repeated</text>
+
+  <path d="M895 353V393H85V353" fill="none" stroke="#c3a374" stroke-width="1.1" marker-end="url(#gold-arrow)"/>
+  <rect x="339" y="380" width="419" height="26" fill="#fbfaf6"/>
+  <text x="355" y="397" font-size="12" fill="#967442">Useful decisions return to memory — with your confirmation.</text>
+  <text x="64" y="474" class="eyebrow">ONE HARNESS</text>
+  <text x="219" y="474" class="small">Scoped retrieval · Insight Schema · Evidence review · Approved checkpoints</text>
+  <text x="1057" y="474" class="eyebrow">DOC / 02</text>
+</svg>

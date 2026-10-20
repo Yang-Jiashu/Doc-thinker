@@ -28,6 +28,7 @@ def test_bundle_rejects_non_build_inputs(name):
 
 @pytest.mark.parametrize("name", ["docthinker/server/invite_runtime.py", "graphcore/coregraph/utils.py",
     "clients/mobile/src/pages/studio/index.vue", "clients/mobile/src/static/brand/logo.png", "logo.png",
+    "docs/assets/docthinker-v2-overview.svg",
     "deploy/invite/requirements.txt", "deploy/invite/backup.py", ".dockerignore", "docs/ARCHITECTURE.md", "docs/PRODUCTIZATION.md",
     "docs/RELEASE_ACCEPTANCE_2026-10-12.md",
     "docs/RELEASE_ACCEPTANCE_2026-10-20.md",
@@ -122,7 +123,8 @@ def test_actual_source_bundle_can_load_all_knowledge_and_insight_modules(tmp_pat
     destination = tmp_path / "extracted"
     with zipfile.ZipFile(output) as archive:
         manifest = json.loads(archive.read(f"{pack.PREFIX}/PACKAGE-MANIFEST.json"))
-        for name in ("logo.png", *pack.ORIGINAL_README_ASSETS):
+        for name in ("logo.png", *pack.ORIGINAL_README_ASSETS,
+                     "docs/assets/docthinker-v2-overview.svg"):
             expected = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
             assert manifest["files"][name] == expected
             assert hashlib.sha256(archive.read(f"{pack.PREFIX}/{name}")).hexdigest() == expected
