@@ -13,7 +13,8 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Isolate the bounded runner from legacy runs stuck awaiting cancellation.
+  group: ci-v2-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
