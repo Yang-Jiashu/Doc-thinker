@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "source_commit": "2970ef978f29137df73b1e5f03804cca4cc55c70",
+  "client_build": {
+    "pwa_version": "cec9a1149a7e93be2b1b",
+    "command": "npm run build:h5"
+  },
+  "external_model_calls": 0,
+  "captures": [
+    {
+      "path": "docs/assets/current-ui-workspace.gif",
+      "mode": "offline-sample",
+      "viewport": {"width": 1180, "height": 820},
+      "width": 1000,
+      "height": 695,
+      "frames": 149,
+      "duration_ms": 29870,
+      "sha256": "ad8c040d55c4f792dd52cbd9f54a819de2798ae2904b5d371ddc1351806b7104",
+      "source_video_sha256": "9d839278eb162c4f47be39898f785a38091a941e175db79b387ebde4d55c2d7d",
+      "actions": [
+        "Show a prepared personal-task draft in the labelled offline sample.",
+        "Expand project tools and choose Continue project.",
+        "Inspect the existing-draft protection choices and append the recipe.",
+        "Collapse the tools and inspect the combined draft without sending it."
+      ]
+    },
+    {
+      "path": "docs/assets/current-ui-memory.gif",
+      "mode": "isolated-runtime-local-model-stub",
+      "viewport": {"width": 1180, "height": 820},
+      "width": 1000,
+      "height": 695,
+      "frames": 124,
+      "duration_ms": 19620,
+      "sha256": "0f298063072a7daa51bb103d2a1a038a0b7c33c2f54355fc231c2c14303a5ec5",
+      "source_video_sha256": "aae7898432e3abd72fa3426a2048e84daadab4ef6004312eb2918479701d8966",
+      "actions": [
+        "Save and confirm a synthetic response preference through the real isolated memory API.",
+        "Correct the preference and explicitly confirm the new version.",
+        "Open version history and inspect versions 1 and 2; no model request is made."
+      ]
+    },
+    {
+      "path": "docs/assets/current-ui-graph.gif",
+      "mode": "offline-sample",
+      "viewport": {"width": 1180, "height": 820},
+      "width": 1000,
+      "height": 695,
+      "frames": 171,
+      "duration_ms": 22750,
+      "sha256": "942bb356b5b9d4c730cc6dd18e8a127748850a8f2df4e9b00b0e1dba67b06081",
+      "source_video_sha256": "f4987303c220a8bf7f08581ea65c172f0e0c08b5e2008eb0b0621989d3751161",
+      "actions": [
+        "Use the labelled fixed energy graph with 6 nodes and 5 edges.",
+        "Enter the policy-tools/domestic-supply question and locate its two-hop path.",
+        "Open renewable-energy investment, inspect its relationships and simulated passage.",
+        "Return to the question context and previous graph view."
+      ]
+    },
+    {
+      "path": "docs/assets/current-ui-projects.gif",
+      "mode": "isolated-runtime-local-model-stub",
+      "viewport": {"width": 1180, "height": 820},
+      "width": 1000,
+      "height": 695,
+      "frames": 135,
+      "duration_ms": 21120,
+      "sha256": "b5c8cb9a8f6e2b2c2b46a3ba5f42d2fadb5e4300919d06546ac8049644ed49c0",
+      "source_video_sha256": "fb6c904020292dbf653fc04600a2629984dfe00478965273a53f9f8144870d6e",
+      "actions": [
+        "Expand long tasks and open a previously saved and approved synthetic moving-plan task.",
+        "Refresh its actual checkpoint state: 2 of 4 steps completed.",
+        "Inspect completed inventory/composition and a blocked independent review.",
+        "Retain provider_outcome_unknown and the no-automatic-retry warning; do not claim a final report or successful delivery."
+      ]
+    }
+  ]
+}

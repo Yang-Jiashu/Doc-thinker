@@ -21,14 +21,41 @@
 
 *原品牌视觉保持不变；当前功能与运行边界见下方展示。*
 
-## 先看它怎么用
+## 当前 2.0 界面，直接看怎么用
+
+下面是当前 H5 的真实操作录屏，不是界面概念图；每段都标明数据与运行方式。[录制过程与复现说明 →](docs/UI_SHOWCASE.md)
+
+### 01　你的问题，从草稿开始
 
 <p align="center">
-  <img src="docs/assets/usecase_chat.gif" width="48%" alt="原文档问答 Demo：对话中使用材料" />
-  <img src="docs/assets/usecase_kg.gif" width="48%" alt="原交互图谱 Demo：查看知识之间的联系" />
+  <a href="docs/assets/current-ui-workspace.gif"><img src="docs/assets/current-ui-workspace.gif" width="900" alt="当前 2.0 工作台：编辑个人任务草稿，追加快捷模板，不自动发送" /></a>
 </p>
 
-*原版完整桌面端演示：左边聊材料，右边看关联；素材保持不变，不是所有部署都开放这些功能。邀请模式默认仅聊天与历史，文档和确认记忆需显式启用研究核心及上传权限，完整图谱、语音与自动学习不随邀请模式开放。*
+*离线样例：写下个人任务，再把快捷模板追加到草稿；没有发送问题、调用模型或启动任务。*
+
+### 02　记住你确认的，也保留你改过的
+
+<p align="center">
+  <a href="docs/assets/current-ui-memory.gif"><img src="docs/assets/current-ui-memory.gif" width="900" alt="当前 2.0 确认记忆：保存回答偏好、修正内容并查看版本 1 和版本 2" /></a>
+</p>
+
+*隔离测试服务实操作：保存偏好、确认修正，再查看版本 1 与版本 2；走真实网关与 SQLite，不调用模型，不代表系统自动学到了偏好。*
+
+### 03　想看联系，也能回到依据
+
+<p align="center">
+  <a href="docs/assets/current-ui-graph.gif"><img src="docs/assets/current-ui-graph.gif" width="900" alt="当前 2.0 图谱交互：定位示例实体、查看联系与模拟原文" /></a>
+</p>
+
+*离线固定样例：6 个节点、5 条边，实际操作定位、路径与节点详情；原文为模拟片段，连线不证明因果，也不代表从真实资料中现场建图。*
+
+### 04　留下进度，也知道何时停下
+
+<p align="center">
+  <a href="docs/assets/current-ui-projects.gif"><img src="docs/assets/current-ui-projects.gif" width="900" alt="当前 2.0 任务检查点：打开已批准计划、刷新进度并查看核对受阻状态" /></a>
+</p>
+
+*隔离服务实操作：查看已批准的计划、已保存步骤和明确受阻状态。本地模型替身不支持独立核对请求，界面不展示最终报告，也不自动重试结果未知的调用。这是异常保护演示，不是 AI 成功交付。*
 
 ## 不止回答这一次
 
@@ -58,7 +85,20 @@
 
 *以上三图是当前有界研究路径的逻辑架构示意，不是所有产品入口的功能清单，也不构成复杂因果可靠性的证明。*
 
-## 把记忆和关联，看见、改动、检查
+## 历史 UI（旧版）
+
+以下保留旧版桌面界面，**不是上方当前 2.0 的界面演示**；所有原始素材保持可见、未改动。
+
+### 旧版对话与图谱
+
+<p align="center">
+  <img src="docs/assets/usecase_chat.gif" width="48%" alt="旧版文档问答 Demo：对话中使用材料" />
+  <img src="docs/assets/usecase_kg.gif" width="48%" alt="旧版交互图谱 Demo：查看知识之间的联系" />
+</p>
+
+*原完整桌面端历史演示；邀请模式默认仅聊天与历史，资料和确认记忆需显式开启，完整图谱、语音与自动学习不随邀请模式开放。*
+
+### 旧版记忆观测与 GPU 图谱
 
 <p align="center">
   <img src="docs/assets/memory_kg_observability_demo.gif" width="48%" alt="原记忆与图谱可观测性 Demo" />
@@ -67,7 +107,15 @@
 
 *原版完整图谱演示，展示记忆与关联的可观察方式；不表示邀请默认路径启用了 GPU、图谱增长或自动学习。*
 
-## 原版框架参考
+### 旧版记忆编辑
+
+<p align="center">
+  <a href="docs/assets/ui_memory_editor_screenshot.png"><img src="docs/assets/ui_memory_editor_screenshot.png" width="900" alt="旧版可编辑记忆界面，非当前 2.0 截图" /></a>
+</p>
+
+*旧版记忆编辑截图；当前确认记忆的保存、修正与版本回看见上方录屏。*
+
+## 原版框架参考（旧版）
 
 以下保留原版设计与界面，均可点开看原图；当前实现与运行边界以上方 2.0 架构图和[架构文档](docs/ARCHITECTURE.md)为准。
 
@@ -102,14 +150,6 @@
 </p>
 
 *原版多智能体演进设计，不代表完整 RSI 已实现。*
-
-### 记忆可以编辑
-
-<p align="center">
-  <a href="docs/assets/ui_memory_editor_screenshot.png"><img src="docs/assets/ui_memory_editor_screenshot.png" width="900" alt="原可编辑记忆界面" /></a>
-</p>
-
-*原版记忆编辑界面，展示查看与修改记忆的交互。*
 
 ### 图查询如何辅助
 
