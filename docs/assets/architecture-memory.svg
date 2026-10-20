@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="670" viewBox="0 0 1120 670" role="img" aria-labelledby="memory-title memory-desc">
+  <title id="memory-title">DocThinker：记忆、事件与证据如何进入回答</title>
+  <desc id="memory-desc">有界 research 路径的实现示意。原文证据、用户确认记忆与有来源锚点的显式事件并行进入分层上下文；后台分析结果只是线索，不升级为原文事实。回答绑定来源、记忆与事件的版本。撤回或变更沿实际依赖使旧产物失效，读取时重新核对；旧稿不重新成为当前证据。事件的方向和条件不是因果证明，未确认候选不自动进入确认记忆。</desc>
+  <defs>
+    <marker id="memory-arrow" viewBox="0 0 9 9" refX="8" refY="4.5" markerWidth="7" markerHeight="7" orient="auto"><path d="m1 1 6 3.5L1 8" fill="none" stroke="#687f70" stroke-width="1.3"/></marker>
+    <marker id="memory-gold-arrow" viewBox="0 0 9 9" refX="8" refY="4.5" markerWidth="7" markerHeight="7" orient="auto"><path d="m1 1 6 3.5L1 8" fill="none" stroke="#b89865" stroke-width="1.3"/></marker>
+    <marker id="memory-red-arrow" viewBox="0 0 9 9" refX="8" refY="4.5" markerWidth="7" markerHeight="7" orient="auto"><path d="m1 1 6 3.5L1 8" fill="none" stroke="#b76b56" stroke-width="1.3"/></marker>
+    <style>
+      text{font-family:'PingFang SC','Microsoft YaHei',Arial,sans-serif;fill:#263b36}
+      .eyebrow{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:16px;letter-spacing:2px;fill:#687f70}
+      .title{font-family:Georgia,'Times New Roman','Songti SC',serif;font-size:35px;letter-spacing:-.5px}
+      .heading{font-size:22px;font-weight:600}
+      .body{font-size:18px;fill:#68786f}
+      .small{font-size:18px;fill:#68786f}
+      .gold{fill:#9c7c48}
+      .red{fill:#a35f4d}
+      .wire{fill:none;stroke:#a4b2a7;stroke-width:1.5}
+      .direct{fill:none;stroke:#687f70;stroke-width:1.6;marker-end:url(#memory-arrow)}
+      .hint{fill:none;stroke:#b89865;stroke-width:1.5;stroke-dasharray:4 6;marker-end:url(#memory-gold-arrow)}
+      .point{fill:#faf9f5;stroke:#687f70;stroke-width:1.6}
+    </style>
+  </defs>
+  <rect width="1120" height="670" fill="#faf9f5"/>
+  <text x="48" y="40" class="eyebrow">02 / MEMORY &amp; EVIDENCE</text>
+  <text x="48" y="85" class="title">记得住，也说得清依据。</text>
+  <text x="48" y="116" class="body">有界 research 路径 · 证据、个人背景与分析线索，各有自己的位置。</text>
+  <path d="M48 137H1072" stroke="#dcded4"/>
+
+  <!-- Three distinct inputs: sources, confirmed memory, explicit events. -->
+  <text x="64" y="182" class="heading">原文证据</text>
+  <text x="64" y="209" class="body">原句 · 页码 · 字符位置</text>
+  <g transform="translate(69 235)" fill="#faf9f5" stroke="#687f70" stroke-width="1.5">
+    <path d="M7 0h41l13 13v64H7Z"/>
+    <path d="M48 0v13h13M16 30h34M16 41h28M16 63h34" fill="none"/>
+    <path d="M-1 9v77h55" fill="none" stroke="#c9d0c5"/>
+    <path d="M14 49h39v8H14Z" fill="#e4e9dd" stroke="none"/>
+  </g>
+  <text x="148" y="269" class="body">[S1]</text>
+  <text x="148" y="297" class="small">连续原文窗口</text>
+  <path d="M213 265c47 0 45-37 89-37h306c29 0 28 22 55 22" class="direct"/>
+
+  <text x="64" y="374" class="heading">用户确认记忆</text>
+  <text x="64" y="401" class="body">偏好 · 决策 · 发现</text>
+  <path d="M76 432H217" class="wire"/>
+  <circle cx="79" cy="432" r="5" fill="#faf9f5" stroke="#bfc7bb" stroke-width="1.5"/>
+  <circle cx="137" cy="432" r="5" fill="#faf9f5" stroke="#bfc7bb" stroke-width="1.5"/>
+  <circle cx="209" cy="432" r="9" fill="#e4ebde" stroke="#687f70" stroke-width="1.6"/>
+  <text x="67" y="463" class="small">v1</text>
+  <text x="127" y="463" class="small">v2</text>
+  <text x="196" y="463" class="body">v3</text>
+  <text x="249" y="420" class="small">有效时间 + 修订</text>
+  <path d="M219 432h346c67 0 50-121 98-121" class="direct"/>
+
+  <text x="361" y="182" class="heading">显式事件关系</text>
+  <text x="361" y="209" class="body">人物 · 时间 · 方向 · 条件</text>
+  <ellipse cx="456" cy="309" rx="114" ry="67" fill="#eef0e6" opacity=".65"/>
+  <path d="M377 291 454 266 541 313" class="direct"/>
+  <path d="M377 291 445 349 541 313" class="wire"/>
+  <path d="M454 266 445 349" fill="none" stroke="#b89865" stroke-width="1.4" stroke-dasharray="3 5"/>
+  <circle cx="377" cy="291" r="9" class="point"/>
+  <circle cx="454" cy="266" r="13" fill="#dce6d8" stroke="#687f70" stroke-width="1.6"/>
+  <circle cx="541" cy="313" r="9" class="point"/>
+  <circle cx="445" cy="349" r="8" fill="#faf9f5" stroke="#b89865" stroke-width="1.5"/>
+  <text x="348" y="322" class="small">事件</text>
+  <text x="485" y="268" class="small">依赖</text>
+  <text x="474" y="359" class="small gold">假设</text>
+  <text x="361" y="387" class="body">每条记录带来源锚点</text>
+  <path d="M551 313c46 0 59-32 112-32" class="direct"/>
+
+  <!-- The packet preserves evidence classes instead of flattening them. -->
+  <text x="685" y="182" class="heading">分层上下文</text>
+  <text x="685" y="209" class="body">项目范围内有界检索</text>
+  <path d="M674 242v83" stroke="#cbd3c5" stroke-width="2"/>
+  <circle cx="674" cy="250" r="4" fill="#687f70"/>
+  <circle cx="674" cy="281" r="4" fill="#687f70"/>
+  <circle cx="674" cy="311" r="4" fill="#687f70"/>
+  <text x="694" y="256" class="body">原文 → 证据</text>
+  <text x="694" y="287" class="body">事件 → 结构</text>
+  <text x="694" y="317" class="body">记忆 → 背景</text>
+  <path d="M840 281h71" class="direct"/>
+
+  <text x="903" y="182" class="heading">可检查的回答</text>
+  <path d="M938 237h52l17 17v66h-69Z" fill="#f2f3ea" stroke="#687f70" stroke-width="1.5"/>
+  <path d="M990 237v17h17M951 270h42M951 281h34M951 303h31" fill="none" stroke="#a2b09e" stroke-width="1.5"/>
+  <circle cx="1002" cy="312" r="13" fill="#faf9f5" stroke="#b89865" stroke-width="1.5"/>
+  <path d="m996 312 4 4 8-9" fill="none" stroke="#b89865" stroke-width="1.6"/>
+  <text x="903" y="351" class="body">回答 · 引用 · 缺口</text>
+
+  <text x="685" y="402" class="heading gold">后台分析线索</text>
+  <text x="685" y="431" class="body">类比 / 演绎 / 归纳</text>
+  <text x="685" y="459" class="small">辅助找材料，不冒充事实</text>
+  <path d="M850 410c29 0 22-67 22-123" class="hint"/>
+
+  <!-- Withdrawal follows actual dependencies, not a fictional causal chain. -->
+  <path d="M48 496H1072" stroke="#dcded4"/>
+  <text x="64" y="533" class="heading">每次交付，绑定当前版本</text>
+  <text x="64" y="564" class="body">来源哈希 / 记忆修订 / 事件版本</text>
+  <path d="M425 551h66" fill="none" stroke="#b76b56" stroke-width="1.5" marker-end="url(#memory-red-arrow)"/>
+  <text x="511" y="533" class="heading red">撤回或变更</text>
+  <text x="511" y="564" class="body">按实际依赖传播失效</text>
+  <path d="M744 551h55" fill="none" stroke="#b76b56" stroke-width="1.5" marker-end="url(#memory-red-arrow)"/>
+  <text x="820" y="533" class="heading">读取时重新核对</text>
+  <text x="820" y="564" class="body">旧稿不复活为当前证据</text>
+  <path d="M48 591H1072" stroke="#dcded4"/>
+  <circle cx="70" cy="622" r="4" fill="#b89865"/>
+  <text x="85" y="628" class="small">未确认候选，不自动写入记忆。</text>
+  <circle cx="582" cy="622" r="4" fill="#b76b56"/>
+  <text x="597" y="628" class="small">有方向、有出处的连接 ≠ 因果证明。</text>
+</svg>

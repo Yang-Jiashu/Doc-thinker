@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="640" viewBox="0 0 1120 640" role="img" aria-labelledby="title desc">
+  <title id="title">DocThinker：超长程任务与证据反馈</title>
+  <desc id="desc">项目、阶段和有界 DAG 复用同一 Harness。用户明确批准后，写作节点以最多一次模型调用先保存正常草稿，审核失败仍保留草稿；独立批准的核对节点以最多一次调用检查冻结正文和相同原文窗口，不改稿。缺口进入同一授权范围的本地补查，候选材料不等于验收通过。另需分析时先生成 CAS 计划预览，由用户确认保存、必要时刷新输入并再次批准；补证重写产生新的 compose 与 verify 节点，不自动重试或付费。来源与版本变化只使受影响依赖分支失效；报告读取当前版本和依据。检查点重启恢复状态，不自动执行；调用成功不等于任务完成。</desc>
+  <defs>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M1 1 L9 5 L1 9" fill="none" stroke="#687f70" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrow-gold" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M1 1 L9 5 L1 9" fill="none" stroke="#b89865" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      text { font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #263b36; }
+      .serif { font-family: Georgia, "Times New Roman", serif; }
+      .heading { font-size: 30px; font-weight: 600; }
+      .label { font-size: 22px; font-weight: 500; }
+      .note { font-size: 18px; fill: #65736b; }
+      .ink { stroke: #263b36; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+      .green { stroke: #687f70; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+      .gold { stroke: #b89865; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1120" height="640" fill="#faf9f5"/>
+  <text x="48" y="39" class="note serif" letter-spacing="2">03 / CONTINUITY</text>
+  <text x="48" y="87" class="heading">长程，不是把一次对话拉得更长。</text>
+  <text x="48" y="122" class="note">Project → Phase → 有界 DAG · 同一 Harness，分阶段继续</text>
+  <path d="M48 145 H1072" stroke="#dde2d9" stroke-width="1"/>
+
+  <!-- A single execution spine; each analysis node requires explicit approval. -->
+  <path d="M120 221 H296 M346 221 H522 M572 221 H748 M798 221 H974" class="green" marker-end="url(#arrow-green)"/>
+  <text x="660" y="183" class="note" text-anchor="middle">每个已批准分析节点 ≤ 1 次模型调用</text>
+
+  <circle cx="96" cy="221" r="24" fill="#f0f2eb" stroke="#687f70" stroke-width="1.5"/>
+  <path d="M87 211 H99 M87 221 H105 M87 231 H99 M102 211 L107 216 L102 221" class="ink"/>
+  <circle cx="322" cy="221" r="24" fill="#f3ecde" stroke="#b89865" stroke-width="1.5"/>
+  <path d="M311 221 L319 229 L333 213" class="ink"/>
+  <circle cx="548" cy="221" r="24" fill="#edf1e9" stroke="#687f70" stroke-width="1.5"/>
+  <path d="M539 210 H553 L558 215 V232 H539 Z M552 210 V216 H558 M544 222 H553 M544 227 H551" class="ink"/>
+  <circle cx="774" cy="221" r="24" fill="#edf1e9" stroke="#687f70" stroke-width="1.5"/>
+  <path d="M763 210 H777 L782 215 V232 H763 Z M776 210 V216 H782 M768 224 L772 228 L779 220" class="ink"/>
+  <circle cx="1000" cy="221" r="24" fill="#f0f2eb" stroke="#687f70" stroke-width="1.5"/>
+  <path d="M987 212 H997 Q1000 212 1000 215 Q1000 212 1003 212 H1013 V231 H1003 Q1000 231 1000 234 Q1000 231 997 231 H987 Z M1000 215 V232" class="ink"/>
+
+  <g text-anchor="middle">
+    <text x="96" y="274" class="label">版本化计划</text>
+    <text x="96" y="304" class="note">目标 · 范围 · 验收</text>
+    <text x="322" y="274" class="label">明确批准</text>
+    <text x="322" y="304" class="note">不隐式追加调用</text>
+    <text x="548" y="274" class="label">写作 compose</text>
+    <text x="548" y="304" class="note">核对失败仍保留草稿</text>
+    <text x="774" y="274" class="label">核对 verify</text>
+    <text x="774" y="304" class="note">独立批准 · 不改稿</text>
+    <text x="1000" y="274" class="label">报告与验收</text>
+    <text x="1000" y="304" class="note">版本引用 · 用户确认</text>
+  </g>
+
+  <!-- The lower lane proposes work; it grants no additional execution. -->
+  <path d="M774 331 V374 Q774 396 752 396 H344 Q322 396 322 374 V329" class="gold" marker-end="url(#arrow-gold)"/>
+  <path d="M631 396 H399" class="gold" marker-end="url(#arrow-gold)"/>
+  <circle cx="650" cy="396" r="6" fill="#b89865"/>
+  <circle cx="322" cy="396" r="6" fill="#b89865"/>
+  <text x="868" y="369" class="note" text-anchor="middle">冻结正文与同一原文窗口</text>
+  <g text-anchor="middle">
+    <text x="650" y="435" class="label">缺口 → 同范围本地补查</text>
+    <text x="650" y="465" class="note">候选 ≠ 验收通过；缺证仍保留</text>
+    <text x="302" y="435" class="label">CAS 计划预览</text>
+    <text x="302" y="465" class="note">用户确认保存 · 必要时刷新</text>
+    <text x="510" y="499" class="note">再次批准 → 补证重写 refine_of → 独立核对；不自动重试或付费</text>
+  </g>
+
+  <path d="M48 526 H1072" stroke="#dde2d9" stroke-width="1"/>
+  <!-- A changed source invalidates one dependent branch, not the whole project. -->
+  <g class="green">
+    <path d="M66 571 H92 M92 571 L115 552 M92 571 L115 590 M115 552 H137"/>
+    <circle cx="66" cy="571" r="4" fill="#faf9f5"/>
+    <circle cx="115" cy="552" r="4" fill="#faf9f5"/>
+  </g>
+  <path d="M115 590 H137" stroke="#b76b56" stroke-width="1.7" stroke-dasharray="3 4"/>
+  <circle cx="115" cy="590" r="4" fill="#faf9f5" stroke="#b76b56" stroke-width="1.5"/>
+  <text x="164" y="560" class="label">仅受影响分支失效</text>
+  <text x="164" y="590" class="note">来源／版本变化 → 当前报告重读依据</text>
+  <path d="M622 551 V591 M616 551 H628 M616 591 H628" class="green"/>
+  <circle cx="622" cy="571" r="5" fill="#687f70"/>
+  <text x="655" y="560" class="label">检查点持久化</text>
+  <text x="655" y="590" class="note">重启恢复状态，不自动执行</text>
+  <text x="1072" y="625" class="note" text-anchor="end">调用成功 ≠ 任务完成 · 核对结果不是因果证明</text>
+</svg>

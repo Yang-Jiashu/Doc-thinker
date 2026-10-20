@@ -1,8 +1,8 @@
-"""Offline README delivery checks; no Markdown renderer or browser required.
+"""Offline visual-document checks; no Markdown renderer or browser required.
 
 The checks protect valid links and self-contained artwork, not prose, layout or
 marketing wording. Repository documentation links need not all ship in the
-explicitly restricted invitation package; README images do.
+explicitly restricted invitation package; README and architecture images do.
 """
 from __future__ import annotations
 
@@ -20,6 +20,12 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 READMES = ("README.md", "README.zh-CN.md")
 OVERVIEW = "docs/assets/docthinker-v2-overview.svg"
+ARCHITECTURE = "docs/ARCHITECTURE.md"
+ARCHITECTURE_IMAGES = (
+    "docs/assets/architecture-system.svg",
+    "docs/assets/architecture-memory.svg",
+    "docs/assets/architecture-task-loop.svg",
+)
 SVG_NS = "http://www.w3.org/2000/svg"
 _DESTINATION = r'\]\(\s*(?:<([^>\n]+)>|([^\s)\n]+))'
 
@@ -69,6 +75,13 @@ def local_target(root: Path, source: str, target: str) -> Path | None:
     return resolved
 
 
+def _pack_contract():
+    spec = importlib.util.spec_from_file_location("readme_invite_pack", ROOT / "deploy/invite/pack.py")
+    pack = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(pack)
+    return pack
+
+
 def validate_svg(source: str) -> None:
     """Require accessible SVG with only in-document resource references."""
     if re.search(r"<!\s*(?:DOCTYPE|ENTITY)\b", source, re.I):
@@ -114,9 +127,7 @@ class ReadmeAssetsTests(unittest.TestCase):
                         self.assertTrue(path.exists(), f"Missing local README target: {target}")
 
     def test_all_readme_images_ship_in_explicit_invitation_package(self):
-        spec = importlib.util.spec_from_file_location("readme_invite_pack", ROOT / "deploy/invite/pack.py")
-        pack = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(pack)
+        pack = _pack_contract()
         self.assertIn(OVERVIEW, pack.FIXED)
         self.assertNotIn(OVERVIEW, pack.ORIGINAL_README_ASSETS)
         for name in READMES:
@@ -132,6 +143,31 @@ class ReadmeAssetsTests(unittest.TestCase):
 
     def test_new_overview_is_accessible_self_contained_svg(self):
         validate_svg((ROOT / OVERVIEW).read_text(encoding="utf-8"))
+
+    def test_architecture_local_links_exist_and_images_ship_in_package(self):
+        pack = _pack_contract()
+        references = readme_references((ROOT / ARCHITECTURE).read_text(encoding="utf-8"))
+        self.assertTrue(references)
+        images = set()
+        for target, image in references:
+            with self.subTest(document=ARCHITECTURE, target=target):
+                path = local_target(ROOT, ARCHITECTURE, target)
+                if path is not None:
+                    self.assertTrue(path.exists(), f"Missing local architecture target: {target}")
+                    if image:
+                        relative = path.relative_to(ROOT).as_posix()
+                        images.add(relative)
+                        self.assertTrue(pack.allowed(PurePosixPath(relative)))
+        self.assertTrue(set(ARCHITECTURE_IMAGES).issubset(images))
+        for name in ARCHITECTURE_IMAGES:
+            with self.subTest(image=name):
+                self.assertIn(name, pack.FIXED)
+                self.assertNotIn(name, pack.ORIGINAL_README_ASSETS)
+
+    def test_architecture_diagrams_are_accessible_self_contained_svgs(self):
+        for name in ARCHITECTURE_IMAGES:
+            with self.subTest(image=name):
+                validate_svg((ROOT / name).read_text(encoding="utf-8"))
 
     def test_links_handle_nested_images_fragments_and_encoded_names(self):
         body = ('[![diagram](docs/diagram.svg)](docs/guide%20one.md#section)\n'
@@ -149,6 +185,9 @@ class ReadmeAssetsTests(unittest.TestCase):
             guide.touch()
             self.assertEqual(local_target(root, "README.md", "docs/guide%20one.md#section"), guide)
             self.assertEqual(local_target(root, "README.md", "/docs/guide%20one.md?plain=1#section"), guide)
+            self.assertEqual(local_target(root, "docs/ARCHITECTURE.md", "guide%20one.md#section"), guide)
+            self.assertEqual(local_target(root, "docs/ARCHITECTURE.md", "../README.md#start"),
+                             root / "README.md")
             self.assertIsNone(local_target(root, "README.md", "#section"))
             self.assertIsNone(local_target(root, "README.md", "https://example.invalid/missing.md"))
             self.assertFalse(local_target(root, "README.md", "docs/missing.md#part").exists())
