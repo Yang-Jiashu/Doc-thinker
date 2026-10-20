@@ -40,14 +40,34 @@ jobs:
           pip install -e ".[all]"
           pip install pytest pytest-asyncio
       - name: Run tests
+        shell: bash
         # Keep every existing test. A hang fails with captured diagnostics,
         # rather than consuming the six-hour default with no useful report.
         run: |
           mkdir -p ci-artifacts
+          # A detached child can keep a tee pipe open after pytest is killed.
+          # Write to a regular file so the deadline always reaches upload.
+          set +e
           timeout --signal=TERM --kill-after=30s 8m \
-            python -X faulthandler -m pytest tests/ -v --ignore=tests/debug_db.py \
+            python -u -X faulthandler -c '
+          import faulthandler
+          import sys
+
+          faulthandler.dump_traceback_later(90, exit=True)
+
+          class CollectionWatchdog:
+              def pytest_collection_finish(self, session):
+                  faulthandler.cancel_dump_traceback_later()
+
+          import pytest
+          raise SystemExit(pytest.main(sys.argv[1:], plugins=[CollectionWatchdog()]))
+          ' tests/ -v --ignore=tests/debug_db.py \
             -o faulthandler_timeout=60 --junitxml=ci-artifacts/unit.xml \
-            2>&1 | tee ci-artifacts/pytest.log
+            >ci-artifacts/pytest.log 2>&1
+          status=$?
+          set -e
+          tail -n 200 ci-artifacts/pytest.log || true
+          exit "$status"
       - name: Upload full-suite diagnostics
         if: always()
         uses: actions/upload-artifact@v4
