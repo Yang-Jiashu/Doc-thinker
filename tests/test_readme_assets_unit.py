@@ -11,6 +11,7 @@ from html.parser import HTMLParser
 import importlib.util
 from pathlib import Path, PurePosixPath
 import re
+import struct
 from tempfile import TemporaryDirectory
 import unittest
 from urllib.parse import unquote, urlsplit
@@ -41,6 +42,97 @@ class _HTMLReferences(HTMLParser):
                 self.references.append((value, tag == "img" and key == "src"))
 
     handle_startendtag = handle_starttag
+
+
+class _InlineImageGroups(HTMLParser):
+    """Keep paragraph rows separate; linked images retain their row identity."""
+    _VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta",
+             "param", "source", "track", "wbr"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.groups = []
+        self.parents = []
+        self.current = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "p":
+            # A new paragraph also ends a preceding implicitly closed <p>.
+            self.current = []
+            self.groups.append(self.current)
+            self.parents = ["p"]
+        elif self.current is not None:
+            if tag == "br":
+                self.current = []
+                self.groups.append(self.current)
+            elif tag == "img" and all(parent == "a" for parent in self.parents[1:]):
+                source = dict(attrs).get("src")
+                if source:
+                    self.current.append(source)
+            if tag not in self._VOID:
+                self.parents.append(tag)
+
+    def handle_startendtag(self, tag, attrs):
+        self.handle_starttag(tag, attrs)
+        if tag not in self._VOID:
+            self.handle_endtag(tag)
+
+    def handle_endtag(self, tag):
+        if self.current is not None and tag in self.parents:
+            last = len(self.parents) - 1 - self.parents[::-1].index(tag)
+            self.parents = self.parents[:last]
+            if tag == "p":
+                self.current = None
+
+
+def inline_image_groups(body: str) -> list[list[str]]:
+    """Find actual inline HTML rows, not paragraph markup quoted in examples."""
+    body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
+    body = re.sub(r"(?ms)^\s*(?:```|~~~).*?^\s*(?:```|~~~)[^\n]*$", "", body)
+    body = re.sub(r"`[^`\n]+`", "", body)
+    parser = _InlineImageGroups()
+    parser.feed(body)
+    parser.close()
+    return [group for group in parser.groups if group]
+
+
+def raster_dimensions(path: Path) -> tuple[int, int]:
+    """Read only the PNG IHDR or GIF logical-screen header, not image frames."""
+    with path.open("rb") as stream:
+        signature = stream.read(8)
+        if signature == b"\x89PNG\r\n\x1a\n":
+            header = signature + stream.read(16)  # 24 bytes total, including IHDR dimensions.
+            if len(header) != 24 or header[8:16] != b"\x00\x00\x00\rIHDR":
+                raise ValueError("Missing PNG dimensions: " + str(path))
+            width, height = struct.unpack(">II", header[16:24])
+        elif signature[:6] in {b"GIF87a", b"GIF89a"}:
+            header = signature + stream.read(2)  # Exactly 10 bytes, even for a large animation.
+            if len(header) != 10:
+                raise ValueError("Missing GIF dimensions: " + str(path))
+            width, height = struct.unpack("<HH", header[6:10])
+        else:
+            raise ValueError("Unsupported raster header: " + str(path))
+    if not width or not height:
+        raise ValueError("Invalid raster dimensions: " + str(path))
+    return width, height
+
+
+def validate_inline_proportions(root: Path, source: str, body: str) -> None:
+    """At equal width, row heights must stay within 1.4x of each other.
+
+    This guards intrinsic diagram proportions, not fixed pixel widths, prose,
+    ordering or a particular screenshot. Single images and separate rows are
+    independent; SVG and remote assets are not decoded or fetched here.
+    """
+    for group in inline_image_groups(body):
+        heights = []
+        for target in group:
+            path = local_target(root, source, target)
+            if path is not None and path.suffix.lower() in {".png", ".gif"}:
+                width, height = raster_dimensions(path)
+                heights.append(height / width)
+        if len(heights) > 1 and max(heights) / min(heights) > 1.4:
+            raise ValueError("Inline image proportions differ by more than 1.4x: " + ", ".join(group))
 
 
 def readme_references(body: str) -> list[tuple[str, bool]]:
@@ -116,6 +208,58 @@ def validate_svg(source: str) -> None:
 
 
 class ReadmeAssetsTests(unittest.TestCase):
+    def test_bilingual_inline_image_groups_have_compatible_proportions(self):
+        for name in READMES:
+            with self.subTest(readme=name):
+                validate_inline_proportions(ROOT, name, (ROOT / name).read_text(encoding="utf-8"))
+
+    def test_inline_groups_preserve_paragraphs_links_and_explicit_line_breaks(self):
+        body = ('<p><a href="one.png"><img src="one.png"/></a><img\n src="two.gif"/></p>'
+                '<p><img src="portrait.png"/></p><p><img src="wide.gif"/></p>'
+                '<p><img src="top.png"/><br/><a href="bottom.gif"><img src="bottom.gif"/></a></p>'
+                '<p><img src="implicit-one.png"><p><img src="implicit-two.gif"></p>'
+                '<!-- <p><img src="hidden.png"></p> -->\n'
+                '```html\n<p><img src="sample.png"></p>\n```\n')
+        self.assertEqual(inline_image_groups(body), [
+            ["one.png", "two.gif"], ["portrait.png"], ["wide.gif"],
+            ["top.png"], ["bottom.gif"], ["implicit-one.png"], ["implicit-two.gif"],
+        ])
+
+    def test_raster_header_proportions_accept_similar_rows_and_reject_mixed_rows(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            files = {
+                "wide.png": b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR" + struct.pack(">II", 800, 400),
+                "wide.gif": b"GIF89a" + struct.pack("<HH", 1600, 800),
+                "portrait.png": b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR" + struct.pack(">II", 400, 1200),
+                "near.gif": b"GIF87a" + struct.pack("<HH", 800, 560),
+                "over.gif": b"GIF89a" + struct.pack("<HH", 800, 564),
+            }
+            for name, header in files.items():
+                (root / name).write_bytes(header)
+            self.assertEqual(raster_dimensions(root / "wide.png"), (800, 400))
+            self.assertEqual(raster_dimensions(root / "wide.gif"), (1600, 800))
+            validate_inline_proportions(root, "README.md", '<p><img src="wide.png"><img src="wide.gif"></p>')
+            validate_inline_proportions(root, "README.md", '<p><img src="wide.png"><img src="near.gif"></p>')
+            validate_inline_proportions(root, "README.md",
+                '<p><img src="portrait.png"></p><p><img src="wide.gif"></p>')
+            validate_inline_proportions(root, "README.md",
+                '<p><img src="portrait.png"><br><img src="wide.gif"></p>')
+            for invalid in (
+                '<p><img src="portrait.png"><img src="wide.gif"></p>',
+                '<p><a href="portrait.png"><img src="portrait.png"></a>'
+                '<a href="wide.gif"><img src="wide.gif"></a></p>',
+                '<p><img src="wide.png"><img src="over.gif"></p>',
+            ):
+                with self.subTest(markup=invalid), self.assertRaisesRegex(ValueError, "1.4x"):
+                    validate_inline_proportions(root, "README.md", invalid)
+            for invalid in (b"GIF89a", b"\x89PNG\r\n\x1a\n", b"not an image",
+                            b"GIF89a" + struct.pack("<HH", 0, 800)):
+                path = root / "invalid.gif"
+                path.write_bytes(invalid)
+                with self.subTest(header=invalid), self.assertRaises(ValueError):
+                    raster_dimensions(path)
+
     def test_bilingual_local_links_and_images_exist(self):
         for name in READMES:
             references = readme_references((ROOT / name).read_text(encoding="utf-8"))

@@ -40,14 +40,13 @@ Your materials, confirmed memories and ongoing projects belong in one conversati
 
 [![System architecture: the shared Harness controls retrieval, context, models and delivery; the original full graph service remains a separate path](docs/assets/architecture-system.svg)](docs/assets/architecture-system.svg)
 
-**Code supplies the skeleton:** scope, indexing, bounded search, budgets and scheduling; **models supply interpretation and expression**. Optional Insight Schema methods assist evidence gathering in the background, not through separate reasoning modes.
+Code handles scope, search and execution budgets. Models interpret and write, with Insight Schema assisting evidence gathering in the background.
 
-<p align="center">
-  <img src="docs/assets/pipeline.png" width="48%" alt="Original document-processing pipeline" />
-  <img src="docs/assets/gpu_knowledge_graph_demo.gif" width="48%" alt="Original GPU knowledge-graph demonstration" />
-</p>
+### Explore the graph
 
-*Original processing and graph views; full multimodal parsing and graph interaction are not enabled by the restricted invitation deployment.*
+[![Original GPU knowledge-graph demonstration](docs/assets/gpu_knowledge_graph_demo.gif)](docs/assets/gpu_knowledge_graph_demo.gif)
+
+*Original desktop demo. Full graph interaction is separate from the restricted invitation deployment.*
 
 ## 02 · A memory you can correct, not just accumulate
 
@@ -55,19 +54,17 @@ Your materials, confirmed memories and ongoing projects belong in one conversati
 
 **Sources are evidence; confirmed memories are personal context; relationships retain their conditions.** Correct or withdraw an input, and dependent results become stale; storage can expand while each retrieval and prompt stays bounded.
 
-<p align="center">
-  <img src="docs/assets/memory_kg_observability_demo.gif" width="48%" alt="Original memory and knowledge-graph observability demo" />
-  <img src="docs/assets/ui_memory_editor_screenshot.png" width="48%" alt="Original editable memory interface" />
-</p>
+### Inspect a memory and its connections
 
-*Original observability and editing interfaces. A traceable connection is not proof of causation, and a recalled preference is not automatic preference learning.*
+[![Original memory and knowledge-graph observability demo](docs/assets/memory_kg_observability_demo.gif)](docs/assets/memory_kg_observability_demo.gif)
 
-<p align="center">
-  <img src="docs/assets/agentic_memory_architecture.png" width="48%" alt="Original layered personal-agent memory architecture" />
-  <img src="docs/assets/lifecycle.png" width="48%" alt="Original memory lifecycle" />
-</p>
+*Original desktop view; a traceable connection is not proof of causation.*
 
-*The original framework artwork remains visible; the new diagrams describe current runtime connections, not a replacement for these assets.*
+### Correct what the agent remembers
+
+[![Original editable memory interface](docs/assets/ui_memory_editor_screenshot.png)](docs/assets/ui_memory_editor_screenshot.png)
+
+*Original memory editor. Recalling confirmed context is not automatic preference learning.*
 
 ## 03 · Continue the project, not the entire transcript
 
@@ -75,12 +72,43 @@ Your materials, confirmed memories and ongoing projects belong in one conversati
 
 **Approve → compose → check → fill evidence gaps → revise → deliver.** Restart restores state, not permission to spend: further paid work needs approval, and changed sources invalidate only affected dependency branches.
 
+## Original framework reference
+
+Historical diagrams are retained unchanged. The three maps above describe current runtime connections; the artwork below is not an accepted feature list for every deployment.
+
+### Layered memory
+
+[![Original layered personal-agent memory architecture](docs/assets/agentic_memory_architecture.png)](docs/assets/agentic_memory_architecture.png)
+
+*The original memory framework.*
+
+### Document processing
+
 <p align="center">
-  <img src="docs/assets/multi_agent_evolution.png" width="48%" alt="Original multi-agent evolution framework illustration" />
-  <img src="docs/assets/sparql_cot.png" width="48%" alt="Original graph-query reasoning illustration" />
+  <a href="docs/assets/pipeline.png"><img src="docs/assets/pipeline.png" width="520" alt="Original document-processing pipeline" /></a>
 </p>
 
-*Historical research illustrations, not evidence that autonomous RSI or general causal reasoning is complete. Analogy, deduction and induction supply conditional analytical leads, not new facts.*
+*Portrait reference diagram; click to inspect at full resolution. Full multimodal parsing is not part of the restricted invitation profile.*
+
+### Memory lifecycle
+
+[![Original memory lifecycle](docs/assets/lifecycle.png)](docs/assets/lifecycle.png)
+
+*How the original design organized memory over time.*
+
+### Evolution research
+
+[![Original multi-agent evolution framework illustration](docs/assets/multi_agent_evolution.png)](docs/assets/multi_agent_evolution.png)
+
+*Historical research design, not evidence that autonomous RSI is complete.*
+
+### Graph-query reasoning
+
+<p align="center">
+  <a href="docs/assets/sparql_cot.png"><img src="docs/assets/sparql_cot.png" width="760" alt="Original graph-query reasoning illustration" /></a>
+</p>
+
+*Analogy, deduction and induction supply conditional analytical leads, not new facts or proof of general causal reliability.*
 
 ## Quick start
 
