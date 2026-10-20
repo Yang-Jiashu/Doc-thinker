@@ -12,6 +12,7 @@ from contextlib import contextmanager
 import fcntl
 import json
 import os
+import re
 from pathlib import Path
 import signal
 import subprocess
@@ -78,6 +79,47 @@ def fake_grounded_reply(messages):
     return "\n\n".join(paragraphs)
 
 
+def expected_output_cap(messages):
+    """Assert the real production profile, not the pre-review 8K fixture cap.
+
+    Only a separately rendered, validated host requirement packet activates
+    the reviewed profile. A marker inside a quoted user/source JSON string
+    cannot change this offline fake-provider contract.
+    """
+    data, _ = model_prompt_data(messages)
+    prompt = next(row['content'] for row in reversed(messages) if row['role'] == 'user')
+    marker = '\nTASK_REQUIREMENTS_DATA_JSON:\n'
+    if marker in '\n' + prompt:
+        packet, _ = json.JSONDecoder().raw_decode(('\n' + prompt).split(marker, 1)[1])
+        # The rendered contract is a compact pointer catalog, not the full
+        # private host packet validated before production rendering.
+        rows = packet.get('requirements') if type(packet) is dict else None
+        if (type(packet) is not dict or set(packet) != {'version', 'requirements_sha256', 'requirements'}
+                or type(packet['version']) is not int or packet['version'] not in {1, 2}
+                or type(packet['requirements_sha256']) is not str
+                or not re.fullmatch(r'[0-9a-f]{64}', packet['requirements_sha256'])
+                or type(rows) is not list or not 1 <= len(rows) <= 26):
+            raise ValueError('Invalid rendered host requirements')
+        seen = set()
+        for row in rows:
+            if type(row) is not dict or set(row) != {'id', 'kind', 'slot'}:
+                raise ValueError('Invalid rendered requirement identity')
+            key = row['id']
+            if type(key) is not str or key in seen or not re.fullmatch(r'Q1|G1|[PC](?:[1-9]|1[0-2])', key):
+                raise ValueError('Invalid rendered requirement identity')
+            seen.add(key)
+            kind, slot = (('task', 'original_step_question') if key == 'Q1' else
+                ('project_goal', 'project_goal') if key == 'G1' else
+                ('project_criterion', f'project_acceptance_criteria[{int(key[1:])-1}]') if key.startswith('P') else
+                ('criterion', f'phase_acceptance_criteria[{int(key[1:])-1}]'))
+            if row['kind'] != kind or row['slot'] != slot:
+                raise ValueError('Invalid rendered requirement slot')
+        if 'Q1' not in seen:
+            raise ValueError('Missing original task requirement')
+        return 16384
+    return 8192 if data.get('source_quotes') else 2048
+
+
 @contextmanager
 def fake_research_model(used):
     calls = []
@@ -90,8 +132,14 @@ def fake_research_model(used):
         assert body.get("model") == "offline-runtime-check"
         messages = body.get("messages", [])
         data, _ = model_prompt_data(messages)
-        expected_output_cap = 8192 if data.get("source_quotes") else 2048
-        assert body.get("max_tokens", body.get("max_completion_tokens")) == expected_output_cap
+        actual_cap = body.get("max_tokens", body.get("max_completion_tokens"))
+        expected_cap = expected_output_cap(messages)
+        if actual_cap != expected_cap:
+            # Numeric test-contract diagnostics only; never print prompts,
+            # user data, source bodies, tokens or credentials.
+            print(json.dumps({'fake_provider_expected_cap': expected_cap,
+                              'fake_provider_actual_cap': actual_cap}), flush=True)
+        assert actual_cap == expected_cap
         assert sum(len((row["role"] + row["content"]).encode()) for row in messages) <= 24576
         calls.append(messages)
         return {"id": "offline-research-check", "object": "chat.completion", "created": 1,

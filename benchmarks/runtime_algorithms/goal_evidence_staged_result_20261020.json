@@ -6,15 +6,23 @@
   "runner_sha256": "b383a59d68ea72d0fa971a69437a20259454af31703cfeebab6e34edf476c965",
   "software": {
     "backend_full_suite": {
-      "passed": 7071,
+      "passed": 7078,
       "skipped": 9,
       "subtests_passed": 13,
       "failed": 0,
-      "seconds": 176.03,
+      "seconds": 199.72,
       "junit": "goal_evidence_staged_full_20261020.xml.gz",
-      "uncompressed_junit_sha256": "65bff3e0a2b356e36af445dfeae950ad72ef30821336a5d83e07aad2108bdc8d",
+      "uncompressed_junit_sha256": "14ad69b01bc065c2bc1a00ad44c519874bf3e22ef3a565877b4021c18001f30e",
       "warning": "Existing FastAPI/Starlette test-client deprecation warning",
       "excludes_real_model_quality": true
+    },
+    "subprocess_followup": {
+      "script": "tests.manual_project_task_runtime_check",
+      "independent_local_runs_passed": 2,
+      "fake_calls_per_run": 5,
+      "vendor_calls": 0,
+      "rendered_requirement_and_budget_contract_tests_passed": 22,
+      "note": "Fixed the loopback provider's stale 8K/full-packet expectation; production code and real-model cohort fingerprint unchanged."
     },
     "mobile_tests": {"passed": 999, "failed": 0},
     "builds": {
