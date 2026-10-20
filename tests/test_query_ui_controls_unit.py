@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from html import unescape
 from pathlib import Path
 
@@ -13,6 +14,77 @@ from jinja2 import Environment, FileSystemLoader
 
 TEMPLATE = Path(__file__).parents[1] / "docthinker/ui/templates/query_modern.html"
 STATIC = TEMPLATE.parent.parent / "static"
+
+
+def _configured_browser():
+    browser = os.environ.get("DOCTHINKER_BROWSER_BIN")
+    if not browser:
+        message = "Set DOCTHINKER_BROWSER_BIN to run the sandboxed layout check"
+        if os.environ.get("DOCTHINKER_REQUIRE_BROWSER") == "1":
+            pytest.fail(message, pytrace=False)
+        pytest.skip(message)
+    if not Path(browser).is_file() or not os.access(browser, os.X_OK):
+        pytest.fail(f"Configured browser is not an executable file: {browser}", pytrace=False)
+    return browser
+
+
+def _save_browser_output(label, stdout, stderr):
+    artifacts = os.environ.get("DOCTHINKER_BROWSER_ARTIFACTS")
+    if artifacts:
+        output = Path(artifacts)
+        output.mkdir(parents=True, exist_ok=True)
+        for suffix, value in (("html", stdout), ("stderr.txt", stderr)):
+            if isinstance(value, bytes):
+                value = value.decode("utf-8", errors="replace")
+            (output / f"{label}.{suffix}").write_text(value or "", encoding="utf-8")
+
+
+def _assert_linux_sandbox(dom):
+    # chrome://sandbox reports the renderer's actual sandbox layers. Merely
+    # finding a browser, or checking sysctl values, is not sufficient.
+    text = re.sub(r"\s+", " ", unescape(re.sub(r"<[^>]+>", " ", dom)))
+    assert (re.search(r"Layer 1 Sandbox\s+(?:SUID|Namespace)\b", text)
+            or re.search(r"SUID Sandbox\s+Yes\b", text)
+            or re.search(r"Namespace Sandbox\s+Yes\b", text)), text
+    for layer in ("PID namespaces", "Network namespaces", "Seccomp-BPF sandbox"):
+        assert re.search(rf"{re.escape(layer)}\s+Yes\b", text), text
+
+
+@pytest.fixture(scope="module")
+def sandboxed_browser():
+    executable = _configured_browser()
+    if sys.platform.startswith("linux"):
+        assert os.geteuid() != 0, "Run Chromium as a non-root user with its sandbox enabled"
+    # Imported only after explicit browser admission. Ordinary unit tests do
+    # not need Playwright. Its default disables the sandbox, so enable it here.
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as p:
+        try:
+            browser = p.chromium.launch(
+                executable_path=executable, chromium_sandbox=True, headless=True,
+                args=["--disable-background-networking", "--disable-gpu"], timeout=30000,
+            )
+        except Exception as exc:
+            _save_browser_output("browser-launch", "", str(exc))
+            raise
+        try:
+            if sys.platform.startswith("linux"):
+                page = browser.new_page()
+                try:
+                    page.goto("chrome://sandbox", wait_until="domcontentloaded", timeout=30000)
+                    page.wait_for_selector("#sandbox-status tr", timeout=10000)
+                    dom = page.content()
+                    _save_browser_output("sandbox-status", dom, "")
+                    _assert_linux_sandbox(dom)
+                except Exception as exc:
+                    _save_browser_output("sandbox-status", page.content(), str(exc))
+                    raise
+                finally:
+                    page.close()
+            yield browser
+        finally:
+            browser.close()
 
 
 def test_query_template_preserves_accessible_control_bindings():
@@ -54,18 +126,17 @@ def test_shared_shell_keeps_navigation_available_on_small_screens(endpoint):
     assert 'aria-label="主导航"' in html
 
 
-def test_shell_survives_late_utility_css_in_real_browser(tmp_path):
+@pytest.mark.parametrize("width", [390, 768, 1280])
+def test_shell_survives_late_utility_css_in_real_browser(tmp_path, sandboxed_browser, width):
     """Exercise CSS cascade/layout, not just the presence of responsive rules.
 
     Opt in with DOCTHINKER_BROWSER_BIN in a sandbox-capable environment.
+    DOCTHINKER_REQUIRE_BROWSER=1 makes missing configuration a failure in CI.
     No browser download, package install, network request, or model call occurs.
     """
     # A browser on PATH is not proof its sandbox is usable (e.g. CI AppArmor
     # restrictions). Keep this explicit opt-in, and never add --no-sandbox or
     # suppress launch/layout failures when a browser was explicitly configured.
-    browser = os.environ.get("DOCTHINKER_BROWSER_BIN")
-    if not browser:
-        pytest.skip("Set DOCTHINKER_BROWSER_BIN to run the optional sandboxed layout check")
     environment = Environment(loader=FileSystemLoader(TEMPLATE.parent))
     page = environment.get_template("base_modern.html").render(request={"endpoint": "query_page"})
     page = page.replace('</head>', '<style>' + (STATIC / 'workspace.css').read_text() + '</style></head>')
@@ -101,34 +172,40 @@ def test_shell_survives_late_utility_css_in_real_browser(tmp_path):
     </script></body>""")
     fixture = tmp_path / "responsive-shell.html"
     fixture.write_text(page)
-    for width in (390, 768, 1280):
-        result = subprocess.run(
-            [browser, "--headless", "--disable-gpu", "--no-first-run",
-             "--disable-background-networking", "--force-device-scale-factor=1",
-             f"--user-data-dir={tmp_path / str(width)}", f"--window-size={width},844",
-             "--dump-dom", fixture.as_uri()],
-            text=True, capture_output=True, check=False, timeout=30,
-        )
-        assert result.returncode == 0, result.stderr
-        report = re.search(r'<pre id="layout-report">(.*?)</pre>', result.stdout, re.DOTALL)
-        assert report, result.stderr
-        layout = json.loads(unescape(report.group(1)))
-        viewport = layout["viewport"]
-        assert viewport["width"] == width, layout
-        assert layout["scrollWidth"] <= width, layout
-        assert layout["main"]["height"] > viewport["height"] * 0.75, layout
-        assert len(layout["links"]) == 3
-        if width <= 900:
-            assert layout["direction"] == "row", layout
-            assert 44 <= layout["sidebar"]["height"] < 100, layout
-            assert layout["main"]["width"] == width, layout
-            assert layout["main"]["y"] == layout["sidebar"]["height"], layout
-            assert all(link["height"] >= 44 and link["left"] >= 0 and link["right"] <= width
-                       for link in layout["links"]), layout
-        else:
-            assert layout["direction"] == "column", layout
-            assert layout["sidebar"]["width"] == 248, layout
-            assert layout["main"]["width"] == width - 248, layout
+    context = sandboxed_browser.new_context(
+        viewport={"width": width, "height": 844}, device_scale_factor=1,
+    )
+    page = context.new_page()
+    try:
+        page.goto(fixture.as_uri(), wait_until="load", timeout=30000)
+        report = page.locator("#layout-report")
+        report.wait_for(state="attached", timeout=10000)
+        layout = json.loads(report.text_content())
+        _save_browser_output(f"layout-{width}", page.content(), "")
+        artifacts = os.environ.get("DOCTHINKER_BROWSER_ARTIFACTS")
+        if artifacts:
+            page.screenshot(path=str(Path(artifacts) / f"layout-{width}.png"))
+    except Exception as exc:
+        _save_browser_output(f"layout-{width}", page.content(), str(exc))
+        raise
+    finally:
+        context.close()
+    viewport = layout["viewport"]
+    assert viewport["width"] == width, layout
+    assert layout["scrollWidth"] <= width, layout
+    assert layout["main"]["height"] > viewport["height"] * 0.75, layout
+    assert len(layout["links"]) == 3
+    if width <= 900:
+        assert layout["direction"] == "row", layout
+        assert 44 <= layout["sidebar"]["height"] < 100, layout
+        assert layout["main"]["width"] == width, layout
+        assert layout["main"]["y"] == layout["sidebar"]["height"], layout
+        assert all(link["height"] >= 44 and link["left"] >= 0 and link["right"] <= width
+                   for link in layout["links"]), layout
+    else:
+        assert layout["direction"] == "column", layout
+        assert layout["sidebar"]["width"] == 248, layout
+        assert layout["main"]["width"] == width - 248, layout
 
 
 def test_query_controls_ime_switches_and_mobile_inspector():
