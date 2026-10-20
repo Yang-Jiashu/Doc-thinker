@@ -24,10 +24,14 @@ def answer_parents_live(db, sid, answer_id, *, at, seen):
     proof_exists = db.execute("SELECT 1 FROM sqlite_master WHERE name='research_answer_evidence'").fetchone()
     deadline, inspected_bytes = time.monotonic() + .5, 0
 
+    def unavailable():
+        seen['inspection_unavailable'] = True
+        return None
+
     def node(identifier, *, is_parent):
         nonlocal inspected_bytes
         if time.monotonic() > deadline:
-            return None
+            return unavailable()
         metadata = db.execute('SELECT context_metadata_json FROM research_answers WHERE session_id=? AND answer_id=?',
                               (sid, identifier)).fetchone()
         if metadata is None:
@@ -39,7 +43,7 @@ def answer_parents_live(db, sid, answer_id, *, at, seen):
                          (sid, identifier)).fetchone() if exists else None
         inspected_bytes += len(metadata[0]) + (len(row['parents']) + len(row['task_refs']) if row and 'task_refs' in row.keys() else 0)
         if inspected_bytes > 8 * 1024 * 1024:
-            return None
+            return unavailable()
         if (row is not None or is_parent) and (not proof_exists or not db.execute(
                 'SELECT 1 FROM research_answer_evidence WHERE session_id=? AND answer_id=?', (sid, identifier)).fetchone()):
             return None
@@ -74,7 +78,10 @@ def answer_parents_live(db, sid, answer_id, *, at, seen):
                 if not seen['memo'][key] or node(parent, is_parent=True) is None:
                     return False
                 continue
-            if key in seen['active'] or time.monotonic() > deadline:
+            if time.monotonic() > deadline:
+                unavailable()
+                return False
+            if key in seen['active']:
                 return False
             seen['active'].add(key); owned.add(key)
             if not _source_answer_memory_live(db, sid, parent, at=at, seen=seen):

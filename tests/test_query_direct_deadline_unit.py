@@ -55,7 +55,7 @@ async def test_inherited_request_keeps_existing_deadline_and_propagates_unknown(
 
     service = research_environment(monkeypatch, operation)
     monkeypatch.setattr(api, 'SESSION_QUERY_TIMEOUT_SECONDS', 100)
-    with pytest.raises(TimeoutError):
+    with pytest.raises(asyncio.TimeoutError):
         await execute_run(lambda: api.query(QueryRequest(question='q', session_id='#00001'), BackgroundTasks()),
                           session_id='#00001', run_id='journal-owner', timeout_seconds=0.02)
     service.answer.assert_awaited_once()

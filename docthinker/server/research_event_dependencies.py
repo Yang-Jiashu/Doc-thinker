@@ -64,7 +64,11 @@ def event_bindings_live(db, sid, bindings, *, store=None, at=None, seen=None):
         from .personal_events import PersonalEvents
         return PersonalEvents._event_bindings_live(db, sid, checked, store=store,
             at=(store.clock() if store is not None else time.time()) if at is None else at, seen=seen)
-    except (ValueError, TypeError, KeyError, OverflowError, sqlite3.Error):
+    except sqlite3.Error:
+        if seen is not None:
+            seen['inspection_unavailable'] = True
+        return False
+    except (ValueError, TypeError, KeyError, OverflowError):
         return False
 
 
@@ -89,7 +93,11 @@ def answer_events_live(db, sid, answer_id, *, at=None, seen=None):
         if any(metadata.get(key) != value for key, value in expected.items()):
             return False
         return event_bindings_live(db, sid, bindings, at=at, seen=seen)
-    except (ValueError, TypeError, KeyError, AttributeError, sqlite3.Error):
+    except sqlite3.Error:
+        if seen is not None:
+            seen['inspection_unavailable'] = True
+        return False
+    except (ValueError, TypeError, KeyError, AttributeError):
         return False
 
 

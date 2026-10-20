@@ -138,7 +138,9 @@ class HarnessRun:
             self.status = "cancelled"
             self.emit("run.cancelled", payload={"external_outcome": "unknown"})
             raise
-        except asyncio.TimeoutError:
+        except (asyncio.TimeoutError, TimeoutError):
+            # Python 3.10 still distinguishes asyncio's deadline exception
+            # from a provider's built-in TimeoutError; both are ambiguous.
             self.status = "unknown"
             self.emit("run.unknown", payload={"reason": "timeout", "external_outcome": "unknown"})
             raise

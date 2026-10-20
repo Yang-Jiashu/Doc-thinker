@@ -156,7 +156,10 @@ async def test_client_disables_environment_proxies_redirects_and_configures_time
 
 
 @pytest.mark.parametrize("failure,status", [
-    (httpx.ReadTimeout(KEY), "timeout"), (httpx.ConnectError(KEY), "network_error"),
+    (httpx.ReadTimeout(KEY), "timeout"),
+    (TimeoutError(KEY), "timeout"),
+    (asyncio.TimeoutError(KEY), "timeout"),
+    (httpx.ConnectError(KEY), "network_error"),
 ])
 async def test_network_errors_never_echo_messages_or_retry(failure, status):
     calls = []

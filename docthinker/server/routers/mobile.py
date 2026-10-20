@@ -428,7 +428,7 @@ async def query(body: MobileQuestion, background_tasks: BackgroundTasks):
         except ModelResponseError as error:
             return JSONResponse({"request_status": "failed", "request_error": model_response_failure(error.code)},
                                 status_code=200, headers={"Cache-Control": "no-store"})
-        except asyncio.TimeoutError:
+        except (asyncio.TimeoutError, TimeoutError):
             raise HTTPException(504, "处理超时，请先查看历史记录，避免重复提交") from None
         finally:
             _active_queries.discard(sid)

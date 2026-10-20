@@ -5,6 +5,7 @@ scope, handoff and withdrawal checks, not claims about model answer quality.
 """
 import asyncio
 import json
+import sqlite3
 import uuid
 
 import pytest
@@ -92,7 +93,7 @@ async def test_native_thirty_phases_survive_three_restarts_and_keyset_directory(
                 refs = [{'phase_id': previous['id'], 'report_version': 1, 'step_ids': ['draft']}] if previous else []
                 added = await phase(browser, sid, project, parents=refs, title='Phase ' + str(index + 1))
                 done = await execute(browser, sid, added['task'], calls=1)
-                assert done['status'] == 'completed', done
+                assert done['status'] == 'completed', {'phase_index': index, 'task': json.dumps(done, sort_keys=True)}
                 ids.append(added['phase']['id'])
                 previous = added['phase']
             assert mobile.model.await_count == 30
@@ -110,6 +111,42 @@ async def test_native_thirty_phases_survive_three_restarts_and_keyset_directory(
             assert seen == ids and (await current_project(browser, sid, project))['phase_count'] == 30
             assert (await artifact(browser, sid, added['task']['id']))['available']
             assert mobile.model.await_count == 30
+    finally:
+        await project_tasks.shutdown_project_tasks()
+
+
+async def test_native_phase_read_under_real_writer_lock_denies_export_without_withdrawing_work(transport):
+    mobile, sid = transport.mobile, transport.sid
+    mobile.model.return_value = 'A private current draft. No external operation was executed.'
+    try:
+        async with mobile_client(mobile) as browser:
+            project = await new_project(browser, sid)
+            rows = [personal()]
+            first = await phase(browser, sid, project, rows=rows)
+            assert (await execute(browser, sid, first['task'], calls=1))['status'] == 'completed'
+            second = await phase(browser, sid, project, rows=rows,
+                parents=[{'phase_id': first['phase']['id'], 'report_version': 1, 'step_ids': ['draft']}])
+            done = await execute(browser, sid, second['task'], calls=1)
+            assert done['status'] == 'completed'
+            _, runtime, _ = await project_tasks._context(sid)
+            before = runtime.store.get_task(second['task']['id'])
+            with sqlite3.connect(mobile.service.store.path) as writer:
+                writer.execute('BEGIN EXCLUSIVE')
+                # Read-only status/export cannot publish a positive result or
+                # permanently withdraw artifacts on an unavailable snapshot.
+                for route, params in [('/workbench/task', {'task_id': second['task']['id']}),
+                                      ('/workbench/task/artifact', {'task_id': second['task']['id'],
+                                                                  'step_id': 'report', 'version': 1})]:
+                    response = await browser.get(PREFIX + route, params={'session_id': sid, **params})
+                    assert response.status_code == 409, response.text
+                    assert 'private current draft' not in response.text
+                assert mobile.model.await_count == 2
+                assert runtime.store.get_task(second['task']['id']) == before
+                writer.rollback()
+            current = await browser.get(PREFIX + '/workbench/task', params={'session_id': sid, 'task_id': second['task']['id']})
+            assert current.status_code == 200 and current.json()['task']['status'] == 'completed', current.text
+            assert (await artifact(browser, sid, second['task']['id']))['available']
+            assert mobile.model.await_count == 2
     finally:
         await project_tasks.shutdown_project_tasks()
 

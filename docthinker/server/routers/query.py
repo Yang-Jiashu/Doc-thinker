@@ -823,7 +823,7 @@ async def query_stream(request: QueryRequest, background_tasks: BackgroundTasks)
                 and not _is_context_budget_failure(full_answer)
             )
 
-        except asyncio.TimeoutError:
+        except (asyncio.TimeoutError, TimeoutError):
             _log.warning(f"[T+{_elapsed()}s] TIMEOUT in aquery_stream")
             yield yield_chunk("抱歉，检索或生成超时。")
             raise
@@ -864,7 +864,7 @@ async def query(request: QueryRequest, background_tasks: BackgroundTasks):
         return await execute_run(lambda: _query_impl(request, background_tasks),
                                  session_id=request.session_id,
                                  timeout_seconds=SESSION_QUERY_TIMEOUT_SECONDS)
-    except asyncio.TimeoutError:
+    except (asyncio.TimeoutError, TimeoutError):
         if inherited:
             # Preserve the durable owner's unknown-outcome bookkeeping; a
             # local deadline cannot prove that a provider request rolled back.
@@ -995,7 +995,7 @@ async def _query_impl(request: QueryRequest, background_tasks: BackgroundTasks):
         if not answer:
             try:
                 answer = await _dispatch_query(request, session_rag, run_context, stream=False)
-            except asyncio.TimeoutError:
+            except (asyncio.TimeoutError, TimeoutError):
                 # A timed-out provider may already have processed the request.
                 # Only an explicit no-context result can use the fallback;
                 # transport/model errors must never trigger another paid call.

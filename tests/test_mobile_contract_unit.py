@@ -538,10 +538,11 @@ async def test_interrupted_old_process_request_is_unknown_never_retried(mobile, 
     ask.assert_not_called()
 
 
-async def test_provider_failure_is_unknown_and_never_echoes_or_retries_error(mobile, monkeypatch):
+@pytest.mark.parametrize("failure_type", [RuntimeError, TimeoutError, asyncio.TimeoutError])
+async def test_provider_failure_is_unknown_and_never_echoes_or_retries_error(mobile, monkeypatch, failure_type):
     with patch("dotenv.load_dotenv"):
         underlying = importlib.import_module("docthinker.server.routers.query")
-    ask = AsyncMock(side_effect=RuntimeError("private-synthetic-key /internal/path"))
+    ask = AsyncMock(side_effect=failure_type("private-synthetic-key /internal/path"))
     monkeypatch.setattr(underlying, "query", ask)
     payload = {"session_id": "#00001", "question": "synthetic", "request_id": REQUEST_ID}
     async with _client(mobile.app) as browser:
@@ -590,6 +591,20 @@ async def test_known_failure_without_legacy_request_id_is_not_reported_as_unknow
     assert result.status_code == 200 and result.json()["request_status"] == "failed"
     assert "request_id" not in result.json() and "answer" not in result.json()
     ask.assert_awaited_once()
+
+
+@pytest.mark.parametrize("failure_type", [TimeoutError, asyncio.TimeoutError])
+async def test_legacy_provider_timeout_is_504_without_retry_or_private_detail(mobile, monkeypatch, failure_type):
+    with patch("dotenv.load_dotenv"):
+        underlying = importlib.import_module("docthinker.server.routers.query")
+    ask = AsyncMock(side_effect=failure_type("private-synthetic-key /internal/path"))
+    monkeypatch.setattr(underlying, "query", ask)
+    async with _client(mobile.app) as browser:
+        result = await browser.post(PREFIX + "/query", json={"session_id": "#00001", "question": "hello"})
+    assert result.status_code == 504 and "request_status" not in result.json()
+    assert "private-synthetic-key" not in result.text and "/internal/path" not in result.text
+    ask.assert_awaited_once()
+    assert not mobile.api._active_queries
 
 
 async def test_invitation_worker_allows_one_live_model_across_two_sessions_but_status_works(mobile, monkeypatch):

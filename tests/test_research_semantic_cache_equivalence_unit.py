@@ -146,6 +146,122 @@ def test_byte_eviction_reencodes_logical_hits_never_removes_candidates(pair):
     assert actual["trace"]["legacy_passage_window_budget_used"] == 10
 
 
+def _assert_exact_vector_accounting(cache):
+    assert cache.retained_bytes >= 0
+    assert cache.retained_bytes == sum(cache._size(key, value) for key, value in cache.items())
+
+
+def test_vector_cache_mutations_charge_and_remove_each_entry_exactly_once():
+    cache = semantic._VectorCache()
+    keys = [(name, "fingerprint", "passage", "digest") for name in ("a", "b", "c")]
+    values = [
+        (np.zeros((size, semantic.MODEL_DIMENSION), dtype=np.float32),
+         False, tuple((i, i + 1) for i in range(size)))
+        for size in (1, 2, 3)
+    ]
+    try:
+        _assert_exact_vector_accounting(cache)
+        for key, value in zip(keys, values):
+            cache[key] = value
+            _assert_exact_vector_accounting(cache)
+        # Both growing and shrinking replacement must remove the previous charge.
+        cache[keys[1]] = values[2]
+        _assert_exact_vector_accounting(cache)
+        cache[keys[1]] = values[0]
+        _assert_exact_vector_accounting(cache)
+        cache.move_to_end(keys[0])
+        _assert_exact_vector_accounting(cache)
+        assert cache.popitem(last=False)[0] == keys[1]
+        _assert_exact_vector_accounting(cache)
+        assert cache.popitem(last=True)[0] == keys[0]
+        _assert_exact_vector_accounting(cache)
+        assert cache.pop(keys[2]) is values[2]
+        _assert_exact_vector_accounting(cache)
+        for last in (False, True):
+            with pytest.raises(KeyError):
+                cache.popitem(last=last)
+            _assert_exact_vector_accounting(cache)
+        with pytest.raises(KeyError):
+            cache.pop(keys[0])
+        _assert_exact_vector_accounting(cache)
+        cache[keys[0]] = values[0]
+        del cache[keys[0]]
+        _assert_exact_vector_accounting(cache)
+        for key, value in zip(keys, values):
+            cache[key] = value
+        cache.clear()
+        _assert_exact_vector_accounting(cache)
+        cache.clear()
+        _assert_exact_vector_accounting(cache)
+    finally:
+        cache.clear()
+
+
+@pytest.mark.parametrize("last", [False, True])
+def test_popitem_dispatches_one_explicit_deletion_on_every_python_version(last):
+    class Counted(semantic._VectorCache):
+        def __init__(self):
+            super().__init__()
+            self.deletions = []
+
+        def __delitem__(self, key):
+            self.deletions.append(key)
+            super().__delitem__(key)
+
+    cache = Counted()
+    keys = [(name, "fingerprint", "passage", "digest") for name in ("a", "b")]
+    value = (np.zeros((1, semantic.MODEL_DIMENSION), dtype=np.float32), False, ((0, 1),))
+    try:
+        for key in keys:
+            cache[key] = value
+        selected, popped = cache.popitem(last=last)
+        assert selected == keys[-1 if last else 0] and popped is value
+        assert cache.deletions == [selected]
+        _assert_exact_vector_accounting(cache)
+    finally:
+        cache.clear()
+
+
+def test_tiny_byte_trim_never_turns_negative_or_leaves_oversized_vectors():
+    cache = semantic._VectorCache()
+    semantic._LOGICAL_VECTORS.clear()
+    try:
+        keys = [(name, "fingerprint", "passage", "digest") for name in ("a", "b", "c")]
+        value = (np.zeros((1, semantic.MODEL_DIMENSION), dtype=np.float32), False, ((0, 1),))
+        for key in keys:
+            cache[key] = value
+            semantic._LOGICAL_VECTORS[key] = None
+        cache.trim(3, semantic.MODEL_DIMENSION * 4)
+        assert not cache and semantic._LOGICAL_VECTORS
+        _assert_exact_vector_accounting(cache)
+        assert cache.retained_bytes == 0
+        cache.trim(3, semantic.MODEL_DIMENSION * 4)
+        _assert_exact_vector_accounting(cache)
+    finally:
+        cache.clear()
+
+
+def test_identity_lru_popitem_accounting_has_no_double_deletion_hook():
+    # This class has no __delitem__ override, so its base popitem subtracts only
+    # here; unlike _VectorCache it cannot dispatch a second accounting update.
+    assert "__delitem__" not in semantic._IdentityLRU.__dict__
+    cache = semantic._IdentityLRU()
+    keys = [(name, "fingerprint", "passage", "digest") for name in ("a", "b", "c")]
+    for key in keys:
+        cache[key] = None
+    cache[keys[0]] = None
+    assert cache.retained_bytes == sum(cache._size(key) for key in cache)
+    for last in (False, True, False):
+        cache.popitem(last=last)
+        assert cache.retained_bytes >= 0
+        assert cache.retained_bytes == sum(cache._size(key) for key in cache)
+    with pytest.raises(KeyError):
+        cache.popitem()
+    assert cache.retained_bytes == 0
+    cache.clear()
+    assert cache.retained_bytes == 0
+
+
 def test_window_byte_estimate_retains_the_previous_worst_case_working_set():
     namespace = "𠀀" * 1024
     key = (namespace, "f" * 64, "passage", "h" * 64)

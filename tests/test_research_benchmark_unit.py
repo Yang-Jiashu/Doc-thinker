@@ -385,6 +385,45 @@ async def test_errors_are_terminal_never_retry_and_do_not_print_provider_prose(t
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("failure_type", [TimeoutError, asyncio.TimeoutError])
+async def test_native_provider_timeout_is_terminal_sanitized_and_never_redispatched(tmp_path, failure_type):
+    requests = []
+    async def handle(request):
+        requests.append(request)
+        raise failure_type("private-unit-key /internal/provider")
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handle)) as client:
+        model, journal = adapter(tmp_path, client)
+        with pytest.raises(ProviderError, match="timeout"):
+            await model("public paper", system_prompt="policy")
+        with pytest.raises(ProviderError, match="duplicate_dispatch_prevented"):
+            await model("public paper", system_prompt="policy")
+    assert len(requests) == 1 and journal.dispatched_count() == 1
+    assert model.metadata["status"] == "timeout"
+    assert "private-unit-key" not in journal.events.read_text()
+    assert "/internal/provider" not in journal.events.read_text()
+
+
+@pytest.mark.asyncio
+async def test_real_wait_for_deadline_is_terminal_sanitized_and_cleans_up_once(tmp_path):
+    requests, closed = [], []
+    async def handle(request):
+        requests.append(request)
+        try:
+            await asyncio.Event().wait()
+        finally:
+            closed.append(True)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handle)) as client:
+        model, journal = adapter(tmp_path, client, timeout_seconds=.01)
+        with pytest.raises(ProviderError, match="timeout"):
+            await model("public paper", system_prompt="policy")
+        with pytest.raises(ProviderError, match="duplicate_dispatch_prevented"):
+            await model("public paper", system_prompt="policy")
+    assert len(requests) == 1 and closed == [True] and journal.dispatched_count() == 1
+    assert model.metadata["status"] == "timeout"
+    assert "private-unit-key" not in journal.events.read_text()
+
+
+@pytest.mark.asyncio
 async def test_cancellation_is_indeterminate_and_resume_does_not_redispatch(tmp_path):
     entered = asyncio.Event()
     async def handle(_request):

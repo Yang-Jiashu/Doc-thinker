@@ -164,7 +164,10 @@ def test_capacity_lru_and_orphan_cleanup(tmp_path):
     assert len(list(root.rglob('*.pv'))) == 2
     assert fetch(root, {'i': 3}, max_entries=2)[1:] == ('hit', 0)
     assert fetch(root, {'i': 0}, max_entries=2)[1:] == ('stored', 1)
-    orphan = next(root.glob('*/')) / '.abandoned.tmp'
+    # Path.glob trailing-slash filtering differs across supported Python
+    # versions; never mistake the root's .lock/.auth files for a scope folder.
+    scope = next(path for path in root.iterdir() if path.is_dir())
+    orphan = scope / '.abandoned.tmp'
     orphan.write_bytes(b'abandoned')
     orphan.chmod(0o600)
     fetch(root, {'i': 5}, max_entries=2)

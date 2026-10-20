@@ -588,8 +588,12 @@ class ResearchService:
                 if current_memories != memories:
                     return False
                 from .research_memory_dependencies import _bindings_live
+                memory_seen = {'active': set(), 'memo': {}}
                 if not _bindings_live(db, sid, [(mid, rev, None) for mid, rev in memories.items()],
-                                      now=now, seen={'active': set(), 'memo': {}}):
+                                      now=now, seen=memory_seen):
+                    if memory_seen.get('inspection_unavailable'):
+                        from .research_memory_dependencies import ProvenanceInspectionUnavailable
+                        raise ProvenanceInspectionUnavailable('Memory provenance inspection is temporarily unavailable')
                     return False
             if answers:
                 if db is None:
@@ -600,6 +604,9 @@ class ResearchService:
                     if deadline is not None and time.monotonic() >= deadline:
                         return False
                     if not source_answer_memory_live(db, sid, identifier, at=now, seen=seen):
+                        if seen.get('inspection_unavailable'):
+                            from .research_memory_dependencies import ProvenanceInspectionUnavailable
+                            raise ProvenanceInspectionUnavailable('Answer provenance inspection is temporarily unavailable')
                         return False
             return deadline is None or time.monotonic() < deadline
 

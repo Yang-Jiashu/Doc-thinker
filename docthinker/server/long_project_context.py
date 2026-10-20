@@ -13,6 +13,7 @@ import time
 
 from .long_project_store import LongProjectStore
 from .project_task_store import ProjectTaskConflictError
+from .research_memory_dependencies import ProvenanceInspectionUnavailable
 
 # Inspection is bounded by actual work, not the project's retained lifetime.
 MAX_CHECK_BYTES = 4 * 1024 * 1024
@@ -20,6 +21,10 @@ MAX_CHECK_SECONDS = 2.0
 
 
 class _InspectionLimit(ProjectTaskConflictError):
+    pass
+
+
+class _InspectionUnavailable(_InspectionLimit):
     pass
 
 
@@ -83,8 +88,28 @@ class LongProjectContext:
             raise
 
     def _inspect(self, task_id, *, include_dependencies=False):
+        budget = _Budget()
+        for attempt in range(2):
+            try:
+                return self._inspect_once(task_id, include_dependencies=include_dependencies, budget=budget)
+            except ProvenanceInspectionUnavailable as error:
+                raise _InspectionUnavailable('Phase provenance inspection is temporarily unavailable; retry its read') from error
+            except sqlite3.Error as error:
+                # A brief writer commit may outlast the 50 ms read barrier.
+                # Retry only the local read once, within the original budget;
+                # never retry a provider or turn contention into withdrawal.
+                busy = getattr(error, 'sqlite_errorcode', None) in (
+                    getattr(sqlite3, 'SQLITE_BUSY', 5), getattr(sqlite3, 'SQLITE_LOCKED', 6))
+                if not busy:
+                    busy = str(error).lower() in ('database is locked', 'database table is locked')
+                if attempt == 0 and busy:
+                    budget.check()
+                    continue
+                raise _InspectionUnavailable('Phase storage inspection is temporarily unavailable; retry its read') from error
+
+    def _inspect_once(self, task_id, *, include_dependencies, budget):
         """One task snapshot plus one current-input snapshot, all request-local."""
-        budget, groups, result = _Budget(), {}, []
+        groups, result = {}, []
         with self._snapshot(budget) as db:
             self.tasks._task(db, task_id)
             queue, pending, visited = deque([task_id]), {task_id}, set()

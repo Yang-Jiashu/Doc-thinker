@@ -15,6 +15,29 @@ from docthinker.server.schemas import QueryRequest
 query_api = importlib.import_module("docthinker.server.routers.query")
 
 
+@pytest.mark.parametrize("provider_timeout", ["built_in", "legacy_asyncio"])
+async def test_distinct_legacy_asyncio_and_builtin_timeouts_keep_unknown_outcome(monkeypatch, provider_timeout):
+    """Exercise 3.10's distinct classes even when running on a 3.11 host."""
+    class LegacyAsyncTimeout(Exception):
+        pass
+
+    monkeypatch.setattr(asyncio, "TimeoutError", LegacyAsyncTimeout)
+    failure = (TimeoutError if provider_timeout == "built_in" else LegacyAsyncTimeout)("private timeout")
+    seen = []
+
+    async def operation():
+        seen.append(current_run())
+        raise failure
+
+    with pytest.raises(type(failure)) as raised:
+        await execute_run(operation, session_id="#00001")
+    assert raised.value is failure and len(seen) == 1
+    receipt = seen[0].snapshot()
+    assert receipt["status"] == "unknown" and receipt["external_outcome_verified"] is False
+    assert receipt["events"][-1]["payload"] == {"reason": "timeout", "external_outcome": "unknown"}
+    assert not any(item["type"] == "run.completed" for item in receipt["events"])
+
+
 def _stream_environment(monkeypatch, provider, write):
     rag = SimpleNamespace(graphcore=SimpleNamespace(tokenizer=None),
                           llm_model_func=AsyncMock(side_effect=AssertionError("extra model call")),
@@ -27,7 +50,7 @@ def _stream_environment(monkeypatch, provider, write):
     return rag
 
 
-@pytest.mark.parametrize("failure_type", [TimeoutError, RuntimeError])
+@pytest.mark.parametrize("failure_type", [TimeoutError, asyncio.TimeoutError, RuntimeError])
 @pytest.mark.parametrize("failure_at", ["dispatch", "before_chunk", "after_chunk"])
 async def test_stream_failure_never_commits_partial_answer_or_success(monkeypatch, failure_type, failure_at):
     seen, writes, output = [], [], []
@@ -53,7 +76,7 @@ async def test_stream_failure_never_commits_partial_answer_or_success(monkeypatc
             output.append(item)
     assert writes == [("user", "q")]
     assert not background.tasks
-    assert seen[0].status == ("unknown" if failure_type is TimeoutError else "failed")
+    assert seen[0].status == ("unknown" if issubclass(failure_type, (TimeoutError, asyncio.TimeoutError)) else "failed")
     assert not any(event["type"] == "run.completed" for event in seen[0].snapshot()["events"])
     assert "private provider detail" not in "".join(output)
     assert ("partial answer" in "".join(output)) is (failure_at == "after_chunk")
@@ -109,7 +132,7 @@ async def test_stream_deadline_covers_consumption_after_first_chunk(monkeypatch)
     response = await query_api.query_stream(
         QueryRequest(question="q", session_id="#00001", use_memory=False), BackgroundTasks())
     output = []
-    with pytest.raises(TimeoutError):
+    with pytest.raises(asyncio.TimeoutError):
         async for item in response.body_iterator:
             output.append(item)
     assert "partial" in "".join(output)
@@ -138,7 +161,7 @@ async def test_stream_user_history_failure_does_not_break_generation_logger(monk
     assert writes == ["answer"]
 
 
-@pytest.mark.parametrize("failure", [TimeoutError(), RuntimeError("provider unavailable")])
+@pytest.mark.parametrize("failure", [TimeoutError(), asyncio.TimeoutError(), RuntimeError("provider unavailable")])
 async def test_ambiguous_provider_failure_does_not_call_fallback(monkeypatch, failure):
     llm = AsyncMock(side_effect=AssertionError("must not retry paid generation"))
     rag = SimpleNamespace(graphcore=SimpleNamespace(tokenizer=None), llm_model_func=llm,
@@ -153,7 +176,7 @@ async def test_ambiguous_provider_failure_does_not_call_fallback(monkeypatch, fa
     with pytest.raises(HTTPException) as raised:
         await query_api.query(QueryRequest(question="please help", session_id="#00001", use_memory=False),
                               BackgroundTasks())
-    assert raised.value.status_code == (504 if isinstance(failure, TimeoutError) else 500)
+    assert raised.value.status_code == (504 if isinstance(failure, (TimeoutError, asyncio.TimeoutError)) else 500)
     rag.aquery.assert_awaited_once()
     llm.assert_not_awaited()
     assert writes == ["user"]

@@ -188,7 +188,7 @@ async def check_model(api: str, key: str, *, transport=None, clock=time.monotoni
     try:
         # A whole-check deadline bounds both requests and streamed response time.
         await asyncio.wait_for(run(), timeout=TIMEOUT_SECONDS)
-    except (TimeoutError, httpx.TimeoutException):
+    except (asyncio.TimeoutError, TimeoutError, httpx.TimeoutException):
         result["status"] = "timeout"
     except ResponseTooLarge:
         result["status"] = "response_too_large"

@@ -17,6 +17,10 @@ MAX_BINDINGS = 128
 MAX_ANSWERS = 200
 
 
+class ProvenanceInspectionUnavailable(ResearchStoreError):
+    """A bounded inspection could not finish; it did not prove withdrawal."""
+
+
 def source_answer_memory_live(db, session_id, answer_id, *, at=None, seen=None):
     """Connection-local transitive check, shared by memory and answer readers."""
     at = time.time() if at is None else at
@@ -30,7 +34,10 @@ def source_answer_memory_live(db, session_id, answer_id, *, at=None, seen=None):
     # only nested memory -> source-answer calls; retain the exact cycle guard
     # and the separate MAX_BINDINGS bound in each decoded memory packet.
     depth = seen.get('memory_depth', 0)
-    if key in seen['active'] or depth >= MAX_BINDINGS:
+    if key in seen['active']:
+        return False
+    if depth >= MAX_BINDINGS:
+        seen['inspection_unavailable'] = True
         return False
     seen['active'].add(key)
     seen['memory_depth'] = depth + 1
@@ -40,7 +47,13 @@ def source_answer_memory_live(db, session_id, answer_id, *, at=None, seen=None):
             from .research_answer_dependencies import answer_parents_live
             try:
                 result = answer_parents_live(db, session_id, answer_id, at=at, seen=seen)
-            except (ValueError, TypeError, KeyError, OverflowError, AttributeError, sqlite3.Error):
+            except sqlite3.Error:
+                # Existing boolean readers still deny reuse. A phase reader
+                # must additionally distinguish an IO failure from a proven
+                # revision change before permanently invalidating its DAG.
+                seen['inspection_unavailable'] = True
+                result = False
+            except (ValueError, TypeError, KeyError, OverflowError, AttributeError):
                 result = False
         seen['memo'][key] = result
         return result

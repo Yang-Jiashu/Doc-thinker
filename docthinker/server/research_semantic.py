@@ -97,9 +97,14 @@ class _VectorCache(OrderedDict):
         self.retained_bytes += self._size(key, value)
 
     def popitem(self, last=True):
-        key, value = super().popitem(last=last)
-        self.retained_bytes -= self._size(key, value)
-        return key, value
+        # Python 3.9/3.10 OrderedDict.popitem can dispatch to our __delitem__.
+        # Subtracting here as well double-charges eviction on those versions,
+        # producing a negative counter and letting the byte cap be exceeded.
+        # Route every explicit removal through our own pop/del exactly once.
+        if not self:
+            raise KeyError("dictionary is empty")
+        key = next(reversed(self)) if last else next(iter(self))
+        return key, self.pop(key)
 
     def __delitem__(self, key):
         self.retained_bytes -= self._size(key, self[key])

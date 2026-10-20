@@ -1,7 +1,10 @@
 """Real SQLite phase/input snapshots; no model, network or answer-quality claim."""
 from contextlib import contextmanager
 from types import SimpleNamespace
+import sqlite3
+import json
 import time
+import uuid
 
 import pytest
 
@@ -174,3 +177,127 @@ def test_original_single_task_limits_remain_eight_steps_and_48_selected_memories
             service.task_inputs_live(tasks.session_id, value)
     assert not service.task_inputs_live(tasks.session_id, [{**step, 'context_snapshot': {str(index): 1 for index in range(49)}}])
     assert not service.task_input_groups_live(tasks.session_id, [[step]], deadline=time.monotonic() - 1)
+
+
+def test_brief_real_sqlite_writer_lock_retries_only_the_local_inspection(tmp_path, monkeypatch):
+    tasks, store = opened(tmp_path)
+    ctx, service = context(tmp_path, tasks)
+    note = service.store.create_memory(tasks.session_id, 'decision', 'Keep the current household budget.')
+    _, last = chain(tasks, store, 2, rows=[{**questions()[0], 'memory_ids': [note['id']]}],
+                    contexts={note['id']: 1})
+    before = tasks.get_task(last['task_id'])
+    original_read, reads, failures = service.store._read, [], []
+    with sqlite3.connect(service.store.path) as writer:
+        writer.execute('BEGIN EXCLUSIVE')
+
+        @contextmanager
+        def read(*, timeout=5):
+            reads.append(timeout)
+            try:
+                with original_read(timeout=timeout) as db:
+                    yield db
+            except sqlite3.OperationalError as error:
+                failures.append(str(error))
+                # The first real bounded SQLite read has observed contention.
+                # End that commit window without timing-dependent sleeps.
+                writer.rollback()
+                raise
+
+        monkeypatch.setattr(service.store, '_read', read)
+        assert ctx.invalidate_if_stale(last['task_id'])['status'] == 'completed'
+    assert failures == ['database is locked']
+    assert reads == [.05, .05]
+    assert tasks.get_task(last['task_id']) == before
+
+
+def test_persistent_real_sqlite_lock_is_unavailable_not_current_or_permanently_stale(tmp_path):
+    tasks, store = opened(tmp_path)
+    ctx, service = context(tmp_path, tasks)
+    note = service.store.create_memory(tasks.session_id, 'decision', 'Current private budget.')
+    _, last = chain(tasks, store, 2, rows=[{**questions()[0], 'memory_ids': [note['id']]}],
+                    contexts={note['id']: 1})
+    before = tasks.get_task(last['task_id'])
+    with sqlite3.connect(service.store.path) as writer:
+        writer.execute('BEGIN EXCLUSIVE')
+        assert not ctx.valid(last['task_id'])
+        for operation in (lambda: ctx.dependencies(task_id=last['task_id']),
+                          lambda: ctx.invalidate_if_stale(last['task_id'])):
+            with pytest.raises(ProjectTaskConflictError, match='temporarily unavailable'):
+                operation()
+        assert tasks.get_task(last['task_id']) == before
+        writer.rollback()
+    assert ctx.valid(last['task_id'])
+    assert tasks.get_task(last['task_id']) == before
+    # A subsequently verified real revision change must still invalidate the
+    # child. The unavailable result is not a cache or a freshness exemption.
+    service.store.update_memory(tasks.session_id, note['id'], expected_revision=1, text='Corrected private budget.')
+    assert ctx.invalidate_if_stale(last['task_id'])['status'] == 'stale'
+
+
+def test_nested_answer_inspection_deadline_is_not_evidence_of_revocation(tmp_path, monkeypatch):
+    import docthinker.server.research_answer_dependencies as dependencies
+    from docthinker.server.research_memory_dependencies import ProvenanceInspectionUnavailable
+    from tests.test_research_answer_dependencies_unit import bare_answer
+    tasks, _ = opened(tmp_path)
+    _, service = context(tmp_path, tasks)
+    answer_id = bare_answer(service, tasks.session_id)
+    step = {'input_kind': 'personal', 'input_snapshot': {}, 'context_snapshot': {}, 'answer_id': answer_id}
+    assert service.task_input_groups_live(tasks.session_id, [[step]])
+    clock = iter([0., 1.])
+    monkeypatch.setattr(dependencies, 'time', SimpleNamespace(monotonic=lambda: next(clock, 1.)))
+    with pytest.raises(ProvenanceInspectionUnavailable, match='temporarily unavailable'):
+        service.task_input_groups_live(tasks.session_id, [[step]])
+
+
+@pytest.mark.parametrize('failure', ['event_ledger_sql', 'nested_event_sql'])
+def test_nested_event_io_failure_is_not_evidence_of_revocation(tmp_path, monkeypatch, failure):
+    from docthinker.server.personal_events import PersonalEvents
+    from docthinker.server.research_event_dependencies import EventDependencies
+    from docthinker.server.research_memory_dependencies import ProvenanceInspectionUnavailable
+    tasks, _ = opened(tmp_path)
+    _, service = context(tmp_path, tasks)
+    answer_id = str(uuid.uuid4())
+    bindings = {'events': [], 'relations': [], 'source_scope_sha256': None, 'memory_scope_sha256': None}
+    service.store.record_answer(tasks.session_id, answer_id, [], {}, 'general',
+                               context_metadata=EventDependencies.context_metadata(bindings))
+    with service.store._write() as db:
+        db.execute('CREATE TABLE research_answer_event_dependencies '
+                   '(answer_id TEXT PRIMARY KEY,session_id TEXT NOT NULL,bindings TEXT NOT NULL)')
+        db.execute('INSERT INTO research_answer_event_dependencies VALUES(?,?,?)',
+                   (answer_id, tasks.session_id, json.dumps(bindings)))
+    step = {'input_kind': 'personal', 'input_snapshot': {}, 'context_snapshot': {}, 'answer_id': answer_id}
+    assert service.task_input_groups_live(tasks.session_id, [[step]])
+    if failure == 'event_ledger_sql':
+        original_read = service.store._read
+
+        class LedgerUnavailable:
+            def __init__(self, db):
+                self.db = db
+
+            def execute(self, sql, *args):
+                if 'research_answer_event_dependencies' in sql:
+                    raise sqlite3.OperationalError('Synthetic nested event ledger IO failure')
+                return self.db.execute(sql, *args)
+
+        @contextmanager
+        def read(*, timeout=5):
+            with original_read(timeout=timeout) as db:
+                yield LedgerUnavailable(db)
+
+        monkeypatch.setattr(service.store, '_read', read)
+    else:
+        def unavailable(*args, **kwargs):
+            raise sqlite3.OperationalError('Synthetic nested event binding IO failure')
+        monkeypatch.setattr(PersonalEvents, '_event_bindings_live', unavailable)
+    with pytest.raises(ProvenanceInspectionUnavailable, match='temporarily unavailable'):
+        service.task_input_groups_live(tasks.session_id, [[step]])
+
+
+def test_memory_dependency_depth_limit_is_unavailable_but_a_real_cycle_is_invalid():
+    from docthinker.server.research_memory_dependencies import MAX_BINDINGS, source_answer_memory_live
+    seen = {'active': set(), 'memo': {}, 'memory_depth': MAX_BINDINGS}
+    assert not source_answer_memory_live(None, '#00001', 'answer', at=100, seen=seen)
+    assert seen['inspection_unavailable'] is True
+    cyclic = {'active': {('#00001', 'answer', 100)}, 'memo': {}, 'memory_depth': MAX_BINDINGS}
+    assert not source_answer_memory_live(None, '#00001', 'answer', at=100, seen=cyclic)
+    assert 'inspection_unavailable' not in cyclic

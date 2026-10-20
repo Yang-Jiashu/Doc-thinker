@@ -731,7 +731,7 @@ class RealStepModel:
         except asyncio.CancelledError:
             # No terminal receipt: resume must preserve this ambiguous call.
             raise
-        except (TimeoutError, httpx.TimeoutException):
+        except (asyncio.TimeoutError, TimeoutError, httpx.TimeoutException):
             metadata["status"] = "timeout"
         except ProviderError as error:
             metadata["status"] = str(error)
