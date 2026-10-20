@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+from html.parser import HTMLParser
 from pathlib import Path
 import re
 import sys
@@ -239,13 +240,54 @@ def _digest(path: Path) -> str:
     return digest.hexdigest()
 
 
+class _DefaultVisibleImages(HTMLParser):
+    """Track disclosure ancestors without treating a closed gallery as shown."""
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.details_open = []
+        self.images = set()
+        self.visible_parts = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "details":
+            # `open` is a boolean HTML attribute, including open="false".
+            self.details_open.append(any(name == "open" for name, _ in attrs))
+            self.visible_parts.append("\x00")
+        elif all(self.details_open):
+            self.visible_parts.append(self.get_starttag_text())
+            if tag == "img":
+                self.images.update(value for name, value in attrs if name == "src" and value)
+
+    def handle_startendtag(self, tag, attrs):
+        # Details is not a void HTML element: <details/> still opens it.
+        self.handle_starttag(tag, attrs)
+
+    def handle_endtag(self, tag):
+        if tag == "details" and self.details_open:
+            self.details_open.pop()
+            self.visible_parts.append("\x00")
+        elif all(self.details_open):
+            self.visible_parts.append(f"</{tag}>")
+
+    def handle_data(self, data):
+        if all(self.details_open):
+            self.visible_parts.append(data)
+
+
 def _visible_images(body: str) -> set[str]:
     # Comments and code examples must not satisfy a real README image contract.
     body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
     body = re.sub(r"(?ms)^\s*(?:```|~~~).*?^\s*(?:```|~~~)[^\n]*$", "", body)
-    html = re.findall(r'<img\b[^>]*\bsrc\s*=\s*["\x27]([^"\x27]+)["\x27]', body, flags=re.I)
-    markdown = re.findall(r"!\[[^\]]*\]\(<?([^\s)>]+)>?(?:\s+[^)]*)?\)", body)
-    return set(html + markdown)
+    body = re.sub(r"(`+)[^\n]*?\1", "", body)
+    parser = _DefaultVisibleImages()
+    parser.feed(body)
+    parser.close()
+    # Keep angle-bracket Markdown destinations intact even though HTMLParser
+    # can split them into tag callbacks. A hidden block must not join fragments.
+    parser.images.update(re.findall(
+        r"!\[[^\]\x00]*\]\(<?([^\s)>\x00]+)>?(?:\s+[^)\x00]*)?\)",
+        "".join(parser.visible_parts)))
+    return parser.images
 
 
 def verify(root: Path = ROOT) -> tuple[int, int]:
