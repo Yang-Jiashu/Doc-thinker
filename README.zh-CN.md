@@ -67,30 +67,59 @@
 
 *原版完整图谱演示，展示记忆与关联的可观察方式；不表示邀请默认路径启用了 GPU、图谱增长或自动学习。*
 
-## 保留下来的原版框架
+## 原版框架参考
+
+以下保留原版设计与界面，均可点开看原图；当前实现与运行边界以上方 2.0 架构图和[架构文档](docs/ARCHITECTURE.md)为准。
+
+### 分层记忆
 
 <p align="center">
-  <img src="docs/assets/agentic_memory_architecture.png" width="48%" alt="原私人助手分层记忆框架" />
-  <img src="docs/assets/pipeline.png" width="48%" alt="原文档处理流程" />
+  <a href="docs/assets/agentic_memory_architecture.png"><img src="docs/assets/agentic_memory_architecture.png" width="900" alt="原私人助手分层记忆框架" /></a>
 </p>
 
-*分层记忆与资料处理。*
+*原版记忆层次与模块关系，作为设计演进的参考。*
+
+### 资料如何处理
 
 <p align="center">
-  <img src="docs/assets/lifecycle.png" width="48%" alt="原记忆生命周期" />
-  <img src="docs/assets/multi_agent_evolution.png" width="48%" alt="原多智能体演进框架" />
+  <a href="docs/assets/pipeline.png"><img src="docs/assets/pipeline.png" width="520" alt="原文档处理流程：独立竖版示意图" /></a>
 </p>
 
-*记忆生命周期与原版演进设计，不代表完整 RSI 已实现。*
+*原版资料处理流程；竖向顺序独立呈现，点击可查看原图细节。*
+
+### 记忆生命周期
 
 <p align="center">
-  <img src="docs/assets/ui_memory_editor_screenshot.png" width="48%" alt="原可编辑记忆界面" />
-  <img src="docs/assets/sparql_cot.png" width="48%" alt="原图查询辅助推理示意" />
+  <a href="docs/assets/lifecycle.png"><img src="docs/assets/lifecycle.png" width="900" alt="原记忆生命周期" /></a>
 </p>
 
-*可编辑记忆与图查询辅助。*
+*原版记忆生命周期示意，不替代当前版本绑定与撤回契约。*
 
-*原 Logo、Demo 与框架图完整保留，未用新图替换历史素材；当前接线与运行边界以上方 2.0 架构图和[架构文档](docs/ARCHITECTURE.md)为准。GitHub 可播放 GIF，但不会运行交互脚本，手势与语音须进入相应应用测试。*
+### 演进框架
+
+<p align="center">
+  <a href="docs/assets/multi_agent_evolution.png"><img src="docs/assets/multi_agent_evolution.png" width="900" alt="原多智能体演进框架" /></a>
+</p>
+
+*原版多智能体演进设计，不代表完整 RSI 已实现。*
+
+### 记忆可以编辑
+
+<p align="center">
+  <a href="docs/assets/ui_memory_editor_screenshot.png"><img src="docs/assets/ui_memory_editor_screenshot.png" width="900" alt="原可编辑记忆界面" /></a>
+</p>
+
+*原版记忆编辑界面，展示查看与修改记忆的交互。*
+
+### 图查询如何辅助
+
+<p align="center">
+  <a href="docs/assets/sparql_cot.png"><img src="docs/assets/sparql_cot.png" width="760" alt="原图查询辅助推理示意" /></a>
+</p>
+
+*原版图查询辅助思路，不把图上连线当作因果证明。*
+
+*原 Logo、Demo 与框架图完整保留，未改动素材。GitHub 可播放 GIF，但不会运行交互脚本，手势与语音须进入相应应用测试。*
 
 ## 开始体验
 
