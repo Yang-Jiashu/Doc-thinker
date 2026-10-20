@@ -37,6 +37,8 @@ FIXED = (
     "benchmarks/runtime_algorithms/long_project_full_mainline_final_20261020.xml.gz",
     "benchmarks/runtime_algorithms/personal_agent_full_mainline_final_20261020.xml.gz",
     "benchmarks/runtime_algorithms/project_replan_mobile_20261020.xml.gz",
+    "benchmarks/runtime_algorithms/publish_verification_20261020.json",
+    "benchmarks/runtime_algorithms/publish_full_mainline_20261020.xml.gz",
     "benchmarks/research_real/result_insight_v4_development_review_20261012.md",
     "benchmarks/research_real/result_insight_v5_targeted_review_20261012.md",
     "benchmarks/research_real/plan_insight_component_regression_20261012.md",

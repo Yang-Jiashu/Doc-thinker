@@ -21,11 +21,14 @@
 
 [机器可读验收记录](../benchmarks/runtime_algorithms/long_project_personal_agent_result_20261020.json) · [运行边界](LONG_PROJECT_RUNTIME.md) · [性能原始结果](../benchmarks/runtime_algorithms/long_project_context_benchmark_20261020.json)
 
+上传准备时保留并合并了远端另外 6 个浏览器／CI 提交，随后再跑完整回归：6,388 项通过、13 个 subtest 通过、9 项可选检查跳过；客户端 897 项通过，网页重新构建并通过 84 项资源完整性检查。[上传前复核](../benchmarks/runtime_algorithms/publish_verification_20261020.json)记录了所测提交、命令、哈希及未放行能力；不覆盖前一轮历史结果。
+
 最终 JUnit 以无损压缩归档保存，解压后的 SHA-256 与验收记录一致；其他中间运行日志、本地浏览器快照、论文截图、用户数据和密钥不提交。
 
 - [后端最终 JUnit](../benchmarks/runtime_algorithms/long_project_full_mainline_final_20261020.xml.gz)
 - [客户端 JUnit](../benchmarks/runtime_algorithms/project_replan_mobile_20261020.xml.gz)
 - [前一轮后端 JUnit](../benchmarks/runtime_algorithms/personal_agent_full_mainline_final_20261020.xml.gz)
+- [合并远端后的上传前 JUnit](../benchmarks/runtime_algorithms/publish_full_mainline_20261020.xml.gz)
 
 ## 尚未实现或未通过的核心边界
 
