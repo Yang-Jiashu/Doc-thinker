@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-/** Reproducible local SVG → PNG export. No network, API keys, or image model.
+/** Historical SVG exploration export. Never overwrites the active dog identity
+ * or the frozen legacy files; output goes to the ignored output/ directory.
+ * Reproducible local SVG → PNG export. No network, API keys, or image model.
  * Run: SHARP_MODULE=/absolute/path/to/sharp node scripts/generate-brand-assets.mjs
  * Or install sharp in a separate tooling environment and set SHARP_MODULE there.
  * SVG design sources below remain editable; raster files are generated outputs.
@@ -12,8 +14,8 @@ import path from 'node:path';
 const require = createRequire(import.meta.url);
 const sharp = require(process.env.SHARP_MODULE || 'sharp');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const production = path.join(root, 'src/static/brand');
-const showcase = path.join(root, 'public/brand');
+const production = path.resolve(root, '../../output/brand-exploration/production');
+const showcase = path.resolve(root, '../../output/brand-exploration/showcase');
 const COLORS = { paper: '#F6F5F0', ink: '#203D35', sage: '#E6ECDD', lime: '#D7EF99', muted: '#89928B' };
 const APP_ICON_SIZES = [20, 29, 40, 48, 58, 60, 72, 76, 80, 87, 96, 120, 144, 152, 167, 180, 192, 512, 1024];
 
@@ -125,7 +127,7 @@ for (const [index, name] of Object.keys(tabs).entries()) {
 const sheet = await sharp({ create: { width: 928, height: 760, channels: 3, background: COLORS.paper } }).composite(pieces).png().toBuffer();
 await writeFile(path.join(showcase, 'small-size-proof.png'), sheet);
 
-const template = await readFile(path.join(showcase, 'showcase.template.html'), 'utf8');
+const template = await readFile(path.join(root, 'public/brand/showcase.template.html'), 'utf8');
 const cards = variants.map((variant, index) => `<article class="logo-card${variant.primary ? ' selected' : ''}" data-id="${variant.id}"><button class="pick-logo" type="button" aria-pressed="${Boolean(variant.primary)}" aria-label="对比 ${variant.name}"><span class="card-index">${String(index + 1).padStart(2, '0')} / ${variant.pattern}</span><span class="logo-canvas">${svg(variant.geometry, { title: variant.name })}</span><span class="card-heading">${variant.name}<span class="selection-label">${variant.primary ? '默认方案' : '加入对比'}</span></span><span class="card-subtitle">${variant.english}</span></button><p>${variant.rationale}</p><a class="download-link" href="${variant.id}.svg" download>下载可编辑 SVG ↗</a></article>`).join('\n');
 await writeFile(path.join(showcase, 'index.html'), template.replace('<!-- LOGO_GRID -->', cards));
 

@@ -8,54 +8,42 @@
 
 长期记忆 · 可追溯证据 · 持续任务。一个不用每次从头认识你的私人助手。
 
-[English](README.md) · [开始体验](#开始体验) · [看懂架构](docs/ARCHITECTURE.md) · [验收记录](docs/RELEASE_ACCEPTANCE_2026-10-20.md)
+[English](README.md) · [开始体验](#开始体验) · [看懂架构](docs/ARCHITECTURE.md) · [验收记录](docs/RELEASE_ACCEPTANCE_2026-10-20.md) · [历史素材](docs/HISTORY.md)
 
 [![CI](https://github.com/Yang-Jiashu/Doc-thinker/actions/workflows/ci.yml/badge.svg)](https://github.com/Yang-Jiashu/Doc-thinker/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB)](pyproject.toml)
 [![License](https://img.shields.io/badge/License-PolyForm_Shield-orange)](LICENSE)
 [![Paper](https://img.shields.io/badge/arXiv-2603.05551-b31b1b)](https://arxiv.org/abs/2603.05551)
 
-<img src="docs/assets/banner.png" width="100%" alt="DocThinker 原横幅" />
-
 </div>
 
-*原品牌视觉保持不变；当前功能与运行边界见下方展示。*
+## 让记忆看得见，也让依据找得到
 
-## 当前 2.0 界面，直接看怎么用
+新版 H5 把记忆观测与**同一画布的两条数据入口**接通：**记忆与来源**、**知识关系 · 完整服务**。邀请研究只开放有界来源／事件投影；连接也已开启研究能力的私人完整服务时，可在同一画布切换 GraphCore 知识关系窗口，是否可用以服务能力为准。
 
-下面是当前 H5 的真实操作录屏，不是界面概念图；每段都标明数据与运行方式。[录制过程与复现说明 →](docs/UI_SHOWCASE.md)
+**看清记忆：**确认内容、来源与版本分层展示，不把模型猜测冒充事实。**沿图找依据：**点开可访问的记录与原文，不凭空制造新联系。
 
-### 01　你的问题，从草稿开始
+### 从你的要求开始，不打断思路
 
-<p align="center">
-  <a href="docs/assets/current-ui-workspace.gif"><img src="docs/assets/current-ui-workspace.gif" width="900" alt="当前 2.0 工作台：编辑个人任务草稿，追加快捷模板，不自动发送" /></a>
-</p>
+![新版工作台：保留草稿，打开项目工具，追加继续项目配方而不发送](docs/assets/ui-v2-workspace.gif)
 
-*离线样例：写下个人任务，再把快捷模板追加到草稿；没有发送问题、调用模型或启动任务。*
+先写自己的要求，再打开 **项目工具 → 继续项目 → 追加到草稿**，原问题不会被覆盖。这里连接真实隔离服务，但这段操作不发送问题，也不调用模型。
 
-### 02　记住你确认的，也保留你改过的
+### 记住了什么，为什么留下，都看得清
 
-<p align="center">
-  <a href="docs/assets/current-ui-memory.gif"><img src="docs/assets/current-ui-memory.gif" width="900" alt="当前 2.0 确认记忆：保存回答偏好、修正内容并查看版本 1 和版本 2" /></a>
-</p>
+![新版记忆观测：切换层级、来源和事件面板，并查看既存确认记忆的版本](docs/assets/ui-v2-memory-observatory.gif)
 
-*隔离测试服务实操作：保存偏好、确认修正，再查看版本 1 与版本 2；走真实网关与 SQLite，不调用模型，不代表系统自动学到了偏好。*
+切换 **层级、来源、事件**，再回看一条确认记忆的版本。记录来自真实隔离存储中的合成材料；总数只属当前会话，未提供的指标保留未知，有界快照不冒充长期增长实测。
 
-### 03　想看联系，也能回到依据
+### 不必盯着一堆文字，沿着联系找依据
 
-<p align="center">
-  <a href="docs/assets/current-ui-graph.gif"><img src="docs/assets/current-ui-graph.gif" width="900" alt="当前 2.0 图谱交互：定位示例实体、查看联系与模拟原文" /></a>
-</p>
+![新版来源与事件画布：拖拽平移、缩放、选择节点，查看合成原文](docs/assets/ui-v2-graph-canvas.gif)
 
-*离线固定样例：6 个节点、5 条边，实际操作定位、路径与节点详情；原文为模拟片段，连线不证明因果，也不代表从真实资料中现场建图。*
+拖拽、缩放、选择节点，再打开它能访问的原文。录屏展示研究服务的有界来源／事件投影；私人完整服务还能在**同一画布**切换 GraphCore 知识关系窗口，按需读取节点邻域。两者都不是全库导出，也不证明因果成立；不把原 GPU 渲染器、摄像头手势说成已迁移。
 
-### 04　留下进度，也知道何时停下
+三段均为真实浏览器交互、合成数据，**外部模型调用为零**；不冒充效果跑分、摄像头手势迁移、手机真机或语音验收。[录制方式与边界 →](docs/UI_SHOWCASE.md)
 
-<p align="center">
-  <a href="docs/assets/current-ui-projects.gif"><img src="docs/assets/current-ui-projects.gif" width="900" alt="当前 2.0 任务检查点：打开已批准计划、刷新进度并查看核对受阻状态" /></a>
-</p>
-
-*隔离服务实操作：查看已批准的计划、已保存步骤和明确受阻状态。本地模型替身不支持独立核对请求，界面不展示最终报告，也不自动重试结果未知的调用。这是异常保护演示，不是 AI 成功交付。*
+前版实录、原 Demo 和原框架完整保留在[默认展开的历史页](docs/HISTORY.md)，字节不变，不再代表当前产品界面。
 
 ## 不止回答这一次
 
@@ -85,81 +73,9 @@
 
 *以上三图是当前有界研究路径的逻辑架构示意，不是所有产品入口的功能清单，也不构成复杂因果可靠性的证明。*
 
-## 历史 UI（旧版）
+## 设计演进，完整保留
 
-以下保留旧版桌面界面，**不是上方当前 2.0 的界面演示**；所有原始素材保持可见、未改动。
-
-### 旧版对话与图谱
-
-<p align="center">
-  <img src="docs/assets/usecase_chat.gif" width="48%" alt="旧版文档问答 Demo：对话中使用材料" />
-  <img src="docs/assets/usecase_kg.gif" width="48%" alt="旧版交互图谱 Demo：查看知识之间的联系" />
-</p>
-
-*原完整桌面端历史演示；邀请模式默认仅聊天与历史，资料和确认记忆需显式开启，完整图谱、语音与自动学习不随邀请模式开放。*
-
-### 旧版记忆观测与 GPU 图谱
-
-<p align="center">
-  <img src="docs/assets/memory_kg_observability_demo.gif" width="48%" alt="原记忆与图谱可观测性 Demo" />
-  <img src="docs/assets/gpu_knowledge_graph_demo.gif" width="48%" alt="原 GPU 图谱 Demo" />
-</p>
-
-*原版完整图谱演示，展示记忆与关联的可观察方式；不表示邀请默认路径启用了 GPU、图谱增长或自动学习。*
-
-### 旧版记忆编辑
-
-<p align="center">
-  <a href="docs/assets/ui_memory_editor_screenshot.png"><img src="docs/assets/ui_memory_editor_screenshot.png" width="900" alt="旧版可编辑记忆界面，非当前 2.0 截图" /></a>
-</p>
-
-*旧版记忆编辑截图；当前确认记忆的保存、修正与版本回看见上方录屏。*
-
-## 原版框架参考（旧版）
-
-以下保留原版设计与界面，均可点开看原图；当前实现与运行边界以上方 2.0 架构图和[架构文档](docs/ARCHITECTURE.md)为准。
-
-### 分层记忆
-
-<p align="center">
-  <a href="docs/assets/agentic_memory_architecture.png"><img src="docs/assets/agentic_memory_architecture.png" width="900" alt="原私人助手分层记忆框架" /></a>
-</p>
-
-*原版记忆层次与模块关系，作为设计演进的参考。*
-
-### 资料如何处理
-
-<p align="center">
-  <a href="docs/assets/pipeline.png"><img src="docs/assets/pipeline.png" width="520" alt="原文档处理流程：独立竖版示意图" /></a>
-</p>
-
-*原版资料处理流程；竖向顺序独立呈现，点击可查看原图细节。*
-
-### 记忆生命周期
-
-<p align="center">
-  <a href="docs/assets/lifecycle.png"><img src="docs/assets/lifecycle.png" width="900" alt="原记忆生命周期" /></a>
-</p>
-
-*原版记忆生命周期示意，不替代当前版本绑定与撤回契约。*
-
-### 演进框架
-
-<p align="center">
-  <a href="docs/assets/multi_agent_evolution.png"><img src="docs/assets/multi_agent_evolution.png" width="900" alt="原多智能体演进框架" /></a>
-</p>
-
-*原版多智能体演进设计，不代表完整 RSI 已实现。*
-
-### 图查询如何辅助
-
-<p align="center">
-  <a href="docs/assets/sparql_cot.png"><img src="docs/assets/sparql_cot.png" width="760" alt="原图查询辅助推理示意" /></a>
-</p>
-
-*原版图查询辅助思路，不把图上连线当作因果证明。*
-
-*原 Logo、Demo 与框架图完整保留，未改动素材。GitHub 可播放 GIF，但不会运行交互脚本，手势与语音须进入相应应用测试。*
+[查看原 Demo、原框架与前版界面实录 →](docs/HISTORY.md)。所有原素材在历史页默认可见、字节不变，不再用旧界面冒充当前产品。
 
 ## 开始体验
 
@@ -189,7 +105,7 @@ npm run preview:h5
 
 [部署与创建受邀账号 →](deploy/invite/README.md)　[上线前检查 →](docs/INVITE_WEB_BETA.md)
 
-默认只开放聊天与历史；文档和记忆需要显式启用研究核心及上传权限。邀请模式**不开放完整图谱、语音或自动学习**，不能用离线演示冒充这些能力已上线。
+默认只开放聊天与历史；文档、确认记忆与长期阶段需要显式启用研究核心及相应权限。邀请研究画布显示权限范围内的有界来源／事件投影，不是原 GraphCore 完整图谱、自动增长、手势或语音；不能把离线演示当作现场建图与推理效果。
 
 下载的是邀请源码 ZIP？请按部署包指南操作；全仓库开发命令不适用于精简包，源码包也不等于已经上线的网址。
 
@@ -256,4 +172,4 @@ python scripts/check_release_preservation.py
 
 [架构与算法](docs/ARCHITECTURE.md) · [长期任务](docs/LONG_PROJECT_RUNTIME.md) · [Insight Schema](docs/INSIGHT_RUNTIME_DESIGN.md) · [记忆集成](docs/MEMORY_PLUGIN_GUIDE.md) · [图谱与手势](docs/GESTURE_INTERACTION.md) · [语音](docs/VOICE_MODELS.md) · [模型配置](docs/MODEL_CONFIGURATION.md) · [评测方法](docs/SELF_EVOLUTION_EVALUATION.md) · [贡献](CONTRIBUTING.md) · [许可](LICENSE)
 
-手机端继续使用 <img src="clients/mobile/src/static/brand/logo-32.png" width="24" height="24" alt="证据之窗手机端标识" /> 证据之窗品牌；原有品牌素材保持不变。
+应用统一使用 <img src="clients/mobile/src/static/original-brand/logo-32.png" width="24" height="24" alt="DocThinker 原狗狗 Logo" /> 原狗狗品牌；原图字节与历史素材继续受保护，安装图标仅做等比缩放与留白，不重新绘制。

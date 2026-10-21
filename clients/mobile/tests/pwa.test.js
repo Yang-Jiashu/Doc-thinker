@@ -113,14 +113,17 @@ test('build integration produces deterministic allowlist and version changes wit
   const output = await mkdtemp(path.join(os.tmpdir(),'docthinker-pwa-test-'));
   try {
     await mkdir(path.join(output,'assets')); await mkdir(path.join(output,'static/brand'),{recursive:true});
+    await mkdir(path.join(output,'static/original-brand'),{recursive:true});
     await mkdir(path.join(output,'uploads')); await mkdir(path.join(output,'api'));
     await writeFile(path.join(output,'index.html'),'<!doctype html>shell');
     await writeFile(path.join(output,'assets/app.hash.js'),'export const demo = true');
-    for (const size of ['180','192','512','maskable-512']) await writeFile(path.join(output,`static/brand/icon-${size}.png`),'fake test image');
+    for (const name of ['logo-32','logo-64','icon-180','icon-192','icon-512','icon-maskable-512']) await writeFile(path.join(output,`static/original-brand/${name}.png`),'fake test image');
     await writeFile(path.join(output,'uploads/private.png'),'private upload'); await writeFile(path.join(output,'api/private.json'),'private response');
     const first = await buildPwa(output), second = await buildPwa(output);
     assert.equal(first.version,second.version);
-    assert.ok(first.entries.every(entry => /^(index\.html|manifest\.webmanifest|pwa-register\.js|assets\/|static\/brand\/)/.test(entry.path)));
+    assert.ok(first.entries.every(entry => /^(index\.html|manifest\.webmanifest|pwa-register\.js|assets\/|static\/(?:brand|original-brand)\/)/.test(entry.path)));
+    assert.ok(first.entries.some(entry => entry.path === 'static/original-brand/logo-64.png'));
+    assert.ok(!first.entries.some(entry => entry.path === 'static/original-brand/logo.png'),'do not precache the high-resolution source');
     assert.ok(first.entries.every(entry => entry.integrity.startsWith('sha256-')));
     const worker = await readFile(path.join(output,'service-worker.js'),'utf8');
     assert.ok(!worker.includes('private.png')); assert.ok(!worker.includes('private.json')); assert.ok(!worker.includes('__DT_PWA_'));
@@ -133,8 +136,9 @@ test('H5 build publishes the logo showcase and all six proposals without precach
   const output = await mkdtemp(path.join(os.tmpdir(),'docthinker-brand-build-test-'));
   try {
     await mkdir(path.join(output,'assets')); await mkdir(path.join(output,'static/brand'),{recursive:true});
+    await mkdir(path.join(output,'static/original-brand'),{recursive:true});
     await writeFile(path.join(output,'index.html'),'<!doctype html>shell');
-    for (const size of ['180','192','512','maskable-512']) await writeFile(path.join(output,`static/brand/icon-${size}.png`),'fake test image');
+    for (const name of ['logo-32','logo-64','icon-180','icon-192','icon-512','icon-maskable-512']) await writeFile(path.join(output,`static/original-brand/${name}.png`),'fake test image');
     const result = await buildPwa(output);
     const showcaseFiles = ['index.html','01-evidence-window.svg','02-source-fold.svg','03-reasoning-trail.svg',
       '04-insight-aperture.svg','05-knowledge-seed.svg','06-memory-lattice.svg'];
@@ -142,6 +146,9 @@ test('H5 build publishes the logo showcase and all six proposals without precach
       const source = await readFile(new URL('../public/brand/' + filename,import.meta.url));
       assert.deepEqual(await readFile(path.join(output,'brand',filename)),source);
     }
+    assert.deepEqual(await readFile(path.join(output,'original-brand/logo.png')),
+      await readFile(new URL('../public/original-brand/logo.png',import.meta.url)));
+    assert.ok(result.entries.every(entry => !entry.path.startsWith('original-brand/')));
     assert.ok(result.entries.every(entry => !entry.path.startsWith('brand/')));
     const h = workerHarness();
     assert.equal(h.fetchEvent('brand/'),undefined);

@@ -1,7 +1,7 @@
 <template>
   <view class="mobile-page settings-page">
     <BrandHeader eyebrow="MAKE IT YOURS" title="你的助手，你的节奏。" subtitle="把连接、回答与数据的控制权，留在你手里。" />
-    <view class="settings-overview"><view class="overview-status"><view class="overview-dot" aria-hidden="true"></view><text>{{ savedPreferences.connectionKind === 'invite' ? savedPreferences.invitePending ? '邀请账号 · 待登录' : '邀请文字内测' : savedPreferences.mode === 'demo' ? '本地演示 · 不联网' : '私人服务 · 已保存配置' }}</text></view><text class="overview-note">{{ dirty ? '有修改尚未保存' : '设置不会调用模型' }}</text></view>
+    <view class="settings-overview"><view class="overview-status"><view class="overview-dot" aria-hidden="true"></view><text>{{ savedPreferences.connectionKind === 'invite' ? savedPreferences.invitePending ? '邀请账号 · 待登录' : '邀请内测' : savedPreferences.mode === 'demo' ? '本地演示 · 不联网' : '私人服务 · 已保存配置' }}</text></view><text class="overview-note">{{ dirty ? '有修改尚未保存' : '设置不会调用模型' }}</text></view>
     <view class="settings-navigation" role="group" aria-label="设置分区">
       <button class="settings-nav-item" role="button" tabindex="0" :class="{ 'settings-nav-active': activeSection === 'start' }" :aria-pressed="activeSection === 'start'" @tap="activeSection = 'start'" @keydown="activateSection($event, 'start')">开始</button>
       <button class="settings-nav-item" role="button" tabindex="0" :class="{ 'settings-nav-active': activeSection === 'connection' }" :aria-pressed="activeSection === 'connection'" @tap="activeSection = 'connection'" @keydown="activateSection($event, 'connection')">{{ savedPreferences.connectionKind === 'invite' ? '账号' : '连接' }}</button>
@@ -16,7 +16,7 @@
     </view>
     <view v-if="activeSection === 'connection' && savedPreferences.connectionKind === 'invite'" class="settings-card account-card">
       <text class="settings-eyebrow">YOUR ACCOUNT</text><text class="section-title">{{ savedPreferences.inviteUser ? savedPreferences.inviteUser.username : '邀请账号尚未登录' }}</text>
-      <text class="privacy-summary">仅连接当前网站，不需要设置 API 地址、共享访问码或模型 Key。刷新后需再次登录；当前内测仅开放对话与历史。</text>
+      <text class="privacy-summary">仅连接当前网站，不需要设置 API 地址、共享访问码或模型 Key。刷新后需再次登录；默认开放对话与历史，研究能力以各页状态为准。</text>
       <button class="secondary-button full-width" @tap="openInvite">{{ savedPreferences.invitePending ? '前往登录' : '管理账号 / 退出' }}</button>
     </view>
     <template v-if="activeSection === 'connection' && savedPreferences.connectionKind !== 'invite'">

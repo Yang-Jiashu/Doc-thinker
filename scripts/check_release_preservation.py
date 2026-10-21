@@ -2,8 +2,9 @@
 
 Legacy hashes: GitHub main f48589ec117318a2277b40a72c2b5692560bd018.
 Mobile brand hashes: accepted R7 13298e29a5e917189ff74a9c0b9550f752f10192.
-The subsequent desktop/gesture UI and README prose may evolve. Their existence
-is not used to make causal, model-quality or production-readiness claims.
+The subsequent desktop/gesture UI and README prose may evolve. Original artwork
+is default-visible in the linked history page, not frozen into each homepage.
+Their existence is not a causal, model-quality or production-readiness claim.
 """
 from __future__ import annotations
 
@@ -209,19 +210,21 @@ EXPECTED_SHA256 = {
     "clients/mobile/src/static/brand/tab-settings.svg": "5f607201cb765c27f974a138a73f99460b7e0c66af7aa15b849323e1bc27b32d",
 }
 README_PATHS = ("README.md", "README.zh-CN.md")
-README_IMAGES = (
-    "logo.png",
-    "docs/assets/banner.png",
-    "docs/assets/usecase_chat.gif",
-    "docs/assets/usecase_kg.gif",
-    "docs/assets/memory_kg_observability_demo.gif",
-    "docs/assets/gpu_knowledge_graph_demo.gif",
-    "docs/assets/agentic_memory_architecture.png",
-    "docs/assets/lifecycle.png",
-    "docs/assets/multi_agent_evolution.png",
-    "docs/assets/pipeline.png",
-    "docs/assets/sparql_cot.png",
-    "docs/assets/ui_memory_editor_screenshot.png",
+README_IMAGES = ("logo.png",)
+HISTORY_PATH = "docs/HISTORY.md"
+HISTORY_IMAGES = (
+    "../logo.png",
+    "assets/banner.png",
+    "assets/usecase_chat.gif",
+    "assets/usecase_kg.gif",
+    "assets/memory_kg_observability_demo.gif",
+    "assets/gpu_knowledge_graph_demo.gif",
+    "assets/agentic_memory_architecture.png",
+    "assets/lifecycle.png",
+    "assets/multi_agent_evolution.png",
+    "assets/pipeline.png",
+    "assets/sparql_cot.png",
+    "assets/ui_memory_editor_screenshot.png",
 )
 
 
@@ -246,6 +249,7 @@ class _DefaultVisibleImages(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.details_open = []
         self.images = set()
+        self.links = set()
         self.visible_parts = []
 
     def handle_starttag(self, tag, attrs):
@@ -257,6 +261,8 @@ class _DefaultVisibleImages(HTMLParser):
             self.visible_parts.append(self.get_starttag_text())
             if tag == "img":
                 self.images.update(value for name, value in attrs if name == "src" and value)
+            if tag == "a":
+                self.links.update(value for name, value in attrs if name == "href" and value)
 
     def handle_startendtag(self, tag, attrs):
         # Details is not a void HTML element: <details/> still opens it.
@@ -274,7 +280,7 @@ class _DefaultVisibleImages(HTMLParser):
             self.visible_parts.append(data)
 
 
-def _visible_images(body: str) -> set[str]:
+def _visible_markup(body: str) -> _DefaultVisibleImages:
     # Comments and code examples must not satisfy a real README image contract.
     body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
     body = re.sub(r"(?ms)^\s*(?:```|~~~).*?^\s*(?:```|~~~)[^\n]*$", "", body)
@@ -282,6 +288,11 @@ def _visible_images(body: str) -> set[str]:
     parser = _DefaultVisibleImages()
     parser.feed(body)
     parser.close()
+    return parser
+
+
+def _visible_images(body: str) -> set[str]:
+    parser = _visible_markup(body)
     # Keep angle-bracket Markdown destinations intact even though HTMLParser
     # can split them into tag callbacks. A hidden block must not join fragments.
     parser.images.update(re.findall(
@@ -290,8 +301,16 @@ def _visible_images(body: str) -> set[str]:
     return parser.images
 
 
+def _visible_links(body: str) -> set[str]:
+    parser = _visible_markup(body)
+    parser.links.update(re.findall(
+        r"(?<!!)\[[^\]\x00]+\]\(<?([^\s)>\x00]+)>?(?:\s+[^)\x00]*)?\)",
+        "".join(parser.visible_parts)))
+    return parser.links
+
+
 def verify(root: Path = ROOT) -> tuple[int, int]:
-    """Verify fixed content and visible bilingual demo/architecture entry points."""
+    """Verify frozen bytes, the visible archive and bilingual entry points."""
     root = root.resolve(strict=True)
     failures = []
     for name, expected in EXPECTED_SHA256.items():
@@ -304,11 +323,19 @@ def verify(root: Path = ROOT) -> tuple[int, int]:
         try:
             body = _file(root, name).read_text(encoding="utf-8")
             if not set(README_IMAGES).issubset(_visible_images(body)):
-                failures.append(name + " (original logo/demo/architecture images)")
-            if "](docs/ARCHITECTURE.md)" not in body:
+                failures.append(name + " (original logo image)")
+            if HISTORY_PATH not in _visible_links(body):
+                failures.append(name + " (default-visible history link)")
+            if "docs/ARCHITECTURE.md" not in _visible_links(body):
                 failures.append(name + " (current architecture link)")
         except (OSError, UnicodeError, ValueError):
             failures.append(name)
+    try:
+        history = _file(root, HISTORY_PATH).read_text(encoding="utf-8")
+        if not set(HISTORY_IMAGES).issubset(_visible_images(history)):
+            failures.append(HISTORY_PATH + " (original logo/demo/architecture images)")
+    except (OSError, UnicodeError, ValueError):
+        failures.append(HISTORY_PATH)
     if failures:
         raise ValueError("Preservation check failed: " + ", ".join(failures))
     return len(EXPECTED_SHA256), len(README_PATHS)
@@ -324,7 +351,8 @@ def main() -> int:
         print(str(error), file=sys.stderr)
         return 1
     print(f"Preserved {count} frozen files ({LEGACY_FILE_COUNT} original + "
-          f"{MOBILE_BRAND_COUNT} mobile brand); {readmes} README visual galleries intact. "
+          f"{MOBILE_BRAND_COUNT} historical mobile brand); visible history archive "
+          f"and {readmes} README original-logo/history entry points intact. "
           "No Git history, network or model calls required.")
     return 0
 

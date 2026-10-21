@@ -46,6 +46,7 @@ MOBILE_ROUTES = {
     ("POST", "voice/transcribe"): set(),
     ("POST", "voice/speak"): set(),
     ("GET", "research/capabilities"): set(),
+    ("GET", "research/observability"): {"session_id", "limit"},
     ("GET", "research/knowledge-skills"): set(),
     ("GET", "research/documents"): {"session_id"},
     ("GET", "research/document"): {"session_id", "document_id"},
@@ -495,6 +496,7 @@ def create_invite_app(*, store: InviteStore | None = None,
                 raise InviteError("Invalid user service response", 502) from None
             if route == "research/capabilities" and isinstance(result, dict):
                 result = {**result, "enabled": research_enabled and result.get("enabled") is True,
+                          "observability": research_enabled and result.get("observability") is True,
                           "knowledge_skills": research_enabled and result.get("knowledge_skills") is True,
                           "uploads_allowed": research_enabled and bool(user["allow_uploads"]),
                           "memory_write_enabled": research_enabled and result.get("enabled") is True and result.get("memory_write_enabled") is True}

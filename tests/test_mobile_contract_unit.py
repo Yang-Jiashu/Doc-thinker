@@ -20,7 +20,7 @@ TOKEN = "test-only-mobile-access-token-not-a-real-secret"
 PREFIX = "/api/v1/mobile"
 ROUTES = {
     ("GET", "/capabilities"), ("GET", "/sessions"), ("POST", "/sessions"),
-    ("GET", "/history"), ("GET", "/files"), ("GET", "/memory"), ("POST", "/query"),
+    ("GET", "/history"), ("GET", "/files"), ("GET", "/memory"), ("GET", "/memory/dashboard"), ("POST", "/query"),
     ("GET", "/feedback"), ("POST", "/feedback"),
     ("GET", "/query/status"),
     ("POST", "/upload"), ("GET", "/graph"), ("GET", "/chunks"),
@@ -33,6 +33,7 @@ ROUTES = {
     ("POST", "/research/documents/retry"), ("GET", "/research/memory"),
     ("POST", "/research/memory"), ("POST", "/research/memory/delete"),
     ("GET", "/research/memory/history"), ("POST", "/research/memory/archive"),
+    ("GET", "/research/observability"),
     ("GET", "/research/export"),
     ("POST", "/research/entities"), ("GET", "/research/entities/resolve"),
     ("POST", "/research/events"), ("GET", "/research/events"),

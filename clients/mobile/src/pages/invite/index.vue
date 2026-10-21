@@ -23,7 +23,7 @@
       </template>
       <view v-if="error" class="error-box" role="status" aria-live="polite">{{ error }}</view>
     </view>
-    <view class="invite-privacy"><text class="invite-privacy-title">使用前，先说清楚</text><text>这是邀请内测，不是微信账号登录。运营者及配置的云模型服务商可能处理你发送的对话；内容不是端到端加密，请勿提交敏感信息。</text><text>默认开放对话和历史，实际能力以登录后的服务状态为准。运营者开放研究模式后，才可上传资料与手动确认项目记忆；语音、知识图谱和自动学习尚未开放。不会自动调用麦克风，关闭记忆也不等于无痕。</text></view>
+    <view class="invite-privacy"><text class="invite-privacy-title">使用前，先说清楚</text><text>这是邀请内测，不是微信账号登录。运营者及配置的云模型服务商可能处理你发送的对话；内容不是端到端加密，请勿提交敏感信息。</text><text>默认开放对话和历史，实际能力以登录后的服务状态为准。运营者开放研究模式后，可上传资料、确认项目记忆，并查看记忆观测与来源／事件图。原完整知识图谱、语音与自动学习在邀请中尚未开放。不会自动调用麦克风，关闭记忆也不等于无痕。</text></view>
     <button role="button" class="quiet-button full-width invite-demo" :disabled="busy" @tap="viewDemo">退出邀请模式，查看离线演示</button>
     <!-- #endif -->
     <!-- #ifndef H5 -->

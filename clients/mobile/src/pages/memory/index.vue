@@ -7,6 +7,7 @@
     <CapabilityBoundary v-else-if="preferences.connectionKind === 'invite' && !researchEnabled" feature-id="memory" :invite-pending="preferences.invitePending" />
     <template v-else>
     <WorkspaceBar :sessions="sessions" :session-id="sessionId" :disabled="loading || loadingMore || saving" @change="changeSession" />
+    <MemoryObservatory v-if="researchEnabled || preferences.mode === 'demo' || (preferences.mode === 'connected' && preferences.connectionKind !== 'invite')" :session-id="sessionId" :active="capabilityReady" :enabled="researchEnabled || (preferences.mode === 'connected' && preferences.connectionKind !== 'invite')" :mode="researchEnabled ? 'research' : 'legacy'" :demo="preferences.mode === 'demo'" :disabled="loading || saving" :refresh-key="observationRevision" @source="readConfirmedSource" />
     <template v-if="researchEnabled">
       <view class="confirmed-intro"><text class="confirmed-eyebrow">YOU DECIDE WHAT STAYS</text><text class="confirmed-heading">记住你确认的，不替你下结论</text><text class="confirmed-copy">资料与回答不会自动变成记忆。你亲自保存或修改的内容，只在当前研究会话中使用；“已确认”代表由你确认保存，不代表已经证实。</text><button class="primary-button full-width" :disabled="loading || saving || !sessionId || !memoryWriteEnabled" @tap="startMemory">保存一条我确认的内容 <text aria-hidden="true">＋</text></button></view>
       <view v-if="error" class="error-box">{{ error }}</view><view v-if="notice" class="status-box">{{ notice }}</view>
@@ -102,12 +103,14 @@ import BrandHeader from '../../components/BrandHeader.vue';
 import ModeBanner from '../../components/ModeBanner.vue';
 import WorkspaceBar from '../../components/WorkspaceBar.vue';
 import CapabilityBoundary from '../../components/CapabilityBoundary.vue';
+import MemoryObservatory from '../../components/MemoryObservatory.vue';
 
 const preferences = ref({ mode: 'demo' }), sessions = ref([]), sessionId = ref('');
 const items = ref([]), search = ref(''), expandedIds = ref([]), nextOffset = ref(null), windowLimited = ref(false);
 const loading = ref(false), loadingMore = ref(false), error = ref(''), loadMoreError = ref('');
 const researchEnabled = ref(false), memoryWriteEnabled = ref(false), confirmedItems = ref([]), confirmedSource = ref(null), notice = ref('');
 const capabilityReady = ref(false), confirmedQuery = ref(''), confirmedDate = ref(''), confirmedCursor = ref(null), confirmedTotal = ref(0), showArchived = ref(false);
+const observationRevision = ref(0);
 const memoryHistoryId = ref(''), memoryVersions = ref([]), historyCursor = ref(null), editorFrom = ref(''), editorUntil = ref(''), editorOriginalDates = ref(null);
 let confirmedFilters = {query:'',as_of:null,include_archived:false};
 const editorOpen = ref(false), editorText = ref(''), editorKind = ref('finding'), editorSources = ref([]), editorOrigin = ref(''), editingId = ref(''), editingRevision = ref(null), saving = ref(false);
@@ -143,7 +146,7 @@ async function saveMemory() {
   await confirmedAction(async (sid,current) => { const confirm = await confirmOperation({title:value.memory_id ? '确认修正记忆？' : '确认保留这条内容？',content:'这条内容将保存在当前研究会话，后续提问可能发送给模型。仅代表你确认保存，并不代表系统核验其真实性。',confirmText:'确认保存',cancelText:'再检查'}); if (!confirm.confirm || !current()) return;
     const result = await research.saveMemory(sid,value); if (!current()) return;
     const index = confirmedItems.value.findIndex(item=>item.id === result.id); if (index >= 0) confirmedItems.value[index] = result; else if (!confirmedFilters.query && confirmedFilters.as_of === null) { confirmedItems.value.unshift(result); confirmedTotal.value += 1; }
-    closeMemoryHistory(); editorOpen.value = false; editorText.value = ''; editingId.value = ''; editingRevision.value = null; editorSources.value = []; editorFrom.value = ''; editorUntil.value = ''; notice.value = '已保存你确认的内容。没有调用模型，没有自动生成新记忆。';
+    observationRevision.value += 1; closeMemoryHistory(); editorOpen.value = false; editorText.value = ''; editingId.value = ''; editingRevision.value = null; editorSources.value = []; editorFrom.value = ''; editorUntil.value = ''; notice.value = '已保存你确认的内容。没有调用模型，没有自动生成新记忆。';
   });
 }
 async function removeMemory(item) { if (!memoryWriteEnabled.value || confirmedDate.value) return; await confirmedAction(async (sid,current) => {
@@ -151,12 +154,12 @@ async function removeMemory(item) { if (!memoryWriteEnabled.value || confirmedDa
   await research.deleteMemory(sid,item.id,item.revision); if (!current()) return;
   confirmedItems.value = confirmedItems.value.filter(value=>value.id !== item.id); confirmedSource.value = null; confirmedTotal.value = Math.max(0,confirmedTotal.value-1); closeMemoryHistory();
   if (editingId.value === item.id) { editorOpen.value = false; editorText.value = ''; editingId.value = ''; editingRevision.value = null; editorSources.value = []; }
-  notice.value = '确认记忆已删除，不再用于新问题。';
+  observationRevision.value += 1; notice.value = '确认记忆已删除，不再用于新问题。';
 }); }
 async function readConfirmedSource(id) { await confirmedAction(async (sid,current) => { const result = await research.source(sid,id); if (current()) confirmedSource.value = result; }); }
 async function openMemoryHistory(item) { await confirmedAction(async (sid,current)=>{ const result = await research.memoryHistory(sid,item.id); if (!current()) return; memoryHistoryId.value = item.id; memoryVersions.value = result.items; historyCursor.value = result.next_cursor; }); }
 async function loadMoreHistory() { const id = memoryHistoryId.value, cursor = historyCursor.value; if (!id || !cursor) return; await confirmedAction(async(sid,current)=>{ const result = await research.memoryHistory(sid,id,{cursor}); if (!current() || memoryHistoryId.value !== id) return; const seen = new Set(memoryVersions.value.map(item=>item.revision)); memoryVersions.value.push(...result.items.filter(item=>!seen.has(item.revision))); historyCursor.value = result.next_cursor === cursor ? null : result.next_cursor; }); }
-async function archiveMemory(item) { if (!memoryWriteEnabled.value || confirmedDate.value) return; await confirmedAction(async(sid,current)=>{ const confirm = await confirmOperation({title:item.archived ? '恢复这条记忆的使用？' : '将这条记忆归档？',content:item.archived ? '恢复后，仅在内容有效且来源仍可用时参与相关问题。' : '归档后不再用于新问题，内容和版本仍可搜索、查看，也可恢复。',confirmText:item.archived ? '恢复使用' : '归档',cancelText:'取消'}); if (!confirm.confirm || !current()) return; const result = await research.archiveMemory(sid,item.id,item.revision,!item.archived); if (!current()) return; const index = confirmedItems.value.findIndex(value=>value.id === item.id); if (index >= 0) { if (result.archived && !showArchived.value) { confirmedItems.value.splice(index,1); confirmedTotal.value = Math.max(0,confirmedTotal.value-1); } else confirmedItems.value[index] = result; } closeMemoryHistory(); notice.value = result.archived ? '已归档，不再用于新问题；内容仍可回看。' : '已恢复使用，来源状态和适用时间仍会参与检查。'; }); }
+async function archiveMemory(item) { if (!memoryWriteEnabled.value || confirmedDate.value) return; await confirmedAction(async(sid,current)=>{ const confirm = await confirmOperation({title:item.archived ? '恢复这条记忆的使用？' : '将这条记忆归档？',content:item.archived ? '恢复后，仅在内容有效且来源仍可用时参与相关问题。' : '归档后不再用于新问题，内容和版本仍可搜索、查看，也可恢复。',confirmText:item.archived ? '恢复使用' : '归档',cancelText:'取消'}); if (!confirm.confirm || !current()) return; const result = await research.archiveMemory(sid,item.id,item.revision,!item.archived); if (!current()) return; const index = confirmedItems.value.findIndex(value=>value.id === item.id); if (index >= 0) { if (result.archived && !showArchived.value) { confirmedItems.value.splice(index,1); confirmedTotal.value = Math.max(0,confirmedTotal.value-1); } else confirmedItems.value[index] = result; } observationRevision.value += 1; closeMemoryHistory(); notice.value = result.archived ? '已归档，不再用于新问题；内容仍可回看。' : '已恢复使用，来源状态和适用时间仍会参与检查。'; }); }
 async function searchConfirmed() {
   if (!visible || !researchEnabled.value || !sessionId.value || saving.value || loading.value || loadingMore.value) return;
   let filters; try { filters = {query:confirmedQuery.value.trim(),as_of:dateValue(confirmedDate.value,true),include_archived:showArchived.value}; } catch(issue) { error.value=issue.message; return; }

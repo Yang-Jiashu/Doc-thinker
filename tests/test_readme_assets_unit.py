@@ -22,6 +22,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 READMES = ("README.md", "README.zh-CN.md")
+HISTORY = "docs/HISTORY.md"
 OVERVIEW = "docs/assets/docthinker-v2-overview.svg"
 ARCHITECTURE = "docs/ARCHITECTURE.md"
 ARCHITECTURE_IMAGES = (
@@ -37,6 +38,18 @@ CURRENT_UI_GIFS = (
 )
 UI_SHOWCASE = "docs/UI_SHOWCASE.md"
 UI_MANIFEST = "docs/assets/current-ui-manifest.json"
+UI_V2_GIFS = (
+    "docs/assets/ui-v2-workspace.gif",
+    "docs/assets/ui-v2-memory-observatory.gif",
+    "docs/assets/ui-v2-graph-canvas.gif",
+)
+UI_V2_MANIFEST = "docs/assets/ui-v2-manifest.json"
+CURRENT_UI_MODES = {
+    path: ("offline-sample" if path.endswith(("workspace.gif", "graph.gif"))
+           else "isolated-runtime-local-model-stub")
+    for path in CURRENT_UI_GIFS
+}
+UI_V2_MODES = {path: "isolated-runtime-zero-model" for path in UI_V2_GIFS}
 SVG_NS = "http://www.w3.org/2000/svg"
 _DESTINATION = r'\]\(\s*(?:<([^>\n]+)>|([^\s)\n]+))'
 
@@ -145,9 +158,13 @@ def validate_inline_proportions(root: Path, source: str, body: str) -> None:
             raise ValueError("Inline image proportions differ by more than 1.4x: " + ", ".join(group))
 
 
-def validate_capture_manifest(value: dict, root: Path) -> None:
+def validate_capture_manifest(
+        value: dict, root: Path, *, inventory: tuple[str, ...] = CURRENT_UI_GIFS,
+        modes: dict[str, str] | None = None) -> None:
     """Bind declared capture metadata to shipped GIF bytes and header sizes.
 
+    Each recording generation has an explicit inventory and workflow modes;
+    the defaults retain the previous four-recording contract unchanged.
     Frame counts, elapsed duration and source-video hashes remain recording
     metadata; this check does not decode animation or certify model quality.
     """
@@ -161,6 +178,15 @@ def validate_capture_manifest(value: dict, root: Path) -> None:
     def digest(value):
         return type(value) is str and re.fullmatch(r"[0-9a-f]{64}", value) is not None
 
+    require(type(inventory) is tuple and len(inventory) > 0
+            and all(type(path) is str and path.startswith("docs/assets/")
+                    and "\\" not in path and not {"..", "."}.intersection(path.split("/"))
+                    and path.endswith(".gif") for path in inventory)
+            and len(set(inventory)) == len(inventory), "Invalid expected capture inventory")
+    expected_modes = CURRENT_UI_MODES if modes is None else modes
+    require(type(expected_modes) is dict and set(expected_modes) == set(inventory)
+            and all(type(mode) is str and mode.strip() for mode in expected_modes.values()),
+            "Expected capture modes must match the explicit inventory")
     require(type(value) is dict and set(value) == {
         "schema_version", "source_commit", "client_build", "external_model_calls", "captures"},
         "Unexpected capture manifest envelope")
@@ -176,19 +202,17 @@ def validate_capture_manifest(value: dict, root: Path) -> None:
             and type(build["command"]) is str and 0 < len(build["command"].strip()) <= 240,
             "Missing client build identity")
     captures = value["captures"]
-    require(type(captures) is list and len(captures) == len(CURRENT_UI_GIFS),
-            "Capture inventory must contain four recordings")
+    require(type(captures) is list and len(captures) == len(inventory),
+            "Capture inventory size differs from the expected recordings")
     fields = {"path", "mode", "viewport", "width", "height", "frames", "duration_ms", "sha256",
               "source_video_sha256", "actions"}
     require(all(type(row) is dict and set(row) == fields and type(row["path"]) is str for row in captures),
             "Unexpected capture metadata fields")
-    require({row["path"] for row in captures} == set(CURRENT_UI_GIFS),
+    require({row["path"] for row in captures} == set(inventory),
             "Recording paths must be unique and match the shipped inventory")
     for row in captures:
         path = row["path"]
-        expected_mode = ("offline-sample" if path.endswith(("workspace.gif", "graph.gif"))
-                         else "isolated-runtime-local-model-stub")
-        require(row["mode"] == expected_mode, "Capture mode differs from its recorded workflow")
+        require(row["mode"] == expected_modes[path], "Capture mode differs from its recorded workflow")
         viewport = row["viewport"]
         require(type(viewport) is dict and set(viewport) == {"width", "height"}
                 and all(positive(viewport[key]) for key in viewport), "Invalid capture viewport")
@@ -287,7 +311,7 @@ def validate_svg(source: str) -> None:
 
 class ReadmeAssetsTests(unittest.TestCase):
     def test_bilingual_inline_image_groups_have_compatible_proportions(self):
-        for name in READMES:
+        for name in (*READMES, HISTORY):
             with self.subTest(readme=name):
                 validate_inline_proportions(ROOT, name, (ROOT / name).read_text(encoding="utf-8"))
 
@@ -339,7 +363,7 @@ class ReadmeAssetsTests(unittest.TestCase):
                     raster_dimensions(path)
 
     def test_bilingual_local_links_and_images_exist(self):
-        for name in READMES:
+        for name in (*READMES, HISTORY):
             references = readme_references((ROOT / name).read_text(encoding="utf-8"))
             self.assertTrue(references)
             for target, _ in references:
@@ -352,7 +376,7 @@ class ReadmeAssetsTests(unittest.TestCase):
         pack = _pack_contract()
         self.assertIn(OVERVIEW, pack.FIXED)
         self.assertNotIn(OVERVIEW, pack.ORIGINAL_README_ASSETS)
-        for name in READMES:
+        for name in (*READMES, HISTORY):
             images = set()
             for target, image in readme_references((ROOT / name).read_text(encoding="utf-8")):
                 path = local_target(ROOT, name, target)
@@ -361,7 +385,8 @@ class ReadmeAssetsTests(unittest.TestCase):
                     images.add(relative)
                     with self.subTest(readme=name, image=relative):
                         self.assertTrue(pack.allowed(PurePosixPath(relative)))
-            self.assertIn(OVERVIEW, images)
+            if name in READMES:
+                self.assertIn(OVERVIEW, images)
 
     def test_new_overview_is_accessible_self_contained_svg(self):
         validate_svg((ROOT / OVERVIEW).read_text(encoding="utf-8"))
@@ -378,22 +403,31 @@ class ReadmeAssetsTests(unittest.TestCase):
                 self.assertTrue(expected.issubset(visible),
                                 "README overview and architecture must not be hidden in details")
 
-    def test_current_ui_recordings_are_default_visible_and_explicitly_packaged(self):
+    def test_previous_ui_recordings_are_visible_in_history_and_explicitly_packaged(self):
         spec = importlib.util.spec_from_file_location(
             "current_ui_visible_presentation", ROOT / "scripts/check_release_preservation.py")
         checker = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(checker)
         pack = _pack_contract()
-        for asset in (*CURRENT_UI_GIFS, UI_SHOWCASE, UI_MANIFEST):
+        for asset in (*CURRENT_UI_GIFS, UI_SHOWCASE, UI_MANIFEST, HISTORY):
             with self.subTest(asset=asset):
                 self.assertTrue((ROOT / asset).is_file())
                 self.assertIn(asset, pack.FIXED)
                 self.assertNotIn(asset, pack.ORIGINAL_README_ASSETS)
+        visible_archive = checker._visible_images((ROOT / HISTORY).read_text(encoding="utf-8"))
+        visible = set()
+        for target in visible_archive:
+            path = local_target(ROOT, HISTORY, target)
+            if path is not None:
+                visible.add(path.relative_to(ROOT).as_posix())
+        self.assertTrue(set(CURRENT_UI_GIFS).issubset(visible),
+                        "Previous UI recordings must stay visible in the history archive")
         for name in READMES:
             with self.subTest(readme=name):
                 visible = checker._visible_images((ROOT / name).read_text(encoding="utf-8"))
-                self.assertTrue(set(CURRENT_UI_GIFS).issubset(visible),
-                                "Current UI recordings must be shown without expanding a gallery")
+                self.assertFalse(set(CURRENT_UI_GIFS).intersection(visible),
+                                 "Previous UI must not be promoted as current product imagery")
+                self.assertIn(HISTORY, checker._visible_links((ROOT / name).read_text(encoding="utf-8")))
 
     def test_current_ui_showcase_local_links_and_images_exist(self):
         references = readme_references((ROOT / UI_SHOWCASE).read_text(encoding="utf-8"))
@@ -409,6 +443,105 @@ class ReadmeAssetsTests(unittest.TestCase):
 
     def test_current_ui_manifest_matches_shipped_recording_bytes_and_dimensions(self):
         validate_capture_manifest(json.loads((ROOT / UI_MANIFEST).read_text(encoding="utf-8")), ROOT)
+
+    def test_v2_recordings_are_default_visible_and_explicitly_packaged(self):
+        spec = importlib.util.spec_from_file_location(
+            "v2_ui_visible_presentation", ROOT / "scripts/check_release_preservation.py")
+        checker = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(checker)
+        pack = _pack_contract()
+        for asset in (*UI_V2_GIFS, UI_V2_MANIFEST):
+            with self.subTest(asset=asset):
+                self.assertTrue((ROOT / asset).is_file(), f"Missing current UI capture asset: {asset}")
+                self.assertIn(asset, pack.FIXED)
+                self.assertTrue(pack.allowed(PurePosixPath(asset)))
+                self.assertNotIn(asset, pack.ORIGINAL_README_ASSETS)
+        for name in READMES:
+            with self.subTest(readme=name):
+                visible = checker._visible_images((ROOT / name).read_text(encoding="utf-8"))
+                self.assertTrue(set(UI_V2_GIFS).issubset(visible),
+                                "Current UI recordings must be visible without opening details")
+
+    def test_v2_capture_manifest_matches_shipped_recording_bytes_and_dimensions(self):
+        self.assertTrue((ROOT / UI_V2_MANIFEST).is_file())
+        validate_capture_manifest(json.loads((ROOT / UI_V2_MANIFEST).read_text(encoding="utf-8")),
+                                  ROOT, inventory=UI_V2_GIFS, modes=UI_V2_MODES)
+
+    def test_v2_capture_manifest_rejects_false_modes_inventory_and_metadata(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            # Header-only fixtures exercise the manifest contract, not actual
+            # playback, provider isolation or the actions declared by a recorder.
+            header = b"GIF89a" + struct.pack("<HH", 640, 400)
+            captures = []
+            for path in UI_V2_GIFS:
+                asset = root / path
+                asset.parent.mkdir(parents=True, exist_ok=True)
+                asset.write_bytes(header)
+                captures.append({
+                    "path": path, "mode": UI_V2_MODES[path],
+                    "viewport": {"width": 1180, "height": 820}, "width": 640, "height": 400,
+                    "frames": 3, "duration_ms": 250, "sha256": hashlib.sha256(header).hexdigest(),
+                    "source_video_sha256": "a" * 64, "actions": ["Fixture current UI action"],
+                })
+            value = {"schema_version": 1, "source_commit": "b" * 40,
+                     "client_build": {"pwa_version": "c" * 20, "command": "fixture build"},
+                     "external_model_calls": 0, "captures": captures}
+            validate_capture_manifest(value, root, inventory=UI_V2_GIFS, modes=UI_V2_MODES)
+            # A new recording generation cannot silently inherit the old
+            # offline/stub modes, nor pass the old four-recording contract.
+            with self.assertRaises(ValueError):
+                validate_capture_manifest(value, root)
+            with self.assertRaises(ValueError):
+                validate_capture_manifest(value, root, inventory=UI_V2_GIFS)
+            changes = (
+                ("schema_version", True), ("source_commit", "unknown"),
+                ("external_model_calls", 1), ("external_model_calls", False),
+                ("client_build.pwa_version", "not-a-build"),
+                ("captures.0.mode", "offline-sample"),
+                ("captures.0.mode", "isolated-runtime-local-model-stub"),
+                ("captures.0.mode", "real-model"),
+                ("captures.0.path", UI_V2_GIFS[1]),
+                ("captures.0.path", CURRENT_UI_GIFS[0]),
+                ("captures.0.path", "docs/assets/../outside.gif"),
+                ("captures.0.sha256", "0" * 64), ("captures.0.width", 641),
+                ("captures.0.height", True), ("captures.0.frames", 1),
+                ("captures.0.duration_ms", 0), ("captures.0.viewport.height", 0),
+                ("captures.0.source_video_sha256", "invalid"), ("captures.0.actions", []),
+            )
+            for field, replacement in changes:
+                changed = json.loads(json.dumps(value))
+                target = changed
+                components = field.split(".")
+                for part in components[:-1]:
+                    target = target[int(part)] if isinstance(target, list) else target[part]
+                target[components[-1]] = replacement
+                with self.subTest(field=field, replacement=replacement), self.assertRaises(ValueError):
+                    validate_capture_manifest(changed, root, inventory=UI_V2_GIFS, modes=UI_V2_MODES)
+            for inventory, modes in (
+                (UI_V2_GIFS, {UI_V2_GIFS[0]: UI_V2_MODES[UI_V2_GIFS[0]]}),
+                ((UI_V2_GIFS[0], UI_V2_GIFS[0]), UI_V2_MODES),
+                (("docs/assets/../../outside.gif",), {"docs/assets/../../outside.gif": "unused"}),
+            ):
+                with self.subTest(inventory=inventory), self.assertRaises(ValueError):
+                    validate_capture_manifest(value, root, inventory=inventory, modes=modes)
+            for change in ("missing-field", "extra-field", "missing-row", "extra-row"):
+                changed = json.loads(json.dumps(value))
+                if change == "missing-field":
+                    del changed["captures"][0]["actions"]
+                elif change == "extra-field":
+                    changed["captures"][0]["quality_score"] = 1
+                elif change == "missing-row":
+                    changed["captures"].pop()
+                else:
+                    changed["captures"].append(changed["captures"][0].copy())
+                with self.subTest(change=change), self.assertRaises(ValueError):
+                    validate_capture_manifest(changed, root, inventory=UI_V2_GIFS, modes=UI_V2_MODES)
+            first_asset = root / UI_V2_GIFS[0]
+            first_asset.unlink()
+            first_asset.symlink_to(root / UI_V2_GIFS[1])
+            with self.assertRaisesRegex(ValueError, "regular file"):
+                validate_capture_manifest(value, root, inventory=UI_V2_GIFS, modes=UI_V2_MODES)
 
     def test_capture_manifest_rejects_mismatched_metadata_without_decoding_frames(self):
         with TemporaryDirectory() as directory:

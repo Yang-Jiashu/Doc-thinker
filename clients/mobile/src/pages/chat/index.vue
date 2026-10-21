@@ -30,7 +30,7 @@
     </view>
     <view v-else-if="messages.length" class="messages">
       <view v-for="(message, index) in messages" :id="'message-' + index" :key="message.key || index" class="message" :class="message.role === 'user' ? 'message-user' : 'message-assistant'">
-        <view class="message-byline"><image v-if="message.role !== 'user'" src="/static/brand/logo-32.png" class="message-mark" /><text class="message-role">{{ message.role === 'user' ? '你' : 'DocThinker' }}{{ preferences.mode === 'demo' && message.role !== 'user' ? ' · 模拟回答' : '' }}</text></view>
+        <view class="message-byline"><image v-if="message.role !== 'user'" src="/static/original-brand/logo-32.png" class="message-mark" /><text class="message-role">{{ message.role === 'user' ? '你' : 'DocThinker' }}{{ preferences.mode === 'demo' && message.role !== 'user' ? ' · 模拟回答' : '' }}</text></view>
         <AnswerBody v-if="message.role === 'assistant'" :text="message.content" />
         <template v-else>
           <!-- #ifdef MP-WEIXIN -->

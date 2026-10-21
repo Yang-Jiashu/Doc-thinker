@@ -39,7 +39,7 @@ function mount(page, overrides = {}) {
   const uni={switchTab:options=>calls.navigation.push(options),showModal:options=>{calls.modal.push(options);options.success({confirm});},setClipboardData:options=>{calls.clipboard.push(options.data);options.success();},...overrides.uni};
   const scope={ref,computed,api,research,researchExportParts,downloadResearchMarkdown:overrides.downloadResearchMarkdown || downloadResearchMarkdown,researchConnectionKey:()=>JSON.stringify(preferences),getPreferences:()=>({...preferences}),getActiveSession:()=>active,setActiveSession:value=>{active=value;},
     onShow:fn=>{hooks.show=fn;},onHide:fn=>{hooks.hide=fn;},onUnload:fn=>{hooks.unload=fn;},
-    BrandHeader:{},ModeBanner:{},WorkspaceBar:{},CapabilityBoundary:{},uni};
+    BrandHeader:{},ModeBanner:{},WorkspaceBar:{},CapabilityBoundary:{},MemoryObservatory:{},uni};
   const executable=script.content.replace(/^import[^;]+;\s*$/gm,'').replace('export default','return');
   const component=new Function(...Object.keys(scope),executable)(...Object.values(scope)),effects=effectScope();
   const ui=effects.run(()=>component.setup({}, {expose(){}}));

@@ -29,7 +29,7 @@ function mount(overrides = {}) {
     getPreferences: () => ({ mode: 'demo', baseUrl: '' }),
     getActiveSession: () => active, setActiveSession: value => { active = value; },
     onShow: fn => { hooks.show = fn; }, onHide: fn => { hooks.hide = fn; }, onUnload: fn => { hooks.unload = fn; },
-    BrandHeader: {}, WorkspaceBar: {}, ModeBanner: {}, CapabilityBoundary: {},
+    BrandHeader: {}, WorkspaceBar: {}, ModeBanner: {}, CapabilityBoundary: {}, MemoryObservatory: {},
     uni: { switchTab: value => calls.navigate.push(value) },
   };
   const executable = script.content.replace(/^import[^;]+;\s*$/gm, '').replace('export default', 'return');

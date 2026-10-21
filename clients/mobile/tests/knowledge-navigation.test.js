@@ -29,6 +29,7 @@ function mount(page, options = {}) {
   };
   const scope = {
     computed, ref, watch, nextTick:options.nextTick || nextTick, api, research:{capabilities:async()=>({enabled:false})},
+    createMemoryObservationClient:()=>({invalidate(){},load:async()=>{throw new Error('Demo navigation must not request connected memory observations');}}),GraphCanvas:{},
     researchConnectionKey:()=>JSON.stringify(preferences),getPreferences:()=>({...preferences}), getActiveSession:()=>active,
     setActiveSession:value=>{ active=value; calls.active.push(value); },
     onShow:callback=>{ hooks.show=callback; }, onHide:callback=>{ hooks.hide=callback; }, onUnload:callback=>{ hooks.unload=callback; },
