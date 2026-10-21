@@ -46,10 +46,16 @@ Stored totals and the rechecked return window are separate. Unknown metrics are 
 
 ### Capture identity · 录制身份
 
-- Source: [runtime commit `78f11ca`](https://github.com/Yang-Jiashu/Doc-thinker/commit/78f11ca3324cb0951109f37136b31f7e638c7734), built and recorded on 2026-10-21 (Asia/Shanghai). PWA build ID: `31e39111bf823dda1fcb`.
-- Real isolated [memory/graph acceptance runtime](https://github.com/Yang-Jiashu/Doc-thinker/blob/78f11ca3324cb0951109f37136b31f7e638c7734/tests/manual_memory_graph_runtime_check.py), synthetic `preview` account, project `#00002`; strict loopback provider tripwire forbids every attempted model request. These workflows did not ask for an answer, alter the fixture records or call an external model.
+- Source: [runtime commit `3fb15d5`](https://github.com/Yang-Jiashu/Doc-thinker/commit/3fb15d54bd95baab5d6c4ba3a2c0eecab3ea7bab), built and recorded on 2026-10-21 (Asia/Shanghai). PWA build ID: `a8137cd81dc876496643`.
+- Real isolated [memory/graph acceptance runtime](https://github.com/Yang-Jiashu/Doc-thinker/blob/3fb15d54bd95baab5d6c4ba3a2c0eecab3ea7bab/tests/manual_memory_graph_runtime_check.py), synthetic `preview` account, project `#00002`; strict loopback provider tripwire forbids every attempted model request. These workflows did not ask for an answer, alter the fixture records or call an external model.
 - Headless Chromium, 1180 × 820 viewport, native 12 fps WebM. GIFs are 1000 × 695, sampled at 8 fps with 10 ms timing rounding and duplicate-frame compression; all frames were decoded after encoding. No interface compositing, DOM substitution or generated artwork. No audio; recording duration is not a response-speed benchmark.
 - [New capture manifest](assets/ui-v2-manifest.json) binds source/build identity, original video hashes, shipped GIF hashes, encoded frame counts/durations and actual actions. Local original WebMs remain under `output/playwright/unified-ui-v2/`, outside the deployment bundle. Metadata checks establish byte consistency, not independent proof of reasoning quality.
+
+### Typography and linework · 字体与连线
+
+The graph records above include the refined screen-space renderer: measured Chinese/English labels avoid nodes and each other, retain a viewport inset and preserve stable placement; text and strokes remain readable when zooming. Ordinary edges stay straight, while genuine parallel relations fan apart gently. Endpoints and directional arrows stop outside the actual node radius. This is presentation, not a change to knowledge or inference.
+
+标签按实际字宽避让，选中内容优先，普通标签不套方框；线条为文字留白，圆边裁剪不穿点，只有平行关系轻微分流。字体测量与边分流计划有界缓存，连续指针事件仍合并到下一帧。新增绘制、文字布局与边几何测试共 41 项；另用同一绘制模块检查 12、200、2000 节点的合成压力样例和 390px 浏览器触控，不能据此声称手机真机或模型效果已验收。
 
 ## Historical recordings · 前版四段实录
 
