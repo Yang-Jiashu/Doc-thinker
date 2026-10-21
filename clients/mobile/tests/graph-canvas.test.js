@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import * as physics from '../src/services/graph-scene.js';
+import {createGraphPainter,GRAPH_COLORS} from '../src/services/graph-paint.js';
 
 const component = readFileSync(new URL('../src/components/GraphCanvas.vue',import.meta.url),'utf8');
 const setup = component.split('<script setup>')[1].split('</script>')[0].replace(/^import .*;\s*$/gm,'');
@@ -32,7 +33,8 @@ function fixture({reduced=false,resizeObserver=true,canvas=true,nextTick=null,pr
   let frameId=0,draws=0,observer=null,removed=false,created=0;
   media.matches=reduced; window.devicePixelRatio=3; window.matchMedia=()=>media;
   const context2d=Object.fromEntries(['setTransform','clearRect','save','translate','scale','setLineDash',
-    'beginPath','moveTo','lineTo','stroke','arc','fill','restore','strokeText','fillText'].map(name=>[name,()=>{draws++;}]));
+    'beginPath','moveTo','lineTo','quadraticCurveTo','closePath','rect','clip','stroke','arc','fill','restore','strokeText','fillText'].map(name=>[name,()=>{draws++;}]));
+  context2d.measureText=text=>({width:Array.from(text).length*12});
   const rect={left:11,top:17,width:800,height:430};
   const captures=new Set();
   Object.assign(surface,{style:{},attributes:{},focusCalls:0,getBoundingClientRect:()=>({...rect}),
@@ -43,7 +45,7 @@ function fixture({reduced=false,resizeObserver=true,canvas=true,nextTick=null,pr
   const stage={getBoundingClientRect:()=>({...rect}),appendChild(node){children.push(node);}};
   const copy=value=>Array.isArray(value)?Array.from(value):value;
   const same=(a,b)=>Array.isArray(a)&&Array.isArray(b)?a.length===b.length&&a.every((v,i)=>Object.is(v,b[i])):Object.is(a,b);
-  const context={...physics,console,Map,Set,Math,Array,Number,String,window,
+  const context={...physics,createGraphPainter,GRAPH_COLORS,console,Map,Set,Math,Array,Number,String,window,
     document:{createElement(name){assert.equal(name,'canvas');created++;return surface;}},
     computed:fn=>({get value(){return fn();}}),ref:value=>({value}),
     nextTick:nextTick||(()=>Promise.resolve()),
