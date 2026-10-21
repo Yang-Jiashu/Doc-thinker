@@ -8,6 +8,7 @@ import math
 import os
 import re
 import sqlite3
+import time
 import uuid
 from pathlib import Path
 from typing import Annotated, Literal
@@ -280,6 +281,59 @@ async def memory(
         raise HTTPException(503, "Memory is unavailable") from None
 
 
+def _read_memory_dashboard(session_id: str, limit: int) -> dict:
+    """Legacy session-only summaries: do not initialize or aggregate other scopes."""
+    from ..research_observability import envelope, _finish, _node
+    result = envelope(session_id, limit, profile="legacy_session_memory", sampled_at=time.time())
+    result["availability"] = {"documents": False, "confirmed_memories": False,
+                              "events": False, "event_relations": False, "graph": True}
+    result["counts"] = {"documents": {"total": None, "by_status": None},
+        "chunks": {"total": None, "available": None},
+        "memories": {"total": 0, "by_status": None, "versions": None, "source_links": None},
+        "events": {"total": None}, "relations": {"total": None}}
+    result["graph"]["kind"] = "legacy_memory_projection"
+    result["window"]["counts_scope"] = "stored_active_session_summaries"
+    db_path = _memory_database_path()
+    if db_path.exists():
+        connection = sqlite3.connect(db_path.as_uri() + "?mode=ro", uri=True, timeout=1)
+        try:
+            connection.row_factory = sqlite3.Row
+            deadline = time.monotonic() + 2.0
+            connection.set_progress_handler(lambda: int(time.monotonic() > deadline), 1000)
+            connection.execute("BEGIN")
+            predicate = "session_id=? AND scope='session' AND scope_key=? AND status='active'"
+            params = (session_id, "session:" + session_id)
+            total = connection.execute("SELECT count(*) FROM long_horizon_memories WHERE " + predicate, params).fetchone()[0]
+            result["counts"]["memories"]["total"] = total
+            rows = connection.execute("SELECT id,substr(kind,1,48) AS kind,substr(summary,1,1500) AS text,created_at "
+                "FROM long_horizon_memories WHERE " + predicate + " ORDER BY last_seen_at DESC,id ASC LIMIT ?",
+                (*params, limit)).fetchall()
+            for row in rows:
+                result["memories"].append({"id": row["id"], "kind": row["kind"] or "", "text": row["text"] or "",
+                    "status": "active", "revision": None, "source_count": None, "source_ids": [],
+                    "redacted": False, "archived": False, "confirmed_by_user": False,
+                    "valid_from": None, "valid_until": None, "recorded_at": None, "applicable_now": None})
+                result["graph"]["nodes"].append(_node("memory", row["id"], row["text"] or "会话摘要",
+                    description=row["text"] or ""))
+            result["window"]["limited"]["memories"] = total > len(rows)
+        finally:
+            connection.close()
+    return _finish(result)
+
+
+@router.get("/memory/dashboard")
+async def memory_dashboard(session_id: str, limit: Annotated[int, Query(ge=1, le=100)] = 20):
+    sid = _session(session_id)
+    # Not an invitation route. Do not make legacy shared-memory stores visible
+    # merely because a caller obtained an isolated worker's private token.
+    if os.getenv("DOCTHINKER_INVITE_WORKER_ID"):
+        raise HTTPException(404, "Legacy memory dashboard is unavailable")
+    try:
+        return await asyncio.to_thread(_read_memory_dashboard, sid, limit)
+    except Exception:
+        raise HTTPException(503, "Memory observation is unavailable") from None
+
+
 def _query_journal():
     from ..request_journal import RequestJournal
     return RequestJournal(Path(_manager().base_storage_path), boot_id=_query_boot_id)
@@ -531,8 +585,22 @@ async def graph(session_id: str, focus_node: str | None = None):
     result = await get_graph_data(session_id=_session(session_id), scope="summary", focus_node=focus_node)
     allowed = {"id", "label", "name", "type", "entity_type", "description", "degree", "is_discovered"}
     edges = {"id", "source", "target", "description", "keywords", "weight", "is_discovered"}
-    return {"nodes": [{k: v for k, v in n.items() if k in allowed} for n in result.get("nodes", [])],
-            "edges": [{k: v for k, v in e.items() if k in edges} for e in result.get("edges", [])]}
+    def discovered(record):
+        def flag(value):
+            return value is True or (type(value) is int and value == 1) or (
+                type(value) is str and value.casefold() in {"1", "true"})
+        return flag(record.get("is_discovered")) or flag(record.get("is_expanded"))
+    metadata = result.get("metadata", {})
+    safe_metadata = {key: metadata[key] for key in ("total_nodes", "total_edges", "truncated",
+        "focus_node_found", "nodes_returned", "edges_returned") if key in metadata}
+    safe_metadata.update(scope="summary", session_id=session_id,
+        window_limited=metadata.get("truncated") if type(metadata.get("truncated")) is bool else None,
+        total_edges_basis="raw_graph_records", causality_verified=False)
+    return {"nodes": [{k: v for k, v in n.items() if k in allowed} | {"is_discovered": discovered(n)}
+                      for n in result.get("nodes", [])],
+            "edges": [{k: v for k, v in e.items() if k in edges} | {"is_discovered": discovered(e)}
+                      for e in result.get("edges", [])],
+            "metadata": safe_metadata}
 
 
 @router.get("/chunks")
@@ -613,6 +681,7 @@ async def research_capabilities():
             "max_upload_bytes": 10 * 1024 * 1024, "max_documents_per_project": 20,
             "max_source_chunks": MAX_ANSWER_SOURCES, "max_source_context_bytes": 12000,
             "memory_write_enabled": getattr(state, "research_service", None) is not None,
+            "observability": getattr(state, "research_service", None) is not None,
             "knowledge_skills": getattr(state, "research_service", None) is not None,
             "uploads_allowed": getattr(state, "research_service", None) is not None,
             "memory_policy": "explicit_confirmation", "automatic_learning": False,
@@ -623,6 +692,16 @@ async def research_capabilities():
             "background_algorithms": ["analogy", "deduction", "induction"],
             "background_max_operators": 1, "background_wait_seconds": 1.0,
             "ocr": False, "autonomous_tasks": False, "semantic_entailment_verified": False}
+
+
+@router.get("/research/observability")
+async def research_observability(session_id: str, limit: Annotated[int, Query(ge=1, le=100)] = 20):
+    service, sid = _research(), _session(session_id)
+    from ..research_observability import ObservabilityUnavailable, project_observability
+    try:
+        return await _research_call(project_observability, service.store, sid, limit=limit)
+    except ObservabilityUnavailable:
+        raise HTTPException(503, "Session observation is unavailable; no empty result was substituted") from None
 
 
 @router.get('/research/knowledge-skills')

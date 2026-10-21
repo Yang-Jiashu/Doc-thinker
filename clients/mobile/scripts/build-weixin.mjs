@@ -32,21 +32,22 @@ async function inventory(directory, prefix = '') {
 
 async function pruneUnusedBrandFiles(output, files) {
   const required = new Set();
-  const literal = /static\/brand\/([A-Za-z0-9][A-Za-z0-9_.-]*\.(?:png|jpe?g|webp|svg))/g;
+  const directory = /^static\/(?:brand|original-brand)\//;
+  const literal = /static\/(brand|original-brand)\/([A-Za-z0-9][A-Za-z0-9_.-]*\.(?:png|jpe?g|webp|svg))/g;
   for (const filename of files) {
-    if (filename.startsWith('static/brand/') || !/\.(?:js|json|wxml|wxss)$/.test(filename)) continue;
+    if (directory.test(filename) || !/\.(?:js|json|wxml|wxss)$/.test(filename)) continue;
     const source = await readFile(path.join(output, filename), 'utf8');
-    for (const match of source.matchAll(literal)) required.add('static/brand/' + match[1]);
+    for (const match of source.matchAll(literal)) required.add('static/' + match[1] + '/' + match[2]);
     // Fail instead of silently removing an image constructed at runtime. Use
     // literal asset paths in this small app so its packaged resources are known.
-    if (source.replace(literal, '').includes('static/brand/')) {
+    if (/static\/(?:brand|original-brand)\//.test(source.replace(literal, ''))) {
       throw new Error(`Dynamic or unsupported brand asset path in ${filename}; use a complete literal file path.`);
     }
   }
   for (const filename of required) {
     if (!files.includes(filename)) throw new Error(`Referenced brand asset is missing: ${filename}`);
   }
-  const removed = files.filter(filename => filename.startsWith('static/brand/') && !required.has(filename));
+  const removed = files.filter(filename => directory.test(filename) && !required.has(filename));
   for (const filename of removed) await rm(path.join(output, filename));
   return { kept: [...required].sort(), removed };
 }

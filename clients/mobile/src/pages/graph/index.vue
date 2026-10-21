@@ -1,16 +1,22 @@
 <template>
   <view class="mobile-page graph-page">
     <BrandHeader eyebrow="CONNECTIONS" title="把思路，接回来" subtitle="说出想找的内容，看清它们如何相连。" />
-    <ModeBanner :mode="preferences.mode" :connection-kind="preferences.connectionKind" :invite-pending="preferences.invitePending" />
-    <CapabilityBoundary v-if="preferences.connectionKind === 'invite'" feature-id="graph" :invite-pending="preferences.invitePending" />
+    <ModeBanner :mode="preferences.mode" :connection-kind="preferences.connectionKind" :invite-pending="preferences.invitePending" :research-enabled="researchEnabled" />
+    <CapabilityBoundary v-if="preferences.connectionKind === 'invite' && !researchEnabled && !loading" feature-id="graph" :invite-pending="preferences.invitePending" />
     <template v-else>
     <WorkspaceBar :sessions="sessions" :session-id="sessionId" :disabled="loading || voiceBusy" @change="changeSession" />
-    <view class="graph-controls"><text>当前会话 · 轻量证据视图</text><button class="quiet-button" :disabled="loading || voiceBusy" @tap="refreshGraph">{{ loading ? '读取中' : '刷新图谱 ↻' }}</button></view>
+    <view v-if="researchEnabled && preferences.connectionKind !== 'invite'" class="graph-view-switch" role="group" aria-label="图谱数据视图"><button :disabled="loading || voiceBusy" :aria-pressed="graphView !== 'knowledge'" @tap="changeGraphView('sources')">记忆与来源</button><button :disabled="loading || voiceBusy" :aria-pressed="graphView === 'knowledge'" @tap="changeGraphView('knowledge')">知识关系 · 完整服务</button><text>两种数据分开展示，不把来源引用冒充语义关系。</text></view>
+    <view class="graph-controls"><text>当前会话 · {{ graphKind === 'provenance_projection' ? '记忆与来源关系' : '知识关系' }}</text><button class="quiet-button" :disabled="loading || voiceBusy" @tap="refreshGraph">{{ loading ? '读取中' : '刷新图谱 ↻' }}</button></view>
     <view v-if="error" class="error-box">{{ error }}</view>
     <view v-if="loading" class="status-box">正在读取当前会话的图谱…</view>
     <view v-else-if="!sessionId || !nodes.length" class="empty-state"><text class="empty-title">{{ sessionId ? '图谱还没有内容' : '先选择一个会话' }}</text><text class="empty-copy">上传并解析资料后，实体与关系会出现在这里。不同会话的资料不会合并显示。</text><button class="secondary-button" @tap="openDocuments">去资料页</button></view>
     <view v-else>
       <view class="graph-summary"><text>{{ nodes.length }} 个实体 · {{ edgeCount }} 条关系</text><text>关联不等于因果</text></view>
+      <!-- #ifdef H5 -->
+      <GraphCanvas :nodes="nodes" :edges="edges" :selected-id="selected?.id || ''" :highlight-ids="locatorResult?.path?.nodeIds || []" :active="pageVisible && !voiceBusy && !loading" :reset-key="sessionId + ':' + graphKind" :caption="graphCaption" :window-limited="graphWindowLimited" @select="selectCanvasNode" @inspect="showSelectedEvidence" />
+      <!-- #endif -->
+      <text v-if="observedAt" class="graph-snapshot">只读快照 · {{ formatObservationTime(observedAt) }} · 点击节点时重新核对当前来源；完整统计与版本在记忆页查看。</text>
+      <button v-if="graphKind === 'knowledge' && preferences.mode === 'connected' && selected" class="quiet-button" :disabled="loading || voiceBusy" @tap="focusNeighborhood">读取当前节点邻域 ↗</button>
       <view class="graph-locator">
         <text class="locator-eyebrow">不必记住刚才看到哪</text><text class="locator-title">想找什么，直接说</text>
         <text class="locator-copy">找一个知识点，或看看两个知识点之间的联系。语音先转文字，检查后再定位。</text>
@@ -45,7 +51,7 @@
       <view v-if="!filteredNodes.length" class="status-box">没有匹配实体，试试更短的名称。</view>
       <scroll-view v-else class="node-list" scroll-y>
         <button v-for="node in displayedNodes" :key="node.id || node.key" class="node-row" :class="{ 'node-selected': selected?.id === node.id }" :disabled="!node.id || voiceBusy" @tap="selectNode(node)">
-          <view class="node-monogram" aria-hidden="true">{{ Array.from(node.label)[0] }}</view><view class="node-row-main"><text class="node-name">{{ node.label }}</text><view class="node-tags"><text class="node-kind">{{ node.type || '实体' }}</text><text v-if="node.is_discovered" class="node-inferred">补充 · 待核验</text></view></view><text class="node-arrow" aria-hidden="true">{{ selected?.id === node.id ? '✓' : '↗' }}</text>
+          <view class="node-monogram" aria-hidden="true">{{ Array.from(node.label)[0] }}</view><view class="node-row-main"><text class="node-name">{{ node.label }}</text><view class="node-tags"><text class="node-kind">{{ graphType(node.type) }}</text><text v-if="node.is_discovered" class="node-inferred">补充 · 待核验</text></view></view><text class="node-arrow" aria-hidden="true">{{ selected?.id === node.id ? '✓' : '↗' }}</text>
         </button>
       </scroll-view>
       <button v-if="filteredNodes.length > visibleCount" class="quiet-button full-width" @tap="visibleCount += 60">再显示 60 个实体（还有 {{ filteredNodes.length - visibleCount }} 个）</button>
@@ -59,6 +65,8 @@
         <!-- #ifndef MP-WEIXIN -->
         <text v-if="selected.description" class="node-description" selectable>{{ selected.description }}</text>
         <!-- #endif -->
+        <text v-if="selected.label_truncated || selected.description_truncated" class="evidence-caption">名称或说明已缩短；请以下方可核对的原文为准。</text>
+        <text v-if="selected.sources_limited || selected.source_ids?.length > 3" class="evidence-caption">本次仅按需读取最多 3 条关联原文，不代表该记录的全部来源。</text>
         <view class="relations-section"><view class="relation-heading"><text class="relation-title">它与哪些知识相连</text><text class="relation-count">{{ selectedRelations.length }} 条</text></view><text class="relation-note">线条表示接口返回的邻接关系，不表示因果方向；补充关联需核验。</text>
           <view v-if="!selectedRelations.length" class="relation-empty">当前摘要没有返回它的邻接关系。</view>
           <view v-for="relation in displayedRelations" :key="relation.key" class="relation-card" :class="{ 'relation-inferred': relation.is_discovered }"><view class="relation-endpoints"><text class="relation-origin">{{ selected.label }}</text><text class="relation-line" aria-hidden="true">—</text><button class="relation-target" :disabled="!relation.node" @tap="selectNeighbor(relation)">{{ relation.label }}<text v-if="relation.node" aria-hidden="true"> ↗</text></button></view><text class="relation-kind">{{ relation.is_discovered ? '补充关联 · 待核验' : '图谱关联 · 请核原文' }}</text>
@@ -74,7 +82,7 @@
         <view class="source-heading"><text class="source-title">回到原文</text><text class="source-badge">EVIDENCE</text></view><text class="evidence-caption">实体描述、关系标签都不能代替原文。以下是该实体关联的片段，不一定支持每一条关系。</text>
         <view v-if="evidenceLoading" class="status-box">正在查找这个实体对应的原文…</view>
         <view v-else-if="evidenceError" class="error-box"><text>{{ evidenceError }}</text><button class="quiet-button" @tap="selectNode(selected)">重新读取</button></view>
-        <view v-else-if="!chunks.length" class="status-box">暂未返回可查看的原文。这个节点本身不足以证明结论，请到桌面端继续核查。</view>
+        <view v-else-if="!chunks.length" class="status-box">{{ graphKind === 'provenance_projection' ? selected.redacted ? '关联内容已失效或撤回，不展示旧正文与原文。' : '这条记录没有当前可核对的原文；确认记忆只能作为个人背景，不能当成资料证明。' : '暂未返回可查看的原文。这个节点本身不足以证明结论，请到资料页继续核查。' }}</view>
         <view v-for="(chunk, index) in chunks" :key="chunk.id || chunk.chunk_id || index" class="evidence-item"><text class="evidence-number">{{ String(index + 1).padStart(2, '0') }} / 关联原文{{ chunk.file_name ? ' · ' + chunk.file_name : '' }}</text>
           <!-- #ifdef MP-WEIXIN -->
           <text class="evidence-content" user-select>{{ chunk.content || chunk.text || '该条原文没有可显示的内容。' }}</text>
@@ -84,7 +92,7 @@
           <!-- #endif -->
         </view>
       </view>
-      <view v-else class="graph-explanation"><view class="exploration-mark" aria-hidden="true">↗</view><view><text class="exploration-title">沿着一个知识点，继续探索</text><text>点选实体，查看邻接关系与原文。当前是轻量证据视图，不展示完整推理链。</text></view></view>
+      <view v-else class="graph-explanation"><view class="exploration-mark" aria-hidden="true">↗</view><view><text class="exploration-title">沿着一个知识点，继续探索</text><text>画布与下方列表使用同一份会话数据；点选节点核对邻接关系与原文。来源关系和浏览路径不等于完整推理链。</text></view></view>
     </view>
     </template>
   </view>
@@ -100,8 +108,17 @@ import BrandHeader from '../../components/BrandHeader.vue';
 import CapabilityBoundary from '../../components/CapabilityBoundary.vue';
 import GraphVoiceInput from '../../components/GraphVoiceInput.vue';
 import { planGraphNavigation, GRAPH_NAVIGATION_LIMITS } from '../../services/graph-navigation.js';
+import { research } from '../../services/research.js';
+import { createMemoryObservationClient } from '../../services/memory-observability.js';
+// #ifdef H5
+import GraphCanvas from '../../components/GraphCanvas.vue';
+// #endif
 
 const preferences = ref({ mode: 'demo' }), sessions = ref([]), sessionId = ref('');
+const researchEnabled = ref(false), graphKind = ref('knowledge'), graphView = ref('sources'), graphWindowLimited = ref(false), observedAt = ref(null);
+const observationClient = createMemoryObservationClient();
+const graphCaption = computed(()=>graphKind.value === 'provenance_projection' ? '来自真实记录的记忆、事件与来源投影，不冒充自动抽取的完整语义图。' : preferences.value.mode === 'demo' ? '离线样例；节点与原文均为明确标注的固定示例。' : '当前会话已加载的知识图窗口；不是全库导出。');
+const graphType=value=>({document:'资料',source:'原文',memory:'确认记忆',event:'事件'}[value] || value || '实体');
 const nodes = ref([]), edges = ref([]), search = ref(''), selected = ref(null), chunks = ref([]), visibleCount = ref(60), relationLimit = ref(8);
 const edgeCount = computed(() => edges.value.length);
 const loading = ref(false), evidenceLoading = ref(false), error = ref(''), evidenceError = ref('');
@@ -109,7 +126,7 @@ const pageVisible = ref(false), voiceBusy = ref(false), navigationRevision = ref
 const locatorDraft = ref(''), pendingVoiceDraft = ref(''), locatorNotice = ref(''), locatorResult = ref(null), locatorQuery = ref(''), choiceResolutions = ref({});
 const contextGoal = ref(''), navigationHistory = ref([]);
 const locatorTooLong = computed(() => locatorDraft.value.length > GRAPH_NAVIGATION_LIMITS.queryChars);
-const navigationBlocked = computed(() => !pageVisible.value || loading.value || voiceBusy.value || !sessionId.value || !nodes.value.length || preferences.value.connectionKind === 'invite');
+const navigationBlocked = computed(() => !pageVisible.value || loading.value || voiceBusy.value || !sessionId.value || !nodes.value.length || (preferences.value.connectionKind === 'invite' && !researchEnabled.value));
 const routeNodes = computed(() => (locatorResult.value?.path?.nodeIds || []).map(id => nodes.value.find(node => node.id === id)).filter(Boolean));
 const currentLocation = computed(() => selected.value?.label || (locatorResult.value?.kind === 'path' ? routeNodes.value.map(node => node.label).join(' — ') : locatorResult.value?.kind === 'clarify' ? '等待你确认实体' : '还未选定知识点'));
 const historyLabels = computed(() => navigationHistory.value.slice(-4).map(item => item.label));
@@ -141,7 +158,7 @@ async function revealEvidence(request, pageGeneration, session, nodeId) {
   }
 }
 function showSelectedEvidence() {
-  if (!visible || voiceBusy.value || !selected.value?.id || preferences.value.connectionKind === 'invite') return;
+  if (!visible || voiceBusy.value || !selected.value?.id || (preferences.value.connectionKind === 'invite' && !researchEnabled.value)) return;
   void revealEvidence(evidenceGeneration, generation, sessionId.value, selected.value.id);
 }
 async function showContext() {
@@ -193,7 +210,7 @@ function chooseCandidate(id) {
   return runLocator({...choiceResolutions.value,[plan.slot]:id},false);
 }
 function receiveLocatorTranscript(text) {
-  if (!visible || loading.value || preferences.value.connectionKind === 'invite' || typeof text !== 'string' || !text.trim()) return;
+  if (!visible || loading.value || (preferences.value.connectionKind === 'invite' && !researchEnabled.value) || typeof text !== 'string' || !text.trim()) return;
   if (locatorDraft.value.trim() && locatorDraft.value !== text) pendingVoiceDraft.value = text;
   else locatorDraft.value = text;
   locatorNotice.value = '转写已完成，请检查文字，再点“定位 / 看联系”；尚未查询或发送问题。';
@@ -232,9 +249,15 @@ function refreshGraph() { if (visible && !loading.value && !voiceBusy.value) ret
 async function reload() {
   resetNavigation();
   const request = ++generation; preferences.value = getPreferences(); loading.value = true; error.value = ''; nodes.value = []; edges.value = []; clearSelection();
+  observationClient.invalidate(); researchEnabled.value = false; graphKind.value = 'knowledge'; observedAt.value = null; graphWindowLimited.value = false;
   sessions.value = []; sessionId.value = '';
-  if (preferences.value.connectionKind === 'invite') { loading.value = false; return; }
   try {
+    if (preferences.value.mode === 'connected') {
+      const capability = await research.capabilities({refresh:true});
+      if (!visible || request !== generation) return;
+      researchEnabled.value = capability.enabled === true;
+    }
+    if (preferences.value.connectionKind === 'invite' && !researchEnabled.value) return;
     const available = await api.sessions();
     if (!visible || request !== generation) return;
     sessions.value = Array.isArray(available) ? available : [];
@@ -242,37 +265,76 @@ async function reload() {
     sessionId.value = sessions.value.some(item => String(item.id) === stored) ? stored : String(sessions.value[0]?.id || '');
     setActiveSession(sessionId.value);
     if (!sessionId.value) return;
-    const graph = await api.graph(sessionId.value);
+    const projection=researchEnabled.value && (graphView.value !== 'knowledge' || preferences.value.connectionKind === 'invite');
+    const snapshot = projection ? await observationClient.load(sessionId.value,{mode:'research',isCurrent:()=>visible && request === generation}) : null;
+    const graph = snapshot ? snapshot.graph : await api.graph(sessionId.value);
     if (!visible || request !== generation) return;
-    nodes.value = (Array.isArray(graph?.nodes) ? graph.nodes : []).map((node, index) => ({
-      id: String(node.id ?? node.entity_id ?? ''), key: index,
-      label: String(node.label || node.name || node.id || node.entity_id || '未命名实体'),
-      type: String(node.type || node.entity_type || ''), description: String(node.description || ''), is_discovered: discovered(node.is_discovered),
-    }));
-    const relations = Array.isArray(graph?.edges) ? graph.edges : Array.isArray(graph?.links) ? graph.links : [];
-    edges.value = relations.map((edge, index) => ({ key: index, source: endpointId(edge.source), target: endpointId(edge.target), description: String(edge.description || edge.label || edge.keywords || ''), is_discovered: discovered(edge.is_discovered) })).filter(edge => edge.source && edge.target);
+    if (snapshot) observedAt.value = snapshot.sampled_at;
+    installGraph(graph);
   } catch (issue) { if (visible && request === generation) error.value = issue?.message || '图谱读取失败，请稍后刷新。'; }
   finally { if (request === generation) loading.value = false; }
 }
-async function selectNode(node, recordHistory = true) {
-  if (!visible || voiceBusy.value || preferences.value.connectionKind === 'invite' || !node?.id || !sessionId.value) return;
+function installGraph(graph) {
+    graphKind.value = graph?.kind === 'provenance_projection' ? 'provenance_projection' : 'knowledge';
+    graphWindowLimited.value = graph?.window_limited === true || graph?.truncated === true || (preferences.value.mode === 'connected' && graphKind.value === 'knowledge');
+    const nextNodes = (Array.isArray(graph?.nodes) ? graph.nodes : []).map((node, index) => ({
+      id: String(node.id ?? node.entity_id ?? ''), key: index,
+      label: String(node.label || node.name || node.id || node.entity_id || '未命名实体'),
+      type: String(node.type || node.entity_type || ''), description: String(node.description || ''), is_discovered: discovered(node.is_discovered),
+      ...(graphKind.value === 'provenance_projection' ? {record_id:node.record_id,status:node.status,revision:node.revision,redacted:node.redacted === true,label_truncated:node.label_truncated === true,description_truncated:node.description_truncated === true,sources_limited:node.sources_limited === true,source_ids:Array.isArray(node.source_ids) ? node.source_ids.slice(0,20) : []} : {}),
+    }));
+    const relations = Array.isArray(graph?.edges) ? graph.edges : Array.isArray(graph?.links) ? graph.links : [];
+    const nextEdges = relations.map((edge, index) => ({ key: index, source: endpointId(edge.source), target: endpointId(edge.target), description: String(edge.description || edge.relation || edge.label || edge.keywords || ''), is_discovered: discovered(edge.is_discovered),directed:graphKind.value === 'provenance_projection' })).filter(edge => edge.source && edge.target);
+    // A read revalidates data without needlessly resetting a stable canvas layout.
+    const changedNodes=JSON.stringify(nodes.value) !== JSON.stringify(nextNodes),changedEdges=JSON.stringify(edges.value) !== JSON.stringify(nextEdges);
+    if (changedNodes || changedEdges) resetNavigation(); // Old paths and Back snapshots must never survive changed relations.
+    if (changedNodes) nodes.value = nextNodes;
+    if (changedEdges) edges.value = nextEdges;
+}
+function formatObservationTime(epoch) { const date=new Date(epoch*1000); return Number.isFinite(date.getTime()) ? date.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '时间不可用'; }
+async function changeGraphView(mode) { if (!visible || loading.value || voiceBusy.value || preferences.value.connectionKind === 'invite' || !['sources','knowledge'].includes(mode) || mode === graphView.value) return; graphView.value=mode; await reload(); }
+async function focusNeighborhood() {
+  if (!visible || loading.value || voiceBusy.value || graphKind.value !== 'knowledge' || preferences.value.connectionKind === 'invite' || preferences.value.mode !== 'connected' || !selected.value) return;
+  const request=++generation,session=sessionId.value,id=selected.value.id;clearSelection();loading.value=true;error.value='';
+  try {const graph=await api.graph(session,{focusNode:id});if(!visible || request !== generation || session !== sessionId.value)return;installGraph(graph);const current=nodes.value.find(n=>n.id===id);if(current)await selectNode(current,false,false);}
+  catch(issue) {if(visible && request===generation)error.value=issue?.message || '节点邻域读取失败，请手动重试。';}
+  finally {if(request===generation)loading.value=false;}
+}
+function selectCanvasNode(id) { const node=nodes.value.find(item=>item.id === id); if (node) return selectNode(node,true,false); }
+async function selectNode(node, recordHistory = true, reveal = true) {
+  if (!visible || voiceBusy.value || (preferences.value.connectionKind === 'invite' && !researchEnabled.value) || !node?.id || !sessionId.value) return;
   const canonical = nodes.value.find(item => item.id === node.id);
   if (!canonical) return;
   node = canonical;
   if (recordHistory && selected.value?.id !== node.id) rememberLocation();
   const request = ++evidenceGeneration, session = sessionId.value;
-  selected.value = node; chunks.value = []; relationLimit.value = 8; evidenceError.value = ''; evidenceLoading.value = true;
-  void revealEvidence(request, generation, session, node.id);
+  selected.value = graphKind.value === 'provenance_projection' ? {...node,description:''} : node; chunks.value = []; relationLimit.value = 8; evidenceError.value = ''; evidenceLoading.value = true;
+  if (reveal) void revealEvidence(request, generation, session, node.id);
   try {
-    const result = await api.chunks(session, node.id);
+    let result;
+    if (graphKind.value === 'provenance_projection') {
+      const current = ()=>visible && request === evidenceGeneration && session === sessionId.value;
+      const snapshot = await observationClient.load(session,{mode:'research',isCurrent:current});
+      if (!current()) return;
+      observedAt.value = snapshot.sampled_at; installGraph(snapshot.graph);
+      const fresh = nodes.value.find(item=>item.id === node.id);
+      if (!fresh) {clearSelection();return;}
+      selected.value = fresh; result=[];
+      for (const id of fresh.redacted ? [] : fresh.source_ids.slice(0,3)) {
+        if (!current()) return;
+        const source = await research.source(session,id);
+        if (!current()) return;
+        result.push(source);
+      }
+    } else result = await api.chunks(session, node.id);
     if (visible && request === evidenceGeneration && session === sessionId.value) chunks.value = Array.isArray(result) ? result : [];
-  } catch (issue) { if (visible && request === evidenceGeneration) evidenceError.value = issue?.message || '原文读取失败，请重试。'; }
+  } catch (issue) { if (visible && request === evidenceGeneration) {chunks.value=[];if (graphKind.value === 'provenance_projection' && selected.value) selected.value={...selected.value,description:'',source_ids:[]};evidenceError.value = issue?.message || '原文读取失败，请重试。';} }
   finally { if (request === evidenceGeneration) evidenceLoading.value = false; }
 }
 async function changeSession(id) { if (!visible || voiceBusy.value) return; search.value = ''; setActiveSession(id); await reload(); }
 function openDocuments() { uni.switchTab({ url: '/pages/documents/index' }); }
 function openChat() { uni.switchTab({ url: '/pages/chat/index' }); }
-function hide() { visible = false; pageVisible.value = false; generation += 1; resetNavigation(); clearSelection(); loading.value = false; }
+function hide() { visible = false; pageVisible.value = false; generation += 1; observationClient.invalidate(); resetNavigation(); clearSelection(); loading.value = false; nodes.value=[];edges.value=[];sessions.value=[];sessionId.value='';observedAt.value=null; }
 onShow(() => { visible = true; pageVisible.value = true; void reload(); }); onHide(hide); onUnload(hide);
 </script>
 
@@ -280,6 +342,8 @@ onShow(() => { visible = true; pageVisible.value = true; void reload(); }); onHi
 @import '../../components/mobile.css';
 .graph-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: -12px; margin-bottom: 8px; color: #7d8b72; font-size: 11px; }
 .graph-controls .quiet-button { min-height: 44px; padding-right: 0; color: #637e50; font-size: 12px; }
+.graph-snapshot { display:block;color:#77866c;font-size:11px;line-height:1.8;margin:-12px 0 22px; }
+.graph-view-switch { display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 20px; }.graph-view-switch button { margin:0;padding:9px 13px;min-height:44px;border-radius:12px;border:1px solid #dfe5d7;background:#fffefa;color:#6b7c61;font-size:12px; }.graph-view-switch button[aria-pressed="true"] { background:#e8efdc;color:#37583a; }.graph-view-switch text { flex-basis:100%;font-size:10px;line-height:1.7;color:#839177; }
 .graph-summary { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; margin-bottom:18px; color:#5f6d61; font-size:12px; }
 .graph-locator { padding:22px; margin-bottom:18px; border:1px solid #cdd5be; border-radius:22px; background:#fffefa; }
 .locator-eyebrow { display:block; font-size:11px; color:#657a52; letter-spacing:1px; }

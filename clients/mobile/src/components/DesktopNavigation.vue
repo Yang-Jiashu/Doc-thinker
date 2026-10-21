@@ -2,7 +2,7 @@
   <!-- #ifdef H5 -->
   <nav v-if="visible && currentRoute" class="desktop-navigation" aria-label="主导航">
     <div class="desktop-brand">
-      <img class="desktop-brand-mark" src="/static/brand/logo-64.png" alt="" />
+      <img class="desktop-brand-mark" src="/static/original-brand/logo-64.png" alt="DocThinker original dog logo" />
       <div><span class="desktop-wordmark">DocThinker<span class="desktop-period">.</span></span><span class="desktop-brand-caption">私人工作台</span></div>
     </div>
     <span class="desktop-section-label">我的空间</span>

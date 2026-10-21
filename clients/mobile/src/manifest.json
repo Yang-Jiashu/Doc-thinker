@@ -10,11 +10,11 @@
     "modules":{"Audio":{}},
     "distribute":{
       "icons":{
-        "android":{"mdpi":"static/brand/icon-48.png","hdpi":"static/brand/icon-72.png","xhdpi":"static/brand/icon-96.png","xxhdpi":"static/brand/icon-144.png","xxxhdpi":"static/brand/icon-192.png"},
+        "android":{"mdpi":"static/original-brand/icon-48.png","hdpi":"static/original-brand/icon-72.png","xhdpi":"static/original-brand/icon-96.png","xxhdpi":"static/original-brand/icon-144.png","xxxhdpi":"static/original-brand/icon-192.png"},
         "ios":{
-          "appstore":"static/brand/icon-1024.png",
-          "iphone":{"app@2x":"static/brand/icon-120.png","app@3x":"static/brand/icon-180.png","spotlight@2x":"static/brand/icon-80.png","spotlight@3x":"static/brand/icon-120.png","settings@2x":"static/brand/icon-58.png","settings@3x":"static/brand/icon-87.png","notification@2x":"static/brand/icon-40.png","notification@3x":"static/brand/icon-60.png"},
-          "ipad":{"app":"static/brand/icon-76.png","app@2x":"static/brand/icon-152.png","proapp@2x":"static/brand/icon-167.png","spotlight":"static/brand/icon-40.png","spotlight@2x":"static/brand/icon-80.png","settings":"static/brand/icon-29.png","settings@2x":"static/brand/icon-58.png","notification":"static/brand/icon-20.png","notification@2x":"static/brand/icon-40.png"}
+          "appstore":"static/original-brand/icon-1024.png",
+          "iphone":{"app@2x":"static/original-brand/icon-120.png","app@3x":"static/original-brand/icon-180.png","spotlight@2x":"static/original-brand/icon-80.png","spotlight@3x":"static/original-brand/icon-120.png","settings@2x":"static/original-brand/icon-58.png","settings@3x":"static/original-brand/icon-87.png","notification@2x":"static/original-brand/icon-40.png","notification@3x":"static/original-brand/icon-60.png"},
+          "ipad":{"app":"static/original-brand/icon-76.png","app@2x":"static/original-brand/icon-152.png","proapp@2x":"static/original-brand/icon-167.png","spotlight":"static/original-brand/icon-40.png","spotlight@2x":"static/original-brand/icon-80.png","settings":"static/original-brand/icon-29.png","settings@2x":"static/original-brand/icon-58.png","notification":"static/original-brand/icon-20.png","notification@2x":"static/original-brand/icon-40.png"}
         }
       },
       "android":{"permissions":["<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>","<uses-permission android:name=\"android.permission.INTERNET\"/>"]},

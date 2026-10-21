@@ -674,9 +674,10 @@ export const api = {
     checkActive();
     return uploadFile('/upload',path,{session_id:sid,...(name ? {original_filename:name} : {})},file?.file,{isCurrent:active});
   },
-  async graph(sid) {
+  async graph(sid,{focusNode = ''} = {}) {
     requireExtendedFeatures();
-    if (!isDemo()) return request('/graph?' + query({session_id:sid}));
+    if (typeof focusNode !== 'string' || focusNode.length > 256 || /[\u0000-\u001f\u007f]/.test(focusNode)) throw new Error('图谱定位编号不符合要求，没有发送查询');
+    if (!isDemo()) return request('/graph?' + query({session_id:sid,...(focusNode ? {focus_node:focusNode} : {})}));
     demoSid(sid); if (sid !== '#demo1') return {nodes:[],edges:[]};
     return {nodes:demoNodes.map((label,i)=>({id:label,label,type:'概念',description:'仅用于展示交互的模拟知识节点。',degree:i===0||i===5?1:2})),edges:demoNodes.slice(1).map((label,i)=>({source:demoNodes[i],target:label,description:'示例关联，不代表已证实的因果关系'}))};
   },

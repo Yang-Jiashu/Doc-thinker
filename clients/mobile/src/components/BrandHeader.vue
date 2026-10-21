@@ -4,7 +4,7 @@
     <DesktopNavigation />
     <!-- #endif -->
     <view class="brand-topline" :style="layout.row">
-      <view class="brand-signature"><view class="brand-mark-frame"><image class="brand-mark" src="/static/brand/logo-64.png" mode="aspectFit" /></view><text class="brand-wordmark">DocThinker<text class="brand-period">.</text></text></view>
+      <view class="brand-signature"><view class="brand-mark-frame"><image class="brand-mark" src="/static/original-brand/logo-64.png" mode="aspectFit" /></view><text class="brand-wordmark">DocThinker<text class="brand-period">.</text></text></view>
       <view class="brand-category"><view class="brand-category-mark" /><text>你的私人助手</text></view>
     </view>
     <view v-if="title" class="brand-heading"><text v-if="eyebrow" class="brand-eyebrow">{{ eyebrow }}</text><text class="brand-title">{{ title }}</text><text v-if="subtitle" class="brand-subtitle">{{ subtitle }}</text></view>

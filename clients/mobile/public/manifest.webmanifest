@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "DocThinker · 随身知识",
+  "name": "DocThinker · 私人助手",
   "short_name": "DocThinker",
-  "description": "知识问答与资料图谱；内置离线演示，真实资料需连接你配置的私人服务。",
+  "description": "记忆、资料与长期任务的私人工作台；内置离线示例，真实能力以已连接服务为准。",
   "lang": "zh-CN",
   "start_url": "./#/pages/chat/index",
   "scope": "./",
@@ -11,8 +11,8 @@
   "theme_color": "#f6f5f0",
   "prefer_related_applications": false,
   "icons": [
-    { "src": "./static/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "./static/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "./static/brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "./static/original-brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./static/original-brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./static/original-brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

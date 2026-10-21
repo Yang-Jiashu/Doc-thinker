@@ -142,9 +142,8 @@ test('unopened feature panel returns pending users to login and active users to 
 test('feature boundaries do not replace personal/demo flows or trigger automatic network/model work', () => {
   for (const page of ['documents', 'memory', 'graph']) {
     const source = read(`pages/${page}/index.vue`);
-    assert.match(source, /<CapabilityBoundary v-(?:else-)?if="preferences\.connectionKind === 'invite'(?: && !researchEnabled)?"/);
-    if (page === 'graph') assert.match(source, /if \(preferences\.value\.connectionKind === 'invite'\) \{ loading\.value = false; return; \}/);
-    else {
+    assert.match(source, /<CapabilityBoundary v-(?:else-)?if="preferences\.connectionKind === 'invite'(?: && !researchEnabled)?(?: && !loading)?"/);
+    {
       assert.match(source, /await research\.capabilities\(\{refresh:true\}\)/);
       assert.match(source, /if \(preferences\.value\.connectionKind === 'invite' && !researchEnabled\.value\) return;/);
     }

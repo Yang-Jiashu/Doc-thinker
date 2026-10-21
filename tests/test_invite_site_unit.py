@@ -46,6 +46,23 @@ async def test_shell_refuses_symlink_assets(shell):
         assert (await client.get("/assets/link.js")).status_code == 404
 
 
+async def test_active_original_brand_images_are_served_without_opening_source_directories(shell):
+    original = shell / "static/original-brand"
+    original.mkdir(parents=True)
+    (original / "logo-64.png").write_bytes(b"synthetic-png")
+    (original / "private.txt").write_text("not-a-build-image")
+    (original / "linked.png").symlink_to(original / "logo-64.png")
+    app = create_invite_site(api_app=FastAPI(), web_dir=shell)
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://127.0.0.1") as client:
+        response = await client.get("/static/original-brand/logo-64.png")
+        assert response.status_code == 200 and response.content == b"synthetic-png"
+        assert response.headers["cache-control"] == "no-store"
+        assert response.headers["x-content-type-options"] == "nosniff"
+        for path in ("/static/original-brand/private.txt", "/static/original-brand/linked.png",
+                     "/original-brand/private.txt", "/static/other/logo-64.png"):
+            assert (await client.get(path)).status_code == 404
+
+
 def test_source_and_missing_build_directories_are_rejected(shell, tmp_path):
     with pytest.raises(ValueError):
         InviteShell(tmp_path / "absent")

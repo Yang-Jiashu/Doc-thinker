@@ -33,8 +33,13 @@ export async function buildPwa(output = path.join(root,'dist/build/h5')) {
   // uni's H5 build does not reliably copy public/. Keep the design showcase
   // available online, but deliberately outside the offline shell allowlist.
   await copyPublicDirectory(path.join(root,'public/brand'),path.join(output,'brand'));
+  // The original dog is the active identity. The older six-direction gallery
+  // remains available as history, never as the source of generated app icons.
+  await copyPublicDirectory(path.join(root,'public/original-brand'),path.join(output,'original-brand'));
   const required = ['index.html','manifest.webmanifest','pwa-register.js',
-    'static/brand/icon-180.png','static/brand/icon-192.png','static/brand/icon-512.png','static/brand/icon-maskable-512.png'];
+    'static/original-brand/logo-32.png','static/original-brand/logo-64.png',
+    'static/original-brand/icon-180.png','static/original-brand/icon-192.png',
+    'static/original-brand/icon-512.png','static/original-brand/icon-maskable-512.png'];
   const files = [...new Set([...required,...await collect(path.join(output,'assets'),'assets/'),
     ...await collect(path.join(output,'static/brand'),'static/brand/')])].sort();
   if (files.length > 250) throw new Error('PWA static shell exceeds 250 files; review its allowlist');

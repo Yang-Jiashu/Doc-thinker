@@ -39,7 +39,7 @@ class InviteShell(StaticFiles):
         allowed = path in {"index.html", "manifest.webmanifest", "pwa-register.js", "service-worker.js"}
         if path.startswith("assets/"):
             allowed = Path(path).suffix.lower() in {".js", ".css", ".woff", ".woff2", ".ttf", ".png", ".svg"}
-        if path.startswith("static/brand/"):
+        if path.startswith(("static/brand/", "static/original-brand/")):
             allowed = Path(path).suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".svg"}
         if not allowed:
             raise HTTPException(404)

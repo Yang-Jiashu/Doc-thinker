@@ -27,7 +27,7 @@ function mount(page, overrides = {}) {
   const script = compileScript(descriptor, { id: page });
   const template = compileTemplate({ source: descriptor.template.content, filename, id: page, compilerOptions: { bindingMetadata: script.bindings } });
   assert.deepEqual(template.errors, []);
-  const hooks = {}, calls = { ask: [], start: 0, stop: 0, cancel: 0, stopSpeaking: 0, save: 0, connectionChecks:0, cancelChecks:0, inviteChecks:0, authentications:[], inviteCancels:0, navigation:[], logouts:[], reloads:[],memoryDrafts:[] };
+  const hooks = {}, calls = { ask: [], start: 0, stop: 0, cancel: 0, stopSpeaking: 0, save: 0, connectionChecks:0, cancelChecks:0, inviteChecks:0, authentications:[], inviteCancels:0, navigation:[], logouts:[], reloads:[],memoryDrafts:[],observations:[] };
   let active = 'a';
   let identity = null;
   let connectionRevision = 0;
@@ -41,9 +41,10 @@ function mount(page, overrides = {}) {
     graph: async () => ({ nodes: [{ id: 'same-id', label: 'Shared name' }], edges: [] }),
     chunks: async () => [{ content: 'Source excerpt' }], ...overrides.api,
   };
+  const observationClient={invalidate(){},load:async(sid,options)=>{calls.observations.push({sid,options});return overrides.observation ? overrides.observation(sid,options) : {sampled_at:1700000000,graph:{kind:'provenance_projection',nodes:[],edges:[]}};}};
   const scope = {
     ref, computed, watch, nextTick, api, createQueryRequestIdAsync, queryRequestIdSupported, questionByteLength, INVITE_MAX_QUESTION_BYTES, researchAnswerMetadata,requestReceipt,boundedAnswerSources,ProjectWorkbench:{},ProjectTasks:{},LongProjects:{},ComposerJump:{},EvidenceIntake:{},buildEvidenceCheckQuestion,researchExportParts,downloadResearchMarkdown,
-    researchConnectionKey:()=>String(connectionRevision),...overrides.requestIds,
+    researchConnectionKey:()=>String(connectionRevision),createMemoryObservationClient:()=>observationClient,GraphCanvas:{},...overrides.requestIds,
     research:{capabilities:async()=>({enabled:false}),stageMemoryDraft:value=>calls.memoryDrafts.push(value),...overrides.research},
     isFeedbackAnswerId: value => typeof value === 'string' && (/^[0-9a-f]{8}-[0-9a-f-]{27}$/.test(value) || /^demo-answer-\d+$/.test(value)),
     getPreferences: () => ({ ...preferences }),
@@ -74,6 +75,51 @@ test('chat, documents, graph and settings compile and opening them never records
     assert.equal(f.calls.start, 0); assert.equal(f.calls.ask.length, 0); assert.equal(f.calls.save, 0);
     f.dispose();
   }
+});
+
+const projectedGraph=(redacted=false)=>({sampled_at:1700000000,graph:{kind:'provenance_projection',window_limited:false,
+  nodes:[{id:'memory:m1',record_id:'m1',type:'memory',label:redacted?'内容已撤销':'用户确认的偏好',description:redacted?'':'仅个人背景',status:redacted?'invalidated':'active',revision:1,redacted,source_ids:redacted?[]:['s1']},
+    {id:'source:s1',record_id:'s1',type:'source',label:'原文',description:'',status:'available',redacted:false,source_ids:['s1']}],
+  edges:redacted?[]:[{source:'memory:m1',target:'source:s1',relation:'memory_source'}]}});
+test('opt-in invitation graph reads real scoped observation only, never legacy GraphCore or a model',async()=>{
+  let sourceReads=0;const f=mount('graph',{research:{capabilities:async()=>({enabled:true}),source:async(sid,id)=>{sourceReads++;assert.equal(sid,'a');assert.equal(id,'s1');return{id,content:'Current original passage'};}},
+    observation:async()=>projectedGraph(),api:{graph:async()=>{throw Error('must not expose legacy graph');},chunks:async()=>{throw Error('must not expose legacy source');}}});
+  f.preferences({mode:'connected',connectionKind:'invite',baseUrl:'https://private.example'});f.hooks.show();await settle();
+  assert.equal(f.ui.researchEnabled.value,true);assert.equal(f.ui.nodes.value.length,2);assert.equal(f.calls.observations.length,1);
+  await f.ui.selectCanvasNode('memory:m1');assert.equal(sourceReads,1);assert.equal(f.ui.chunks.value[0].content,'Current original passage');assert.equal(f.calls.ask.length,0);assert.equal(f.calls.start,0);f.dispose();
+});
+test('canvas inspection revalidates withdrawn memory and invalidates old paths and back history',async()=>{
+  let current=projectedGraph();const f=mount('graph',{research:{capabilities:async()=>({enabled:true}),source:async()=>({content:'Original'})},observation:async()=>structuredClone(current)});
+  f.preferences({mode:'connected',connectionKind:'invite'});f.hooks.show();await settle();await f.ui.selectCanvasNode('memory:m1');
+  f.ui.locatorResult.value={kind:'path',path:{nodeIds:['memory:m1','source:s1'],edges:[{source:'memory:m1',target:'source:s1'}]}};
+  f.ui.navigationHistory.value=[{nodeId:'memory:m1',query:'Old route'}];current=projectedGraph(true);
+  await f.ui.selectCanvasNode('memory:m1');assert.equal(f.ui.selected.value.redacted,true);assert.equal(f.ui.selected.value.description,'');assert.deepEqual(f.ui.chunks.value,[]);
+  assert.equal(f.ui.locatorResult.value,null);assert.deepEqual(f.ui.navigationHistory.value,[]);assert.equal(f.ui.edges.value.length,0);f.dispose();
+});
+test('late research graph snapshot cannot appear after a session change or page hide',async()=>{
+  const wait=deferred();const f=mount('graph',{research:{capabilities:async()=>({enabled:true})},observation:sid=>sid==='a'?wait.promise:Promise.resolve({...projectedGraph(),graph:{...projectedGraph().graph,nodes:[],edges:[]}})});
+  f.preferences({mode:'connected',connectionKind:'invite'});f.hooks.show();await settle();await f.ui.changeSession('b');wait.resolve(projectedGraph());await settle();
+  assert.equal(f.ui.sessionId.value,'b');assert.deepEqual(f.ui.nodes.value,[]);f.hooks.hide();assert.deepEqual(f.ui.nodes.value,[]);assert.equal(f.ui.observedAt.value,null);f.dispose();
+});
+test('failed fresh source check clears prior body and never falls back to synthetic evidence',async()=>{
+  const f=mount('graph',{research:{capabilities:async()=>({enabled:true}),source:async()=>{throw Error('Source withdrawn');}},observation:async()=>projectedGraph()});
+  f.preferences({mode:'connected',connectionKind:'invite'});f.hooks.show();await settle();await f.ui.selectCanvasNode('memory:m1');
+  assert.deepEqual(f.ui.chunks.value,[]);assert.equal(f.ui.selected.value.description,'');assert.deepEqual(f.ui.selected.value.source_ids,[]);assert.match(f.ui.evidenceError.value,/withdrawn/);f.dispose();
+});
+test('private full service switches the same canvas to GraphCore and reads a selected neighborhood',async()=>{
+  const reads=[];const f=mount('graph',{research:{capabilities:async()=>({enabled:true})},observation:async()=>projectedGraph(),
+    api:{graph:async(sid,options)=>{reads.push({sid,options});return{nodes:[{id:'entity-1',label:'真实实体'}],edges:[],metadata:{truncated:true}};}}});
+  f.preferences({mode:'connected',connectionKind:'private'});f.hooks.show();await settle();
+  assert.equal(f.ui.graphKind.value,'provenance_projection');assert.equal(reads.length,0);
+  await f.ui.changeGraphView('knowledge');assert.equal(f.ui.graphKind.value,'knowledge');assert.equal(f.ui.graphWindowLimited.value,true);
+  assert.equal(f.ui.nodes.value[0].id,'entity-1');await f.ui.selectCanvasNode('entity-1');
+  await f.ui.focusNeighborhood();assert.deepEqual(reads,[{sid:'a',options:undefined},{sid:'a',options:{focusNode:'entity-1'}}]);
+  assert.equal(f.ui.selected.value.id,'entity-1');assert.equal(f.ui.chunks.value[0].content,'Source excerpt');assert.equal(f.calls.ask.length,0);f.dispose();
+});
+test('invitation cannot switch a provenance canvas into the legacy full-service graph',async()=>{
+  let reads=0;const f=mount('graph',{research:{capabilities:async()=>({enabled:true})},observation:async()=>projectedGraph(),api:{graph:async()=>{reads++;return{};}}});
+  f.preferences({mode:'connected',connectionKind:'invite'});f.hooks.show();await settle();await f.ui.changeGraphView('knowledge');
+  assert.equal(f.ui.graphView.value,'sources');assert.equal(f.ui.graphKind.value,'provenance_projection');assert.equal(reads,0);f.dispose();
 });
 
 test('project workbench activity blocks sending, voice and session changes and delays history reads',async()=>{

@@ -84,6 +84,29 @@ test('missing or dynamically constructed brand paths fail before unused assets a
   await assert.rejects(finalizeWeixinBuild(f.output, { projectRoot: f.projectRoot }), /Dynamic or unsupported brand asset/);
 });
 
+test('active original-dog assets survive while unused high-resolution copies are pruned', async t => {
+  const f = await fixture(t);
+  await mkdir(path.join(f.output, 'static/original-brand'), { recursive: true });
+  for (const name of ['logo-32.png', 'logo-64.png', 'logo.png', 'icon-1024.png', 'catalog.json']) {
+    await writeFile(path.join(f.output, 'static/original-brand', name), 'original-dog fixture ' + name);
+  }
+  await writeFile(path.join(f.output, 'pages/chat/index.js'), 'const logo = "/static/original-brand/logo-64.png";');
+  await writeFile(path.join(f.output, 'pages/chat/index.wxml'), '<image src="/static/original-brand/logo-32.png"/>');
+  const result = await finalizeWeixinBuild(f.output, { projectRoot: f.projectRoot });
+  assert.deepEqual(result.brand.kept, ['static/brand/tab-chat-active.png', 'static/brand/tab-chat.png',
+    'static/original-brand/logo-32.png', 'static/original-brand/logo-64.png']);
+  assert.deepEqual((await readdir(path.join(f.output, 'static/original-brand'))).sort(), ['logo-32.png', 'logo-64.png']);
+  assert.ok(result.brand.removed.includes('static/original-brand/logo.png'));
+});
+
+test('missing and dynamic original-dog references fail closed before pruning', async t => {
+  const f = await fixture(t);
+  await writeFile(path.join(f.output, 'pages/chat/index.js'), 'const logo = "/static/original-brand/missing.png";');
+  await assert.rejects(finalizeWeixinBuild(f.output, { projectRoot: f.projectRoot }), /Referenced brand asset is missing/);
+  await writeFile(path.join(f.output, 'pages/chat/index.js'), 'const logo = `/static/original-brand/logo-${size}.png`;');
+  await assert.rejects(finalizeWeixinBuild(f.output, { projectRoot: f.projectRoot }), /Dynamic or unsupported brand asset/);
+});
+
 test('configured identity only changes ignored output, with no source identity or secret written', async t => {
   const f = await fixture(t);
   const originalProject = await readFile(path.join(f.projectRoot, 'src/project.config.json'));
