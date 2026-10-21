@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "source_commit": "78f11ca3324cb0951109f37136b31f7e638c7734",
+  "client_build": {
+    "pwa_version": "31e39111bf823dda1fcb",
+    "command": "cd clients/mobile && npm run build:h5"
+  },
+  "external_model_calls": 0,
+  "captures": [
+    {
+      "path": "docs/assets/ui-v2-workspace.gif",
+      "mode": "isolated-runtime-zero-model",
+      "viewport": {"width": 1180, "height": 820},
+      "width": 1000,
+      "height": 695,
+      "frames": 93,
+      "duration_ms": 12750,
+      "sha256": "5204d46f0e8657496d4ac6039879f7e3bf53ab45224ae149fc4352d32f9128ce",
+      "source_video_sha256": "74b382be85a5118e6774f9d03f5442afc00f40d12ba54f6181727d5e2f57dfbf",
+      "actions": [
+        "Open Project tools with the pre-existing synthetic customer-demo draft retained.",
+        "Choose Continue project; inspect the explicit append, replace or keep-original choice.",
+        "Append the recipe and verify that the original draft remains. Do not send a question."
+      ]
+    },
+    {
+      "path": "docs/assets/ui-v2-memory-observatory.gif",
+      "mode": "isolated-runtime-zero-model",
+      "viewport": {"width": 1180, "height": 820},
+      "width": 1000,
+      "height": 695,
+      "frames": 80,
+      "duration_ms": 12000,
+      "sha256": "3e5d313f57b1da4c075f5b39bd2f4d1e7a6c7018f13f451ed65c1376f0390124",
+      "source_video_sha256": "c4a2661838eb994dcd16df53c5195fd7db0fa8e81ee4683a29db25ee25125ca4",
+      "actions": [
+        "Inspect real isolated session counts: one document, two confirmed memories, two explicit events and zero stored-invalidated memories.",
+        "Switch from layers and status to source connections, then explicit events and their two recorded relations.",
+        "Open the first existing confirmed memory's history and inspect its one saved version without editing the fixture."
+      ]
+    },
+    {
+      "path": "docs/assets/ui-v2-graph-canvas.gif",
+      "mode": "isolated-runtime-zero-model",
+      "viewport": {"width": 1180, "height": 820},
+      "width": 1000,
+      "height": 695,
+      "frames": 90,
+      "duration_ms": 13000,
+      "sha256": "f6432013164a401e00b39369121c3edb9fc9b0ffefad251b48614eec62b47d93",
+      "source_video_sha256": "264e85908b83e1257a77e4a7734efdd9145736c3dda1dd98b65790eebecae139",
+      "actions": [
+        "Click the actual source node on the six-node, six-edge canvas and focus the selection; the current source is revalidated by the real service.",
+        "Pan the canvas with continuous pointer movement, zoom with the wheel, refocus and drag the selected node with continuous pointer movement.",
+        "Open details and the original synthetic passage. Check that it identifies the project as fictitious and includes the rehearsal record."
+      ]
+    }
+  ]
+}

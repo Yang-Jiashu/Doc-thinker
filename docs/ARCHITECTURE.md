@@ -22,6 +22,20 @@
 
 **恢复状态，不擅自恢复付费执行。** 核对不改写冻结草稿；缺口需要新分析时先展示计划，由用户确认、批准。来源变化只让受影响的依赖分支失效，不重做全部工作。[完整运行契约 →](LONG_PROJECT_RUNTIME.md)
 
+## 04 · 当前 UI：同一画布，两条只读数据入口
+
+新版 H5 图谱页在同一交互画布中区分**记忆与来源**、**知识关系 · 完整服务**。前者展示来源引用与显式事件关系，后者展示原 GraphCore 的知识关系窗口；不把两类边混成同一种语义证明。邀请研究仅开放前者；私人完整服务可读取知识关系窗口，在研究能力也开启时可切换两者。
+
+| 页面 / 数据入口 | 当前接线与边界 |
+|---|---|
+| 记忆观测 | [`MemoryObservatory.vue`](../clients/mobile/src/components/MemoryObservatory.vue) → [`memory-observability.js`](../clients/mobile/src/services/memory-observability.js) → `GET /api/v1/mobile/research/observability`。读取会话存储总数及重新核对的有界返回窗口；未提供的指标保留 `null`。 |
+| 来源／事件画布 | [`graph/index.vue`](../clients/mobile/src/pages/graph/index.vue) 将上述投影交给 [`GraphCanvas.vue`](../clients/mobile/src/components/GraphCanvas.vue)。点选时重新核对当前快照，再按来源 ID 调用研究 `source` 接口，最多读取三条关联原文；指针合法不等于原文支持全部结论。 |
+| GraphCore 知识关系窗口 | 私人完整服务通过 [`api.js`](../clients/mobile/src/services/api.js) → `GET /api/v1/mobile/graph` 复用原图谱 `scope=summary`，摘要最多 200 节点；`focus_node` 按需读取所选节点邻域。原文沿 `/chunks` 读取，不伪造为研究来源 ID，也不一次加载全库。 |
+| 原服务会话摘要 | `GET /api/v1/mobile/memory/dashboard` 只读本会话活跃摘要，标为“会话摘要”，不冒充用户确认记忆；未提供的资料、版本和事件指标不填零。该旧存储适配不对邀请开放。 |
+| 后端只读投影 | [`research_observability.py`](../docthinker/server/research_observability.py) 与 [`routers/mobile.py`](../docthinker/server/routers/mobile.py) 负责鉴权后的会话范围、来源状态与窗口限制；不调用模型、不触发学习、不改写使用次数。 |
+
+会话或身份切换会清除旧视图并丢弃迟到响应；刷新和原文读取是显式操作，不新增后台轮询。此层是 **UI 与只读投影的接通**，不改写上面 Harness、Insight、检索与推理算法，也不增加付费授权。新交互画布属于 H5；其他端保留列表导航，手机真机仍需单独验收。原 GPU 渲染器、摄像头手势与旧观测全套不因此视为已迁移；关联可追溯仍不等于因果已证明。
+
 <details>
 <summary>按图找代码</summary>
 

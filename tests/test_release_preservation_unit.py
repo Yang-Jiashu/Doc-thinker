@@ -30,16 +30,19 @@ def release(tmp_path, monkeypatch):
     monkeypatch.setattr(CHECK, "EXPECTED_SHA256", {
         name: hashlib.sha256(content).hexdigest() for name, content in files.items()
     })
-    monkeypatch.setattr(CHECK, "README_IMAGES", ("logo.png", "docs/assets/demo.gif"))
+    monkeypatch.setattr(CHECK, "README_IMAGES", ("logo.png",))
+    monkeypatch.setattr(CHECK, "HISTORY_IMAGES", ("../logo.png", "assets/demo.gif"))
     body = ('<img src="logo.png" alt="logo" />\n'
-            '![Original demo](docs/assets/demo.gif)\n'
+            '[History](docs/HISTORY.md)\n'
             '[Current architecture](docs/ARCHITECTURE.md)\n')
     for name in CHECK.README_PATHS:
         (tmp_path / name).write_text(body, encoding="utf-8")
+    (tmp_path / CHECK.HISTORY_PATH).write_text(
+        '![Original logo](../logo.png)\n![Original demo](assets/demo.gif)\n', encoding="utf-8")
     return tmp_path
 
 
-def test_real_release_preserves_all_frozen_assets_and_bilingual_galleries():
+def test_real_release_preserves_all_frozen_assets_and_linked_visible_archive():
     assert CHECK.LEGACY_FILE_COUNT == 76
     assert CHECK.MOBILE_BRAND_COUNT == 113
     assert len(CHECK.EXPECTED_SHA256) == 189
@@ -50,10 +53,57 @@ def test_real_release_preserves_all_frozen_assets_and_bilingual_galleries():
             "docthinker/memory_core/protocols.py"}.issubset(CHECK.EXPECTED_SHA256)
     assert len([name for name in CHECK.EXPECTED_SHA256
                 if name.startswith("docs/assets/")]) == 11
+    assert len(CHECK.HISTORY_IMAGES) == 12
 
 
 def test_checker_works_without_git_checkout_or_network(release):
     assert not (release / ".git").exists()
+    assert CHECK.verify(release) == (3, 2)
+
+
+@pytest.mark.parametrize("hidden", [
+    "<!-- [History](docs/HISTORY.md) -->",
+    "`[History](docs/HISTORY.md)`",
+    "```md\n[History](docs/HISTORY.md)\n```",
+    "<details>[History](docs/HISTORY.md)</details>",
+    '<details><a href="docs/HISTORY.md">History</a></details>',
+])
+def test_history_link_must_not_be_hidden_in_examples_or_closed_details(release, hidden):
+    path = release / "README.md"
+    path.write_text(path.read_text(encoding="utf-8").replace(
+        "[History](docs/HISTORY.md)", hidden), encoding="utf-8")
+    with pytest.raises(ValueError, match="default-visible history link"):
+        CHECK.verify(release)
+
+
+@pytest.mark.parametrize("name", CHECK.README_PATHS)
+def test_current_homepage_keeps_original_logo_visible(release, name):
+    path = release / name
+    path.write_text(path.read_text(encoding="utf-8").replace(
+        '<img src="logo.png" alt="logo" />',
+        '<details><img src="logo.png" alt="logo" /></details>'), encoding="utf-8")
+    with pytest.raises(ValueError, match="original logo image"):
+        CHECK.verify(release)
+
+
+def test_missing_history_page_fails_even_when_frozen_assets_still_exist(release):
+    (release / CHECK.HISTORY_PATH).unlink()
+    with pytest.raises(ValueError, match="HISTORY"):
+        CHECK.verify(release)
+
+
+def test_history_page_symlink_is_rejected(release):
+    history = release / CHECK.HISTORY_PATH
+    twin = release / "archive.md"
+    history.rename(twin)
+    history.symlink_to(twin)
+    with pytest.raises(ValueError, match="HISTORY"):
+        CHECK.verify(release)
+
+
+def test_archive_can_move_out_of_homepage_without_replacing_any_original_bytes(release):
+    for name in CHECK.README_PATHS:
+        assert "demo.gif" not in (release / name).read_text(encoding="utf-8")
     assert CHECK.verify(release) == (3, 2)
 
 
@@ -91,70 +141,64 @@ def test_symlinked_parent_of_protected_asset_is_rejected(release):
 
 
 @pytest.mark.parametrize("name", CHECK.README_PATHS)
-def test_both_readmes_must_retain_visible_original_demo(release, name):
+def test_both_readmes_must_link_the_visible_archive(release, name):
     path = release / name
     body = path.read_text(encoding="utf-8")
-    path.write_text(body.replace("![Original demo](docs/assets/demo.gif)", ""),
+    path.write_text(body.replace("[History](docs/HISTORY.md)", ""),
                     encoding="utf-8")
     with pytest.raises(ValueError, match=name.replace(".", r"\.")):
         CHECK.verify(release)
 
 
 @pytest.mark.parametrize("hidden", [
-    "<!-- ![demo](docs/assets/demo.gif) -->",
-    '```html\n<img src="docs/assets/demo.gif" />\n```',
-    "~~~md\n![demo](docs/assets/demo.gif)\n~~~",
+    "<!-- ![demo](assets/demo.gif) -->",
+    '```html\n<img src="assets/demo.gif" />\n```',
+    "~~~md\n![demo](assets/demo.gif)\n~~~",
 ])
 def test_comments_and_code_samples_cannot_replace_visible_demo(release, hidden):
-    for name in CHECK.README_PATHS:
-        path = release / name
-        body = path.read_text(encoding="utf-8")
-        path.write_text(body.replace("![Original demo](docs/assets/demo.gif)", hidden),
-                        encoding="utf-8")
+    path = release / CHECK.HISTORY_PATH
+    body = path.read_text(encoding="utf-8")
+    path.write_text(body.replace("![Original demo](assets/demo.gif)", hidden), encoding="utf-8")
     with pytest.raises(ValueError, match="original logo/demo/architecture"):
         CHECK.verify(release)
 
 
 @pytest.mark.parametrize("hidden", [
-    '<details><summary>Gallery</summary>![demo](docs/assets/demo.gif)</details>',
-    '<details>\n<img\n  src="docs/assets/demo.gif"\n  alt="demo"\n/>\n</details>',
-    '<details open><details>![demo](docs/assets/demo.gif)</details></details>',
-    '<details><details open>![demo](docs/assets/demo.gif)</details></details>',
-    '<details open><details><details open><img src="docs/assets/demo.gif"/>'
+    '<details><summary>Gallery</summary>![demo](assets/demo.gif)</details>',
+    '<details>\n<img\n  src="assets/demo.gif"\n  alt="demo"\n/>\n</details>',
+    '<details open><details>![demo](assets/demo.gif)</details></details>',
+    '<details><details open>![demo](assets/demo.gif)</details></details>',
+    '<details open><details><details open><img src="assets/demo.gif"/>'
     '</details></details></details>',
-    '<details>![demo](docs/assets/demo.gif)',
-    '<details open><details><img src="docs/assets/demo.gif"/>',
-    '`![demo](docs/assets/demo.gif)`',
-    '``<img src="docs/assets/demo.gif"/>``',
+    '<details>![demo](assets/demo.gif)',
+    '<details open><details><img src="assets/demo.gif"/>',
+    '`![demo](assets/demo.gif)`',
+    '``<img src="assets/demo.gif"/>``',
 ])
 def test_collapsed_details_and_inline_examples_do_not_satisfy_default_visibility(release, hidden):
-    for name in CHECK.README_PATHS:
-        path = release / name
-        body = path.read_text(encoding="utf-8")
-        path.write_text(body.replace("![Original demo](docs/assets/demo.gif)", hidden),
-                        encoding="utf-8")
+    path = release / CHECK.HISTORY_PATH
+    body = path.read_text(encoding="utf-8")
+    path.write_text(body.replace("![Original demo](assets/demo.gif)", hidden), encoding="utf-8")
     with pytest.raises(ValueError, match="original logo/demo/architecture"):
         CHECK.verify(release)
 
 
 @pytest.mark.parametrize("visible", [
-    '<details open><summary>Gallery</summary>![demo](docs/assets/demo.gif)</details>',
-    '<details open=""><img\n src="docs/assets/demo.gif"\n alt="demo"/></details>',
-    '<DETAILS OPEN>![demo](docs/assets/demo.gif)</DETAILS>',
+    '<details open><summary>Gallery</summary>![demo](assets/demo.gif)</details>',
+    '<details open=""><img\n src="assets/demo.gif"\n alt="demo"/></details>',
+    '<DETAILS OPEN>![demo](assets/demo.gif)</DETAILS>',
     # HTML boolean attributes are true by presence, even open="false".
-    '<details open="false"><img src="docs/assets/demo.gif"/></details>',
-    '<details open><details open>![demo](docs/assets/demo.gif)</details></details>',
-    '<details open>![demo](docs/assets/demo.gif)',
-    '<details open>![demo](<docs/assets/demo.gif>)</details>',
-    '<details><img src="hidden.gif"/></details>![demo](docs/assets/demo.gif)',
-    '```html\n<details>\n```\n![demo](docs/assets/demo.gif)',
+    '<details open="false"><img src="assets/demo.gif"/></details>',
+    '<details open><details open>![demo](assets/demo.gif)</details></details>',
+    '<details open>![demo](assets/demo.gif)',
+    '<details open>![demo](<assets/demo.gif>)</details>',
+    '<details><img src="hidden.gif"/></details>![demo](assets/demo.gif)',
+    '```html\n<details>\n```\n![demo](assets/demo.gif)',
 ])
 def test_default_open_details_and_content_after_closed_details_remain_visible(release, visible):
-    for name in CHECK.README_PATHS:
-        path = release / name
-        body = path.read_text(encoding="utf-8")
-        path.write_text(body.replace("![Original demo](docs/assets/demo.gif)", visible),
-                        encoding="utf-8")
+    path = release / CHECK.HISTORY_PATH
+    body = path.read_text(encoding="utf-8")
+    path.write_text(body.replace("![Original demo](assets/demo.gif)", visible), encoding="utf-8")
     assert CHECK.verify(release) == (3, 2)
 
 

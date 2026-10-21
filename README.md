@@ -6,54 +6,42 @@
 
 **A personal agent with a memory you can inspect — and work you can continue.**
 
-[English](README.md) · [中文](README.zh-CN.md) · [Try it](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [Acceptance](docs/RELEASE_ACCEPTANCE_2026-10-20.md)
+[English](README.md) · [中文](README.zh-CN.md) · [Try it](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [Acceptance](docs/RELEASE_ACCEPTANCE_2026-10-20.md) · [History](docs/HISTORY.md)
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB)](pyproject.toml)
 [![CI](https://github.com/Yang-Jiashu/Doc-thinker/actions/workflows/ci.yml/badge.svg)](https://github.com/Yang-Jiashu/Doc-thinker/actions/workflows/ci.yml)
 [![Paper](https://img.shields.io/badge/arXiv-2603.05551-b31b1b)](https://arxiv.org/abs/2603.05551)
 [![License](https://img.shields.io/badge/License-PolyForm_Shield-orange)](LICENSE)
 
-<img src="docs/assets/banner.png" width="1000" alt="Original DocThinker banner" />
-
 </div>
 
-*Original brand artwork, preserved unchanged; current runtime capabilities are shown below.*
+## Your memory, in view. Your evidence, in reach.
 
-## The current 2.0 interface, in action
+The updated H5 workbench connects memory observability with **two data views in the same interactive canvas**: **Memory & sources**, and **Knowledge relations · full service**. Research-enabled invitations expose the bounded source/event projection; a research-enabled private full-service connection can switch between that view and the GraphCore knowledge window. Server capabilities determine what is available.
 
-Actual browser recordings of the current H5 client, not interface mockups; each clip states its data and runtime boundaries. [Recording and reproduction notes →](docs/UI_SHOWCASE.md)
+**Inspect context:** confirmed memories, source links and versions stay distinguishable from model-generated hypotheses. **Navigate evidence:** open the accessible record behind a node, not an invented relationship.
 
-### 01 · Start with your own task
+### Bring the request. Keep the thread.
 
-<p align="center">
-  <a href="docs/assets/current-ui-workspace.gif"><img src="docs/assets/current-ui-workspace.gif" width="900" alt="Current 2.0 workspace: edit a personal-task draft and append a quick-start recipe without sending" /></a>
-</p>
+![Current workspace: keep a draft, open project tools and append a continuation recipe without sending](docs/assets/ui-v2-workspace.gif)
 
-*Offline sample: write a personal-task draft and append a recipe; no question is sent, no model is called and no task is started.*
+Your draft stays yours: open **Project tools → Continue project → Append to draft**. An actual isolated service is connected, but this interaction neither sends the question nor calls a model.
 
-### 02 · Keep what you confirm — and what you change
+### See what stays — and where it came from
 
-<p align="center">
-  <a href="docs/assets/current-ui-memory.gif"><img src="docs/assets/current-ui-memory.gif" width="900" alt="Current 2.0 confirmed memory: save a response preference, revise it and inspect versions 1 and 2" /></a>
-</p>
+![Current memory observatory: inspect layers, source links, explicit events and an existing memory version history](docs/assets/ui-v2-memory-observatory.gif)
 
-*Isolated test service: save a preference, confirm its revision and inspect both versions through the real gateway and SQLite; no model call or automatic preference learning.*
+Switch between **layers, sources and events**, then inspect a saved memory's versions. These are synthetic records in real isolated storage; counts describe this session, missing metrics remain unknown, and a bounded snapshot is not a growth benchmark.
 
-### Explore the graph
+### Follow the evidence, in the same workspace
 
-<p align="center">
-  <a href="docs/assets/current-ui-graph.gif"><img src="docs/assets/current-ui-graph.gif" width="900" alt="Current 2.0 graph navigation: locate sample entities and inspect a path, node details and simulated source text" /></a>
-</p>
+![Current interactive source and event canvas: pan, zoom, select a node and open its synthetic original passage](docs/assets/ui-v2-graph-canvas.gif)
 
-*Fixed offline sample: 6 nodes and 5 edges, with actual path navigation and node inspection; passages are simulated, connections are not causal proof and no graph is built from real documents here.*
+Pan and zoom the canvas, select a node and open its accessible passage. This clip uses the bounded research source/event projection; private full-service users can switch the **same canvas** to a GraphCore knowledge window and request a selected node's neighborhood. Neither view is an unbounded graph export or proof of causation; the older GPU renderer and camera gestures are not presented as migrated features.
 
-### 04 · Saved progress, an explicit stop
+All three clips use synthetic data and **zero external model calls**. They show actual browser interactions, not mockups or answer-quality, camera-gesture, real-phone or voice acceptance. [Recording method and boundaries →](docs/UI_SHOWCASE.md)
 
-<p align="center">
-  <a href="docs/assets/current-ui-projects.gif"><img src="docs/assets/current-ui-projects.gif" width="900" alt="Current 2.0 task checkpoints: open an approved plan, refresh progress and inspect a blocked review step" /></a>
-</p>
-
-*Isolated test service: inspect a previously approved plan, saved steps and an explicit blocked state. The local model double cannot handle the independent review request; the UI does not present a final report or retry an uncertain call automatically. This is a failure-handling demonstration, not successful AI delivery.*
+Earlier recordings and the original framework remain unchanged in the [visible history archive](docs/HISTORY.md), rather than standing in for the current product.
 
 ## Remember what matters. Pick up where you left off.
 
@@ -81,73 +69,9 @@ Code handles scope, search and execution budgets. Models interpret and write, wi
 
 **Approve → compose → check → fill evidence gaps → revise → deliver.** Restart restores state, not permission to spend: further paid work needs approval, and changed sources invalidate only affected dependency branches.
 
-## Historical UI — the previous version
+## Design history, preserved
 
-These original desktop assets remain visible and unchanged; **they are not the current 2.0 interface shown above.**
-
-### Previous chat and graph views
-
-<p align="center">
-  <img src="docs/assets/usecase_chat.gif" width="48%" alt="Historical demo: document-grounded chat in the previous desktop interface" />
-  <img src="docs/assets/usecase_kg.gif" width="48%" alt="Historical demo: knowledge-graph exploration in the previous desktop interface" />
-</p>
-
-*Previous full-desktop demonstrations; the invitation default is chat/history, with research documents and confirmed memory explicitly enabled, not full graph, voice or automatic learning.*
-
-### Previous memory observability and GPU graph
-
-<p align="center">
-  <img src="docs/assets/memory_kg_observability_demo.gif" width="48%" alt="Historical memory and knowledge-graph observability demo" />
-  <img src="docs/assets/gpu_knowledge_graph_demo.gif" width="48%" alt="Historical GPU knowledge-graph demonstration" />
-</p>
-
-*Previous desktop demonstrations, not features enabled by default in the invitation profile; a traceable connection is not proof of causation.*
-
-### Previous memory editor
-
-<p align="center">
-  <a href="docs/assets/ui_memory_editor_screenshot.png"><img src="docs/assets/ui_memory_editor_screenshot.png" width="900" alt="Historical memory editor, not a current 2.0 screenshot" /></a>
-</p>
-
-*Previous memory-editing interface; the current save, revision and history flow is recorded above.*
-
-## Original framework reference — historical
-
-Historical diagrams are retained unchanged. The three maps above describe current runtime connections; the artwork below is not an accepted feature list for every deployment.
-
-### Layered memory
-
-[![Original layered personal-agent memory architecture](docs/assets/agentic_memory_architecture.png)](docs/assets/agentic_memory_architecture.png)
-
-*The original memory framework.*
-
-### Document processing
-
-<p align="center">
-  <a href="docs/assets/pipeline.png"><img src="docs/assets/pipeline.png" width="520" alt="Original document-processing pipeline" /></a>
-</p>
-
-*Portrait reference diagram; click to inspect at full resolution. Full multimodal parsing is not part of the restricted invitation profile.*
-
-### Memory lifecycle
-
-[![Original memory lifecycle](docs/assets/lifecycle.png)](docs/assets/lifecycle.png)
-
-*How the original design organized memory over time.*
-
-### Evolution research
-
-[![Original multi-agent evolution framework illustration](docs/assets/multi_agent_evolution.png)](docs/assets/multi_agent_evolution.png)
-
-*Historical research design, not evidence that autonomous RSI is complete.*
-
-### Graph-query reasoning
-
-<p align="center">
-  <a href="docs/assets/sparql_cot.png"><img src="docs/assets/sparql_cot.png" width="760" alt="Original graph-query reasoning illustration" /></a>
-</p>
-
-*Analogy, deduction and induction supply conditional analytical leads, not new facts or proof of general causal reliability.*
+[Original demos, framework artwork and previous UI recordings →](docs/HISTORY.md). These remain unchanged and directly visible in the archive, not presented as current product screenshots.
 
 ## Quick start
 
@@ -157,7 +81,7 @@ Historical diagrams are retained unchanged. The three maps above describe curren
 
 **Explore the full graph:** [run the desktop workbench](#full-graph-workbench) — a separate developer profile with optional multimodal, gesture and voice components.
 
-The invitation default is chat/history; explicitly enabling its research core adds PDF/TXT/MD, confirmed memory and approved project phases, **not** full graph growth, gesture or voice. Private hosting is not end-to-end encryption: operators and configured model providers may process submitted content.
+The invitation default is chat/history; explicitly enabling its research core adds PDF/TXT/MD, confirmed memory, approved phases and the permitted bounded source/event projection. That projection is not the separate full GraphCore service, automatic graph growth, gesture or voice; private hosting is not end-to-end encryption, and operators/model providers may process content.
 
 Try a changing task: “Help me prepare next week's project review.” Add notes, confirm a preference, correct a deadline, inspect stale results, then continue an approved phase; the [long-project guide](docs/LONG_PROJECT_RUNTIME.md) explains the real workflow.
 
@@ -239,7 +163,7 @@ RSI is the research direction: independent evaluation, validated strategy adopti
 
 </details>
 
-The shared client retains its existing <img src="clients/mobile/src/static/brand/logo-32.png" width="24" height="24" alt="Evidence Window mobile mark" /> Evidence Window identity; no original logo or demonstration asset was replaced.
+The app uses the original <img src="clients/mobile/src/static/original-brand/logo-32.png" width="24" height="24" alt="DocThinker original dog logo" /> DocThinker dog identity. Original source bytes and all historical assets remain protected; app icon exports only resize and letterbox the original.
 
 [Architecture and algorithms](docs/ARCHITECTURE.md) · [Insight Schema](docs/INSIGHT_RUNTIME_DESIGN.md) · [Source-grounded retrieval](docs/RESEARCH_GROUNDED_DESIGN.md) · [Memory plugin](docs/MEMORY_PLUGIN_GUIDE.md) · [Contributing](CONTRIBUTING.md)
 
